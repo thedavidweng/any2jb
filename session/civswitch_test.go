@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type civAdapter struct {
@@ -28,7 +29,7 @@ func (a *civAdapter) Probe(context.Context, string, bool) error { a.probes++; re
 func (a *civAdapter) Release(context.Context) error             { a.releases++; return nil }
 
 func civController(a *civAdapter) *session.SessionController {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	env := f.Environment()
 	env.CivSwitch = a
 	return session.New(env, session.Profile{ID: "test", Revision: "pinned"})
@@ -75,7 +76,7 @@ func TestCivSwitchRequiresCompositeAndAvailableAdapter(t *testing.T) {
 	if a.transfers != 0 {
 		t.Fatal("transferred without gamepad")
 	}
-	c = session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"})
+	c = session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"})
 	c.ConfigureTransport(session.Transport{Mode: "composite", Capabilities: session.Capabilities{Keyboard: true, Gamepad: true}}, "")
 	if _, err := c.StartCivSwitch(civPrerequisites()); err == nil {
 		t.Fatal("missing adapter accepted")

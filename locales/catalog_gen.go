@@ -1972,16 +1972,6 @@ func (msgs Messages) AboutBuild() string {
 	return Catalog.Format(msgs.locale, "aboutBuild", nil)
 }
 
-// SimulatedEnvironment says "Simulated environment. No real hardware checks."
-// in the language the app shows.
-func SimulatedEnvironment() string { return In(i18n.Locale()).SimulatedEnvironment() }
-
-// SimulatedEnvironment says "Simulated environment. No real hardware checks."
-// in the language of msgs.
-func (msgs Messages) SimulatedEnvironment() string {
-	return Catalog.Format(msgs.locale, "simulatedEnvironment", nil)
-}
-
 // Home says "Home"
 // in the language the app shows.
 func Home() string { return In(i18n.Locale()).Home() }

@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func retainedHomebrew(t *testing.T) *session.SessionController {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned", RetainsRPC: true,
 		Tools: []string{"rpc-status", "mintbrew", "native-hblauncher", "izlauncher"}})

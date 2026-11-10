@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
@@ -18,7 +19,7 @@ func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "driver-loaded", State: session.RequiresAttention, GatesTransport: "usb-hid", NextAction: "Review driver approval."}}
 	if err := a.initializeSession(f.Environment()); err != nil {
 		t.Fatal(err)

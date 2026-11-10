@@ -14,6 +14,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"github.com/thedavidweng/any2jb/transport"
 )
 
@@ -72,7 +73,7 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 		return cmd
 	}
 	d := transport.NewHelperDarwin(options, factory)
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = append(f.Checks, session.Check{ID: "usb-drd0", Controller: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"})
 	env := f.Environment()
 	env.Input = d

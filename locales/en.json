@@ -202,7 +202,6 @@
   "@aboutBuild": {
     "description": "Toggle the development build limitations."
   },
-  "simulatedEnvironment": "Simulated environment. No real hardware checks.",
   "home": "Home",
   "checkingReadiness": "Checking readiness",
   "setupNeedsAttention": "Setup needs attention",

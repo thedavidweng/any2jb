@@ -9,9 +9,10 @@ import (
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
-func leasedHomebrewApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeToolAdapter, tools []string) (*app, *ui.Tester) {
+func leasedHomebrewApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolAdapter, tools []string) (*app, *ui.Tester) {
 	t.Helper()
 	a := retainedApp(t, f, adapter, tools)
 	tt := ui.NewTester(a.advancedToolsView, 720, 1600)
@@ -26,7 +27,7 @@ func leasedHomebrewApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeTo
 	return a, tt
 }
 
-func awaitToolRequest(t *testing.T, f *session.FakeEnvironment) session.ToolRequest {
+func awaitToolRequest(t *testing.T, f *sessiontest.FakeEnvironment) session.ToolRequest {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for {
@@ -55,7 +56,7 @@ func TestHomebrewToolsStateTheirRecordedReasons(t *testing.T) {
 		}
 		adapter.reasons[pair[0]] = d.Reason
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	a := retainedApp(t, f, adapter, []string{"mintbrew", "native-hblauncher", "izlauncher"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1600)
 	if !tt.HasText("Homebrew launching (experimental)") {
@@ -78,7 +79,7 @@ func TestHomebrewToolsStateTheirRecordedReasons(t *testing.T) {
 }
 
 func TestHomebrewSingleActiveSwitching(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{Tool: "mintbrew"}}
 	_, tt := leasedHomebrewApp(t, f, adapter, []string{"mintbrew", "native-hblauncher", "izlauncher"})
 	if !tt.HasText("mintbrew owns the retained session. Stop it before starting another tool.") {
@@ -93,7 +94,7 @@ func TestHomebrewSingleActiveSwitching(t *testing.T) {
 }
 
 func TestIZLauncherModuleSelectionReachesTheToolRequest(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
 	a, tt := leasedHomebrewApp(t, f, adapter, []string{"izlauncher"})
 	a.homebrewPanel.blitbun = true
@@ -109,7 +110,7 @@ func TestIZLauncherModuleSelectionReachesTheToolRequest(t *testing.T) {
 }
 
 func TestNativeLauncherFoldersReachTheToolRequest(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
 	a, tt := leasedHomebrewApp(t, f, adapter, []string{"native-hblauncher"})
 	a.homebrewPanel.sdFolder = "/sd/roms/nes"
@@ -126,7 +127,7 @@ func TestNativeLauncherFoldersReachTheToolRequest(t *testing.T) {
 }
 
 func TestNativeLauncherRejectsAnInvalidSDFolder(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
 	a, tt := leasedHomebrewApp(t, f, adapter, []string{"native-hblauncher"})
 	a.homebrewPanel.sdFolder = "/etc/roms"

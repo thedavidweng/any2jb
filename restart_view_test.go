@@ -9,6 +9,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type restartPlatform struct {
@@ -20,7 +21,7 @@ func (p restartPlatform) ReleaseInterrupted(context.Context) error { return p.re
 
 func TestConsoleRestartUIKeepsLiveLeaseBlockedAndShowsError(t *testing.T) {
 	for _, releaseError := range []error{nil, errors.New("session owner is still alive")} {
-		env := session.NewFakeEnvironment().Environment()
+		env := sessiontest.NewFakeEnvironment().Environment()
 		env.Platform = restartPlatform{PlatformServices: env.Platform, releaseError: releaseError}
 		a := &app{controller: session.New(env, session.Profile{ID: "fixture", Revision: "pinned"})}
 		a.controller.MarkInterrupted()

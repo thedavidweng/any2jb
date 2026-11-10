@@ -36,9 +36,6 @@ func (a *app) sessionView(c *ui.Context) {
 	if pending {
 		ui.Text(c, locales.ApplyBeforeLaunch())
 	}
-	if s.Simulated {
-		ui.Text(c, locales.SimulatedEnvironment()).TextColor(c.Theme().TextMuted)
-	}
 	ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).FontSize(20).Bold().Role(ui.RoleStatus)
 	a.manualView(c, s)
 	a.usbConfirmation.view(c)

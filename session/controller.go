@@ -29,8 +29,7 @@ func New(env Environment, profile Profile) *SessionController {
 	profile.Editions = slices.Clone(profile.Editions)
 	return &SessionController{env: env, changes: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
 		Edition:   "full",
-		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
-		Simulated: env.Simulated}}
+		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}}}}
 }
 func (c *SessionController) snapshot() Snapshot {
 	s := c.s

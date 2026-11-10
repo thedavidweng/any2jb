@@ -184,7 +184,6 @@
   "appDescription": "Nintendo Switch 2 会话管理器",
   "noSession": "当前没有正在运行的游戏机会话。",
   "aboutBuild": "关于此构建",
-  "simulatedEnvironment": "模拟环境。未进行真实硬件检查。",
   "home": "首页",
   "checkingReadiness": "正在检查就绪状态",
   "setupNeedsAttention": "设置需要处理",

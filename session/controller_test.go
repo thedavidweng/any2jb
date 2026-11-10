@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestHostMustListenBeforeInputAndRunIdentityIsFresh(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	c := ready(t, f, false)
 	c.Start()
 	first := await(t, c, session.Verified)
@@ -40,7 +41,7 @@ func TestHostMustListenBeforeInputAndRunIdentityIsFresh(t *testing.T) {
 
 func TestUnreadyHostAndPairingPublicationHaveDifferentRecovery(t *testing.T) {
 	t.Run("no input without validated listening host", func(t *testing.T) {
-		f := session.NewFakeEnvironment()
+		f := sessiontest.NewFakeEnvironment()
 		f.Prepared.Listening = false
 		c := ready(t, f, false)
 		c.Start()
@@ -50,7 +51,7 @@ func TestUnreadyHostAndPairingPublicationHaveDifferentRecovery(t *testing.T) {
 		}
 	})
 	t.Run("published pairing is already a side effect", func(t *testing.T) {
-		f := session.NewFakeEnvironment()
+		f := sessiontest.NewFakeEnvironment()
 		f.PrepareProgress = session.Progress{SideEffect: true, Message: "secret pairing token"}
 		f.PrepareError = errors.New("secret pairing token")
 		c := ready(t, f, false)
@@ -63,7 +64,7 @@ func TestUnreadyHostAndPairingPublicationHaveDifferentRecovery(t *testing.T) {
 		}
 	})
 	t.Run("cleanup failure cannot be called cancelled", func(t *testing.T) {
-		f := session.NewFakeEnvironment()
+		f := sessiontest.NewFakeEnvironment()
 		f.PrepareGate = make(chan struct{})
 		f.CleanupError = errors.New("cleanup failed")
 		c := ready(t, f, false)
@@ -74,7 +75,7 @@ func TestUnreadyHostAndPairingPublicationHaveDifferentRecovery(t *testing.T) {
 }
 
 func TestCancelInspectionDoesNotGrantLaunchEligibility(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.InspectGate = make(chan struct{})
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})
 	c.Inspect()
@@ -88,7 +89,7 @@ func TestCancelInspectionDoesNotGrantLaunchEligibility(t *testing.T) {
 }
 
 func TestProfileAndTransportChangesInvalidateReadiness(t *testing.T) {
-	c := ready(t, session.NewFakeEnvironment(), false)
+	c := ready(t, sessiontest.NewFakeEnvironment(), false)
 	if _, err := c.ConfigureTransport(session.Transport{Mode: "keyboard", Capabilities: session.Capabilities{Keyboard: true}}, "not-an-ip"); err == nil {
 		t.Fatal("invalid IPv4 accepted")
 	}
@@ -141,7 +142,7 @@ func active(t *testing.T, c *session.SessionController, stage session.Stage) {
 	}
 }
 
-func ready(t *testing.T, f *session.FakeEnvironment, held bool) *session.SessionController {
+func ready(t *testing.T, f *sessiontest.FakeEnvironment, held bool) *session.SessionController {
 	t.Helper()
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned", RetainsRPC: held, Tools: []string{"inventory"}})
 	if _, err := c.Inspect(); err != nil {
@@ -153,7 +154,7 @@ func ready(t *testing.T, f *session.FakeEnvironment, held bool) *session.Session
 
 func TestCancelStopAndFinishAreDifferent(t *testing.T) {
 	t.Run("cancel before console side effects", func(t *testing.T) {
-		f := session.NewFakeEnvironment()
+		f := sessiontest.NewFakeEnvironment()
 		f.PrepareGate = make(chan struct{})
 		c := ready(t, f, false)
 		if _, err := c.Start(); err != nil {
@@ -171,7 +172,7 @@ func TestCancelStopAndFinishAreDifferent(t *testing.T) {
 		}
 	})
 	t.Run("stop during input requires console restart", func(t *testing.T) {
-		f := session.NewFakeEnvironment()
+		f := sessiontest.NewFakeEnvironment()
 		f.InputGate = make(chan struct{})
 		c := ready(t, f, false)
 		c.Start()
@@ -197,7 +198,7 @@ func TestCancelStopAndFinishAreDifferent(t *testing.T) {
 		}
 	})
 	t.Run("finish releases verified run", func(t *testing.T) {
-		c := ready(t, session.NewFakeEnvironment(), true)
+		c := ready(t, sessiontest.NewFakeEnvironment(), true)
 		c.Start()
 		s := await(t, c, session.RetainedRPC)
 		if !s.Outcome.FSVerified {
@@ -229,7 +230,7 @@ func TestIncompleteVerificationNeverProducesVerifiedEvent(t *testing.T) {
 		{"held live RPC", true, func(o *session.Outcome) { o.RPCListening = false }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			f := session.NewFakeEnvironment()
+			f := sessiontest.NewFakeEnvironment()
 			tc.invalidate(&f.Outcome)
 			c := ready(t, f, tc.held)
 			c.Start()
@@ -244,7 +245,7 @@ func TestIncompleteVerificationNeverProducesVerifiedEvent(t *testing.T) {
 }
 
 func TestToolsAreSingleFlightAndCapabilityGated(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	gate := make(chan struct{})
 	f.ToolGate = gate
 	c := ready(t, f, true)
@@ -268,7 +269,7 @@ func TestToolsAreSingleFlightAndCapabilityGated(t *testing.T) {
 }
 
 func TestBootstrapNeedsSubmissionThenConsoleConfirmation(t *testing.T) {
-	c := ready(t, session.NewFakeEnvironment(), false)
+	c := ready(t, sessiontest.NewFakeEnvironment(), false)
 	if _, err := c.SaveBootstrap(true); err == nil {
 		t.Fatal("save without preparation")
 	}
@@ -293,7 +294,7 @@ func TestBootstrapNeedsSubmissionThenConsoleConfirmation(t *testing.T) {
 }
 
 func TestSnapshotsCannotMutateController(t *testing.T) {
-	c := ready(t, session.NewFakeEnvironment(), false)
+	c := ready(t, sessiontest.NewFakeEnvironment(), false)
 	s := c.Snapshot()
 	s.Checks[0].State = session.RequiresAttention
 	s.Profile.Tools[0] = "write-save"
@@ -303,7 +304,7 @@ func TestSnapshotsCannotMutateController(t *testing.T) {
 }
 
 func TestCompositeCapabilityAndReadinessBlockers(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks[0].State = session.Available
 	c := session.New(f.Environment(), session.Profile{ID: "civ", Revision: "pinned", CivSwitch: true, RequiredTransport: session.Capabilities{Keyboard: true, Gamepad: true}})
 	c.Inspect()
@@ -317,7 +318,7 @@ func TestCompositeCapabilityAndReadinessBlockers(t *testing.T) {
 }
 
 func TestReadinessAndRejectedStart(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})
 	if _, err := c.Start(); err == nil {
 		t.Fatal("start before inspection accepted")
@@ -326,7 +327,7 @@ func TestReadinessAndRejectedStart(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := await(t, c, session.Ready)
-	if !s.Simulated || len(s.Checks) == 0 {
+	if len(s.Checks) == 0 {
 		t.Fatalf("fake readiness must be explicit: %+v", s)
 	}
 	events := c.Events(0)

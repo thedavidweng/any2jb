@@ -92,11 +92,11 @@ Start still requires observed, verified readiness checks.
 
 ## Fake environment and UI
 
-`session.NewFakeEnvironment` provides deterministic outcomes, blocking gates and
-an observable action trace for tests. Configure it before constructing a
-controller; do not mutate outcomes during a run. Every fake snapshot is marked
-`Simulated`, and the injected UI displays “Simulated environment. No real
-hardware checks.” The production entrypoint does not inject this environment.
+`sessiontest.NewFakeEnvironment` provides deterministic outcomes, blocking gates
+and an observable action trace for tests. It lives in the test-only
+`session/sessiontest` package, so production binaries never link it. Configure
+it before constructing a controller; do not mutate outcomes during a run. The
+production entrypoint does not inject this environment.
 
 The existing `app` view accepts a controller for windowless `ui.Tester` tests.
 These cover Home, readiness blockers, active input, cancellation, stopping,

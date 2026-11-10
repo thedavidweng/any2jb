@@ -9,7 +9,7 @@ import (
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
-	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 // launcherPreview is a prepared package preview the fake adapter returns.
@@ -24,7 +24,7 @@ func launcherPreview() *savekit.Preview {
 // written on the thread that builds the view.
 func launcherApp(t *testing.T, adapter *fakeToolAdapter) (*app, *ui.Tester, <-chan func()) {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	a := saveKitApp(t, f, adapter)
 	published := make(chan func(), 4)
 	a.launcherPanel.update = func(apply func()) { published <- apply }

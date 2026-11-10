@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestLANOverrideDoesNotDiscardConfirmedBootstrap(t *testing.T) {
@@ -12,7 +13,7 @@ func TestLANOverrideDoesNotDiscardConfirmedBootstrap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := a.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	p := a.controller.Snapshot().Profile

@@ -7,6 +7,7 @@ import (
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func newTestApp(t *testing.T) *app {
@@ -16,7 +17,7 @@ func newTestApp(t *testing.T) *app {
 		t.Fatal(err)
 	}
 	a := &app{manifest: m, preferences: preferences{Profile: m.Default, Edition: "full", Transport: "manual"}}
-	if err := a.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := a.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	p := a.controller.Snapshot().Profile

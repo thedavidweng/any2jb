@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"github.com/thedavidweng/any2jb/transport"
 )
 
@@ -26,7 +27,7 @@ func TestBootstrapCanCancelBeforePublicationWithoutStartingAHelper(t *testing.T)
 			<-ctx.Done()
 			return ctx.Err()
 		}}, func(string, ...string) *exec.Cmd { t.Error("helper launched before focus confirmation"); return nil })
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = append(f.Checks, session.Check{ID: "usb-drd0", Controller: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"})
 	env := f.Environment()
 	env.Input = d

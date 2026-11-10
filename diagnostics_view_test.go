@@ -4,11 +4,12 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"testing"
 )
 
 func TestDiagnosticsSourcesFollowAndCleanupPreview(t *testing.T) {
-	a := &app{controller: session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "test"}), diagnostic: diagnosticUI{ready: true, logs: diagnostics.Logs{Host: "host failure", USB: "typing interrupted", Pipeline: "pipeline failure", Acquisition: "acquisition failed"}}}
+	a := &app{controller: session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test"}), diagnostic: diagnosticUI{ready: true, logs: diagnostics.Logs{Host: "host failure", USB: "typing interrupted", Pipeline: "pipeline failure", Acquisition: "acquisition failed"}}}
 	tt := ui.NewTester(a.diagnosticsView, 640, 720)
 	for _, label := range []string{"Host", "USB and typing", "Pipeline", "Acquisition", "Follow logs", "Preview cleanup"} {
 		if !tt.HasText(label) {

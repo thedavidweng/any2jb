@@ -13,9 +13,10 @@ import (
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
-func saveKitApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeToolAdapter) *app {
+func saveKitApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolAdapter) *app {
 	t.Helper()
 	m, err := manifest.Load()
 	if err != nil {
@@ -41,7 +42,7 @@ func saveKitLease(t *testing.T, a *app, tt *ui.Tester) {
 }
 
 func TestSaveKitControlsNeedAHeldLease(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
 	a := saveKitApp(t, f, adapter)
 	tt := ui.NewTester(a.saveKitView, 720, 1400)
@@ -68,7 +69,7 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{reasons: map[string]string{"savekit-read": d.Reason, "savekit": d.Reason}}
 	a := saveKitApp(t, f, adapter)
 	tt := ui.NewTester(a.saveKitView, 720, 1400)
@@ -86,7 +87,7 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 }
 
 func TestSaveKitListsSelectArchiveAndExport(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 		Users:  []string{"11111111111111111111111111111111", "22222222222222222222222222222222"},
 		Titles: []string{"010012900d38a000"},
@@ -141,7 +142,7 @@ func TestSaveKitListsSelectArchiveAndExport(t *testing.T) {
 }
 
 func TestSaveKitManualTitleEntry(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 		Users: []string{"11111111111111111111111111111111"},
 	}}}
@@ -174,9 +175,9 @@ func TestSaveKitManualTitleEntry(t *testing.T) {
 
 // leasedSaveKit enters the panel with a lease, a manual target and a source
 // folder ready for the gated write flow.
-func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapter, *ui.Tester, *session.FakeEnvironment) {
+func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapter, *ui.Tester, *sessiontest.FakeEnvironment) {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 		Users: []string{"11111111111111111111111111111111"},
 	}}}

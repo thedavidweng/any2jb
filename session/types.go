@@ -175,7 +175,6 @@ type Snapshot struct {
 	Processes         []Process
 	CleanupConfirmed  bool
 	Attached          bool
-	Simulated         bool
 	Busy              bool
 	SideEffects       bool
 	BootstrapPrepared bool
@@ -288,5 +287,4 @@ type Environment struct {
 	Input     InputTransport
 	Platform  PlatformServices
 	Tools     ToolRunner
-	Simulated bool
 }

@@ -8,21 +8,22 @@ import (
 
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
-func attachable(t *testing.T, f *session.FakeEnvironment) *session.SessionController {
+func attachable(t *testing.T, f *sessiontest.FakeEnvironment) *session.SessionController {
 	t.Helper()
 	return session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
 		RetainsRPC: true, Tools: []string{"rpc-status"}})
 }
 
 func TestAttachRequiresRetainedCapabilityAndAdapter(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	noRPC := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})
 	if _, err := noRPC.AttachRetained("session-1"); err == nil {
 		t.Fatal("attached to a host without the retained capability")
 	}
-	bare := session.NewFakeEnvironment()
+	bare := sessiontest.NewFakeEnvironment()
 	env := bare.Environment()
 	env.Retained = nil
 	c := session.New(env, session.Profile{ID: "test", Revision: "pinned", RetainsRPC: true})
@@ -34,7 +35,7 @@ func TestAttachRequiresRetainedCapabilityAndAdapter(t *testing.T) {
 }
 
 func TestAttachIsDistinctFromLaunchAndDetachLeavesTheHostRunning(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1", Description: "kurumuz · session-1"}}
 	c := attachable(t, f)
 	found, err := c.DiscoverRetained(context.Background())
@@ -75,7 +76,7 @@ func TestAttachIsDistinctFromLaunchAndDetachLeavesTheHostRunning(t *testing.T) {
 }
 
 func TestSaveKitMutationsNeedTheirGateBeforeAnyToolRuns(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
 		RetainsRPC: true, Tools: []string{"savekit-read", "savekit"}})
@@ -103,7 +104,7 @@ func TestSaveKitMutationsNeedTheirGateBeforeAnyToolRuns(t *testing.T) {
 	await(t, c, session.RetainedRPC)
 }
 func TestAttachedToolNeedsTheLeaseAndALostSessionIsNotRetried(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
 	lost := make(chan struct{})
 	f.RetainedLostGate = lost
@@ -133,7 +134,7 @@ func TestAttachedToolNeedsTheLeaseAndALostSessionIsNotRetried(t *testing.T) {
 }
 
 func TestAttachRefusesIncompleteHeldEvidence(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
 	f.AttachOutcome = session.Outcome{Verified: true, FSVerified: true, Restored: true, RetainedReady: true}
 	c := attachable(t, f)

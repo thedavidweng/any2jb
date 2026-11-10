@@ -16,12 +16,13 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"github.com/thedavidweng/any2jb/transport"
 )
 
 func TestUSBConsoleGateWaitsForExplicitAcknowledgement(t *testing.T) {
 	a := &app{}
-	a.controller = session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "fixture", Revision: "pinned"})
+	a.controller = session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "fixture", Revision: "pinned"})
 	done := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -66,7 +67,7 @@ func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
 				cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path, "GORACE=atexit_sleep_ms=0")
 				return cmd
 			})
-			f := session.NewFakeEnvironment()
+			f := sessiontest.NewFakeEnvironment()
 			f.Checks = []session.Check{{ID: "driver-loaded", State: session.CheckVerified, GatesTransport: "usb-hid"}, {ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"}}
 			env := f.Environment()
 			env.Input = d
@@ -190,7 +191,7 @@ func TestKeyboardAvailabilitySurvivesReInspectionAfterControllerChange(t *testin
 		cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path, "GORACE=atexit_sleep_ms=0")
 		return cmd
 	})
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "driver-loaded", State: session.CheckVerified, GatesTransport: "usb-hid"}, {ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"}}
 	env := f.Environment()
 	env.Input = d

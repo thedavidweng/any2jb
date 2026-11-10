@@ -7,10 +7,11 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestSessionFailureHasSafeRecovery(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.PrepareError = errors.New("simulated failure")
 	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
 	tt := ui.NewTester(a.view, 640, 520)
@@ -61,17 +62,20 @@ func uiStage(t *testing.T, a *app, tt *ui.Tester, stage session.Stage) {
 }
 
 func TestSessionDashboardAndRecovery(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.InputGate = make(chan struct{})
 	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
 	tt := ui.NewTester(a.view, 640, 520)
-	if !tt.HasText("Simulated environment. No real hardware checks.") || !tt.HasText("Home") {
+	if !tt.HasText("Home") {
 		t.Fatal(tt.Texts())
 	}
 	if err := tt.Click("Check readiness"); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
+	if !tt.HasText("Simulated readiness, not a real hardware check.") {
+		t.Fatal(tt.Texts())
+	}
 	if err := tt.Click("Guided manual launch"); err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +105,7 @@ func TestSessionDashboardAndRecovery(t *testing.T) {
 }
 
 func TestFailingReadinessIsActionable(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "network", State: session.RequiresAttention, Message: "No reachable LAN address.", NextAction: "Connect the host to the console LAN."}}
 	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
 	tt := ui.NewTester(a.view, 640, 520)
@@ -121,7 +125,7 @@ func TestFailingReadinessIsActionable(t *testing.T) {
 }
 
 func TestDashboardCancelAndFinish(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	gate := make(chan struct{})
 	f.PrepareGate = gate
 	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}

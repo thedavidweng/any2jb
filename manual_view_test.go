@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"github.com/thedavidweng/any2jb/transport"
 )
 
@@ -24,7 +25,7 @@ func manualApp(t *testing.T, scenario string) (*app, *ui.Tester) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	env := f.Environment()
 	env.Host = engine.NewProtocolRunner(t.TempDir(), func(run session.Run, workspace string) *exec.Cmd {
 		return exec.Command(node, fixture, scenario, run.ID, workspace)

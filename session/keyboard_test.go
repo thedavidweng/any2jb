@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type keyboardFixture struct {
@@ -50,7 +51,7 @@ func (k keyboardLease) Close(context.Context) error {
 }
 
 func TestLiveKeyboardIsControllerOwnedAndPartialCloseRequiresInspection(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = append(f.Checks, session.Check{ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"})
 	env := f.Environment()
 	input := &keyboardFixture{}

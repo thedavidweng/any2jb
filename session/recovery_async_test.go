@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type blockedRecoveryPlatform struct {
@@ -25,7 +26,7 @@ func (p blockedRecoveryPlatform) ReleaseInterrupted(ctx context.Context) error {
 }
 
 func TestRecoveryLeaseIODoesNotBlockWindowSnapshot(t *testing.T) {
-	env := session.NewFakeEnvironment().Environment()
+	env := sessiontest.NewFakeEnvironment().Environment()
 	platform := blockedRecoveryPlatform{PlatformServices: env.Platform, entered: make(chan struct{}), release: make(chan struct{})}
 	env.Platform = platform
 	c := session.New(env, session.Profile{ID: "test"})

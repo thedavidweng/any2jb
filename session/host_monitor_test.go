@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestRetainedHostExitInvalidatesLease(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	exited := make(chan struct{})
 	f.HostExitGate = exited
 	c := ready(t, f, true)

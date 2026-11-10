@@ -8,6 +8,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func withLocale(t *testing.T, locale string) {
@@ -65,7 +66,7 @@ func TestLocalizeKeepsUnknownText(t *testing.T) {
 func TestReadinessMessagesDisplayChinese(t *testing.T) {
 	withLocale(t, "zh-CN")
 	a := newTestApp(t)
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "usb-runtime", State: session.RequiresAttention,
 		Message:    "Verified USB helpers are not available.",
 		NextAction: "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."}}

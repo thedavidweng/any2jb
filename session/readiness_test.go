@@ -8,6 +8,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/readiness"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type observedPlatform struct {
@@ -25,7 +26,7 @@ func (p *observedPlatform) Inspect(ctx context.Context, run session.Run) ([]sess
 }
 
 func TestObservedLANSelectionAndTransportGates(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	env := f.Environment()
 	p := &observedPlatform{PlatformServices: env.Platform, address: "192.168.1.10"}
 	env.Platform = p

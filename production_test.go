@@ -19,9 +19,6 @@ func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
 	env := productionEnvironmentWithCivSwitch(
 		engine.Options{Assets: t.TempDir(), Support: t.TempDir(), Version: "fixture", Manifest: a.manifest},
 		transport.DarwinOptions{Timing: transport.DefaultTiming()}, civswitch.Options{})
-	if env.Simulated {
-		t.Fatal("production injected a simulated environment")
-	}
 	if _, ok := env.Host.(*engine.HostRunner); !ok {
 		t.Fatal("production did not use the real host runner")
 	}
