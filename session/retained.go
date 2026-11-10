@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"slices"
+
+	"github.com/thedavidweng/any2jb/savekit"
 )
 
 // RetainedSession is a discovered local verified held session. Listing one is
@@ -115,10 +117,12 @@ func (c *SessionController) detach(ctx context.Context, run Run) error {
 }
 
 // ToolRequest carries validated user input for one tool: the console address a
-// read-only export needs. A parameter is neither a capability nor consent.
+// read-only export needs, or one read-only SaveKit operation. A parameter is
+// neither a capability nor consent.
 type ToolRequest struct {
 	Tool        string
 	ConsoleIPv4 string
+	SaveKit     *savekit.Request
 }
 
 // ParameterizedToolRunner is implemented by tool adapters that accept validated
@@ -144,9 +148,14 @@ func (c *SessionController) RunToolWith(request ToolRequest) (Snapshot, error) {
 	if request.ConsoleIPv4 != "" && !validConsoleIPv4(request.ConsoleIPv4) {
 		return c.configurationError(InvalidConfiguration, "Enter the console's IPv4 address on the same reachable LAN.")
 	}
+	if request.SaveKit != nil {
+		if err := request.SaveKit.Validate(); err != nil {
+			return c.configurationError(InvalidConfiguration, err.Error())
+		}
+	}
 	runner, parameterized := c.env.Tools.(ParameterizedToolRunner)
-	if request.ConsoleIPv4 != "" && !parameterized {
-		return c.configurationError(Unsupported, "This build's tool adapter does not accept a console address.")
+	if (request.ConsoleIPv4 != "" || request.SaveKit != nil) && !parameterized {
+		return c.configurationError(Unsupported, "This build's tool adapter does not accept tool parameters.")
 	}
 	return c.begin(RunningTool, false, func(ctx context.Context, run Run) error {
 		var err error

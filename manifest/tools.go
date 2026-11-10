@@ -44,28 +44,41 @@ func (m *Manifest) ToolSourceFiles(root, id string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	recorded, err := c.Source.parse(inventory)
-	if err != nil {
-		return nil, &IntegrityError{Component: id, Path: c.Path, Err: err}
-	}
-	if len(recorded) != c.Source.Files {
-		return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("inventory size differs from the recorded file count")}
-	}
 	if !fs.ValidPath(c.Source.Directory) || strings.Contains(c.Source.Directory, `\`) {
 		return nil, &IntegrityError{Component: id, Path: c.Source.Directory, Err: errors.New("invalid tool source directory")}
 	}
 	files := []string{c.Path}
-	for name, digest := range recorded {
-		if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
-			return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid inventory entry %q", name)}
+	if c.Source.Format == "selected-files" {
+		// No whole-tree inventory exists; the component path is the recorded
+		// notice and Extra names every file the stage may copy. The tree keeps
+		// its other files (write entrypoints excluded from a read-only stage),
+		// so only recorded names are verified, never walked.
+		if len(c.Source.Extra) != c.Source.Files {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("recorded file count differs from the selected file set")}
 		}
-		full := path.Join(c.Source.Directory, name)
-		if _, err := verifyFile(root, id, full, digest); err != nil {
-			return nil, err
+	} else {
+		recorded, err := c.Source.parse(inventory)
+		if err != nil {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: err}
 		}
-		files = append(files, full)
+		if len(recorded) != c.Source.Files {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("inventory size differs from the recorded file count")}
+		}
+		for name, digest := range recorded {
+			if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
+				return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid inventory entry %q", name)}
+			}
+			full := path.Join(c.Source.Directory, name)
+			if _, err := verifyFile(root, id, full, digest); err != nil {
+				return nil, err
+			}
+			files = append(files, full)
+		}
 	}
 	for name, digest := range c.Source.Extra {
+		if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid recorded file %q", name)}
+		}
 		if _, err := verifyFile(root, id, name, digest); err != nil {
 			return nil, err
 		}
@@ -73,8 +86,10 @@ func (m *Manifest) ToolSourceFiles(root, id string) ([]string, error) {
 	}
 	slices.Sort(files)
 	files = slices.Compact(files)
-	if err := refuseUnrecorded(root, c, files); err != nil {
-		return nil, err
+	if c.Source.Format != "selected-files" {
+		if err := refuseUnrecorded(root, c, files); err != nil {
+			return nil, err
+		}
 	}
 	return files, nil
 }

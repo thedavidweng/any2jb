@@ -187,4 +187,8 @@ func (t fakeTools) Run(ctx context.Context, _ Run, _ string, _ Report) error {
 	}
 	return t.f.ToolError
 }
+func (t fakeTools) RunWith(ctx context.Context, run Run, request ToolRequest, report Report) error {
+	t.f.record("tool.run-with " + request.Tool)
+	return t.Run(ctx, run, request.Tool, report)
+}
 func (t fakeTools) Stop(context.Context, Run) error { return t.f.CleanupError }

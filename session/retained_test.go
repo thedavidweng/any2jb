@@ -3,8 +3,10 @@ package session_test
 import (
 	"context"
 	"slices"
+	"strings"
 	"testing"
 
+	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -72,6 +74,30 @@ func TestAttachIsDistinctFromLaunchAndDetachLeavesTheHostRunning(t *testing.T) {
 	}
 }
 
+
+func TestSaveKitWriteRequestsAreRejectedBeforeAnyToolRuns(t *testing.T) {
+	f := session.NewFakeEnvironment()
+	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
+	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
+		RetainsRPC: true, Tools: []string{"savekit-read"}})
+	if _, err := c.AttachRetained("session-1"); err != nil {
+		t.Fatal(err)
+	}
+	await(t, c, session.RetainedRPC)
+	for _, action := range []string{"write", "restore", "delete"} {
+		_, err := c.RunToolWith(session.ToolRequest{Tool: "savekit-read", SaveKit: &savekit.Request{
+			Action: action, TitleID: "010012900d38a000", UID: strings.Repeat("1", 32)}})
+		rejection, ok := err.(*session.Rejection)
+		if !ok || rejection.Reason != session.InvalidConfiguration {
+			t.Fatalf("%s reached the tool adapter: %v", action, err)
+		}
+	}
+	if _, err := c.RunToolWith(session.ToolRequest{Tool: "savekit-read",
+		SaveKit: &savekit.Request{Action: "accounts"}}); err != nil {
+		t.Fatal(err)
+	}
+	await(t, c, session.RetainedRPC)
+}
 func TestAttachedToolNeedsTheLeaseAndALostSessionIsNotRetried(t *testing.T) {
 	f := session.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
