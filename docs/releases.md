@@ -31,8 +31,9 @@ The local validation toolchain was Xcode **27.2**, build **27B52**.
 The full developer regression check also requires **Zig 0.15.2** for pepsipu's
 payload rebuild. It is not part of the shipped runtime and is not needed just
 to package the app. Use the official prebuilt compiler (verify its minisign
-signature), managed by the existing `mise` installation if available. Select it
-with `cmd/check -zig /absolute/path/to/zig`; no global activation is necessary.
+signature), managed by the existing `mise` installation if available. `cmd/check`
+finds that install itself and verifies its version; `-zig /absolute/path/to/zig`
+overrides the lookup. No global activation is necessary.
 
 ```sh
 go test ./...
