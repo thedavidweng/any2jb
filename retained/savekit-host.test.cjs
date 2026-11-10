@@ -1,7 +1,8 @@
 'use strict';
 const assert = require('node:assert/strict');
 const {test} = require('node:test');
-const {request, buildArgs, buildMutationArgs, TOOLS} = require('./savekit-host.cjs');
+const crypto = require('node:crypto');
+const {request, buildArgs, buildMutationArgs, checkPreview, TOOLS} = require('./savekit-host.cjs');
 
 const TITLE = '010012900d38a000';
 const UID = '1'.repeat(32);
@@ -16,7 +17,7 @@ test('read-only operations validate without gate fields', () => {
   }
   assert.throws(() => request({action: 'inspect', titleId: TITLE, uid: UID, sourceFolder: '/tmp/x'}),
     /Unknown field/);
-  assert.throws(() => request({action: 'backup', titleId: TITLE, uid: UID, confirm: true}),
+  assert.throws(() => request({action: 'backup', titleId: TITLE, uid: UID, confirm: true, previewDigest: DIGEST}),
     /Unknown field/);
   assert.throws(() => request({action: 'filetime', titleId: TITLE, uid: UID, all: true}),
     /one archive/);
@@ -29,39 +30,41 @@ test('read-only operations validate without gate fields', () => {
 
 test('mutations validate only with confirmation', () => {
   const write = request({action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/saves', allowReplace: true, confirm: true});
+    sourceFolder: '/tmp/saves', allowReplace: true, confirm: true, previewDigest: DIGEST});
   assert.deepEqual(write, {action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/saves', allowReplace: true});
+    sourceFolder: '/tmp/saves', allowReplace: true, previewDigest: DIGEST});
   assert.throws(() => request({action: 'write', titleId: TITLE, uid: UID,
     sourceFolder: '/tmp/saves'}), /[Cc]onfirm/);
   assert.throws(() => request({action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: 'relative', confirm: true}), /absolute/);
+    sourceFolder: 'relative', confirm: true, previewDigest: DIGEST}), /absolute/);
   assert.throws(() => request({action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/saves', confirm: true, archive: {space: 1}}), /Unknown field/);
+    sourceFolder: '/tmp/saves', confirm: true, previewDigest: DIGEST, archive: {space: 1}}), /Unknown field/);
   assert.throws(() => request({action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/saves', confirm: true, previewDigest: DIGEST}), /Unknown field/);
+    sourceFolder: '/tmp/saves', confirm: true}), /[Pp]review/);
+  assert.throws(() => request({action: 'write', titleId: TITLE, uid: UID,
+    sourceFolder: '/tmp/saves', confirm: true, previewDigest: 'zz'}), /[Pp]review/);
 
   const restore = request({action: 'restore', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/backup', confirm: true});
+    sourceFolder: '/tmp/backup', confirm: true, previewDigest: DIGEST});
   assert.equal(restore.action, 'restore');
   assert.deepEqual(restore.archive, {space: 1, type: 1, rank: 0, index: 0, staticId: 0});
   assert.throws(() => request({action: 'restore', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/backup', confirm: true,
+    sourceFolder: '/tmp/backup', confirm: true, previewDigest: DIGEST,
     archive: {space: 1, type: 2}}), /Account or Device/);
   assert.throws(() => request({action: 'restore', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/backup', confirm: true,
+    sourceFolder: '/tmp/backup', confirm: true, previewDigest: DIGEST,
     archive: {rank: 1}}), /Account or Device/);
   assert.throws(() => request({action: 'restore', titleId: TITLE, uid: UID,
     sourceFolder: '/tmp/backup'}), /[Cc]onfirm/);
 
   const del = request({action: 'delete', titleId: TITLE, uid: UID,
-    fileName: 'savegame.bin', confirm: true});
+    fileName: 'savegame.bin', confirm: true, previewDigest: DIGEST});
   assert.equal(del.fileName, 'savegame.bin');
   assert.throws(() => request({action: 'delete', titleId: TITLE, uid: UID,
     fileName: 'savegame.bin'}), /[Cc]onfirm/);
   for (const name of ['', '.', '..', 'a/b', String.raw`a\b`, 'bad\nname']) {
     assert.throws(() => request({action: 'delete', titleId: TITLE, uid: UID,
-      fileName: name, confirm: true}), /save root/);
+      fileName: name, confirm: true, previewDigest: DIGEST}), /save root/);
   }
   assert.throws(() => request({action: 'unknown', titleId: TITLE, uid: UID}),
     /Unsupported/);
@@ -91,19 +94,30 @@ test('read-only argv reaches only the pinned read tools', () => {
 test('mutation argv carries the re-verified backup', () => {
   const run = '/runs/run-1';
   const write = request({action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/saves', confirm: true});
+    sourceFolder: '/tmp/saves', confirm: true, previewDigest: DIGEST});
   assert.deepEqual(buildMutationArgs(write, run, '/exports/backup', '/tmp/stage/manifest.json'),
     ['save-write-stage.cjs', run, TITLE, UID, '/exports/backup', '/tmp/stage/manifest.json']);
   const restore = request({action: 'restore', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/backup', confirm: true, archive: {space: 4, type: 3}});
+    sourceFolder: '/tmp/backup', confirm: true, previewDigest: DIGEST, archive: {space: 4, type: 3}});
   assert.deepEqual(buildMutationArgs(restore, run, '/exports/backup', '/tmp/stage/restore.json'),
     ['save-write-stage.cjs', run, TITLE, UID, '/exports/backup', '/tmp/stage/restore.json',
       '--space', '4', '--type', '3', '--restore', '--confirm-restore']);
   const del = request({action: 'delete', titleId: TITLE, uid: UID,
-    fileName: 'savegame.bin', confirm: true});
+    fileName: 'savegame.bin', confirm: true, previewDigest: DIGEST});
   assert.deepEqual(buildMutationArgs(del, run, '/exports/backup'),
     ['save-delete-root.cjs', run, TITLE, UID, '/savegame.bin', '/exports/backup']);
   assert.throws(() => buildMutationArgs(request({action: 'write', titleId: TITLE, uid: UID,
-    sourceFolder: '/tmp/saves', confirm: true}), run, 'relative'),
+    sourceFolder: '/tmp/saves', confirm: true, previewDigest: DIGEST}), run, 'relative'),
     /absolute/);
+});
+
+test('staged files must match the confirmed preview', () => {
+  const sha = crypto.createHash('sha256').update('extra\n').digest('hex');
+  const digest = crypto.createHash('sha256')
+    .update('/a.bin\t1\t' + 'b'.repeat(64) + '\n/extra.bin\t6\t' + sha + '\n').digest('hex');
+  const files = [{path: '/extra.bin', size: 6, sha256: sha}, {path: '/a.bin', size: 1, sha256: 'b'.repeat(64)}];
+  checkPreview(files, digest);
+  assert.throws(() => checkPreview([files[0]], digest), /changed since its preview/);
+  checkPreview(null, crypto.createHash('sha256').update('delete\n/savegame.bin\n').digest('hex'), 'savegame.bin');
+  assert.throws(() => checkPreview(null, digest, 'savegame.bin'), /changed since its preview/);
 });

@@ -54,9 +54,10 @@ The `savekit` mutation gate runs, in order, per operation:
    (write: a flat source folder; restore: a verified export; delete: the exact
    file name), states the target title, account and archive, and requires a
    confirmation that covers exactly one operation. `savekit.Validate` binds
-   the preview's SHA-256 digest to the request, so the host module never sees
-   a mutation without it; the manager recomputes the digest at run time, and a
-   source that changed since the preview fails before anything runs.
+   the preview's SHA-256 digest to the request. The manager recomputes the
+   digest at run time, and the host module checks it again against its private
+   staged copies just before the pinned tool runs, so a source that changed
+   after the preview is refused before any console change.
 2. **Target validation.** A fresh verified backup of the target archive is
    pulled first and its export manifest identity must match the requested
    title, account and archive; a mismatch aborts before any change and says

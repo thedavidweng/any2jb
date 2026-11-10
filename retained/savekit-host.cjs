@@ -39,9 +39,9 @@ function request(value) {
     inspect: ['action', 'titleId', 'uid', 'archive', 'all'],
     backup: ['action', 'titleId', 'uid', 'archive', 'all'],
     filetime: ['action', 'titleId', 'uid', 'archive', 'all'],
-    write: ['action', 'titleId', 'uid', 'sourceFolder', 'allowReplace', 'confirm'],
-    restore: ['action', 'titleId', 'uid', 'archive', 'sourceFolder', 'confirm'],
-    delete: ['action', 'titleId', 'uid', 'fileName', 'confirm'],
+    write: ['action', 'titleId', 'uid', 'sourceFolder', 'allowReplace', 'confirm', 'previewDigest'],
+    restore: ['action', 'titleId', 'uid', 'archive', 'sourceFolder', 'confirm', 'previewDigest'],
+    delete: ['action', 'titleId', 'uid', 'fileName', 'confirm', 'previewDigest'],
   };
   check(Object.keys(value).every(key => fields[value.action].includes(key)),
     'Unknown field in savekit request.');
@@ -66,6 +66,9 @@ function request(value) {
     return parsed;
   }
   check(value.confirm === true, 'Confirm this exact save operation before running it.');
+  check(typeof value.previewDigest === 'string' && /^[0-9a-f]{64}$/.test(value.previewDigest),
+    'Preview the affected files before confirming this save operation.');
+  parsed.previewDigest = value.previewDigest;
   if (value.action === 'write') {
     check(typeof value.sourceFolder === 'string' && path.isAbsolute(value.sourceFolder),
       'Choose an absolute local save folder.');
@@ -426,6 +429,19 @@ async function stageRestoredFiles(sourceFolder, stage, manifest) {
   return files;
 }
 
+// checkPreview proves the files about to be written are exactly the ones the
+// user confirmed. The digest format matches savekit.Preview in Go: sorted
+// "/path\tsize\tsha256\n" lines, or "delete\n/name\n" for a delete. It runs on
+// the private staged copies, so a source edited after the preview is refused.
+function checkPreview(files, digest, deleteName) {
+  const hash = crypto.createHash('sha256');
+  if (deleteName !== undefined) hash.update('delete\n/' + deleteName + '\n');
+  else for (const file of [...files].sort((a, b) => Buffer.compare(Buffer.from(a.path), Buffer.from(b.path))))
+    hash.update(file.path + '\t' + file.size + '\t' + file.sha256 + '\n');
+  check(hash.digest('hex') === digest,
+    'The affected files changed since its preview. No save was changed; preview it again.');
+}
+
 function parseUsers(output) {
   const users = [...new Set(output.split('\n').map(line => line.trim().toLowerCase())
     .filter(line => uidPattern.test(line)))];
@@ -481,6 +497,7 @@ async function mutate(parsed, proof, tools, backup, stageParent) {
   check(saved.selection.uid === parsed.uid,
     'The backup belongs to another account. No save was changed.');
   if (parsed.action === 'delete') {
+    checkPreview(null, parsed.previewDigest, parsed.fileName);
     check(saved.entries.some(entry => entry.path === '/' + parsed.fileName),
       'The selected file is not in the live save. No file was deleted.');
     const output = await runTool(path.join(tools, 'save-delete-root.cjs'),
@@ -495,6 +512,8 @@ async function mutate(parsed, proof, tools, backup, stageParent) {
     let files, manifestPath;
     if (parsed.action === 'write') {
       files = await stageFiles(parsed.sourceFolder, stage);
+      checkPreview(await Promise.all(files.map(async file => ({path: '/' + file.name,
+        size: (await fsp.lstat(file.path)).size, sha256: file.sha256}))), parsed.previewDigest);
       const replacements = files.filter(file => present.has('/' + file.name));
       check(parsed.allowReplace || replacements.length === 0,
         'The selected folder would replace existing save files. Enable replacement explicitly.');
@@ -514,6 +533,7 @@ async function mutate(parsed, proof, tools, backup, stageParent) {
     check(source.selection.uid === parsed.uid,
       'The selected backup belongs to another account. No save was written.');
     files = await stageRestoredFiles(parsed.sourceFolder, stage, source);
+    checkPreview(files, parsed.previewDigest);
     manifestPath = path.join(stage, 'restore.json');
     await fsp.writeFile(manifestPath, JSON.stringify({files: files.map(file => ({
       path: file.path, local: file.local, replace: present.has(file.path)}))}, null, 2) + '\n',
@@ -584,7 +604,7 @@ async function main(args = process.argv.slice(2)) {
 }
 
 module.exports = {request, archive, buildArgs, buildMutationArgs, parseUsers, parseTitles,
-  parseInventory, verifyPull, heldProof, main, TOOLS};
+  parseInventory, verifyPull, heldProof, checkPreview, main, TOOLS};
 if (require.main === module) main().catch(error => {
   emit('failed', {message: String(error.message).replace(/[\x00-\x1f\x7f]+/g, ' ').slice(0, 512)});
   process.exitCode = 1;
