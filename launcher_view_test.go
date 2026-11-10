@@ -143,3 +143,31 @@ func TestLauncherPreviewResetsWhenTheTargetChanges(t *testing.T) {
 		t.Fatal("install stayed usable for a package without its own preview")
 	}
 }
+
+// Every installer control carries an accessible name and the refusal is a
+// status region, so a screen reader reads why nothing was written.
+func TestLauncherControlsAreAccessible(t *testing.T) {
+	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
+		Users: []string{"11111111111111111111111111111111"}}}}
+	a, tt, _ := launcherApp(t, adapter)
+	saveKitLease(t, a, tt)
+	a.launcherPanel.failed = true
+	tt.Frame()
+	for _, info := range tt.AccessAll() {
+		switch info.Role {
+		case ui.RoleButton, ui.RoleCheckBox, ui.RoleTextField, ui.RolePopUpButton, ui.RoleComboBox:
+			if info.Name == "" {
+				t.Errorf("control without an accessible name: %+v", info)
+			}
+		}
+	}
+	status := false
+	for _, info := range tt.AccessAll() {
+		if info.Role == ui.RoleStatus && info.Name == "The launcher package could not be prepared from its pinned, digest-verified source. No save was changed." {
+			status = true
+		}
+	}
+	if !status {
+		t.Fatalf("the refusal is not a status region: %+v", tt.AccessAll())
+	}
+}
