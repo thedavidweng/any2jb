@@ -88,6 +88,266 @@ func (msgs Messages) AboutBuild() string {
 	return Catalog.Format(msgs.locale, "aboutBuild", nil)
 }
 
+// SimulatedEnvironment says "Simulated environment. No real hardware checks."
+// in the language the app shows.
+func SimulatedEnvironment() string { return In(i18n.Locale()).SimulatedEnvironment() }
+
+// SimulatedEnvironment says "Simulated environment. No real hardware checks."
+// in the language of msgs.
+func (msgs Messages) SimulatedEnvironment() string {
+	return Catalog.Format(msgs.locale, "simulatedEnvironment", nil)
+}
+
+// Home says "Home"
+// in the language the app shows.
+func Home() string { return In(i18n.Locale()).Home() }
+
+// Home says "Home"
+// in the language of msgs.
+func (msgs Messages) Home() string {
+	return Catalog.Format(msgs.locale, "home", nil)
+}
+
+// CheckingReadiness says "Checking readiness"
+// in the language the app shows.
+func CheckingReadiness() string { return In(i18n.Locale()).CheckingReadiness() }
+
+// CheckingReadiness says "Checking readiness"
+// in the language of msgs.
+func (msgs Messages) CheckingReadiness() string {
+	return Catalog.Format(msgs.locale, "checkingReadiness", nil)
+}
+
+// SetupNeedsAttention says "Setup needs attention"
+// in the language the app shows.
+func SetupNeedsAttention() string { return In(i18n.Locale()).SetupNeedsAttention() }
+
+// SetupNeedsAttention says "Setup needs attention"
+// in the language of msgs.
+func (msgs Messages) SetupNeedsAttention() string {
+	return Catalog.Format(msgs.locale, "setupNeedsAttention", nil)
+}
+
+// ReadyToLaunch says "Ready to launch"
+// in the language the app shows.
+func ReadyToLaunch() string { return In(i18n.Locale()).ReadyToLaunch() }
+
+// ReadyToLaunch says "Ready to launch"
+// in the language of msgs.
+func (msgs Messages) ReadyToLaunch() string {
+	return Catalog.Format(msgs.locale, "readyToLaunch", nil)
+}
+
+// BootstrapSetup says "Bootstrap setup"
+// in the language the app shows.
+func BootstrapSetup() string { return In(i18n.Locale()).BootstrapSetup() }
+
+// BootstrapSetup says "Bootstrap setup"
+// in the language of msgs.
+func (msgs Messages) BootstrapSetup() string {
+	return Catalog.Format(msgs.locale, "bootstrapSetup", nil)
+}
+
+// VerifiedSession says "Verified session"
+// in the language the app shows.
+func VerifiedSession() string { return In(i18n.Locale()).VerifiedSession() }
+
+// VerifiedSession says "Verified session"
+// in the language of msgs.
+func (msgs Messages) VerifiedSession() string {
+	return Catalog.Format(msgs.locale, "verifiedSession", nil)
+}
+
+// RetainedSession says "Verified session with retained RPC"
+// in the language the app shows.
+func RetainedSession() string { return In(i18n.Locale()).RetainedSession() }
+
+// RetainedSession says "Verified session with retained RPC"
+// in the language of msgs.
+func (msgs Messages) RetainedSession() string {
+	return Catalog.Format(msgs.locale, "retainedSession", nil)
+}
+
+// SessionFinished says "Session finished"
+// in the language the app shows.
+func SessionFinished() string { return In(i18n.Locale()).SessionFinished() }
+
+// SessionFinished says "Session finished"
+// in the language of msgs.
+func (msgs Messages) SessionFinished() string {
+	return Catalog.Format(msgs.locale, "sessionFinished", nil)
+}
+
+// SessionFailed says "Session failed"
+// in the language the app shows.
+func SessionFailed() string { return In(i18n.Locale()).SessionFailed() }
+
+// SessionFailed says "Session failed"
+// in the language of msgs.
+func (msgs Messages) SessionFailed() string {
+	return Catalog.Format(msgs.locale, "sessionFailed", nil)
+}
+
+// RecoveryRequired says "Console recovery required"
+// in the language the app shows.
+func RecoveryRequired() string { return In(i18n.Locale()).RecoveryRequired() }
+
+// RecoveryRequired says "Console recovery required"
+// in the language of msgs.
+func (msgs Messages) RecoveryRequired() string {
+	return Catalog.Format(msgs.locale, "recoveryRequired", nil)
+}
+
+// SessionInProgress says "Session in progress"
+// in the language the app shows.
+func SessionInProgress() string { return In(i18n.Locale()).SessionInProgress() }
+
+// SessionInProgress says "Session in progress"
+// in the language of msgs.
+func (msgs Messages) SessionInProgress() string {
+	return Catalog.Format(msgs.locale, "sessionInProgress", nil)
+}
+
+// RestartConsole says "Restart the console before another attempt."
+// in the language the app shows.
+func RestartConsole() string { return In(i18n.Locale()).RestartConsole() }
+
+// RestartConsole says "Restart the console before another attempt."
+// in the language of msgs.
+func (msgs Messages) RestartConsole() string {
+	return Catalog.Format(msgs.locale, "restartConsole", nil)
+}
+
+// SafeFailure says "The operation failed before console input. Check diagnostics, then run readiness checks."
+// in the language the app shows.
+func SafeFailure() string { return In(i18n.Locale()).SafeFailure() }
+
+// SafeFailure says "The operation failed before console input. Check diagnostics, then run readiness checks."
+// in the language of msgs.
+func (msgs Messages) SafeFailure() string {
+	return Catalog.Format(msgs.locale, "safeFailure", nil)
+}
+
+// Progress says "Progress"
+// in the language the app shows.
+func Progress() string { return In(i18n.Locale()).Progress() }
+
+// Progress says "Progress"
+// in the language of msgs.
+func (msgs Messages) Progress() string {
+	return Catalog.Format(msgs.locale, "progress", nil)
+}
+
+// CommandRejected says "This action is not available in the current session state."
+// in the language the app shows.
+func CommandRejected() string { return In(i18n.Locale()).CommandRejected() }
+
+// CommandRejected says "This action is not available in the current session state."
+// in the language of msgs.
+func (msgs Messages) CommandRejected() string {
+	return Catalog.Format(msgs.locale, "commandRejected", nil)
+}
+
+// CheckReadiness says "Check readiness"
+// in the language the app shows.
+func CheckReadiness() string { return In(i18n.Locale()).CheckReadiness() }
+
+// CheckReadiness says "Check readiness"
+// in the language of msgs.
+func (msgs Messages) CheckReadiness() string {
+	return Catalog.Format(msgs.locale, "checkReadiness", nil)
+}
+
+// StartJailbreak says "Start Jailbreak"
+// in the language the app shows.
+func StartJailbreak() string { return In(i18n.Locale()).StartJailbreak() }
+
+// StartJailbreak says "Start Jailbreak"
+// in the language of msgs.
+func (msgs Messages) StartJailbreak() string {
+	return Catalog.Format(msgs.locale, "startJailbreak", nil)
+}
+
+// GuidedManualLaunch says "Guided manual launch"
+// in the language the app shows.
+func GuidedManualLaunch() string { return In(i18n.Locale()).GuidedManualLaunch() }
+
+// GuidedManualLaunch says "Guided manual launch"
+// in the language of msgs.
+func (msgs Messages) GuidedManualLaunch() string {
+	return Catalog.Format(msgs.locale, "guidedManualLaunch", nil)
+}
+
+// Cancel says "Cancel"
+// in the language the app shows.
+func Cancel() string { return In(i18n.Locale()).Cancel() }
+
+// Cancel says "Cancel"
+// in the language of msgs.
+func (msgs Messages) Cancel() string {
+	return Catalog.Format(msgs.locale, "cancel", nil)
+}
+
+// Stop says "Stop"
+// in the language the app shows.
+func Stop() string { return In(i18n.Locale()).Stop() }
+
+// Stop says "Stop"
+// in the language of msgs.
+func (msgs Messages) Stop() string {
+	return Catalog.Format(msgs.locale, "stop", nil)
+}
+
+// Finish says "Finish"
+// in the language the app shows.
+func Finish() string { return In(i18n.Locale()).Finish() }
+
+// Finish says "Finish"
+// in the language of msgs.
+func (msgs Messages) Finish() string {
+	return Catalog.Format(msgs.locale, "finish", nil)
+}
+
+// PrepareBootstrap says "Prepare bootstrap"
+// in the language the app shows.
+func PrepareBootstrap() string { return In(i18n.Locale()).PrepareBootstrap() }
+
+// PrepareBootstrap says "Prepare bootstrap"
+// in the language of msgs.
+func (msgs Messages) PrepareBootstrap() string {
+	return Catalog.Format(msgs.locale, "prepareBootstrap", nil)
+}
+
+// SubmitSave says "Submit SAVE"
+// in the language the app shows.
+func SubmitSave() string { return In(i18n.Locale()).SubmitSave() }
+
+// SubmitSave says "Submit SAVE"
+// in the language of msgs.
+func (msgs Messages) SubmitSave() string {
+	return Catalog.Format(msgs.locale, "submitSave", nil)
+}
+
+// SavePrompt says "Complete the console save or overwrite prompt, then confirm here."
+// in the language the app shows.
+func SavePrompt() string { return In(i18n.Locale()).SavePrompt() }
+
+// SavePrompt says "Complete the console save or overwrite prompt, then confirm here."
+// in the language of msgs.
+func (msgs Messages) SavePrompt() string {
+	return Catalog.Format(msgs.locale, "savePrompt", nil)
+}
+
+// ConfirmSaved says "I saved the bootstrap"
+// in the language the app shows.
+func ConfirmSaved() string { return In(i18n.Locale()).ConfirmSaved() }
+
+// ConfirmSaved says "I saved the bootstrap"
+// in the language of msgs.
+func (msgs Messages) ConfirmSaved() string {
+	return Catalog.Format(msgs.locale, "confirmSaved", nil)
+}
+
 // BuildLimitations says "Development shell. Console workflows are not available yet."
 // in the language the app shows.
 //
