@@ -16,3 +16,12 @@ test('Node reads the canonical six profiles and their distinct launch contracts'
   assert.equal(profileById('astral').supportsModloader, false);
   assert.throws(() => profileById('unknown'), /Unknown host profile/);
 });
+
+test('distribution decisions cannot be changed through the Node reader', () => {
+  assert.equal(profileById('kurumuz').distribution.decision, 'blocked');
+  const research = manifest.components.find(c => c.id === 'browser-research');
+  assert.equal(research.distribution.decision, 'excluded');
+  assert.equal(research.distribution.bundled, false);
+  assert.throws(() => { research.distribution.decision = 'may-ship'; }, TypeError);
+  assert.throws(() => { profileById('kurumuz').distribution.bundled = true; }, TypeError);
+});

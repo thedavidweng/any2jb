@@ -3,6 +3,7 @@
   "identifier": "io.github.thedavidweng.any2jb",
   "version": "0.1.0",
   "out": "build",
+  "buildCommand": "go run ./cmd/check-package",
   "i18n": { "dir": "locales", "source": "en" },
   "macos": { "minimumSystemVersion": "14.0" }
 }
