@@ -1,8 +1,12 @@
 'use strict';
 
 // Go owns policy, integrity, staging, process groups and verification. This
-// adapter joins the pinned read-only upstream tool APIs to JSON lines. It never
-// writes console data: no save, mod, launcher or filesystem write path exists here.
+// adapter joins the pinned read-only upstream tool APIs to JSON lines, and
+// supervises the pinned homebrew launchers against their staged sources. The
+// read-only tools never write console data: no save, mod or filesystem write
+// path exists here. The homebrew supervisors drive only the pinned launcher
+// contract (display, audio and the loopback RPC proxy) and must prove their
+// cleanup with the attempt-marker protocol before Go allows another launch.
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
 const path = require('node:path');
@@ -10,8 +14,16 @@ const http = require('node:http');
 const net = require('node:net');
 const crypto = require('node:crypto');
 const readline = require('node:readline');
+const {spawn} = require('node:child_process');
+const {EventEmitter} = require('node:events');
 
-const TOOLS = ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp', 'sd-browser'];
+const TOOLS = ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp', 'sd-browser',
+  'mintbrew', 'native-hblauncher', 'izlauncher'];
+const HOMEBREW = ['mintbrew', 'native-hblauncher', 'izlauncher'];
+const ATTEMPT_MARKER = '.mac2jb-hblauncher-attempt.json';
+const RPC_COMMANDS = new Set(['status', 'call', 'verify-function', 'call-address', 'pair', 'read', 'write', 'query']);
+const NATIVE_TRUSTED_PROFILES = ['kurumuz', 'cellenseres', 'astral'];
+const IZ_PROGRAM_IDS = ['0100c9100b06a000', '0100b4b00f9f6000'];
 const MINIMUM_FREE_BYTES = 512n * 1024n * 1024n;
 const check = (value, message) => { if (!value) throw Error(message); };
 
@@ -279,15 +291,643 @@ async function ounceCake(toolRoot, workspace, proof, consoleAddress, mode, run) 
   if (failure) throw failure;
 }
 
+// ---------- homebrew supervisors ----------
+// The supervisors below are original any2jb code. They drive the staged,
+// digest-pinned upstream lower-level modules (prepare stages, owner scripts,
+// the native host) exactly the way the mac2jb GUI supervisors do, preserving
+// the same readiness lines, shutdown proofs and attempt-marker protocol. Go
+// requires those proofs before it allows another homebrew launch.
+
+// A generic request to the held engine bridge. The proxy passes replies
+// through unchanged; the children enforce their own limits.
+function rpcRequest(connection, body, timeoutMs = 300000) {
+  const requestBody = JSON.stringify({...body, ...(connection.token ? {token: connection.token} : {})});
+  return new Promise((resolve, reject) => {
+    const request = http.request({host: '127.0.0.1', port: connection.port, path: '/', method: 'POST',
+      headers: {'content-type': 'application/json'}}, response => {
+      const parts = []; let length = 0;
+      response.on('error', reject);
+      response.on('data', part => {
+        length += part.length;
+        if (length > 64 * 1024 * 1024) response.destroy(Error('The RPC response exceeded its limit.'));
+        else parts.push(part);
+      });
+      response.on('end', () => {
+        try {
+          check(response.statusCode === 200, 'The retained RPC endpoint refused a request.');
+          resolve(JSON.parse(Buffer.concat(parts)));
+        } catch (error) { reject(error); }
+      });
+    });
+    request.setTimeout(timeoutMs, () => request.destroy(Error('The RPC request timed out; it was not replayed.')));
+    request.on('error', reject);
+    request.end(requestBody);
+  });
+}
+
+// The live-lease predicate re-checked on every bridge request and before any
+// cleanup proof is accepted.
+function liveCheck(proof) {
+  try {
+    const result = JSON.parse(fs.readFileSync(path.join(proof.workspace, 'result.json'), 'utf8'));
+    const connection = JSON.parse(fs.readFileSync(path.join(proof.workspace, 'connection.json'), 'utf8'));
+    return result.verified === true && !result.error && !result.completed &&
+      result.rpc?.mode === 'held' && result.rpc?.state === 'listening' &&
+      result.fs?.verified === true && result.fs?.restored === true &&
+      result.fs?.retainedEndpoint?.ready === true && result.fs?.cleanup?.deferred === true &&
+      connection.port === proof.connection.port &&
+      connection.addresses?.session === proof.session;
+  } catch { return false; }
+}
+
+// The portable runtime environment every homebrew child inherits, built from
+// the verified prepared runtime root.
+function homebrewEnvironment(homebrewRoot, inherited = process.env, extra = {}) {
+  const env = {...inherited,
+    PATH: [path.join(homebrewRoot, 'python/bin'), path.join(homebrewRoot, 'bin'),
+      inherited.PATH || ''].join(path.delimiter),
+    SPIRV_VAL: path.join(homebrewRoot, 'bin/spirv-val'),
+    PYTHONPATH: path.join(homebrewRoot, 'python-custom'),
+    PYTHONNOUSERSITE: '1', PYTHONDONTWRITEBYTECODE: '1',
+    MAC2JB_HBLAUNCHER_FONT: path.join(homebrewRoot, 'fonts/DejaVuSans.ttf'),
+    ...extra};
+  delete env.PYTHONHOME;
+  return env;
+}
+
+async function checkHomebrewRuntime(homebrewRoot) {
+  for (const file of ['python/bin/python3', 'bin/spirv-val']) {
+    await fsp.access(path.join(homebrewRoot, file), fs.constants.X_OK)
+      .catch(() => { throw Error('The staged homebrew runtime is not executable: ' + file); });
+  }
+  for (const file of ['fonts/DejaVuSans.ttf', 'python-custom/sitecustomize.py']) {
+    check((await fsp.lstat(path.join(homebrewRoot, file))).isFile(),
+      'The staged homebrew runtime is incomplete: ' + file);
+  }
+}
+
+// Swap documented environment keys around an in-process module call.
+async function withEnvironment(environment, keys, operation) {
+  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+  for (const key of keys) {
+    if (environment[key] === undefined) delete process.env[key];
+    else process.env[key] = environment[key];
+  }
+  try { return await operation(); }
+  finally {
+    for (const key of keys) {
+      if (previous[key] === undefined) delete process.env[key];
+      else process.env[key] = previous[key];
+    }
+  }
+}
+
+function readOutputLines(stream, callback) {
+  let pending = '';
+  stream.on('data', bytes => {
+    pending += bytes.toString();
+    let at;
+    while ((at = pending.search(/[\r\n]/)) >= 0) {
+      const line = pending.slice(0, at);
+      pending = pending.slice(at + 1);
+      if (line) callback(line);
+    }
+    if (pending.length > 65536) { callback(pending.slice(0, 65536)); pending = ''; }
+  });
+  stream.on('end', () => { if (pending) callback(pending); });
+}
+
+// The loopback RPC proxy every homebrew child talks to. It re-checks the live
+// lease on every request and forwards only the documented bridge commands.
+async function rpcProxy(proof, onRequest) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const server = http.createServer(async (req, res) => {
+    if (req.method !== 'POST' || req.url !== '/' || req.headers.authorization !== 'Bearer ' + token) {
+      res.writeHead(403).end();
+      return;
+    }
+    try {
+      check(liveCheck(proof), 'The original held RPC session is no longer available.');
+      const parts = []; let length = 0;
+      for await (const part of req) {
+        length += part.length;
+        check(length <= 2 * 1024 * 1024, 'Bridge request is too large');
+        parts.push(part);
+      }
+      const body = JSON.parse(Buffer.concat(parts));
+      check(body && typeof body === 'object' && !Array.isArray(body) && RPC_COMMANDS.has(body.command),
+        'Unknown homebrew bridge command');
+      const reply = await onRequest(body);
+      if (!res.destroyed) {
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify(reply, (_, value) => typeof value === 'bigint' ? value.toString() : value));
+      }
+    } catch (error) {
+      if (!res.destroyed) {
+        res.writeHead(400, {'content-type': 'application/json'}).end(JSON.stringify({error: error.message}));
+      }
+    }
+  });
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+  return {token, port: server.address().port, async close() {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }};
+}
+
+async function writePrivateJSON(file, value, exclusive = false) {
+  await fsp.writeFile(file, JSON.stringify(value, null, 2) + '\n',
+    {mode: 0o600, flag: exclusive ? 'wx' : 'w'});
+}
+
+async function writeAttemptMarker(workspace, attempt) {
+  try {
+    await fsp.writeFile(path.join(workspace, ATTEMPT_MARKER), JSON.stringify(attempt, null, 2) + '\n',
+      {mode: 0o600, flag: 'wx'});
+  } catch (error) {
+    if (error.code === 'EEXIST') {
+      throw Error('Another homebrew launcher already owns this console session; stop it and prove its cleanup before switching.');
+    }
+    throw error;
+  }
+}
+
+// The attempt-marker release the mac2jb homebrew-reentry module documents: the
+// proof shape is checked, then the marker itself (no symlinks, owned, private,
+// one link, unchanged digest) before it is unlinked.
+function releaseAttemptMarker(directory, proof) {
+  check(proof?.cleanupVerified === true && /^[a-f0-9]{64}$/.test(proof.attemptMarkerSha256 || '') &&
+    JSON.stringify(proof.attemptMarkers) === JSON.stringify([ATTEMPT_MARKER]),
+  'The homebrew app did not prove its launch marker cleanup.');
+  const file = path.join(directory, ATTEMPT_MARKER);
+  const fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const info = fs.fstatSync(fd);
+    check(info.isFile() && info.uid === process.getuid() && info.nlink === 1 && (info.mode & 0o077) === 0,
+      'The homebrew launch marker is not a private owned file.');
+    const bytes = fs.readFileSync(fd);
+    check(crypto.createHash('sha256').update(bytes).digest('hex') === proof.attemptMarkerSha256,
+      'The homebrew launch marker changed.');
+  } finally { fs.closeSync(fd); }
+  fs.unlinkSync(file);
+}
+
+// superviseHomebrew runs one pinned launcher lifecycle: session directory,
+// loopback proxy, prepare stages, owner children with readiness lines, frame
+// readiness, then the stated shutdown and attempt-marker proofs.
+async function superviseHomebrew(app, workspace, proof, run) {
+  const sessionDir = await fsp.mkdtemp(path.join(path.dirname(workspace), app.id + '-'));
+  const session = path.basename(sessionDir);
+  const markerFile = path.join(workspace, ATTEMPT_MARKER);
+  let proxy, graphics, running = false, failure, nativeMutation = false, cleanupUnsafe = false;
+  const children = new Set(), activeOwners = new Map(), pendingRPC = new Set();
+  let stopping = false, stopResolve;
+  const stopRequested = new Promise(resolve => { stopResolve = resolve; });
+  const stop = () => { if (!stopping) { stopping = true; stopResolve(); } };
+  run.stopped.then(stop);
+  const fail = error => { failure ||= error; stop(); };
+  const live = () => liveCheck(proof);
+  function forward(body) {
+    if (!['status', 'read', 'query'].includes(body.command)) nativeMutation = true;
+    const operation = Promise.resolve().then(() => rpcRequest(proof.connection, body));
+    pendingRPC.add(operation);
+    operation.finally(() => pendingRPC.delete(operation)).catch(() => {});
+    return operation;
+  }
+  function startChild(script, extra = [], readyText, role = 'prepare') {
+    check(!stopping, app.name + ' launch was stopped.');
+    const child = spawn(process.execPath, [path.join(app.vendorDir, script), sessionDir, ...extra], {
+      cwd: app.vendorDir, env: app.env, stdio: ['ignore', 'pipe', 'pipe']});
+    const state = {child, script, role, closed: false, frameReady: false, output: ''};
+    children.add(state);
+    let readyResolve, readyReject;
+    state.readiness = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
+    state.readiness.catch(() => {});
+    const observe = line => {
+      state.output = (state.output + line + '\n').slice(-32768);
+      if (readyText && line.trim() === readyText) readyResolve();
+      if (line.trim() === app.frameReady) state.frameReady = true;
+      emit('progress', {message: script + ': ' + line});
+    };
+    readOutputLines(child.stdout, observe);
+    readOutputLines(child.stderr, observe);
+    state.done = new Promise(resolve => {
+      child.once('error', error => {
+        state.closed = true;
+        readyReject(error);
+        resolve({code: null, error});
+      });
+      child.once('close', (code, signal) => {
+        state.closed = true;
+        state.outcome = {code, signal};
+        children.delete(state);
+        readyReject(Error(script + ' ended before readiness.'));
+        if (role !== 'prepare' && !stopping) fail(Error(script + ' ended unexpectedly: ' + (signal || code)));
+        resolve(state.outcome);
+      });
+    });
+    return state;
+  }
+  async function waitFor(promise, label, timeoutMs = 300000) {
+    let timer;
+    try {
+      return await Promise.race([promise,
+        stopRequested.then(() => { throw Error(app.name + ' stopped during ' + label); }),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => reject(Error(label + ' timed out.')), timeoutMs);
+        })]);
+    } finally { clearTimeout(timer); }
+  }
+  async function endChild(state) {
+    if (!state || state.closed) return;
+    state.child.kill('SIGTERM');
+    let timer, timedOut = false;
+    const outcome = await Promise.race([state.done, new Promise(resolve => {
+      timer = setTimeout(() => { timedOut = true; state.child.kill('SIGKILL'); resolve({code: null}); }, 30000);
+    })]);
+    clearTimeout(timer);
+    if (timedOut || outcome.error || outcome.code !== 0) {
+      cleanupUnsafe = true;
+      failure ||= Error(app.name + ' ' + state.role + ' did not confirm a clean stop. Restart the console.');
+    }
+    if (timedOut) await state.done;
+  }
+  const ctx = {
+    sessionDir, session, activeOwners, live,
+    markMutation: () => { nativeMutation = true; },
+    stage: async (script, extra) => {
+      emit('progress', {message: 'Preparing ' + script});
+      return waitFor(startChild(script, extra).done, script);
+    },
+    startOwner: async owner => {
+      const state = startChild(owner.script, owner.args, owner.ready, owner.role);
+      activeOwners.set(owner.role, state);
+      await waitFor(state.readiness, owner.role + ' readiness');
+      return state;
+    },
+    frameReady: async state => {
+      await waitFor((async () => {
+        while (!state.frameReady) {
+          check(!state.closed, 'The graphics worker ended before its frame loop started.');
+          await new Promise(resolve => setTimeout(resolve, 20));
+        }
+      })(), 'console graphics readiness');
+    }
+  };
+  const monitor = setInterval(() => {
+    if (!live()) fail(Error('The original held RPC session ended. Restart the console.'));
+  }, 500);
+  monitor.unref();
+  try {
+    if (app.prepareSession) await app.prepareSession(sessionDir);
+    proxy = await rpcProxy(proof, forward);
+    await fsp.mkdir(path.join(sessionDir, 'shared'), {mode: 0o700});
+    await fsp.copyFile(app.sharedClient, path.join(sessionDir, 'shared/rpc.cjs'));
+    await fsp.chmod(path.join(sessionDir, 'shared/rpc.cjs'), 0o600);
+    await writePrivateJSON(path.join(sessionDir, 'connection.json'),
+      {port: proxy.port, token: proxy.token, addresses: {...proof.connection.addresses, session}});
+    emit('started', {message: 'Attaching ' + app.name + ' to the existing RPC session.'});
+    graphics = await app.launch(ctx);
+    check(live(), 'The original RPC session ended during launcher preparation.');
+    running = true;
+    emit('running', {message: app.name + ' is running. Keep SmileBASIC and this app open.'});
+    await stopRequested;
+  } catch (error) { failure ||= error; }
+  stop();
+  clearInterval(monitor);
+  for (const role of ['ftp', 'audio', 'graphics']) await endChild(activeOwners.get(role));
+  for (const state of [...children]) await endChild(state);
+  if (app.drain && pendingRPC.size) {
+    try {
+      const outcomes = await Promise.allSettled([...pendingRPC]);
+      check(outcomes.every(outcome => outcome.status === 'fulfilled'),
+        app.name + ' RPC shutdown could not be confirmed.');
+    } catch (error) { failure ||= error; }
+  }
+  if (running && !failure) {
+    try { await app.shutdownProof(ctx); } catch (error) { failure ||= error; }
+  }
+  try { await proxy?.close(); } catch (error) { failure ||= error; }
+  let attemptProof;
+  if (!failure && running) {
+    try {
+      check(live(), 'The held RPC session ended before launcher shutdown was verified.');
+      const marker = await fsp.readFile(markerFile);
+      check(JSON.stringify(JSON.parse(marker)) === JSON.stringify(app.attempt),
+        'The launch attempt marker changed.');
+      attemptProof = {cleanupVerified: true,
+        attemptMarkerSha256: crypto.createHash('sha256').update(marker).digest('hex'),
+        attemptMarkers: [ATTEMPT_MARKER]};
+      releaseAttemptMarker(workspace, attemptProof);
+    } catch (error) { failure ||= error; }
+  }
+  if (failure) {
+    // Retry-safe means: no native mutation happened, every child confirmed a
+    // clean stop, the lease is live and the marker is provably unchanged.
+    let retrySafe = !nativeMutation && !cleanupUnsafe && live();
+    if (retrySafe && app.markerWritten) {
+      try {
+        const current = JSON.parse(await fsp.readFile(markerFile));
+        check(JSON.stringify(current) === JSON.stringify(app.attempt), 'The launch attempt marker changed.');
+        await fsp.unlink(markerFile);
+      } catch { retrySafe = false; }
+    }
+    failure.cleanupBlocked = !retrySafe;
+    failure.homebrewReported = true;
+    emit('failed', {cleanupBlocked: !retrySafe,
+      message: failure.message + (retrySafe ?
+        ' The held RPC session is still available; choose another app or retry.' :
+        ' This launch was not retried. Restart the console before launching homebrew again.')});
+    throw failure;
+  }
+  emit('stopped', {message: app.name + ' stopped. Graphics allocations remain owned by this console session.',
+    ...attemptProof});
+}
+
+const MINTBREW_STAGES = [
+  ['homebrew-launcher/inspect-display.cjs'],
+  ['homebrew-launcher/inspect-compatibility.cjs'],
+  ['homebrew-launcher/inspect-input.cjs'],
+  ['homebrew-launcher/vulkan-copy.cjs', 'display'],
+  ['homebrew-launcher/launcher.cjs', 'auto'],
+  ['homebrew-launcher/launcher-check.cjs', 'auto']
+];
+const MINTBREW_OWNERS = [
+  {role: 'graphics', script: 'homebrew-launcher/launcher-loop.cjs', args: ['auto'],
+    ready: 'MintBrew game event source ready.'},
+  {role: 'ftp', script: 'sdk/host/ftp-service.cjs', args: [], ready: 'SDK FTP service ready.'},
+  {role: 'audio', script: 'homebrew-launcher/game-audio.cjs', args: [], ready: 'Game sound effects ready.'}
+];
+
+// The MintBrew descriptor: pinned manifest, frozen RPC client and the default
+// Stremio configuration (no add-ons; add-on URLs stay gated with Stremio's
+// unresolved provenance).
+async function mintbrewApp(toolRoot, workspace, proof, config) {
+  const vendorDir = path.join(toolRoot, 'mintbrew', 'vendor/MintBrew');
+  const manifest = JSON.parse(await fsp.readFile(path.join(vendorDir, 'manifest.json'), 'utf8'));
+  check(manifest.name === 'MintBrew' && typeof manifest.version === 'string' &&
+    /^\d+\.\d+\.\d+$/.test(manifest.version), 'Invalid MintBrew manifest.');
+  await checkHomebrewRuntime(config.homebrewRuntime);
+  const attempt = {application: 'mintbrew', source: 'MintBrew', format: 'mintbrew-v1',
+    started: new Date().toISOString()};
+  check((await rpcRequest(proof.connection, {command: 'status'}))?.ready === true,
+    'The existing native RPC connection is not ready.');
+  await writeAttemptMarker(workspace, attempt);
+  return {
+    id: 'mintbrew', name: 'MintBrew', vendorDir, attempt, markerWritten: true,
+    frameReady: 'MintBrew continuous native frame loop running.',
+    sharedClient: path.join(vendorDir, 'smilebasic/engine/shared/rpc.cjs'),
+    env: homebrewEnvironment(config.homebrewRuntime, process.env,
+      {HB_APPS_DIR: path.join(vendorDir, 'apps')}),
+    prepareSession: async sessionDir => {
+      await writePrivateJSON(path.join(sessionDir, 'stremio-config.json'),
+        {addonUrls: [], libraryItems: [], quality: '720p'}, true);
+      await writePrivateJSON(path.join(sessionDir, 'mintbrew-host.json'),
+        {runDirectory: workspace, sourceSession: proof.session}, true);
+    },
+    launch: async ctx => {
+      for (const [script, ...extra] of MINTBREW_STAGES) {
+        if (script === 'homebrew-launcher/vulkan-copy.cjs') ctx.markMutation();
+        const outcome = await ctx.stage(script, extra);
+        check(!outcome.error && outcome.code === 0 && !outcome.signal,
+          'MintBrew preparation failed: ' + script);
+      }
+      let graphics;
+      for (const owner of MINTBREW_OWNERS) {
+        const state = await ctx.startOwner(owner);
+        if (owner.role === 'graphics') graphics = state;
+      }
+      await ctx.frameReady(graphics);
+      return graphics;
+    },
+    shutdownProof: async ctx => {
+      let loop, sound;
+      try {
+        loop = await privateJSON(ctx.sessionDir, 'launcher-auto-loop.json');
+        sound = await privateJSON(ctx.sessionDir, 'game-audio.json');
+      } catch { throw Error('MintBrew did not verify its graphics and audio shutdown.'); }
+      check(loop.session === ctx.session && loop.completed && !loop.error &&
+        loop.threadRunning === false &&
+        sound.session === ctx.session && sound.completed && !sound.error && !sound.stopError,
+      'MintBrew did not verify its graphics and audio shutdown.');
+    }
+  };
+}
+
+const IZ_STAGES = [
+  ['core/services/inspect-display.cjs'],
+  ['core/services/inspect-compatibility.cjs'],
+  ['core/services/inspect-input.cjs'],
+  ['core/services/vulkan-copy.cjs', 'display'],
+  ['shells/izlauncher/server/prepare.cjs', 'auto'],
+  ['shells/izlauncher/server/check-input.cjs', 'auto']
+];
+const IZ_OWNERS = [
+  {role: 'graphics', script: 'shells/izlauncher/server/frame-loop.cjs', args: ['auto'],
+    ready: 'IZ launcher game event source ready.'},
+  {role: 'ftp', script: 'core/console/host/ftp-service.cjs', args: [], ready: 'SDK FTP service ready.'},
+  {role: 'audio', script: 'core/console/audio/game-audio.cjs', args: [], ready: 'Game sound effects ready.'}
+];
+const IZ_ENV_KEYS = ['PATH', 'PYTHONPATH', 'PYTHONNOUSERSITE', 'PYTHONDONTWRITEBYTECODE', 'PYTHONHOME',
+  'SPIRV_VAL', 'GLSLANG', 'HB_FONT', 'HB_APPS_DIR', 'IZ2S_ROOT', 'IZ15_ROOT', 'IZ15_SHELL',
+  'IZ2S_MODULE_PINS'];
+
+async function izFrameProof(directory, session, stopped = false) {
+  let prepared, qualified, loop;
+  try {
+    [prepared, qualified, loop] = await Promise.all(
+      ['launcher-auto.json', 'launcher-auto-check.json', 'launcher-auto-loop.json']
+        .map(name => privateJSON(directory, name)));
+  } catch {
+    throw Error('IZlauncher did not verify its ' +
+      (stopped ? 'graphics shutdown' : 'live console frame worker') + '.');
+  }
+  check([prepared, qualified, loop].every(row => row.session === session && !row.error) &&
+    prepared.ready === true && prepared.firstShaderFramePresented === true &&
+    prepared.scratchRestored === true &&
+    qualified.passed === true && qualified.scratchRestored === true &&
+    loop.continuous === true && /^[a-f0-9]{64}$/.test(loop.frameSha256 || '') &&
+    (stopped ? loop.threadRunning === false && Boolean(loop.completed)
+      : loop.threadRunning === true && !loop.completed),
+  'IZlauncher did not verify its ' + (stopped ? 'graphics shutdown' : 'live console frame worker') + '.');
+  return loop;
+}
+
+// The current SmileBASIC process qualification the IZlauncher requires. The
+// any2jb held contract has no dump report file, so the binding is the session
+// and its private workspace instead of mac2jb's report path.
+async function verifyProcessIdentity(workspace, session) {
+  const folder = await fsp.realpath(path.join(workspace, 'switch2', 'process'))
+    .catch(() => { throw Error('IZlauncher requires the current SmileBASIC process qualification.'); });
+  await owned(folder, 'directory', false);
+  const prefix = session + '-qualification-';
+  const names = (await fsp.readdir(folder))
+    .filter(name => name.startsWith(prefix) && /^\d+\.json$/.test(name.slice(prefix.length)))
+    .sort((a, b) => Number(b.slice(prefix.length, -5)) - Number(a.slice(prefix.length, -5)));
+  check(names.length > 0, 'IZlauncher requires the current SmileBASIC process qualification.');
+  const proof = await privateJSON(folder, names[0]);
+  check(proof.session === session && proof.verified === true && !proof.error && !proof.cleanupError &&
+    proof.cleanup?.finished === true && proof.app?.result === 0 &&
+    IZ_PROGRAM_IDS.includes(proof.app.programId),
+  'IZlauncher requires the current verified SmileBASIC process identity.');
+}
+
+// The IZlauncher descriptor: the staged prepare module verifies the prepared
+// runtime again here, and module selection is validated against the staged
+// catalog before the console is touched.
+async function izlauncherApp(toolRoot, workspace, proof, config) {
+  const izRoot = path.join(toolRoot, 'izlauncher');
+  const prepare = require(path.join(izRoot, 'scripts/prepare-izlauncher.cjs'));
+  const info = prepare.verify(izRoot);
+  const runtimeDir = info.directory;
+  await checkHomebrewRuntime(config.homebrewRuntime);
+  const sharedClient = path.join(izRoot, 'vendor/GPUBrewLauncher/smilebasic/engine/shared/rpc.cjs');
+  check((await fsp.lstat(sharedClient)).isFile(), 'The frozen IZlauncher RPC client is missing.');
+  const modules = require(path.join(izRoot, 'scripts/izlauncher-modules.cjs'));
+  const selected = config.modules || [];
+  if (selected.length) {
+    check(modules.validIds(selected), 'Choose up to 15 distinct compatible IZlauncher modules.');
+    await modules.validate(izRoot, selected);
+  }
+  await verifyProcessIdentity(workspace, proof.session);
+  const attempt = {application: 'izlauncher', source: 'IZ2S Platform', commit: prepare.REVISION,
+    started: new Date().toISOString()};
+  check((await rpcRequest(proof.connection, {command: 'status'}))?.ready === true,
+    'The existing native RPC connection is not ready.');
+  await writeAttemptMarker(workspace, attempt);
+  const buildEnvironment = sessionDir => homebrewEnvironment(config.homebrewRuntime, process.env, {
+    IZ2S_ROOT: runtimeDir, IZ15_ROOT: runtimeDir, IZ15_SHELL: 'izlauncher',
+    HB_APPS_DIR: path.join(runtimeDir, 'data/app-links'),
+    HB_FONT: path.join(config.homebrewRuntime, 'fonts/DejaVuSans.ttf'),
+    GLSLANG: path.join(config.homebrewRuntime, 'bin/glslangValidator'),
+    IZ2S_MODULE_PINS: JSON.stringify({version: 1, root: runtimeDir, modules: {
+      ...info.builtIns,
+      blitbun: {sha256: info.blitbunSha256, packageBytes: info.blitbunPackageBytes},
+      vacootube: {sha256: info.vacootubeSha256, packageBytes: info.vacootubePackageBytes}}}),
+    IZ11_STATE_DIR: path.join(sessionDir, 'state')});
+  const app = {
+    id: 'izlauncher', name: 'IZlauncher', vendorDir: runtimeDir, attempt, drain: true,
+    markerWritten: true,
+    frameReady: 'IZ launcher continuous native frame loop running.',
+    sharedClient,
+    prepareSession: async sessionDir => {
+      app.env = buildEnvironment(sessionDir);
+      if (!selected.length) return;
+      const apps = path.join(sessionDir, 'app-links');
+      await fsp.mkdir(apps, {mode: 0o700});
+      await withEnvironment(app.env, IZ_ENV_KEYS, () =>
+        require(path.join(runtimeDir, 'core/session/preload.cjs'))
+          .prepare(runtimeDir, selected, apps, {shell: 'izlauncher'}));
+      app.env = {...app.env, HB_APPS_DIR: apps};
+    },
+    launch: async ctx => {
+      for (const [script, ...extra] of IZ_STAGES) {
+        if (script === 'core/services/vulkan-copy.cjs') ctx.markMutation();
+        const outcome = await ctx.stage(script, extra);
+        check(!outcome.error && outcome.code === 0 && !outcome.signal,
+          'IZlauncher preparation failed: ' + script);
+      }
+      const graphics = await ctx.startOwner(IZ_OWNERS[0]);
+      await ctx.frameReady(graphics);
+      await izFrameProof(ctx.sessionDir, ctx.session);
+      const catalog = await privateJSON(ctx.sessionDir, 'app-runtime.json');
+      check(catalog.session === ctx.session && Array.isArray(catalog.catalog?.apps),
+        'IZlauncher app catalog belongs to another session.');
+      await ctx.startOwner(IZ_OWNERS[1]);
+      if (catalog.catalog.apps.some(item => Object.keys(item.effects || {}).length)) {
+        await ctx.startOwner(IZ_OWNERS[2]);
+      }
+      check(ctx.live(), 'The original RPC session ended during launcher preparation.');
+      await izFrameProof(ctx.sessionDir, ctx.session);
+      return graphics;
+    },
+    shutdownProof: async ctx => {
+      await izFrameProof(ctx.sessionDir, ctx.session, true);
+      if (ctx.activeOwners.has('audio')) {
+        const sound = await privateJSON(ctx.sessionDir, 'game-audio.json');
+        check(sound.session === ctx.session && sound.completed && !sound.error && !sound.stopError,
+          'IZlauncher did not verify audio shutdown.');
+      }
+    }
+  };
+  return app;
+}
+
+// nativeHBLauncher delegates to the staged MIT fork's host with injected
+// adapters: the any2jb held proof, the loopback RPC request, the developer
+// engine sources for its ABI check and the any2jb-owned MintNES ROM folder.
+// Its upstream attempt-marker contract is verified and released here.
+async function nativeHBLauncher(toolRoot, workspace, proof, config, run) {
+  check(NATIVE_TRUSTED_PROFILES.includes(config.profileID),
+    'Native HBLauncher requires a supported held RPC host profile.');
+  check(typeof config.engineSourceDir === 'string' && path.isAbsolute(config.engineSourceDir) &&
+    typeof config.sourceDirectory === 'string' && config.sourceDirectory !== '' &&
+    !path.isAbsolute(config.sourceDirectory) &&
+    !config.sourceDirectory.split(/[\\/]/).includes('..'),
+  'Native HBLauncher requires the developer-staged engine sources.');
+  const component = path.join(toolRoot, 'native-hblauncher');
+  const host = require(path.join(component, 'integrations/mintbrew-native/host.cjs'));
+  const signals = new EventEmitter();
+  run.stopped.then(() => signals.emit('SIGTERM'));
+  const args = [workspace];
+  if (config.appFolder) args.push('--app-folder', config.appFolder);
+  if (config.sdRomFolder) args.push('--sd-rom-folder', config.sdRomFolder);
+  const sdUpstream = path.join(toolRoot, 'sd-browser', 'integrations/super-file-bros/upstream');
+  let reported = false, stoppedProof;
+  const forward = (type, fields = {}) => {
+    if (type === 'stopped') { stoppedProof = fields; return; }
+    if (type === 'failed') {
+      reported = true;
+      emit('failed', {cleanupBlocked: Boolean(fields.cleanupBlocked), message: fields.message});
+      return;
+    }
+    if (type === 'running') { emit('running', {message: fields.message}); return; }
+    if (type === 'started') { emit('started', {message: fields.message}); return; }
+    emit('progress', {message: fields.message});
+  };
+  try {
+    await host.main(args, {
+      root: path.join(toolRoot, 'mintbrew'),
+      emit: forward,
+      signals,
+      validateRun: async () => ({directory: workspace, proof: {session: proof.session},
+        connection: proof.connection}),
+      verifySession: async () => ({root: workspace, session: proof.session}),
+      request: (directory, body) => rpcRequest(proof.connection, body),
+      trustedProfileForDigest: () => ({profile: {id: config.profileID},
+        sourceDirectory: path.join(config.engineSourceDir, config.sourceDirectory)}),
+      macRomDirectory: path.join(config.supportDir, 'MintNES', 'roms'),
+      readSDRoms: fs.existsSync(path.join(sdUpstream, 'SOURCE-MANIFEST.json')) ?
+        (directory, options) => require(path.join(component, 'integrations/mintbrew-native/sd-roms.cjs'))
+          .readSDRoms(directory, {...options, sourceRoot: sdUpstream}) :
+        undefined
+    });
+  } catch (error) {
+    if (reported || error.homebrewReported) return;
+    throw error;
+  }
+  check(stoppedProof?.cleanupVerified === true, 'The native launcher did not prove its cleanup.');
+  releaseAttemptMarker(workspace, stoppedProof);
+  emit('stopped', {cleanupVerified: true, attemptMarkerSha256: stoppedProof.attemptMarkerSha256,
+    attemptMarkers: stoppedProof.attemptMarkers,
+    message: 'Native HBLauncher stopped. Its display resources remain in this console session.'});
+}
 async function main(args = process.argv.slice(2)) {
   if (args.length === 1 && args[0] === '--self-test') {
     process.stdout.write(JSON.stringify({type: 'self-test', tools: TOOLS}) + '\n');
     return;
   }
-  const [stagedRoot, selected, workspace, consoleAddress, destination] = args;
-  check(args.length === 5, 'usage: toolhost.cjs <staged-root> <tool> <workspace> <console-IPv4|-> <destination|->');
+  const [stagedRoot, selected, workspace, consoleAddress, destination, configJSON] = args;
+  check(args.length === 5 || args.length === 6, 'usage: toolhost.cjs <staged-root> <tool> <workspace> <console-IPv4|-> <destination|-> [homebrew-config]');
   check(TOOLS.includes(selected), 'Unknown read-only tool.');
   tool = selected;
+  let config = {};
+  if (configJSON !== undefined) {
+    check(HOMEBREW.includes(selected), 'Only a homebrew tool accepts a launch configuration.');
+    config = JSON.parse(configJSON);
+    check(config && typeof config === 'object' && !Array.isArray(config),
+      'Invalid homebrew launch configuration.');
+  }
   const record = JSON.parse(await fsp.readFile(path.join(stagedRoot, 'stage.json'), 'utf8'));
   check(record.source === 'developer-staged' && record.redistributable === false,
     'Read-only tools require an explicit developer stage of their pinned sources.');
@@ -304,22 +944,41 @@ async function main(args = process.argv.slice(2)) {
       check(destination !== '-' && path.isAbsolute(destination), 'Choose a dedicated dump destination.');
       await systemCodeDump(owned, proof, path.resolve(destination),
         path.join(owned, 'switch2/firmware-dump.cjs'));
+    } else if (HOMEBREW.includes(selected)) {
+      check(typeof config.supportDir === 'string' && path.isAbsolute(config.supportDir),
+        'The homebrew launch configuration is incomplete.');
+      const toolRoot = path.join(stagedRoot, 'tools');
+      if (selected === 'mintbrew') {
+        check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
+          'The homebrew launch configuration is missing the verified runtime root.');
+        await superviseHomebrew(await mintbrewApp(toolRoot, owned, proof, config), owned, proof, run);
+      } else if (selected === 'izlauncher') {
+        check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
+          'The homebrew launch configuration is missing the verified runtime root.');
+        await superviseHomebrew(await izlauncherApp(toolRoot, owned, proof, config), owned, proof, run);
+      } else {
+        await nativeHBLauncher(toolRoot, owned, proof, config, run);
+      }
     } else {
       check(net.isIPv4(consoleAddress), 'Enter the console IPv4 address.');
       const toolRoot = path.join(stagedRoot, 'tools', selected === 'sd-browser' ? 'sd-browser' : 'ouncecake');
       if (selected === 'sd-browser') await sdBrowser(toolRoot, owned, proof, consoleAddress, run);
       else await ounceCake(toolRoot, owned, proof, consoleAddress,
         selected === 'ouncecake-ftp' ? 'ftp' : 'webdav', run);
+      emit('stopped', {message: 'The read-only tool released its own resources.'});
     }
-    emit('stopped', {message: 'The read-only tool released its own resources.'});
   } finally {
     run.close();
   }
 }
 
 if (require.main === module) main().catch(error => {
-  emit('failed', {cleanupBlocked: Boolean(error?.cleanupBlocked),
-    message: error.message + ' This tool was not retried.'});
+  if (!error.homebrewReported) {
+    emit('failed', {cleanupBlocked: Boolean(error?.cleanupBlocked),
+      message: error.message + ' This tool was not retried.'});
+  }
   process.exitCode = 1;
 });
-module.exports = {main, heldProof, readOnlySD, TOOLS};
+module.exports = {main, heldProof, readOnlySD, TOOLS, HOMEBREW, ATTEMPT_MARKER,
+  liveCheck, rpcProxy, homebrewEnvironment, releaseAttemptMarker, superviseHomebrew,
+  mintbrewApp, izlauncherApp, nativeHBLauncher};

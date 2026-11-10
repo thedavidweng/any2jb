@@ -5,11 +5,13 @@ package retained
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -40,14 +42,33 @@ type Options struct {
 	// StageError records a failed local developer stage so an unavailable tool
 	// can say that integrity checking failed instead of staying silent.
 	StageError error
-	Manifest   *manifest.Manifest
-	Runs       Workspaces
+	// EngineRoot is the verified engine stage the native launcher checks its
+	// ABI against, and HomebrewRuntime the prepared portable runtime root.
+	// Both exist only for a developer stage; a packaged app leaves them empty.
+	EngineRoot      string
+	HomebrewRuntime string
+	Manifest        *manifest.Manifest
+	Runs            Workspaces
 	// SaveKitModule is the explicit host-module test seam, mirroring
 	// CommandFactory. Production leaves it empty and uses the embedded module.
 	SaveKitModule string
 	// SaveKitScenario selects the structured fixture's behavior. It is a test
 	// seam and stays empty in production.
 	SaveKitScenario string
+}
+
+// homebrewComponents lists the staged components each homebrew launcher needs
+// before it may run. Every component is verified against the canonical
+// manifest before staging; distribution policy still gates the tool itself.
+var homebrewComponents = map[string][]string{
+	"mintbrew":          {"mintbrew", "homebrew-runtime"},
+	"native-hblauncher": {"mintbrew", "mintbrew-native"},
+	"izlauncher":        {"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"},
+}
+
+func isHomebrew(tool string) bool {
+	_, ok := homebrewComponents[tool]
+	return ok
 }
 
 // Game is a console-reported title offered for a read-only export.
@@ -112,10 +133,45 @@ type Manager struct {
 func New(options Options) *Manager {
 	m := &Manager{options: options}
 	m.command = func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
-		return exec.Command(options.Node, options.Host, options.ToolRoot, request.Tool, workspace,
-			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool)))
+		args := []string{options.Host, options.ToolRoot, request.Tool, workspace,
+			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool))}
+		if isHomebrew(request.Tool) {
+			args = append(args, m.homebrewConfig(run, request))
+		}
+		return exec.Command(options.Node, args...)
 	}
 	return m
+}
+
+// homebrewConfig carries the validated launch configuration to the tool host
+// as one JSON argument. The host re-validates it against staged, digest-pinned
+// sources; this JSON is never trusted on its own.
+func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) string {
+	config := map[string]any{
+		"profileID":       run.Profile.ID,
+		"engineSourceDir": m.options.EngineRoot,
+		"homebrewRuntime": m.options.HomebrewRuntime,
+		"supportDir":      m.options.Support,
+	}
+	if m.options.Manifest != nil {
+		if profile, err := m.options.Manifest.Profile(run.Profile.ID); err == nil {
+			config["sourceDirectory"] = profile.SourceDirectory
+		}
+	}
+	if len(request.Modules) > 0 {
+		config["modules"] = request.Modules
+	}
+	if request.SDRomFolder != "" {
+		config["sdRomFolder"] = request.SDRomFolder
+	}
+	if request.AppFolder != "" {
+		config["appFolder"] = request.AppFolder
+	}
+	data, err := json.Marshal(config)
+	if err != nil {
+		return "{}"
+	}
+	return string(data)
 }
 
 // NewProtocolManager supplies the tool process explicitly for fixtures. It does
@@ -167,7 +223,24 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 		"savekit-read": "savekit", "savekit": "savekit",
 	}[tool]
 	if !ok {
-		return "This read-only tool is not implemented in this build."
+		required, homebrew := homebrewComponents[tool]
+		if !homebrew {
+			return "This read-only tool is not implemented in this build."
+		}
+		if m.options.Node == "" || m.options.Host == "" {
+			return "The bundled tool host is unavailable in this build."
+		}
+		// The native launcher checks its ABI against the verified engine
+		// sources, which only a developer stage provides.
+		if tool == "native-hblauncher" && !m.options.EngineStaged {
+			return m.reason(profileID)
+		}
+		for _, id := range required {
+			if !slices.Contains(m.options.Staged, id) {
+				return m.stagedReason(id)
+			}
+		}
+		return ""
 	}
 	if m.options.Node == "" || m.options.Host == "" {
 		return "The bundled tool host is unavailable in this build."
@@ -179,18 +252,20 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 		return m.reason(profileID)
 	}
 	if component != "" {
-		for _, staged := range m.options.Staged {
-			if staged == component {
-				return ""
-			}
+		if slices.Contains(m.options.Staged, component) {
+			return ""
 		}
-		reason := m.reason(component)
-		if m.options.StageError != nil {
-			reason += " A local developer stage was attempted and failed its integrity check."
-		}
-		return reason
+		return m.stagedReason(component)
 	}
 	return ""
+}
+
+func (m *Manager) stagedReason(id string) string {
+	reason := m.reason(id)
+	if m.options.StageError != nil {
+		reason += " A local developer stage was attempted and failed its integrity check."
+	}
+	return reason
 }
 
 func (m *Manager) reason(id string) string {

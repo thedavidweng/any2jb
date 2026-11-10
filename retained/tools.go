@@ -22,27 +22,54 @@ import (
 var errProtocol = errors.New("invalid read-only tool protocol")
 
 type toolEvent struct {
-	Type           string `json:"type"`
-	Sequence       uint64 `json:"sequence"`
-	Tool           string `json:"tool"`
-	Message        string `json:"message,omitempty"`
-	Endpoint       string `json:"endpoint,omitempty"`
-	Path           string `json:"path,omitempty"`
-	Total          int    `json:"total,omitempty"`
-	ReadOnly       bool   `json:"readOnly,omitempty"`
-	Ready          bool   `json:"ready,omitempty"`
-	CleanupBlocked bool   `json:"cleanupBlocked,omitempty"`
-	Games          []Game `json:"games,omitempty"`
+	Type                string   `json:"type"`
+	Sequence            uint64   `json:"sequence"`
+	Tool                string   `json:"tool"`
+	Message             string   `json:"message,omitempty"`
+	Endpoint            string   `json:"endpoint,omitempty"`
+	Path                string   `json:"path,omitempty"`
+	Total               int      `json:"total,omitempty"`
+	ReadOnly            bool     `json:"readOnly,omitempty"`
+	Ready               bool     `json:"ready,omitempty"`
+	CleanupBlocked      bool     `json:"cleanupBlocked,omitempty"`
+	CleanupVerified     bool     `json:"cleanupVerified,omitempty"`
+	AttemptMarkerSHA256 string   `json:"attemptMarkerSha256,omitempty"`
+	AttemptMarkers      []string `json:"attemptMarkers,omitempty"`
+	Games               []Game   `json:"games,omitempty"`
+}
+
+// attemptMarkerName is the single attempt marker the homebrew supervisor may
+// prove removed; any other name is a protocol violation.
+const attemptMarkerName = ".mac2jb-hblauncher-attempt.json"
+
+// verifiedCleanup accepts only the homebrew supervisor's stated proof shape: a
+// verified cleanup, the recorded attempt marker, and its SHA-256 digest.
+func verifiedCleanup(e toolEvent) bool {
+	return e.CleanupVerified && len(e.AttemptMarkers) == 1 &&
+		e.AttemptMarkers[0] == attemptMarkerName && hexSHA256(e.AttemptMarkerSHA256)
+}
+
+func hexSHA256(value string) bool {
+	if len(value) != 64 {
+		return false
+	}
+	for _, c := range value {
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+	return true
 }
 
 type toolProcess struct {
-	tool      string
-	cmd       *exec.Cmd
-	input     io.WriteCloser
-	events    chan toolEvent
-	done      chan struct{}
-	err       error
-	selection chan string
+	tool            string
+	cmd             *exec.Cmd
+	input           io.WriteCloser
+	events          chan toolEvent
+	done            chan struct{}
+	err             error
+	selection       chan string
+	reportedFailure bool
 }
 
 // Run satisfies the session adapter for tools that need no user parameter.
@@ -76,6 +103,12 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	if m.state.Lost {
 		m.mu.Unlock()
 		return errors.New("the retained session was lost; restart the console before another attempt")
+	}
+	// An unproven homebrew shutdown leaves console state unknown; only a
+	// console restart makes the workspace safe for another launcher.
+	if isHomebrew(request.Tool) && m.state.CleanupBlocked {
+		m.mu.Unlock()
+		return errors.New("the previous homebrew launcher did not prove a clean shutdown; restart the console before launching homebrew again")
 	}
 	if m.active != nil {
 		owner := m.active.tool
@@ -163,12 +196,17 @@ func (p *toolProcess) read(output io.ReadCloser) {
 		case "catalog":
 			valid = valid && state != "running" && len(e.Games) > 0
 		case "running":
-			valid = valid && state != "running" && e.ReadOnly && e.Endpoint != ""
+			// A homebrew supervisor owns no endpoint; its running event only
+			// states that the pinned frame loop proved itself.
+			valid = valid && state != "running" && (e.ReadOnly && e.Endpoint != "" || isHomebrew(p.tool))
 		case "complete":
 			valid = valid && e.Path != "" && e.Total > 0
 		case "stopped":
-			valid = valid && state != ""
+			// A homebrew supervisor must state the cleanup proof shape the
+			// stop path verifies before it allows another launch.
+			valid = valid && state != "" && (!isHomebrew(p.tool) || verifiedCleanup(e))
 		case "failed":
+			p.reportedFailure = true
 		default:
 			valid = false
 		}
@@ -228,6 +266,9 @@ func (m *Manager) observe(ctx context.Context, p *toolProcess, request session.T
 					}
 				}
 			case "running":
+				if isHomebrew(p.tool) {
+					return nil
+				}
 				if err := validEndpoint(p.tool, event.Endpoint, request.ConsoleIPv4); err != nil {
 					return err
 				}
@@ -319,7 +360,13 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	if p.input != nil {
 		io.WriteString(p.input, "{\"type\":\"stop\"}\n")
 	}
-	timer := time.NewTimer(10 * time.Second)
+	// Homebrew owner children confirm their own shutdown proofs; give the
+	// supervisor the window its contract needs before escalating.
+	graceful := 10 * time.Second
+	if isHomebrew(p.tool) {
+		graceful = 100 * time.Second
+	}
+	timer := time.NewTimer(graceful)
 	defer timer.Stop()
 	select {
 	case <-p.done:
@@ -352,6 +399,13 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	m.state.Tool = ""
 	m.mu.Unlock()
 	if p.err != nil {
+		// A homebrew supervisor that exits without a protocol-reported failure
+		// (protocol violation, kill, crash) left its cleanup unproven.
+		if isHomebrew(p.tool) && !p.reportedFailure {
+			m.mu.Lock()
+			m.state.CleanupBlocked = true
+			m.mu.Unlock()
+		}
 		return fmt.Errorf("the read-only tool did not stop cleanly: %w", p.err)
 	}
 	return nil

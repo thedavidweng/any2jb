@@ -1220,6 +1220,116 @@ func (msgs Messages) ToolsBack() string {
 	return Catalog.Format(msgs.locale, "toolsBack", nil)
 }
 
+// HbTitle says "Homebrew launching (experimental)"
+// in the language the app shows.
+func HbTitle() string { return In(i18n.Locale()).HbTitle() }
+
+// HbTitle says "Homebrew launching (experimental)"
+// in the language of msgs.
+func (msgs Messages) HbTitle() string {
+	return Catalog.Format(msgs.locale, "hbTitle", nil)
+}
+
+// HbNote says "One homebrew app runs at a time. Stop the running app and wait for its verified cleanup before switching; an unproven…"
+// in the language the app shows.
+func HbNote() string { return In(i18n.Locale()).HbNote() }
+
+// HbNote says "One homebrew app runs at a time. Stop the running app and wait for its verified cleanup before switching; an unproven…"
+// in the language of msgs.
+func (msgs Messages) HbNote() string {
+	return Catalog.Format(msgs.locale, "hbNote", nil)
+}
+
+// HbMintbrew says "Launch MintBrew"
+// in the language the app shows.
+func HbMintbrew() string { return In(i18n.Locale()).HbMintbrew() }
+
+// HbMintbrew says "Launch MintBrew"
+// in the language of msgs.
+func (msgs Messages) HbMintbrew() string {
+	return Catalog.Format(msgs.locale, "hbMintbrew", nil)
+}
+
+// HbNative says "Launch native HBLauncher"
+// in the language the app shows.
+func HbNative() string { return In(i18n.Locale()).HbNative() }
+
+// HbNative says "Launch native HBLauncher"
+// in the language of msgs.
+func (msgs Messages) HbNative() string {
+	return Catalog.Format(msgs.locale, "hbNative", nil)
+}
+
+// HbIZ says "Launch IZlauncher (experimental)"
+// in the language the app shows.
+func HbIZ() string { return In(i18n.Locale()).HbIZ() }
+
+// HbIZ says "Launch IZlauncher (experimental)"
+// in the language of msgs.
+func (msgs Messages) HbIZ() string {
+	return Catalog.Format(msgs.locale, "hbIZ", nil)
+}
+
+// HbModules says "IZlauncher modules"
+// in the language the app shows.
+func HbModules() string { return In(i18n.Locale()).HbModules() }
+
+// HbModules says "IZlauncher modules"
+// in the language of msgs.
+func (msgs Messages) HbModules() string {
+	return Catalog.Format(msgs.locale, "hbModules", nil)
+}
+
+// HbSDFolder says "SD ROM folder on the console (mapper-0 iNES ROMs only; empty uses /sd/roms/nes)"
+// in the language the app shows.
+func HbSDFolder() string { return In(i18n.Locale()).HbSDFolder() }
+
+// HbSDFolder says "SD ROM folder on the console (mapper-0 iNES ROMs only; empty uses /sd/roms/nes)"
+// in the language of msgs.
+func (msgs Messages) HbSDFolder() string {
+	return Catalog.Format(msgs.locale, "hbSDFolder", nil)
+}
+
+// HbModIZExchange says "iz-exchange"
+// in the language the app shows.
+func HbModIZExchange() string { return In(i18n.Locale()).HbModIZExchange() }
+
+// HbModIZExchange says "iz-exchange"
+// in the language of msgs.
+func (msgs Messages) HbModIZExchange() string {
+	return Catalog.Format(msgs.locale, "hbModIZExchange", nil)
+}
+
+// HbModBlitbun says "blitbun"
+// in the language the app shows.
+func HbModBlitbun() string { return In(i18n.Locale()).HbModBlitbun() }
+
+// HbModBlitbun says "blitbun"
+// in the language of msgs.
+func (msgs Messages) HbModBlitbun() string {
+	return Catalog.Format(msgs.locale, "hbModBlitbun", nil)
+}
+
+// HbModVacootube says "vacootube"
+// in the language the app shows.
+func HbModVacootube() string { return In(i18n.Locale()).HbModVacootube() }
+
+// HbModVacootube says "vacootube"
+// in the language of msgs.
+func (msgs Messages) HbModVacootube() string {
+	return Catalog.Format(msgs.locale, "hbModVacootube", nil)
+}
+
+// HbAppFolder says "Homebrew app folder on this Mac (optional)"
+// in the language the app shows.
+func HbAppFolder() string { return In(i18n.Locale()).HbAppFolder() }
+
+// HbAppFolder says "Homebrew app folder on this Mac (optional)"
+// in the language of msgs.
+func (msgs Messages) HbAppFolder() string {
+	return Catalog.Format(msgs.locale, "hbAppFolder", nil)
+}
+
 // SaveKitTitle says "SaveKit save management"
 // in the language the app shows.
 func SaveKitTitle() string { return In(i18n.Locale()).SaveKitTitle() }
@@ -3786,6 +3896,76 @@ func DynDistSDBrowser() string { return In(i18n.Locale()).DynDistSDBrowser() }
 // in the language of msgs.
 func (msgs Messages) DynDistSDBrowser() string {
 	return Catalog.Format(msgs.locale, "dynDistSDBrowser", nil)
+}
+
+// DynDistMintbrew says "Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolv…"
+// in the language the app shows.
+func DynDistMintbrew() string { return In(i18n.Locale()).DynDistMintbrew() }
+
+// DynDistMintbrew says "Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolv…"
+// in the language of msgs.
+func (msgs Messages) DynDistMintbrew() string {
+	return Catalog.Format(msgs.locale, "dynDistMintbrew", nil)
+}
+
+// DynDistMintbrewNative says "Unavailable: the MIT native HBLauncher fork still stages MintBrew sources whose rights review is unresolved. A develo…"
+// in the language the app shows.
+func DynDistMintbrewNative() string { return In(i18n.Locale()).DynDistMintbrewNative() }
+
+// DynDistMintbrewNative says "Unavailable: the MIT native HBLauncher fork still stages MintBrew sources whose rights review is unresolved. A develo…"
+// in the language of msgs.
+func (msgs Messages) DynDistMintbrewNative() string {
+	return Catalog.Format(msgs.locale, "dynDistMintbrewNative", nil)
+}
+
+// DynDistIZLauncher says "Unavailable: the IZlauncher's GPL-2.0-or-later scope and inherited rights are unresolved for any2jb. A developer may …"
+// in the language the app shows.
+func DynDistIZLauncher() string { return In(i18n.Locale()).DynDistIZLauncher() }
+
+// DynDistIZLauncher says "Unavailable: the IZlauncher's GPL-2.0-or-later scope and inherited rights are unresolved for any2jb. A developer may …"
+// in the language of msgs.
+func (msgs Messages) DynDistIZLauncher() string {
+	return Catalog.Format(msgs.locale, "dynDistIZLauncher", nil)
+}
+
+// DynDistIZBlitbun says "Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may…"
+// in the language the app shows.
+func DynDistIZBlitbun() string { return In(i18n.Locale()).DynDistIZBlitbun() }
+
+// DynDistIZBlitbun says "Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may…"
+// in the language of msgs.
+func (msgs Messages) DynDistIZBlitbun() string {
+	return Catalog.Format(msgs.locale, "dynDistIZBlitbun", nil)
+}
+
+// DynDistIZShell says "Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A deve…"
+// in the language the app shows.
+func DynDistIZShell() string { return In(i18n.Locale()).DynDistIZShell() }
+
+// DynDistIZShell says "Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A deve…"
+// in the language of msgs.
+func (msgs Messages) DynDistIZShell() string {
+	return Catalog.Format(msgs.locale, "dynDistIZShell", nil)
+}
+
+// DynDistIZVacootube says "Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer m…"
+// in the language the app shows.
+func DynDistIZVacootube() string { return In(i18n.Locale()).DynDistIZVacootube() }
+
+// DynDistIZVacootube says "Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer m…"
+// in the language of msgs.
+func (msgs Messages) DynDistIZVacootube() string {
+	return Catalog.Format(msgs.locale, "dynDistIZVacootube", nil)
+}
+
+// DynDistHomebrewRuntime says "Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notice…"
+// in the language the app shows.
+func DynDistHomebrewRuntime() string { return In(i18n.Locale()).DynDistHomebrewRuntime() }
+
+// DynDistHomebrewRuntime says "Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notice…"
+// in the language of msgs.
+func (msgs Messages) DynDistHomebrewRuntime() string {
+	return Catalog.Format(msgs.locale, "dynDistHomebrewRuntime", nil)
 }
 
 // DynDistUSBDriver says "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligati…"
