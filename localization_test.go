@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -43,7 +44,8 @@ func TestCatalogCompleteness(t *testing.T) {
 			t.Errorf("missing zh-CN translation: %s", key)
 			continue
 		}
-		if !reflect.DeepEqual(placeholders.FindAllString(english, -1), placeholders.FindAllString(chinese, -1)) {
+		sorted := func(values []string) []string { out := append([]string{}, values...); sort.Strings(out); return out }
+		if !reflect.DeepEqual(sorted(placeholders.FindAllString(english, -1)), sorted(placeholders.FindAllString(chinese, -1))) {
 			t.Errorf("%s: placeholder mismatch", key)
 		}
 	}

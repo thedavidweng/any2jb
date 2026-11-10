@@ -315,5 +315,11 @@
   "dynDistOriginalTools": "any2jb 原创代码。它仅驱动单独暂存的固定版本只读工具源码，不包含任何向游戏机写入的路径。",
   "dynDistOunceCake": "不可用：OunceCake 的 GPL v2 系列义务（确切授权、对应源码、修改与声明）对 any2jb 尚未解决。开发者可在本地暂存这些固定版本的源码；任何软件包均不包含它们。",
   "dynDistSDBrowser": "不可用：SD 浏览器的 GPL-2.0-only 义务及继承的模块权利对 any2jb 尚未解决。开发者可在本地暂存这些固定版本的源码；任何软件包均不包含它们。",
-  "dynDistUSBDriver": "USB 驱动的分发被阻止，待审查确切的二进制源码与构建材料以及 MIT/APSL 声明义务。未捆绑驱动包或安装程序。"
+  "dynDistUSBDriver": "USB 驱动的分发被阻止，待审查确切的二进制源码与构建材料以及 MIT/APSL 声明义务。未捆绑驱动包或安装程序。",
+  "useSavedBootstrap": "使用已保存的引导程序",
+  "confirmBootstrapIdentity": "请确认游戏机已保存 {profile}（{edition}）的 {saveName}，修订版本 {revision}，引导程序 SHA-256 为 {digest}。应用无法读取已保存的程序内容。如果不确定，请改为准备并保存匹配的引导程序。",
+  "confirmBootstrapIdentityAction": "我确认这份已保存的引导程序准确无误",
+  "allowBootstrapOverwrite": "如果该存档已存在，我授权替换它",
+  "bootstrapPersistenceError": "无法保存引导程序身份信息。请检查本地文件权限；不要假定重启应用后它仍可用。",
+  "developerStaged": "开发者暂存，不可再分发"
 }
