@@ -1,4 +1,4 @@
-# Retained RPC lease and read-only tools
+# Retained RPC lease and tools
 
 A verified session on a capable host keeps its RPC lease, so the read-only tools
 run without rebuilding the exploit. The lease belongs to one verified run: tools
@@ -29,7 +29,7 @@ controller's retained adapter and its tool runner:
 - Only one tool owns the session at a time. A second request is refused naming
   the current owner, and the disabled control states the same reason.
 
-## Read-only tools
+## Tools
 
 | Tool | What runs | Boundary |
 | --- | --- | --- |
@@ -39,16 +39,42 @@ controller's retained adapter and its tool runner:
 | `ouncecake-ftp` | OunceCake plus mac2jb's FTP bridge | Binds `127.0.0.1` on this Mac only |
 | `sd-browser` | Pinned Super File Bros. modules | The console's FTP service, `/sd` only, `ftp://<console>:2122-2199/sd/` |
 | `savekit-read` | Pinned ns2-savekit read-only entrypoints through `retained/savekit-host.cjs` | Read-only: accounts, titles, archive inventory, inspect, verified backup export and timestamps |
+| `savekit` | Pinned ns2-savekit write/delete entrypoints through the same host | The selected archive only: gated write, restore and delete, plus the read-only live-vs-export compare |
 
-There is no write path in this ticket: no save, mod, launcher or console
-filesystem write exists in the tool host, and the SD export wrapper exposes only
-`list`, `stat`, `openRead`, `read` and `close` under `/sd`. The SaveKit host
-accepts only the read-only actions above: a write, restore or delete request,
-or an unknown request field, is rejected before anything spawns, and the
-`savekit` request validator refuses the same actions in Go. Go refuses any
-endpoint outside the boundary above, so a tool cannot publish a LAN service of
-its own. The capture's inventory, file sizes and SHA-256 digests are read back
-and verified after it completes; a partial capture is kept and not retried.
+No save, mod, launcher or console filesystem write exists outside the gated
+SaveKit path, and the SD export wrapper exposes only `list`, `stat`,
+`openRead`, `read` and `close` under `/sd`. Go refuses any endpoint
+outside the boundary above, so a tool cannot publish a LAN service of its own.
+The capture's inventory, file sizes and SHA-256 digests are read back and
+verified after it completes; a partial capture is kept and not retried.
+
+The `savekit` mutation gate runs, in order, per operation:
+
+1. **Preview and confirmation.** The view previews the affected files locally
+   (write: a flat source folder; restore: a verified export; delete: the exact
+   file name), states the target title, account and archive, and requires a
+   confirmation that covers exactly one operation. `savekit.Validate` binds
+   the preview's SHA-256 digest to the request. The manager recomputes the
+   digest at run time, and the host module checks it again against its private
+   staged copies just before the pinned tool runs, so a source that changed
+   after the preview is refused before any console change.
+2. **Target validation.** A fresh verified backup of the target archive is
+   pulled first and its export manifest identity must match the requested
+   title, account and archive; a mismatch aborts before any change and says
+   why. The write and delete accept only the default account archive (space 1,
+   type 1, rank 0, index 0); the restore accepts a rank 0, index 0 Account or
+   Device archive whose export identity matches.
+3. **Backup verification.** The backup is verified again immediately before
+   the mutation. A backup failure aborts the operation, reports why, and
+   blocks every further save mutation for the rest of the session.
+4. **Post-write verification.** The archive is pulled again and compared
+   against the intended result (write: exactly the previewed files, extra live
+   files preserved; delete: exactly one file removed). The outcome reports
+   verified or failed; it is never assumed. There is no automatic retry: a
+   failure keeps the verified backup accessible with recovery instructions,
+   and the session's save mutations stay blocked until a new session.
+   The compare action is read-only; it only pulls the live save and reports
+   match or difference, and a failed compare blocks nothing.
 
 The OunceCake export offers the console's installed titles and accepts exactly
 one of them. A game outside the offered catalog, a second selection or an
@@ -154,10 +180,9 @@ browser-research probe set shows its reason too and has no control at all.
 recorded file in a pinned mac2jb clone, copies exactly those files into
 `<app support>/tools/<version>/tools/<component>`, and verifies the copy before
 any tool may require it. `savekit` is recorded in the `selected-files` format:
-the component path is a digest-verified notice and `extra` names every staged
-file, and only the read-only entrypoints and their dependencies are recorded.
-Write entrypoints exist upstream but are never recorded or staged; ticket 18
-extends the selected file set for writes behind its own gate. `stage.json` marks the stage developer-staged and not
+the component path is a digest-verified notice and `extra` names all sixteen
+staged files: the read-only entrypoints, the write and delete entrypoints
+ticket 18's gate requires, and their shared libraries. `stage.json` marks the stage developer-staged and not
 redistributable, and the tool host refuses to run without it. A changed or
 unrecorded file fails the stage and leaves that tool unavailable with its
 recorded reason; it is never silently repaired.
@@ -191,8 +216,15 @@ recorded reason; it is never silently repaired.
 - `retained/savekit_test.go` drives the fixture host module through the manager:
   the lease requirement, the read-only list, inspect and verified-backup flow,
   and the single-owner refusal in both directions. `retained/savekit-host.test.cjs`
-  covers the request schema (write actions and unknown fields rejected), the
-  argv builder and the inventory parsers.
+  covers the request schema (unknown fields rejected, mutations needing the
+  confirmation flag), the argv builder and the inventory parsers.
+- `retained/savekit_write_test.go` drives the write gate on the same fixture:
+  the backup/write/read-back order, backup-failure abort with its session
+  block, target-validation abort that stays correctable, the replacement and
+  restore guards, a post-write verification failure with no retry, the
+  read-only compare, and the single-owner refusal between read and write.
+  `savekit/client_mutation_test.go` covers the mutation result schema and
+  `savekit/mutation_gate_test.go` the previews, digests, limits and compares.
 - `savekit/` validates requests, runs the host module's one-request protocol and
   verifies every export: `savekit/export_test.go` refuses a tampered or partial
   export, an unrecorded file and an escaping path. A verified backup is kept

@@ -96,6 +96,9 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	if request.Tool == "savekit-read" {
 		return m.runSaveKit(ctx, run, request, workspace, report)
 	}
+	if request.Tool == "savekit" {
+		return m.runSaveKitWrite(ctx, run, request, workspace, report)
+	}
 	m.mu.Lock()
 	if m.state.Lost {
 		m.mu.Unlock()
@@ -117,8 +120,9 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		return fmt.Errorf("%s already owns the retained session; stop it before starting another tool", owner)
 	}
 	if m.savekitOwner {
+		owner := m.state.Tool
 		m.mu.Unlock()
-		return errors.New("savekit-read already owns the retained session; wait for it to finish")
+		return errors.New(owner + " already owns the retained session; wait for it to finish")
 	}
 	cmd := m.command(run, request, workspace)
 	if cmd == nil {

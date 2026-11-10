@@ -11,9 +11,9 @@ import (
 	"github.com/thedavidweng/any2jb/session"
 )
 
-// savekitHost is the original any2jb read-only SaveKit host module, compiled
-// into the verified binary and written to a private file only when a save
-// operation runs. It never ships upstream tool code.
+// savekitHost is the original any2jb SaveKit host module, compiled into the
+// verified binary and written to a private file only when a save operation
+// runs. It never ships upstream tool code.
 //
 //go:embed savekit-host.cjs
 var savekitHost []byte
@@ -34,6 +34,54 @@ func (m *Manager) savekitModule() (string, error) {
 	return module, nil
 }
 
+// acquireSaveKit takes the SaveKit owner slot for one synchronous operation
+// under the same lease rules as every tool: a live session, no active tool and
+// no other SaveKit operation. The release function frees the slot and Stop
+// cancellation.
+func (m *Manager) acquireSaveKit(ctx context.Context, tool string) (context.Context, func(), error) {
+	m.mu.Lock()
+	if m.state.Lost {
+		m.mu.Unlock()
+		return nil, nil, errors.New("the retained session was lost; restart the console before another attempt")
+	}
+	if m.active != nil {
+		owner := m.active.tool
+		m.mu.Unlock()
+		return nil, nil, errors.New(owner + " already owns the retained session; stop it before starting another tool")
+	}
+	if m.savekitOwner {
+		owner := m.state.Tool
+		m.mu.Unlock()
+		return nil, nil, errors.New(owner + " already owns the retained session; wait for it to finish")
+	}
+	m.savekitOwner = true
+	m.state.Tool = tool
+	m.mu.Unlock()
+	ctx, cancel := context.WithCancel(ctx)
+	m.mu.Lock()
+	m.savekitCancel = cancel
+	m.mu.Unlock()
+	release := func() {
+		m.mu.Lock()
+		m.savekitOwner = false
+		m.savekitCancel = nil
+		m.state.Tool = ""
+		m.mu.Unlock()
+		cancel()
+	}
+	return ctx, release, nil
+}
+
+// freshExportFolder allocates a new verified-export folder under support,
+// outside every session workspace.
+func (m *Manager) freshExportFolder(titleID string) (string, error) {
+	parent := filepath.Join(m.options.Support, "savekit-exports")
+	if err := os.MkdirAll(parent, 0o700); err != nil {
+		return "", err
+	}
+	return os.MkdirTemp(parent, titleID+"-")
+}
+
 // runSaveKit executes one read-only save operation under the same lease rules
 // as every tool: fresh held evidence, the recorded distribution decision and a
 // single owner. The operation is synchronous; Stop cancels its child.
@@ -44,39 +92,11 @@ func (m *Manager) runSaveKit(ctx context.Context, run session.Run, request sessi
 	if err := request.SaveKit.Validate(); err != nil {
 		return err
 	}
-	m.mu.Lock()
-	if m.state.Lost {
-		m.mu.Unlock()
-		return errors.New("the retained session was lost; restart the console before another attempt")
+	ctx, release, err := m.acquireSaveKit(ctx, "savekit-read")
+	if err != nil {
+		return err
 	}
-	if m.active != nil {
-		owner := m.active.tool
-		m.mu.Unlock()
-		return errors.New(owner + " already owns the retained session; stop it before starting another tool")
-	}
-	if m.savekitOwner {
-		m.mu.Unlock()
-		return errors.New("savekit-read already owns the retained session; wait for it to finish")
-	}
-	m.savekitOwner = true
-	m.state = State{Tool: "savekit-read"}
-	m.mu.Unlock()
-	defer func() {
-		m.mu.Lock()
-		m.savekitOwner = false
-		m.state.Tool = ""
-		m.mu.Unlock()
-	}()
-	ctx, cancel := context.WithCancel(ctx)
-	m.mu.Lock()
-	m.savekitCancel = cancel
-	m.mu.Unlock()
-	defer func() {
-		m.mu.Lock()
-		m.savekitCancel = nil
-		m.mu.Unlock()
-		cancel()
-	}()
+	defer release()
 	module, err := m.savekitModule()
 	if err != nil {
 		return err
@@ -85,18 +105,14 @@ func (m *Manager) runSaveKit(ctx context.Context, run session.Run, request sessi
 	if request.SaveKit.Action == "backup" {
 		// Exports live under support, outside every session workspace, and each
 		// backup gets a fresh folder whose manifest keeps it verifiable later.
-		parent := filepath.Join(m.options.Support, "savekit-exports")
-		if err := os.MkdirAll(parent, 0o700); err != nil {
-			return err
-		}
-		folder, err := os.MkdirTemp(parent, request.SaveKit.TitleID+"-")
+		folder, err := m.freshExportFolder(request.SaveKit.TitleID)
 		if err != nil {
 			return err
 		}
 		destination = folder
 	}
 	report(session.Progress{SideEffect: true})
-	client := savekit.Client{Node: m.options.Node, Module: module}
+	client := savekit.Client{Node: m.options.Node, Module: module, Scenario: m.options.SaveKitScenario}
 	result, err := client.Run(ctx, workspace, destination, *request.SaveKit)
 	if err != nil {
 		return err
