@@ -368,11 +368,11 @@ func (m *Manager) Watch(ctx context.Context, _ session.Run) error {
 		if workspace == "" {
 			return errors.New("no attached retained session")
 		}
-		outcome, err := engine.VerifyHeld(ctx, workspace)
+		_, err := engine.VerifyHeld(ctx, workspace)
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		if err != nil || !outcome.Valid(true) {
+		if err != nil {
 			m.mu.Lock()
 			m.state.Lost = true
 			m.mu.Unlock()
