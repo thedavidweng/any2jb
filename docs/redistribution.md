@@ -38,7 +38,13 @@ Current inventory:
   framework copyright and permission notice is in
   [`resources/licenses/mygo.txt`](../resources/licenses/mygo.txt).
 
-No host, bootstrap, Node runtime, USB binary, driver, launcher save, ROM or
+Node 24.22.1 darwin-arm64 and the original any2jb structured profile bridge
+are bundled. Node's complete release license is retained in
+`resources/licenses/node.txt`. Its archive and binary digests are pinned in
+`manifest/profiles.json`; the build downloads into an ignored cache and fails
+closed on changed bytes. The binary itself is not committed to Git.
+
+No host, bootstrap, USB binary, driver, launcher save, ROM or
 research payload is currently bundled. This development shell passing the
 resource gate does **not** mean a functional P1a release is distributable.
 
@@ -121,7 +127,8 @@ These are open release requirements, not permission requests already sent.
 
 ## Package and UI enforcement
 
-`go tool mygo build` runs `go run ./cmd/check-package` before compilation and
+`go tool mygo build` runs `go run ./cmd/prepare-runtime` followed by
+`go run ./cmd/check-package` before compilation and
 packaging. It checks the entire `resources/` tree, including platform folders:
 only explicitly bundled `may-ship` files with matching digests pass. Missing
 bundled notices, unknown/renamed files, blocked/excluded files and symlinks fail.
@@ -153,9 +160,12 @@ wire that entry when the Advanced Tools view exists.
 The canonical host `upstream` URLs identify where a user can inspect or obtain
 sources independently. Artemis and research upstream links above identify
 their authors; request explicit permission before redistribution.
-An upstream download is not permission to rebundle it. No auto-download or
-user-supplied-source execution route is implemented or approved here.
-Such a route needs a separate trust, integrity and rights decision and must
-not silently unlock an excluded entry.
+An upstream download is not permission to rebundle it. No end-user engine
+auto-download or source-import route is implemented. Local developers may
+explicitly stage a selected canonical engine profile from a pinned mac2jb
+clone after full integrity verification, as described in
+[runtime staging](runtime-staging.md#explicit-local-developer-staging).
+That isolated stage is marked developer-staged, not redistributable. It does
+not change any package decision or unlock excluded tools.
 
 See the [parity ledger's release blockers](parity-ledger.md#redistribution-release-blockers).

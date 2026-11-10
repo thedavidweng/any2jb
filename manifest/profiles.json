@@ -313,6 +313,64 @@
         "notice": "licenses/mygo.txt",
         "reason": "Required notice for the MyGo framework and placeholder icon."
       }
+    },
+    {
+      "id": "node-darwin-arm64",
+      "path": "runtime/node",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "6f32069480ec14d52b6d7b1f3c7124cfbbc46203abf5ddf5c65b127435f3f329",
+      "upstream": "https://nodejs.org",
+      "revision": "v24.22.1",
+      "licenseStatus": "Node MIT plus bundled third-party notices, full release LICENSE retained.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "licenses/node.txt",
+        "reason": "Official Node binary and complete license notice; archive verified against release SHASUMS256.txt."
+      }
+    },
+    {
+      "id": "node-notice",
+      "path": "licenses/node.txt",
+      "sha256": "5888dbb9a1d2b18f2c3e6c5f6af1b39de658372b402a0577b002777f14c62ace",
+      "upstream": "https://nodejs.org",
+      "revision": "v24.22.1",
+      "licenseStatus": "Node MIT plus bundled third-party notices, full release LICENSE retained.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "licenses/node.txt",
+        "reason": "Official Node binary and complete license notice; archive verified against release SHASUMS256.txt."
+      }
+    },
+    {
+      "id": "engine-bridge",
+      "path": "runtime/bridge.cjs",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "e97054c2d11f9ca35e7508e67a619d161ef70e4464811ef032bddb4fdb434231",
+      "upstream": "any2jb",
+      "revision": "0.1.0",
+      "licenseStatus": "Original any2jb bridge.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "Original any2jb bridge; no upstream GUI code copied.",
+        "reason": "Original any2jb code; no upstream engine or GUI scripts."
+      }
     }
-  ]
+  ],
+  "runtime": {
+    "platform": "darwin-arm64",
+    "nodeVersion": "24.22.1",
+    "node": "node-darwin-arm64",
+    "bridge": "engine-bridge",
+    "helpers": [
+      "sender",
+      "commands",
+      "keyboard",
+      "civswitch-hid"
+    ],
+    "nodeArchive": "https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz",
+    "nodeArchiveSha256": "89c682593d76cd44233fa53b1563264e7de9cbb189cad169135c5b4fadfbc0a7"
+  }
 }

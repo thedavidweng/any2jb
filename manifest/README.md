@@ -1,8 +1,9 @@
 # Source manifest
 
 `profiles.json` is the only editable host profile and component lock. Go embeds
-it through `manifest.Load()`; the Node engine bridge uses `profiles.cjs` and
-`profileById(id)`. Stage this directory's JSON and reader unchanged together.
+it through `manifest.Load()`. The runtime bridge reads a serialized, immutable
+copy of that same loaded manifest. Other Node callers can use `profiles.cjs`
+and `profileById(id)` directly from this directory.
 Do not copy `mac2jb`'s `host-profiles.json` into the app or runtime.
 
 The six profile IDs are case-sensitive. Capabilities describe upstream host
@@ -55,8 +56,12 @@ enforce recorded decisions, not legal clearance. Launch adapters own both
 availability and integrity checks.
 
 The C helper component records pin four mac2jb **sources** only.
-No host, helper binary, or Node runtime is bundled by this package. When those
-artifacts are built/staged, add their exact paths and SHA-256 digests to
+No host or helper binary is bundled by this package. Node 24.22.1 arm64 and its
+complete notice are pinned here; the build fetches the official archive into
+an ignored cache and verifies both archive and extracted file digests.
+`resourcePlatform` describes the pre-build source folder only. Runtime paths
+remain relative to MyGo's merged resource root. When other artifacts are built/staged,
+add their exact paths and SHA-256 digests to
 `components` in this same manifest. Unrecorded binaries are rejected, not
 trusted from source digests or an installed system runtime.
 

@@ -34,10 +34,15 @@ signing or notarization. Linux and Windows are later product targets.
 Console and USB hardware behavior is **not verified**.
 
 The build runs a fail-closed redistribution check over packaged input resources.
+It first fetches the pinned official Node 24.22.1 arm64 archive into `.cache/`,
+verifies its release digest, and stages the binary and full license notice.
+Node is not committed to Git. Ordinary Go tests stay offline.
 All six host profiles remain blocked by unresolved inherited rights; no engine
 or bootstrap is bundled. See the [redistribution assessment](docs/redistribution.md)
 and [release blockers](docs/parity-ledger.md#redistribution-release-blockers).
 Do not bypass the build command for release packages.
+See [runtime staging](docs/runtime-staging.md) for the engine adapter boundary
+and remaining payload blockers.
 
 ## UI strings and assets
 

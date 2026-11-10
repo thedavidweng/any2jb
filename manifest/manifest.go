@@ -11,10 +11,23 @@ import (
 var canonical []byte
 
 type Manifest struct {
-	Format     string      `json:"format"`
-	Default    string      `json:"default"`
-	Profiles   []Profile   `json:"profiles"`
-	Components []Component `json:"components"`
+	Reference  json.RawMessage `json:"reference,omitempty"`
+	Runtime    Runtime         `json:"runtime"`
+	Format     string          `json:"format"`
+	Default    string          `json:"default"`
+	Profiles   []Profile       `json:"profiles"`
+	Components []Component     `json:"components"`
+}
+
+// Runtime pins the release target and its required standalone sidecars.
+type Runtime struct {
+	Platform          string   `json:"platform"`
+	NodeVersion       string   `json:"nodeVersion"`
+	Node              string   `json:"node"`
+	Bridge            string   `json:"bridge"`
+	Helpers           []string `json:"helpers"`
+	NodeArchive       string   `json:"nodeArchive"`
+	NodeArchiveSHA256 string   `json:"nodeArchiveSha256"`
 }
 
 type Profile struct {
@@ -49,13 +62,14 @@ type Profile struct {
 }
 
 type Component struct {
-	Distribution  Distribution `json:"distribution"`
-	ID            string       `json:"id"`
-	Upstream      string       `json:"upstream"`
-	Revision      string       `json:"revision"`
-	Path          string       `json:"path"`
-	SHA256        string       `json:"sha256"`
-	LicenseStatus string       `json:"licenseStatus"`
+	ResourcePlatform string       `json:"resourcePlatform,omitempty"`
+	Distribution     Distribution `json:"distribution"`
+	ID               string       `json:"id"`
+	Upstream         string       `json:"upstream"`
+	Revision         string       `json:"revision"`
+	Path             string       `json:"path"`
+	SHA256           string       `json:"sha256"`
+	LicenseStatus    string       `json:"licenseStatus"`
 }
 
 // Load reads the canonical manifest embedded at build time. The Node bridge

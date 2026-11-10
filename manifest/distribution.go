@@ -37,6 +37,23 @@ func (m *Manifest) DistributionFor(id string) (Distribution, error) {
 // allowlist. Unknown files, denied components, symlinks and changed bytes fail.
 // It does not check the app executable, signing, or legal obligations.
 func (m *Manifest) CheckPackage(root string) error {
+	// MyGo merges platform directories into the packaged resource root.
+	// This gate checks the source resources tree before that merge.
+	source := *m
+	source.Components = append([]Component(nil), m.Components...)
+	for i := range source.Components {
+		c := &source.Components[i]
+		if c.ResourcePlatform != "" {
+			if c.ResourcePlatform != "darwin-arm64" {
+				return fmt.Errorf("unsupported resource platform %q", c.ResourcePlatform)
+			}
+			c.Path = c.ResourcePlatform + "/" + c.Path
+		}
+	}
+	return source.checkPackage(root)
+}
+
+func (m *Manifest) checkPackage(root string) error {
 	for _, c := range m.Components {
 		if c.Distribution.Bundled {
 			if !c.Distribution.Available() {
@@ -59,8 +76,9 @@ func (m *Manifest) CheckPackage(root string) error {
 			return err
 		}
 		name := filepath.ToSlash(relative)
+		profileName := strings.TrimPrefix(name, "darwin-arm64/")
 		for _, p := range m.Profiles {
-			if !p.Distribution.Available() && (name == p.Bootstrap || name == p.SourceDirectory || strings.HasPrefix(name, p.SourceDirectory+"/")) {
+			if !p.Distribution.Available() && (profileName == p.Bootstrap || profileName == p.SourceDirectory || strings.HasPrefix(profileName, p.SourceDirectory+"/")) {
 				return fmt.Errorf("package contains host %s: %s (%s)", p.ID, p.Distribution.Decision, p.Distribution.Reason)
 			}
 		}
