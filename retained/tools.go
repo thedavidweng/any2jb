@@ -133,7 +133,8 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		done: make(chan struct{}), selection: make(chan string, 1)}
 	m.active = p
 	// Console-state blocks outlive the tool that caused them.
-	m.state = State{Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked}
+	m.state = State{Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked,
+		SaveKitBlocked: m.state.SaveKitBlocked}
 	m.mu.Unlock()
 	if err := m.start(ctx, p, report); err != nil {
 		m.mu.Lock()

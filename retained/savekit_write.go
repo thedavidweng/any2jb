@@ -36,8 +36,7 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 	}
 	defer release()
 	m.mu.Lock()
-	failed := m.state.SaveKit != nil && m.state.SaveKit.Write != nil &&
-		m.state.SaveKit.Write.Failure != ""
+	failed := m.state.SaveKitBlocked != ""
 	m.mu.Unlock()
 	if failed && req.Action != "verify" {
 		return errors.New("a previous save operation failed; finish this session and restart the console before another save operation")
@@ -260,4 +259,7 @@ func (m *Manager) recordWrite(outcome SaveKitWrite) {
 	}
 	observed.Action = outcome.Action
 	observed.Write = &outcome
+	if outcome.Failure != "" {
+		m.state.SaveKitBlocked = outcome.Failure
+	}
 }

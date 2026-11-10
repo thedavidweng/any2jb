@@ -115,6 +115,7 @@ type State struct {
 	SaveKit        *SaveKitState
 	Lost           bool
 	CleanupBlocked bool
+	SaveKitBlocked string
 	// ModloaderInstalled records a verified modloader handoff. Its overlay
 	// stays resident until the console restarts, so no further tool may run
 	// in this boot.

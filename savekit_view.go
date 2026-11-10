@@ -172,7 +172,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	if writeReason != "" {
 		ui.Text(c.Key("savekit-write-reason"), writeReason).TextColor(c.Theme().TextMuted)
 	}
-	blocked := observed != nil && observed.Write != nil && observed.Write.Failure != ""
+	blocked := state.SaveKitBlocked != ""
 	writeReady := ready && writeReason == "" && !blocked
 	ui.Text(c, locales.SaveKitWriteHint()).TextColor(c.Theme().TextMuted)
 
