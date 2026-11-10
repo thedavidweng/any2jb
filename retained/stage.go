@@ -41,9 +41,23 @@ func StageTools(o StageOptions) (string, []string, error) {
 	var staged []string
 	var failures error
 	for _, id := range o.Components {
+		c, err := o.Manifest.ToolComponent(id)
+		if err != nil {
+			failures = errors.Join(failures, err)
+			continue
+		}
 		dest := filepath.Join(root, "tools", id)
+		if c.Source.StageAs != "" {
+			dest = filepath.Join(root, "tools", filepath.FromSlash(c.Source.StageAs))
+		}
 		if err := stageComponent(o, dest, id); err != nil {
-			failures = errors.Join(failures, fmt.Errorf("%s: %w", id, err), os.RemoveAll(dest))
+			// A shared destination keeps its other components; only an own
+			// destination is removed on failure.
+			if c.Source.StageAs == "" {
+				failures = errors.Join(failures, fmt.Errorf("%s: %w", id, err), os.RemoveAll(dest))
+			} else {
+				failures = errors.Join(failures, fmt.Errorf("%s: %w", id, err))
+			}
 			continue
 		}
 		staged = append(staged, id)
@@ -55,12 +69,26 @@ func stageComponent(o StageOptions, dest, id string) error {
 	if err := o.Manifest.VerifyToolSource(dest, id); err == nil {
 		return nil
 	}
-	if err := os.RemoveAll(dest); err != nil {
-		return err
-	}
 	files, err := o.Manifest.ToolSourceFiles(o.SourceRoot, id)
 	if err != nil {
 		return err
+	}
+	c, err := o.Manifest.ToolComponent(id)
+	if err != nil {
+		return err
+	}
+	if c.Source.StageAs == "" {
+		if err := os.RemoveAll(dest); err != nil {
+			return err
+		}
+	} else {
+		// A staged-as component shares its destination: remove only the files
+		// it records before rewriting them.
+		for _, name := range files {
+			if err := os.Remove(filepath.Join(dest, filepath.FromSlash(name))); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+		}
 	}
 	for _, name := range files {
 		data, err := os.ReadFile(filepath.Join(o.SourceRoot, filepath.FromSlash(name)))

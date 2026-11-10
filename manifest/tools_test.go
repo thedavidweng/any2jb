@@ -116,7 +116,8 @@ func TestCanonicalToolSourcesAreRecordedAndBlocked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"ouncecake", "sd-browser"} {
+	for _, id := range []string{"ouncecake", "sd-browser", "mintbrew", "mintbrew-native",
+		"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"} {
 		c, err := m.ToolComponent(id)
 		if err != nil {
 			t.Fatal(err)

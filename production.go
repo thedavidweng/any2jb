@@ -67,17 +67,36 @@ func productionEnvironmentWithInput(options engine.Options, inputOptions transpo
 // sources are only staged from an explicit developer source root; a packaged app
 // stages nothing and every entry keeps the manifest's unavailable reason.
 func productionTools(root string, stageError error, options engine.Options, host *engine.HostRunner) *retained.Manager {
-	toolRoot, staged, stageToolsError := retained.StageTools(retained.StageOptions{Support: options.Support,
+	stageOptions := retained.StageOptions{Support: options.Support,
 		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
-		Components: []string{"ouncecake", "sd-browser"}})
+		Components: []string{"ouncecake", "sd-browser", "mintbrew", "mintbrew-native",
+			"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"}}
+	toolRoot, staged, stageToolsError := retained.StageTools(stageOptions)
 	node, toolHost := "", ""
 	if stageError == nil {
 		node, toolHost = filepath.Join(root, "runtime/node"), filepath.Join(root, "runtime/toolhost.cjs")
 	}
+	homebrewRuntime := ""
+	if options.DeveloperSourceRoot != "" && slices.Contains(staged, "homebrew-runtime") {
+		// The portable runtime must also be prepared and verified; a failed
+		// preparation keeps the homebrew launchers unavailable with the reason.
+		var err error
+		if homebrewRuntime, err = retained.StageHomebrewRuntime(stageOptions, toolRoot, staged); err != nil {
+			staged = slices.DeleteFunc(staged, func(id string) bool { return id == "homebrew-runtime" })
+			stageToolsError = errors.Join(stageToolsError, err)
+		}
+	}
+	if node != "" && slices.Contains(staged, "izlauncher") {
+		if err := retained.StageIZLauncher(node, filepath.Join(toolRoot, "tools", "izlauncher")); err != nil {
+			staged = slices.DeleteFunc(staged, func(id string) bool { return id == "izlauncher" })
+			stageToolsError = errors.Join(stageToolsError, err)
+		}
+	}
 	return retained.New(retained.Options{Support: options.Support, Node: node, Host: toolHost,
 		ToolRoot: toolRoot, Staged: staged, StageError: stageToolsError,
 		EngineStaged: options.DeveloperSourceRoot != "" && options.DeveloperProfileID != "",
-		Manifest:     options.Manifest, Runs: host})
+		EngineRoot:   root, HomebrewRuntime: homebrewRuntime,
+		Manifest: options.Manifest, Runs: host})
 }
 
 // productionDriverGate uses the packaged resource root; packaged startup never

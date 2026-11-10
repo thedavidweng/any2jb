@@ -3,7 +3,10 @@ package session
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"slices"
+	"strings"
 )
 
 // RetainedSession is a discovered local verified held session. Listing one is
@@ -115,10 +118,91 @@ func (c *SessionController) detach(ctx context.Context, run Run) error {
 }
 
 // ToolRequest carries validated user input for one tool: the console address a
-// read-only export needs. A parameter is neither a capability nor consent.
+// read-only export needs, and the homebrew launch configuration. A parameter is
+// neither a capability nor consent.
 type ToolRequest struct {
 	Tool        string
 	ConsoleIPv4 string
+	// Modules selects IZlauncher module ids from the staged catalog, SDRomFolder
+	// is the native launcher's read-only console ROM folder, and AppFolder a
+	// Mac folder of previously built native apps. The tool host re-validates
+	// each against staged, digest-pinned sources.
+	Modules     []string
+	SDRomFolder string
+	AppFolder   string
+}
+
+// validateHomebrew checks the optional homebrew launch parameters. They cross
+// a trust boundary, so the tool host rechecks every one of them.
+func (r ToolRequest) validateHomebrew() error {
+	if len(r.Modules) > 0 && r.Tool != "izlauncher" {
+		return errors.New("a module selection belongs to the IZlauncher")
+	}
+	if r.SDRomFolder != "" && r.Tool != "native-hblauncher" {
+		return errors.New("an SD ROM folder belongs to the native launcher")
+	}
+	if r.AppFolder != "" && r.Tool != "native-hblauncher" {
+		return errors.New("a native app folder belongs to the native launcher")
+	}
+	if len(r.Modules) > 15 {
+		return errors.New("choose up to 15 distinct compatible modules")
+	}
+	seen := map[string]bool{}
+	for _, id := range r.Modules {
+		if seen[id] || !validModuleID(id) {
+			return errors.New("choose up to 15 distinct compatible modules")
+		}
+		seen[id] = true
+	}
+	if r.SDRomFolder != "" && !validSDRomFolder(r.SDRomFolder) {
+		return errors.New("enter an absolute SD folder under /sd without a trailing slash")
+	}
+	if r.AppFolder != "" && !validAppFolder(r.AppFolder) {
+		return errors.New("choose an existing absolute folder on this Mac")
+	}
+	return nil
+}
+
+func (r ToolRequest) needsParameterized() bool {
+	return r.ConsoleIPv4 != "" || len(r.Modules) > 0 || r.SDRomFolder != "" || r.AppFolder != ""
+}
+
+// validModuleID mirrors the staged IZlauncher catalog's id shape.
+func validModuleID(id string) bool {
+	if len(id) < 1 || len(id) > 48 {
+		return false
+	}
+	for i, c := range id {
+		switch {
+		case c >= 'a' && c <= 'z' || c >= '0' && c <= '9':
+		case c == '-' && i > 0:
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// validSDRomFolder mirrors the read-only SD export's folder rules: absolute
+// under /sd, no trailing slash, no dot segments or control characters.
+func validSDRomFolder(value string) bool {
+	if len(value) > 240 || !strings.HasPrefix(value, "/sd/") || strings.HasSuffix(value, "/") {
+		return false
+	}
+	for _, part := range strings.Split(strings.TrimPrefix(value, "/"), "/") {
+		if part == "" || part == "." || part == ".." {
+			return false
+		}
+	}
+	return !strings.ContainsAny(value, "\x00\r\n")
+}
+
+func validAppFolder(value string) bool {
+	if !filepath.IsAbs(value) || len(value) > 4096 || strings.ContainsAny(value, "\x00\r\n") {
+		return false
+	}
+	info, err := os.Stat(value)
+	return err == nil && info.IsDir()
 }
 
 // ParameterizedToolRunner is implemented by tool adapters that accept validated
@@ -144,9 +228,12 @@ func (c *SessionController) RunToolWith(request ToolRequest) (Snapshot, error) {
 	if request.ConsoleIPv4 != "" && !validConsoleIPv4(request.ConsoleIPv4) {
 		return c.configurationError(InvalidConfiguration, "Enter the console's IPv4 address on the same reachable LAN.")
 	}
+	if err := request.validateHomebrew(); err != nil {
+		return c.configurationError(InvalidConfiguration, err.Error())
+	}
 	runner, parameterized := c.env.Tools.(ParameterizedToolRunner)
-	if request.ConsoleIPv4 != "" && !parameterized {
-		return c.configurationError(Unsupported, "This build's tool adapter does not accept a console address.")
+	if request.needsParameterized() && !parameterized {
+		return c.configurationError(Unsupported, "This build's tool adapter does not accept tool input.")
 	}
 	return c.begin(RunningTool, false, func(ctx context.Context, run Run) error {
 		var err error

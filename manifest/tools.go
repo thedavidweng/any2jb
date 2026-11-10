@@ -14,12 +14,17 @@ import (
 // ToolSource records one pinned read-only tool implementation tree. The
 // component's own path and digest identify the inventory that lists the tree;
 // Extra records additional files outside it, including provenance and adapters.
+// The "embedded" format carries the inventory in the manifest itself, as
+// root-relative paths with digests, for trees whose upstream ships none.
+// StageAs names a shared destination for components that form one staged tool.
 // Recording a tree is inventory, not redistribution permission.
 type ToolSource struct {
 	Directory string            `json:"directory"`
 	Format    string            `json:"format"`
 	Files     int               `json:"files"`
 	Extra     map[string]string `json:"extra,omitempty"`
+	Embedded  map[string]string `json:"embedded,omitempty"`
+	StageAs   string            `json:"stageAs,omitempty"`
 }
 
 // ToolComponent returns a component that records a tool source tree.
@@ -40,18 +45,31 @@ func (m *Manifest) ToolSourceFiles(root, id string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	inventory, err := verifyFile(root, id, c.Path, c.SHA256)
-	if err != nil {
-		return nil, err
-	}
-	recorded, err := c.Source.parse(inventory)
-	if err != nil {
-		return nil, &IntegrityError{Component: id, Path: c.Path, Err: err}
+	var recorded map[string]string
+	if c.Source.Format == "embedded" {
+		// The manifest itself is the inventory; the component anchor must be
+		// one of its entries, and entries are already root-relative paths.
+		if len(c.Source.Embedded) == 0 {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("empty embedded inventory")}
+		}
+		recorded = c.Source.Embedded
+		if _, ok := recorded[c.Path]; !ok {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("component anchor missing from its embedded inventory")}
+		}
+	} else {
+		inventory, err := verifyFile(root, id, c.Path, c.SHA256)
+		if err != nil {
+			return nil, err
+		}
+		recorded, err = c.Source.parse(inventory)
+		if err != nil {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: err}
+		}
 	}
 	if len(recorded) != c.Source.Files {
 		return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("inventory size differs from the recorded file count")}
 	}
-	if !fs.ValidPath(c.Source.Directory) || strings.Contains(c.Source.Directory, `\`) {
+	if c.Source.Directory != "" && (!fs.ValidPath(c.Source.Directory) || strings.Contains(c.Source.Directory, `\`)) {
 		return nil, &IntegrityError{Component: id, Path: c.Source.Directory, Err: errors.New("invalid tool source directory")}
 	}
 	files := []string{c.Path}
@@ -59,7 +77,10 @@ func (m *Manifest) ToolSourceFiles(root, id string) ([]string, error) {
 		if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
 			return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid inventory entry %q", name)}
 		}
-		full := path.Join(c.Source.Directory, name)
+		full := name
+		if c.Source.Format != "embedded" {
+			full = path.Join(c.Source.Directory, name)
+		}
 		if _, err := verifyFile(root, id, full, digest); err != nil {
 			return nil, err
 		}
@@ -109,6 +130,11 @@ func (s *ToolSource) parse(inventory []byte) (map[string]string, error) {
 }
 
 func refuseUnrecorded(root string, c Component, files []string) error {
+	if c.Source.Directory == "" {
+		// An embedded inventory without a directory records scattered files
+		// explicitly; there is no tree to walk.
+		return nil
+	}
 	dir, err := os.OpenRoot(root)
 	if err != nil {
 		return &IntegrityError{Component: c.ID, Path: c.Source.Directory, Err: err}

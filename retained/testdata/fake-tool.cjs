@@ -3,6 +3,7 @@
 // emulated, and no console filesystem is touched.
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const readline = require('node:readline');
 const [, tool, workspace, consoleAddress, destination, scenario = 'ok'] = process.argv.slice(2);
 let sequence = 0;
@@ -43,6 +44,25 @@ async function main() {
   } else if (tool === 'sd-browser') {
     emit('running', {readOnly: true, endpoint: scenario === 'exposed'
       ? 'ftp://192.0.2.9:2122/sd/' : 'ftp://' + consoleAddress + ':2122/sd/'});
+  } else if (['mintbrew', 'native-hblauncher', 'izlauncher'].includes(tool)) {
+    const marker = path.join(workspace, '.mac2jb-hblauncher-attempt.json');
+    fs.writeFileSync(marker, JSON.stringify({application: tool, started: 'fixture'}) + '\n',
+      {mode: 0o600, flag: 'wx'});
+    if (scenario === 'hb-fail-blocked' || scenario === 'hb-fail-retry') {
+      if (scenario === 'hb-fail-retry') fs.unlinkSync(marker);
+      emit('failed', {cleanupBlocked: scenario === 'hb-fail-blocked',
+        message: 'fixture launch failure'});
+      process.exitCode = 1;
+      return;
+    }
+    emit('running');
+    await stopped;
+    if (scenario === 'hb-unproven') { emit('stopped'); return; }
+    const digest = crypto.createHash('sha256').update(fs.readFileSync(marker)).digest('hex');
+    fs.unlinkSync(marker);
+    emit('stopped', {cleanupVerified: true, attemptMarkerSha256: digest,
+      attemptMarkers: ['.mac2jb-hblauncher-attempt.json']});
+    return;
   } else throw Error('unknown fixture tool');
   await stopped;
   emit('stopped');

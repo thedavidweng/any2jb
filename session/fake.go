@@ -33,6 +33,7 @@ type FakeEnvironment struct {
 	AttachError      error
 	DetachError      error
 	RetainedLostGate <-chan struct{}
+	ToolRequest      ToolRequest
 }
 
 func NewFakeEnvironment() *FakeEnvironment {
@@ -182,6 +183,16 @@ func (r fakeRetained) Watch(ctx context.Context, _ Run) error {
 type fakeTools struct{ f *FakeEnvironment }
 
 func (t fakeTools) Run(ctx context.Context, _ Run, _ string, _ Report) error {
+	if err := gate(ctx, t.f.ToolGate); err != nil {
+		return err
+	}
+	return t.f.ToolError
+}
+func (t fakeTools) RunWith(ctx context.Context, _ Run, request ToolRequest, _ Report) error {
+	t.f.mu.Lock()
+	t.f.trace = append(t.f.trace, "tool.run."+request.Tool)
+	t.f.ToolRequest = request
+	t.f.mu.Unlock()
 	if err := gate(ctx, t.f.ToolGate); err != nil {
 		return err
 	}
