@@ -45,48 +45,68 @@ func (m *Manifest) ToolSourceFiles(root, id string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var recorded map[string]string
-	if c.Source.Format == "embedded" {
-		// The manifest itself is the inventory; the component anchor must be
-		// one of its entries, and entries are already root-relative paths.
-		if len(c.Source.Embedded) == 0 {
-			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("empty embedded inventory")}
+	files := []string{c.Path}
+	if c.Source.Format == "selected-files" {
+		// No whole-tree inventory exists; the component path is the recorded
+		// notice and Extra names every file the stage may copy. The tree keeps
+		// its other files (write entrypoints excluded from a read-only stage),
+		// so only recorded names are verified, never walked.
+		if _, err := verifyFile(root, id, c.Path, c.SHA256); err != nil {
+			return nil, err
 		}
-		recorded = c.Source.Embedded
-		if _, ok := recorded[c.Path]; !ok {
-			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("component anchor missing from its embedded inventory")}
+		if !fs.ValidPath(c.Source.Directory) || strings.Contains(c.Source.Directory, `\`) {
+			return nil, &IntegrityError{Component: id, Path: c.Source.Directory, Err: errors.New("invalid tool source directory")}
+		}
+		if len(c.Source.Extra) != c.Source.Files {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("recorded file count differs from the selected file set")}
 		}
 	} else {
-		inventory, err := verifyFile(root, id, c.Path, c.SHA256)
-		if err != nil {
-			return nil, err
+		var recorded map[string]string
+		if c.Source.Format == "embedded" {
+			// The manifest itself is the inventory; the component anchor must
+			// be one of its entries, and entries are already root-relative
+			// paths.
+			if len(c.Source.Embedded) == 0 {
+				return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("empty embedded inventory")}
+			}
+			recorded = c.Source.Embedded
+			if _, ok := recorded[c.Path]; !ok {
+				return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("component anchor missing from its embedded inventory")}
+			}
+		} else {
+			inventory, err := verifyFile(root, id, c.Path, c.SHA256)
+			if err != nil {
+				return nil, err
+			}
+			recorded, err = c.Source.parse(inventory)
+			if err != nil {
+				return nil, &IntegrityError{Component: id, Path: c.Path, Err: err}
+			}
 		}
-		recorded, err = c.Source.parse(inventory)
-		if err != nil {
-			return nil, &IntegrityError{Component: id, Path: c.Path, Err: err}
+		if len(recorded) != c.Source.Files {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("inventory size differs from the recorded file count")}
 		}
-	}
-	if len(recorded) != c.Source.Files {
-		return nil, &IntegrityError{Component: id, Path: c.Path, Err: errors.New("inventory size differs from the recorded file count")}
-	}
-	if c.Source.Directory != "" && (!fs.ValidPath(c.Source.Directory) || strings.Contains(c.Source.Directory, `\`)) {
-		return nil, &IntegrityError{Component: id, Path: c.Source.Directory, Err: errors.New("invalid tool source directory")}
-	}
-	files := []string{c.Path}
-	for name, digest := range recorded {
-		if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
-			return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid inventory entry %q", name)}
+		if c.Source.Directory != "" && (!fs.ValidPath(c.Source.Directory) || strings.Contains(c.Source.Directory, `\`)) {
+			return nil, &IntegrityError{Component: id, Path: c.Source.Directory, Err: errors.New("invalid tool source directory")}
 		}
-		full := name
-		if c.Source.Format != "embedded" {
-			full = path.Join(c.Source.Directory, name)
+		for name, digest := range recorded {
+			if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
+				return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid inventory entry %q", name)}
+			}
+			full := name
+			if c.Source.Format != "embedded" {
+				full = path.Join(c.Source.Directory, name)
+			}
+			if _, err := verifyFile(root, id, full, digest); err != nil {
+				return nil, err
+			}
+			files = append(files, full)
 		}
-		if _, err := verifyFile(root, id, full, digest); err != nil {
-			return nil, err
-		}
-		files = append(files, full)
 	}
 	for name, digest := range c.Source.Extra {
+		if !fs.ValidPath(name) || strings.ContainsAny(name, "\\\r") {
+			return nil, &IntegrityError{Component: id, Path: c.Path, Err: fmt.Errorf("invalid recorded file %q", name)}
+		}
 		if _, err := verifyFile(root, id, name, digest); err != nil {
 			return nil, err
 		}
@@ -94,8 +114,10 @@ func (m *Manifest) ToolSourceFiles(root, id string) ([]string, error) {
 	}
 	slices.Sort(files)
 	files = slices.Compact(files)
-	if err := refuseUnrecorded(root, c, files); err != nil {
-		return nil, err
+	if c.Source.Format != "selected-files" {
+		if err := refuseUnrecorded(root, c, files); err != nil {
+			return nil, err
+		}
 	}
 	return files, nil
 }

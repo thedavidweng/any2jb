@@ -28,6 +28,7 @@ func (p Profile) SessionProfile() session.Profile {
 		name      string
 		supported bool
 	}{
+		{"savekit-read", p.SupportsSaveKit},
 		{"savekit", p.SupportsSaveKit}, {"native-hblauncher", p.SupportsNativeHBLauncher}, {"modloader", p.SupportsModloader},
 	} {
 		if tool.supported {

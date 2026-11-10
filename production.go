@@ -77,7 +77,7 @@ func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions tra
 func productionTools(root string, stageError error, options engine.Options, host *engine.HostRunner) *retained.Manager {
 	stageOptions := retained.StageOptions{Support: options.Support,
 		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
-		Components: []string{"ouncecake", "sd-browser", "mintbrew", "mintbrew-native",
+		Components: []string{"ouncecake", "sd-browser", "savekit", "mintbrew", "mintbrew-native",
 			"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"}}
 	toolRoot, staged, stageToolsError := retained.StageTools(stageOptions)
 	node, toolHost := "", ""

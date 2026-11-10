@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/thedavidweng/any2jb/savekit"
 )
 
 // RetainedSession is a discovered local verified held session. Listing one is
@@ -118,11 +120,13 @@ func (c *SessionController) detach(ctx context.Context, run Run) error {
 }
 
 // ToolRequest carries validated user input for one tool: the console address a
-// read-only export needs, and the homebrew launch configuration. A parameter is
+// read-only export needs, one read-only SaveKit operation or the homebrew
+// launch configuration. A parameter is
 // neither a capability nor consent.
 type ToolRequest struct {
 	Tool        string
 	ConsoleIPv4 string
+	SaveKit     *savekit.Request
 	// Modules selects IZlauncher module ids from the staged catalog, SDRomFolder
 	// is the native launcher's read-only console ROM folder, and AppFolder a
 	// Mac folder of previously built native apps. The tool host re-validates
@@ -164,7 +168,7 @@ func (r ToolRequest) validateHomebrew() error {
 }
 
 func (r ToolRequest) needsParameterized() bool {
-	return r.ConsoleIPv4 != "" || len(r.Modules) > 0 || r.SDRomFolder != "" || r.AppFolder != ""
+	return r.ConsoleIPv4 != "" || r.SaveKit != nil || len(r.Modules) > 0 || r.SDRomFolder != "" || r.AppFolder != ""
 }
 
 // validModuleID mirrors the staged IZlauncher catalog's id shape.
@@ -228,12 +232,17 @@ func (c *SessionController) RunToolWith(request ToolRequest) (Snapshot, error) {
 	if request.ConsoleIPv4 != "" && !validConsoleIPv4(request.ConsoleIPv4) {
 		return c.configurationError(InvalidConfiguration, "Enter the console's IPv4 address on the same reachable LAN.")
 	}
+	if request.SaveKit != nil {
+		if err := request.SaveKit.Validate(); err != nil {
+			return c.configurationError(InvalidConfiguration, err.Error())
+		}
+	}
 	if err := request.validateHomebrew(); err != nil {
 		return c.configurationError(InvalidConfiguration, err.Error())
 	}
 	runner, parameterized := c.env.Tools.(ParameterizedToolRunner)
 	if request.needsParameterized() && !parameterized {
-		return c.configurationError(Unsupported, "This build's tool adapter does not accept tool input.")
+		return c.configurationError(Unsupported, "This build's tool adapter does not accept tool parameters.")
 	}
 	return c.begin(RunningTool, false, func(ctx context.Context, run Run) error {
 		var err error

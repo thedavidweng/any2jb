@@ -188,14 +188,11 @@ func (t fakeTools) Run(ctx context.Context, _ Run, _ string, _ Report) error {
 	}
 	return t.f.ToolError
 }
-func (t fakeTools) RunWith(ctx context.Context, _ Run, request ToolRequest, _ Report) error {
+func (t fakeTools) RunWith(ctx context.Context, run Run, request ToolRequest, report Report) error {
 	t.f.mu.Lock()
-	t.f.trace = append(t.f.trace, "tool.run."+request.Tool)
+	t.f.trace = append(t.f.trace, "tool.run-with "+request.Tool)
 	t.f.ToolRequest = request
 	t.f.mu.Unlock()
-	if err := gate(ctx, t.f.ToolGate); err != nil {
-		return err
-	}
-	return t.f.ToolError
+	return t.Run(ctx, run, request.Tool, report)
 }
 func (t fakeTools) Stop(context.Context, Run) error { return t.f.CleanupError }

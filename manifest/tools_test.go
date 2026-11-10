@@ -111,12 +111,76 @@ func TestToolSourceRefusesUnrecordedAndMissingFiles(t *testing.T) {
 	}
 }
 
+// selectedFilesFixture records only named files of a tree that contains more,
+// for tools whose read-only stage must exclude their write entrypoints.
+func selectedFilesFixture(t *testing.T) (string, *manifest.Manifest) {
+	t.Helper()
+	root := t.TempDir()
+	recorded := map[string]string{
+		"tools/list-apps.cjs":      "// list\n",
+		"tools/save-inventory.cjs": "// inventory\n",
+	}
+	extra := map[string]string{}
+	for name, body := range recorded {
+		target := filepath.Join(root, filepath.FromSlash(name))
+		if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(target, []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		extra[name] = digestOf([]byte(body))
+	}
+	if err := os.WriteFile(filepath.Join(root, "NOTICE"), []byte("notice\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// The write entrypoint exists upstream but is never recorded or staged.
+	if err := os.WriteFile(filepath.Join(root, "tools", "save-write-stage.cjs"), []byte("// write\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := &manifest.Manifest{Components: []manifest.Component{{
+		ID: "savekit", Path: "NOTICE", SHA256: digestOf([]byte("notice\n")),
+		Source: &manifest.ToolSource{Directory: "tools", Format: "selected-files",
+			Files: len(recorded), Extra: extra},
+		Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture"},
+	}}}
+	return root, m
+}
+
+func TestSelectedFilesStageOnlyTheRecordedEntrypoints(t *testing.T) {
+	root, m := selectedFilesFixture(t)
+	names, err := m.ToolSourceFiles(root, "savekit")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(names) != 3 {
+		t.Fatalf("staging must list the notice and the read-only entrypoints only: %v", names)
+	}
+	for _, name := range names {
+		if strings.Contains(name, "save-write-stage") {
+			t.Fatalf("a write entrypoint entered the read-only stage: %v", names)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(root, "tools", "list-apps.cjs"), []byte("// changed\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.VerifyToolSource(root, "savekit"); err == nil {
+		t.Fatal("a changed read-only entrypoint was accepted")
+	}
+	root, m = selectedFilesFixture(t)
+	if err := os.Remove(filepath.Join(root, "tools", "save-inventory.cjs")); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.VerifyToolSource(root, "savekit"); err == nil {
+		t.Fatal("a missing read-only entrypoint was accepted")
+	}
+}
 func TestCanonicalToolSourcesAreRecordedAndBlocked(t *testing.T) {
 	m, err := manifest.Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"ouncecake", "sd-browser", "mintbrew", "mintbrew-native",
+	for _, id := range []string{"ouncecake", "sd-browser", "savekit", "mintbrew", "mintbrew-native",
 		"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"} {
 		c, err := m.ToolComponent(id)
 		if err != nil {

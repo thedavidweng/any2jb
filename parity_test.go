@@ -10,7 +10,26 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/thedavidweng/any2jb/internal/hwevidence"
 )
+
+// TestHardwareEvidenceMatchesLedger keeps hardware claims traceable: every
+// ledger row marked hardware-verified needs a matching validated log in
+// docs/hardware-evidence, and every log-verified row must be marked.
+func TestHardwareEvidenceMatchesLedger(t *testing.T) {
+	logs, err := hwevidence.LoadDir("docs/hardware-evidence")
+	if err != nil {
+		t.Fatal(err)
+	}
+	problems, err := hwevidence.CheckLedger("docs/parity-ledger.md", logs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, problem := range problems {
+		t.Error(problem)
+	}
+}
 
 func TestParityLedger(t *testing.T) {
 	data, err := os.ReadFile("docs/parity-ledger.md")

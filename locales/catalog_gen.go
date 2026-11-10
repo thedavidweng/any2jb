@@ -1330,6 +1330,218 @@ func (msgs Messages) HbAppFolder() string {
 	return Catalog.Format(msgs.locale, "hbAppFolder", nil)
 }
 
+// SaveKitTitle says "SaveKit save inspection (read-only)"
+// in the language the app shows.
+func SaveKitTitle() string { return In(i18n.Locale()).SaveKitTitle() }
+
+// SaveKitTitle says "SaveKit save inspection (read-only)"
+// in the language of msgs.
+func (msgs Messages) SaveKitTitle() string {
+	return Catalog.Format(msgs.locale, "saveKitTitle", nil)
+}
+
+// SaveKitOpen says "Open SaveKit save inspection"
+// in the language the app shows.
+func SaveKitOpen() string { return In(i18n.Locale()).SaveKitOpen() }
+
+// SaveKitOpen says "Open SaveKit save inspection"
+// in the language of msgs.
+func (msgs Messages) SaveKitOpen() string {
+	return Catalog.Format(msgs.locale, "saveKitOpen", nil)
+}
+
+// SaveKitIntro says "Inspect accounts, installed titles and save archives, and export verified read-only backups. Nothing in this panel wr…"
+// in the language the app shows.
+func SaveKitIntro() string { return In(i18n.Locale()).SaveKitIntro() }
+
+// SaveKitIntro says "Inspect accounts, installed titles and save archives, and export verified read-only backups. Nothing in this panel wr…"
+// in the language of msgs.
+func (msgs Messages) SaveKitIntro() string {
+	return Catalog.Format(msgs.locale, "saveKitIntro", nil)
+}
+
+// SaveKitNeedLease says "SaveKit needs a verified session with a live retained RPC lease on a SaveKit-capable host."
+// in the language the app shows.
+func SaveKitNeedLease() string { return In(i18n.Locale()).SaveKitNeedLease() }
+
+// SaveKitNeedLease says "SaveKit needs a verified session with a live retained RPC lease on a SaveKit-capable host."
+// in the language of msgs.
+func (msgs Messages) SaveKitNeedLease() string {
+	return Catalog.Format(msgs.locale, "saveKitNeedLease", nil)
+}
+
+// SaveKitAccounts says "List console accounts"
+// in the language the app shows.
+func SaveKitAccounts() string { return In(i18n.Locale()).SaveKitAccounts() }
+
+// SaveKitAccounts says "List console accounts"
+// in the language of msgs.
+func (msgs Messages) SaveKitAccounts() string {
+	return Catalog.Format(msgs.locale, "saveKitAccounts", nil)
+}
+
+// SaveKitTitles says "List installed titles"
+// in the language the app shows.
+func SaveKitTitles() string { return In(i18n.Locale()).SaveKitTitles() }
+
+// SaveKitTitles says "List installed titles"
+// in the language of msgs.
+func (msgs Messages) SaveKitTitles() string {
+	return Catalog.Format(msgs.locale, "saveKitTitles", nil)
+}
+
+// SaveKitInventory says "Scan all save archives"
+// in the language the app shows.
+func SaveKitInventory() string { return In(i18n.Locale()).SaveKitInventory() }
+
+// SaveKitInventory says "Scan all save archives"
+// in the language of msgs.
+func (msgs Messages) SaveKitInventory() string {
+	return Catalog.Format(msgs.locale, "saveKitInventory", nil)
+}
+
+// SaveKitAccount says "Console account"
+// in the language the app shows.
+func SaveKitAccount() string { return In(i18n.Locale()).SaveKitAccount() }
+
+// SaveKitAccount says "Console account"
+// in the language of msgs.
+func (msgs Messages) SaveKitAccount() string {
+	return Catalog.Format(msgs.locale, "saveKitAccount", nil)
+}
+
+// SaveKitTitleID says "Title ID (16 hexadecimal digits)"
+// in the language the app shows.
+func SaveKitTitleID() string { return In(i18n.Locale()).SaveKitTitleID() }
+
+// SaveKitTitleID says "Title ID (16 hexadecimal digits)"
+// in the language of msgs.
+func (msgs Messages) SaveKitTitleID() string {
+	return Catalog.Format(msgs.locale, "saveKitTitleID", nil)
+}
+
+// SaveKitArchive says "Save archive"
+// in the language the app shows.
+func SaveKitArchive() string { return In(i18n.Locale()).SaveKitArchive() }
+
+// SaveKitArchive says "Save archive"
+// in the language of msgs.
+func (msgs Messages) SaveKitArchive() string {
+	return Catalog.Format(msgs.locale, "saveKitArchive", nil)
+}
+
+// SaveKitAll says "Include every matching archive of this title"
+// in the language the app shows.
+func SaveKitAll() string { return In(i18n.Locale()).SaveKitAll() }
+
+// SaveKitAll says "Include every matching archive of this title"
+// in the language of msgs.
+func (msgs Messages) SaveKitAll() string {
+	return Catalog.Format(msgs.locale, "saveKitAll", nil)
+}
+
+// SaveKitInspect says "Inspect save files"
+// in the language the app shows.
+func SaveKitInspect() string { return In(i18n.Locale()).SaveKitInspect() }
+
+// SaveKitInspect says "Inspect save files"
+// in the language of msgs.
+func (msgs Messages) SaveKitInspect() string {
+	return Catalog.Format(msgs.locale, "saveKitInspect", nil)
+}
+
+// SaveKitBackup says "Export verified backup"
+// in the language the app shows.
+func SaveKitBackup() string { return In(i18n.Locale()).SaveKitBackup() }
+
+// SaveKitBackup says "Export verified backup"
+// in the language of msgs.
+func (msgs Messages) SaveKitBackup() string {
+	return Catalog.Format(msgs.locale, "saveKitBackup", nil)
+}
+
+// SaveKitFiletime says "Read save timestamps"
+// in the language the app shows.
+func SaveKitFiletime() string { return In(i18n.Locale()).SaveKitFiletime() }
+
+// SaveKitFiletime says "Read save timestamps"
+// in the language of msgs.
+func (msgs Messages) SaveKitFiletime() string {
+	return Catalog.Format(msgs.locale, "saveKitFiletime", nil)
+}
+
+// SaveKitSelected says "Selected archive: title {title} · account {account} · space {space} type {type} rank {rank} index {index}"
+// in the language the app shows.
+func SaveKitSelected(title string, account string, space string, type_ string, rank string, index string) string {
+	return In(i18n.Locale()).SaveKitSelected(title, account, space, type_, rank, index)
+}
+
+// SaveKitSelected says "Selected archive: title {title} · account {account} · space {space} type {type} rank {rank} index {index}"
+// in the language of msgs.
+func (msgs Messages) SaveKitSelected(title string, account string, space string, type_ string, rank string, index string) string {
+	return Catalog.Format(msgs.locale, "saveKitSelected", map[string]any{"title": title, "account": account, "space": space, "type": type_, "rank": rank, "index": index})
+}
+
+// SaveKitManual says "Choose an account and enter a title ID, or select an archive from the scan."
+// in the language the app shows.
+func SaveKitManual() string { return In(i18n.Locale()).SaveKitManual() }
+
+// SaveKitManual says "Choose an account and enter a title ID, or select an archive from the scan."
+// in the language of msgs.
+func (msgs Messages) SaveKitManual() string {
+	return Catalog.Format(msgs.locale, "saveKitManual", nil)
+}
+
+// SaveKitResult says "Read-only result"
+// in the language the app shows.
+func SaveKitResult() string { return In(i18n.Locale()).SaveKitResult() }
+
+// SaveKitResult says "Read-only result"
+// in the language of msgs.
+func (msgs Messages) SaveKitResult() string {
+	return Catalog.Format(msgs.locale, "saveKitResult", nil)
+}
+
+// SaveKitExportSaved says "Verified save export kept at {path}"
+// in the language the app shows.
+func SaveKitExportSaved(path string) string { return In(i18n.Locale()).SaveKitExportSaved(path) }
+
+// SaveKitExportSaved says "Verified save export kept at {path}"
+// in the language of msgs.
+func (msgs Messages) SaveKitExportSaved(path string) string {
+	return Catalog.Format(msgs.locale, "saveKitExportSaved", map[string]any{"path": path})
+}
+
+// SaveKitOpenExport says "Open export folder"
+// in the language the app shows.
+func SaveKitOpenExport() string { return In(i18n.Locale()).SaveKitOpenExport() }
+
+// SaveKitOpenExport says "Open export folder"
+// in the language of msgs.
+func (msgs Messages) SaveKitOpenExport() string {
+	return Catalog.Format(msgs.locale, "saveKitOpenExport", nil)
+}
+
+// SaveKitFailed says "The last SaveKit action could not be completed. Check diagnostics; nothing was retried."
+// in the language the app shows.
+func SaveKitFailed() string { return In(i18n.Locale()).SaveKitFailed() }
+
+// SaveKitFailed says "The last SaveKit action could not be completed. Check diagnostics; nothing was retried."
+// in the language of msgs.
+func (msgs Messages) SaveKitFailed() string {
+	return Catalog.Format(msgs.locale, "saveKitFailed", nil)
+}
+
+// SaveKitBack says "Back to Advanced Tools"
+// in the language the app shows.
+func SaveKitBack() string { return In(i18n.Locale()).SaveKitBack() }
+
+// SaveKitBack says "Back to Advanced Tools"
+// in the language of msgs.
+func (msgs Messages) SaveKitBack() string {
+	return Catalog.Format(msgs.locale, "saveKitBack", nil)
+}
+
 // HeldRPC says "Retained RPC"
 // in the language the app shows.
 func HeldRPC() string { return In(i18n.Locale()).HeldRPC() }

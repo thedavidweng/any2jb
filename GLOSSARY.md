@@ -76,6 +76,10 @@ _Avoid_: status
 The strongest proof that a ledger row works: `not verified`, `unit-tested`, `integration-tested`, `hardware-verified` or `blocked`.
 _Avoid_: status, verified (alone)
 
+**Hardware evidence log**:
+The validated JSON record a human tester files in `docs/hardware-evidence/` after running the hardware acceptance protocol on a real rig; the only basis for a `hardware-verified` ledger row.
+_Avoid_: test result, manual check
+
 **Experimental**:
 A label on a ledger row whose upstream marks it as a prototype or hardware-unverified; independent of disposition and evidence level.
 
