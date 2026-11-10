@@ -106,7 +106,19 @@ type Check struct {
 	State      CheckState
 	Message    string
 	NextAction string
+	// Empty gates every transport; usb-hid gates built-in USB input only.
+	GatesTransport string
+	// LANIPv4 records an observed local assignment, not console reachability.
+	LANIPv4 string
 }
+
+func (c Check) Blocks(transport Transport) bool {
+	if c.GatesTransport == "usb-hid" && (transport.Capabilities.Manual || transport.Capabilities.ExternalPico) {
+		return false
+	}
+	return c.State != CheckVerified
+}
+
 type Outcome struct {
 	Verified        bool
 	FSVerified      bool
@@ -137,6 +149,7 @@ type Snapshot struct {
 	Profile           Profile
 	Edition           string
 	LANIPv4           string
+	LANOverride       string
 	Transport         Transport
 	Checks            []Check
 	Stage             Stage
@@ -160,7 +173,7 @@ func (s Snapshot) CanStart() bool {
 		(s.Profile.BootstrapSHA256 == "" || s.BootstrapSaved) &&
 		(len(s.Profile.Editions) == 0 || slices.Contains(s.Profile.Editions, s.Edition)) &&
 		s.Transport.Capabilities.supports(s.Profile.RequiredTransport) && len(s.Checks) > 0 &&
-		!slices.ContainsFunc(s.Checks, func(check Check) bool { return check.State != CheckVerified })
+		!slices.ContainsFunc(s.Checks, func(check Check) bool { return check.Blocks(s.Transport) })
 }
 
 type Event struct {
@@ -225,6 +238,9 @@ const (
 type HostRunner interface {
 	Prepare(context.Context, Run, Report) (PreparedHost, error)
 	Run(context.Context, Run, PreparedHost, Report) (Outcome, error)
+	// Wait observes the owned host after held verification. Any exit before
+	// Finish is unexpected; cancellation disarms the watcher.
+	Wait(context.Context, Run) error
 	Finish(context.Context, Run) (Outcome, error)
 	Cleanup(context.Context, Run) error
 }

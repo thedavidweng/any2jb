@@ -5,3 +5,4 @@
 mygo_windows_*.syso
 /.cache/
 /resources/darwin-arm64/runtime/node
+/locales.ts

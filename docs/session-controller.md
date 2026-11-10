@@ -20,6 +20,11 @@ bootstraps from different hosts are not interchangeable. See
 [host profile choices](host-profile-ui.md) for preference and bootstrap
 integration obligations. `ConfigureTransport` accepts an empty IPv4 to request
 network discovery; this does not establish readiness or a usable LAN address.
+The readiness adapter returns the observed assignment in `Check.LANIPv4`.
+The controller selects it into `Snapshot.LANIPv4`, keeps the explicit preference
+in `Snapshot.LANOverride`, and re-inspects before host preparation.
+`Check.GatesTransport = "usb-hid"` gates built-in USB only, leaving guided manual
+input independent of driver/controller facts. See [readiness](readiness.md).
 
 ## Adapter contract
 
@@ -37,6 +42,10 @@ network discovery; this does not establish readiness or a usable LAN address.
   process/result integrity, not infer these booleans from a log line.
 - `HostRunner.Finish` supplies final cleaned-up verification, including completion
   of deferred cleanup for a held run. Only then can `Finish` reach `finished`.
+- `HostRunner.Wait` watches the owned host after held verification. An unexpected
+  exit invalidates the lease, cancels active tool work, cleans owned resources
+  and requires a console restart. Finish disarms this watcher before requesting
+  a clean exit. Ticket 16's retained-RPC lease builds on this watcher.
 - `PlatformServices` supplies observed readiness, redacted diagnostics and a
   `CredentialStore`. The production credential adapter will use Keychain; neither
   preferences nor snapshots hold account secrets.
@@ -58,6 +67,8 @@ Cleanup failure also requires restart. An indeterminate session cannot be
 inspected or started again through this seam; later recovery UI must establish a
 real console restart before creating a new controller. Relaunching the desktop
 app alone is not evidence of console recovery.
+Held-capable teardown has a 305-second controller budget, allowing the runner's
+300-second deferred-cleanup grace before a forced process-group termination.
 
 ## Bootstrap confirmation
 
