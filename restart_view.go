@@ -34,7 +34,7 @@ func (a *app) restartView(c *ui.Context, s session.Snapshot) {
 	}
 	ui.Text(c, locales.RestartConsole()).Bold()
 	if p.errorText != "" {
-		ui.Text(c, p.errorText)
+		ui.Text(c, localize(p.errorText))
 	}
 	if ui.Button(c.Key("console-restart"), locales.ConsoleRestartConfirmed()).
 		Disabled(s.Busy || p.completion != nil).Clicked() {
