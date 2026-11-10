@@ -11,10 +11,12 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
 
+	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/transport"
@@ -122,6 +124,18 @@ func TestKeyboardHelperProcess(t *testing.T) {
 	}
 	defer f.Close()
 	limit, _ := strconv.Atoi(os.Getenv("ANY2JB_ACK_LIMIT"))
+	delay, _ := strconv.Atoi(os.Getenv("ANY2JB_ACK_DELAY_MS"))
+	if path := os.Getenv("ANY2JB_SIGNAL_LOG"); path != "" {
+		// Deliberately neither releases nor reports release, so any success
+		// must come from the acknowledged neutral report.
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, syscall.SIGTERM)
+		go func() {
+			<-signals
+			os.WriteFile(path, []byte("sigterm"), 0600)
+			os.Exit(0)
+		}()
+	}
 	if os.Getenv("ANY2JB_NO_ACK") == "1" || limit > 0 {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, syscall.SIGTERM)
@@ -153,6 +167,9 @@ func TestKeyboardHelperProcess(t *testing.T) {
 		f.Write(report[:])
 		if os.Getenv("ANY2JB_NO_ACK") == "1" || limit > 0 && count > limit {
 			continue
+		}
+		if count == 1 {
+			time.Sleep(time.Duration(delay) * time.Millisecond)
 		}
 		fmt.Fprintf(out, "MAC2JB_KEYBOARD_SENT %d\n", count)
 		out.Flush()
@@ -199,5 +216,68 @@ func TestFocusLossInterruptsAnUnacknowledgedSend(t *testing.T) {
 	data, err := os.ReadFile(path)
 	if err != nil || len(data) < 16 || !reflect.DeepEqual(data[len(data)-8:], make([]byte, 8)) {
 		t.Fatalf("missing neutral release: %v, %v", data, err)
+	}
+}
+
+func fixtureEnv(factory transport.HelperCommand, env ...string) transport.HelperCommand {
+	return func(name string, args ...string) *exec.Cmd {
+		cmd := factory(name, args...)
+		cmd.Env = append(cmd.Env, env...)
+		return cmd
+	}
+}
+
+func TestCloseAcknowledgesNeutralBeforeAnySignalEvenAfterOpenContextEnds(t *testing.T) {
+	dir := t.TempDir()
+	path, signals := filepath.Join(dir, "reports"), filepath.Join(dir, "signals")
+	d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()},
+		fixtureEnv(helperFactory(t, path), "ANY2JB_SIGNAL_LOG="+signals))
+	ctx, cancel := context.WithCancel(context.Background())
+	k, err := d.OpenKeyboard(ctx, session.Run{ID: "orderly"}, func(session.Progress) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := k.Send(ctx, [8]byte{0, 0, 4}); err != nil {
+		t.Fatal(err)
+	}
+	cancel()
+	time.Sleep(100 * time.Millisecond)
+	cleanup, done := context.WithTimeout(context.Background(), 3*time.Second)
+	defer done()
+	if err := k.Close(cleanup); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(signals); !os.IsNotExist(err) {
+		t.Fatal("helper was signalled before or instead of an acknowledged neutral release")
+	}
+	got, err := os.ReadFile(path)
+	if want := []byte{0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; err != nil || !reflect.DeepEqual(got, want) {
+		t.Fatalf("reports %v, want %v", got, want)
+	}
+}
+
+func TestLateAcknowledgementOfCancelledSendIsNotNeutralReleaseEvidence(t *testing.T) {
+	support := t.TempDir()
+	options := transport.DarwinOptions{Runtime: engine.Options{Support: support}, Controller: "usb-drd0", Timing: transport.DefaultTiming()}
+	d := transport.NewHelperDarwin(options, fixtureEnv(helperFactory(t, filepath.Join(t.TempDir(), "reports")), "ANY2JB_ACK_DELAY_MS=300"))
+	run := session.Run{ID: "late-ack"}
+	k, err := d.OpenKeyboard(context.Background(), run, func(session.Progress) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+	if err := k.Send(ctx, [8]byte{0, 0, 4}); err == nil {
+		t.Fatal("send outlived its context")
+	}
+	logs, _, err := (diagnostics.Store{Support: support}).Refresh(run.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(logs.USB, "neutral_release_confirmed") || !strings.Contains(logs.USB, "delivered_reports=2") {
+		t.Fatalf("neutral release was not separately acknowledged: %q", logs.USB)
+	}
+	if err := d.Release(context.Background(), run); err != nil {
+		t.Fatal(err)
 	}
 }

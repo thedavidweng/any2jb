@@ -61,7 +61,9 @@ func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "reports")
 			d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}, func(string, ...string) *exec.Cmd {
 				cmd := exec.Command(os.Args[0], "-test.run=^TestNativeKeyboardUIFixture$")
-				cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path)
+				// A -race child otherwise sleeps 1s in its exit hook, which close
+				// correctly waits for before reporting cleanup.
+				cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path, "GORACE=atexit_sleep_ms=0")
 				return cmd
 			})
 			f := session.NewFakeEnvironment()
@@ -179,4 +181,43 @@ func TestUSBPanelDoesNotOfferForwardingWithoutVerifiedHelpers(t *testing.T) {
 	if !ok || !start.Disabled {
 		t.Fatal("unavailable helper offered usable forwarding")
 	}
+}
+
+func TestKeyboardAvailabilitySurvivesReInspectionAfterControllerChange(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "reports")
+	d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}, func(string, ...string) *exec.Cmd {
+		cmd := exec.Command(os.Args[0], "-test.run=^TestNativeKeyboardUIFixture$")
+		cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path, "GORACE=atexit_sleep_ms=0")
+		return cmd
+	})
+	f := session.NewFakeEnvironment()
+	f.Checks = []session.Check{{ID: "driver-loaded", State: session.CheckVerified, GatesTransport: "usb-hid"}, {ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"}}
+	env := f.Environment()
+	env.Input = d
+	c := session.New(env, session.Profile{ID: "fixture", Revision: "pinned"})
+	c.ConfigureTransport(session.Transport{Mode: "keyboard", Capabilities: session.Capabilities{Keyboard: true}}, "192.0.2.1")
+	c.Inspect()
+	a := &app{controller: c}
+	a.keyboard.input = d
+	a.keyboard.open = true
+	a.keyboard.controller = "usb-drd0"
+	tt := ui.NewTester(a.view, 640, 1600)
+	uiStage(t, a, tt, session.NeedsSetup)
+	// ConfigureTransport clears the observed checks and re-inspects. Hold that
+	// inspection while the helper check finishes: availability must recover
+	// once observation returns, not stay false forever.
+	gate := make(chan struct{})
+	f.InspectGate = gate
+	if err := tt.Click("Apply USB settings"); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 200 && !a.keyboard.checkOK; i++ {
+		time.Sleep(time.Millisecond)
+		tt.Frame()
+	}
+	if !a.keyboard.checkOK {
+		t.Fatal("helper check did not complete behind the held inspection")
+	}
+	close(gate)
+	waitKeyboardUI(t, tt, func() bool { return a.keyboard.available })
 }

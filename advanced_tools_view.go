@@ -61,16 +61,16 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	ui.Text(c, locales.ToolsReadOnly()).TextColor(c.Theme().TextMuted)
 	switch {
 	case state.Lost:
-		ui.Text(c, locales.ToolsLost()).Bold()
+		ui.Text(c.Key("tools-state"), locales.ToolsLost()).Bold().Role(ui.RoleStatus)
 	case leased && s.Attached:
-		ui.Text(c, locales.ToolsAttached())
+		ui.Text(c.Key("tools-state"), locales.ToolsAttached()).Role(ui.RoleStatus)
 	case leased:
-		ui.Text(c, locales.ToolsOwned())
+		ui.Text(c.Key("tools-state"), locales.ToolsOwned()).Role(ui.RoleStatus)
 	default:
-		ui.Text(c, locales.ToolsNeedLease())
+		ui.Text(c.Key("tools-state"), locales.ToolsNeedLease()).Role(ui.RoleStatus)
 	}
 	if state.CleanupBlocked {
-		ui.Text(c, locales.ToolsCleanupBlocked()).Bold()
+		ui.Text(c.Key("tools-cleanup-blocked"), locales.ToolsCleanupBlocked()).Bold().Role(ui.RoleStatus)
 	}
 	a.attachView(c, s)
 	ui.Text(c, locales.ToolsConsoleAddress())
@@ -131,7 +131,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	// action; host capability booleans never decide this.
 	if a.manifest != nil {
 		if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
-			ui.Text(c, locales.ToolsExcluded("browser-research", d.Reason)).TextColor(c.Theme().TextMuted)
+			ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
 		}
 	}
 	if p.failed {
@@ -159,7 +159,7 @@ func (a *app) toolGate(s session.Snapshot, state retained.State, tool string) (b
 
 func (a *app) toolReason(c *ui.Context, tool string, state retained.State, reason string) {
 	if reason != "" {
-		ui.Text(c.Key(tool+"-reason"), reason).TextColor(c.Theme().TextMuted)
+		ui.Text(c.Key(tool+"-reason"), localize(reason)).TextColor(c.Theme().TextMuted)
 		return
 	}
 	if state.Tool != "" && state.Tool != tool {
