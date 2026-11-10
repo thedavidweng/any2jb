@@ -25,6 +25,16 @@ through the first native response header. The actual upstream TCP/native client
 must reject that partial reply. This does not emulate exploit execution or
 claim console verification.
 
+The **simulated engine** controller suite uses the real
+`engine.NewProtocolRunner` and the shared `engine/testdata/fake-engine.cjs`
+process fixture. It checks fresh pairing delivered to input, 4/4 verification,
+live held RPC, Finish, input release, process removal and private
+workspace/lease removal. Disconnect, incomplete restoration and cleanup errors
+must instead produce `indeterminate_console_restart_required`, prohibit retry
+and still release owned resources. The command's summary labels this as
+simulated engine coverage. These fixture outcomes are not upstream exploit
+or hardware evidence.
+
 On Darwin arm64 the command force-rebuilds libusbd in a disposable copy,
 compiles `sender`, `commands`, `keyboard` with the GUI define and
 `civswitch-hid`, and runs their offline input checks. Keyboard uses
@@ -54,6 +64,7 @@ evidence that those skipped checks passed.
 
 On 2026-11-10 the standalone checks passed on Darwin arm64, including all six
 source inventories, pepsipu's 11 upstream tests, the real-engine partial-reply
-test and all four compiled native helpers. Payload rebuilding was skipped
-because Zig 0.15.2 was absent. Physical console/USB behavior remains
+test, simulated engine controller scenarios and all four compiled native helpers.
+Payload rebuilding was skipped because Zig 0.15.2 was absent. Physical
+console/USB behavior remains
 **not verified**.

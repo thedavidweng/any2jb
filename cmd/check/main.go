@@ -92,7 +92,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		return err
 	}
 	s := &suite{out: out}
-	s.check("Go tests + real engine TCP protocol (not hardware)", func() error {
+	s.check("Go tests (real engine TCP + simulated engine controller; not hardware)", func() error {
 		cmd := exec.CommandContext(ctx, "go", "test", "-v", "./...")
 		cmd.Env = append(os.Environ(), "ANY2JB_REFERENCE_ROOT="+root, "ANY2JB_RUNTIME_ASSETS="+runtimeAssets)
 		cmd.Stdout, cmd.Stderr = out, out
@@ -100,7 +100,11 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		return cmd.Run()
 	})
 	s.check("Node manifest/bridge tests", func() error {
-		return command(ctx, out, "", "node", "--test", "engine/bridge.test.cjs", "manifest/profiles.test.cjs")
+		tests, err := filepath.Glob("engine/*.test.cjs")
+		if err != nil {
+			return err
+		}
+		return command(ctx, out, "", "node", append([]string{"--test", "manifest/profiles.test.cjs"}, tests...)...)
 	})
 	pepsipuVerified := false
 	for _, p := range m.Profiles {
