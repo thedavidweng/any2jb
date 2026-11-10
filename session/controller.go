@@ -19,6 +19,7 @@ type SessionController struct {
 	cancel        context.CancelFunc
 	requested     Stage
 	monitorCancel context.CancelFunc
+	invalidate    func()
 }
 
 func New(env Environment, profile Profile) *SessionController {
@@ -62,6 +63,9 @@ func (c *SessionController) emit(severity Severity, reason Reason, message strin
 	c.events = append(c.events, Event{RunID: c.s.RunID, Sequence: uint64(len(c.events) + 1),
 		Stage: c.s.Stage, Elapsed: elapsed, Severity: severity, Recovery: c.s.Recovery,
 		Reason: reason, Message: message})
+	if c.invalidate != nil {
+		c.invalidate()
+	}
 }
 func (c *SessionController) reject(reason Reason) (Snapshot, error) {
 	err := &Rejection{Reason: reason, Stage: c.s.Stage}
@@ -200,11 +204,15 @@ func (c *SessionController) watchHost(run Run) {
 }
 func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	c.mu.Lock()
+	civSwitch := c.s.CivSwitch
 	if c.monitorCancel != nil {
 		c.monitorCancel()
 		c.monitorCancel = nil
 	}
 	c.mu.Unlock()
+	if civSwitch {
+		return c.releaseCivSwitch(ctx)
+	}
 	err := errors.Join(c.env.Input.Release(ctx, run), c.env.Tools.Stop(ctx, run), c.env.Host.Cleanup(ctx, run))
 	if err == nil {
 		c.mu.Lock()
@@ -216,7 +224,7 @@ func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 func (c *SessionController) Inspect() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if !c.eligible(Idle, Ready, NeedsSetup, Finished, Failed) {
+	if c.s.CivSwitch || !c.eligible(Idle, Ready, NeedsSetup, Finished, Failed) {
 		return c.reject(InvalidState)
 	}
 	override := c.s.LANOverride
@@ -258,7 +266,7 @@ func (c *SessionController) Inspect() (Snapshot, error) {
 func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if !c.eligible(NeedsSetup, Ready) {
+	if c.s.CivSwitch || !c.eligible(NeedsSetup, Ready) {
 		return c.reject(InvalidState)
 	}
 	if !c.s.Transport.Capabilities.supports(c.s.Profile.RequiredTransport) {
@@ -334,11 +342,7 @@ func (c *SessionController) Start() (Snapshot, error) {
 	if !c.s.CanStart() {
 		return c.reject(InvalidConfiguration)
 	}
-	stage := PreparingHost
-	if c.s.Profile.CivSwitch {
-		stage = CivSwitchFetching
-	}
-	return c.begin(stage, true, func(ctx context.Context, run Run) error {
+	return c.begin(PreparingHost, true, func(ctx context.Context, run Run) error {
 		// Re-observe the selected address before any host or console side effect.
 		checks, err := c.env.Platform.Inspect(ctx, run)
 		if err != nil {
@@ -401,7 +405,8 @@ func (c *SessionController) Cancel() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.s.Busy || c.s.SideEffects || c.requested != "" ||
-		!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput}, c.s.Stage) {
+		(!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput}, c.s.Stage) &&
+			!(c.s.CivSwitch && c.s.Stage == Verifying)) {
 		return c.reject(InvalidState)
 	}
 	c.requested = Ready
@@ -435,6 +440,16 @@ func (c *SessionController) Finish() (Snapshot, error) {
 		c.monitorCancel = nil
 	}
 	return c.begin(c.s.Stage, false, func(ctx context.Context, run Run) error {
+		if c.Snapshot().CivSwitch {
+			if err := c.releaseCivSwitch(ctx); err != nil {
+				return err
+			}
+			c.mu.Lock()
+			c.s.SideEffects, c.s.LoaderVerified = false, false
+			c.transition(Finished)
+			c.mu.Unlock()
+			return nil
+		}
 		outcome, err := c.env.Host.Finish(ctx, run)
 		if err != nil {
 			return err
@@ -484,6 +499,8 @@ func (c *SessionController) SelectProfile(profile Profile, edition string) (Snap
 	profile.Tools = slices.Clone(profile.Tools)
 	profile.Editions = slices.Clone(profile.Editions)
 	c.s.Profile, c.s.Edition = profile, edition
+	c.s.CivSwitch, c.s.LoaderVerified = false, false
+	c.s.ConsoleIPv4, c.s.EstimatedDuration = "", 0
 	c.s.BootstrapSaved, c.s.BootstrapPrepared = false, false
 	c.s.SaveSubmitted = false
 	c.s.Checks = nil

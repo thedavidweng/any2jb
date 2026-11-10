@@ -14,6 +14,7 @@ import (
 )
 
 type app struct {
+	civSwitchPanel     civSwitchPanel
 	driverPanel        driverPanel
 	about              bool
 	controller         *session.SessionController
@@ -34,6 +35,16 @@ func (a *app) view(c *ui.Context) {
 			if a.driverPanel.open {
 				a.driverView(c)
 				return
+			}
+			if a.controller != nil && a.civSwitchPanel.open {
+				a.civSwitchView(c)
+				return
+			}
+			if a.controller != nil {
+				s := a.controller.Snapshot()
+				if ui.Button(c.Key("civ-open"), locales.CivTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+					a.civSwitchPanel.open = true
+				}
 			}
 			if a.manifest != nil {
 				a.profileView(c)
