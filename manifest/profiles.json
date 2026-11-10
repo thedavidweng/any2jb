@@ -357,6 +357,62 @@
         "notice": "Original any2jb bridge; no upstream GUI code copied.",
         "reason": "Original any2jb code; no upstream engine or GUI scripts."
       }
+    },
+    {
+      "id": "usbgadget-binary",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "drivers/usbgadget.kext/Contents/MacOS/usbgadget",
+      "sha256": "a32119c7908098c49c2540a17aad4d172378de969885ad4f4a752bdb8ef91308",
+      "licenseStatus": "MIT and Apple-derived APSL notices; exact binary source/build and notice obligations need review.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
+        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+      }
+    },
+    {
+      "id": "usbgadget-info",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "drivers/usbgadget.kext/Contents/Info.plist",
+      "sha256": "c38786b3eb1b51055505bca54c88df77b797e1785c146ec1d54ee3273a934faf",
+      "licenseStatus": "MIT and Apple-derived APSL notices; exact binary source/build and notice obligations need review.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
+        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+      }
+    },
+    {
+      "id": "usbgadget-checksums",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "drivers/SHA256SUMS",
+      "sha256": "c6393218e58ce9ad09874143f450bb40b31b816cb0db635a7dd8b7bbf5a976b4",
+      "licenseStatus": "MIT and Apple-derived APSL notices; exact binary source/build and notice obligations need review.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
+        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+      }
+    },
+    {
+      "id": "driver-installer",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "scripts/install-driver.sh",
+      "sha256": "4d016c0334ed756b5f742b7d9daa2b138ee7d837cee3d8a00cbffbe16b0f504d",
+      "licenseStatus": "MIT original mac2jb installer; driver has separate terms.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
+        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+      }
     }
   ],
   "runtime": {
