@@ -191,6 +191,27 @@ func PreviewWrite(folder string) (Preview, error) {
 // PreviewRestore verifies a backup folder and previews the files a restore
 // would put back, with the backup's identity.
 func PreviewRestore(folder string) (Preview, error) {
+	data, err := os.ReadFile(filepath.Join(folder, "manifest.json"))
+	if err != nil {
+		return Preview{}, err
+	}
+	m, err := parseExportManifest(data)
+	if err != nil {
+		return Preview{}, err
+	}
+	if len(m.Entries) == 0 || len(m.Entries) > maxWriteFiles {
+		return Preview{}, errors.New("the selected backup has too many files for one restore")
+	}
+	var declared int64
+	for _, file := range m.Entries {
+		if file.Size < 0 || file.Size > maxWriteFile {
+			return Preview{}, fmt.Errorf("the selected backup has a file larger than 64 MiB: %s", file.Path)
+		}
+		declared += file.Size
+		if declared > maxWriteTotal {
+			return Preview{}, errors.New("the selected backup is too large for one restore")
+		}
+	}
 	export, err := ReadExport(folder)
 	if err != nil {
 		return Preview{}, err

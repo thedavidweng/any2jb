@@ -3,6 +3,7 @@ package savekit_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/thedavidweng/any2jb/savekit"
@@ -91,6 +92,18 @@ func TestPreviewRestoreReadsAVerifiedBackup(t *testing.T) {
 	})
 	if _, err := savekit.PreviewRestore(tampered); err == nil {
 		t.Fatal("an unverified backup was accepted as a restore source")
+	}
+}
+
+func TestPreviewRestoreRejectsDeclaredSizeBeforeReadingFiles(t *testing.T) {
+	dir := t.TempDir()
+	manifest := `{"files":1,"bytes":67108865,"entries":[{"path":"/missing.bin","size":67108865,"sha256":""}]}`
+	if err := os.WriteFile(filepath.Join(dir, "manifest.json"), []byte(manifest), 0600); err != nil {
+		t.Fatal(err)
+	}
+	_, err := savekit.PreviewRestore(dir)
+	if err == nil || !strings.Contains(err.Error(), "larger than 64 MiB") {
+		t.Fatalf("restore read a file before applying declared size limits: %v", err)
 	}
 }
 
