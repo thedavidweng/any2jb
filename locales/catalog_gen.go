@@ -32,6 +32,206 @@ type Messages struct{ locale string }
 // source language.
 func In(locale string) Messages { return Messages{locale} }
 
+// Diagnostics says "Diagnostics"
+// in the language the app shows.
+func Diagnostics() string { return In(i18n.Locale()).Diagnostics() }
+
+// Diagnostics says "Diagnostics"
+// in the language of msgs.
+func (msgs Messages) Diagnostics() string {
+	return Catalog.Format(msgs.locale, "diagnostics", nil)
+}
+
+// DiagnosticsPrivacy says "Logs are redacted for viewing. Session folders contain private data; share only an exported support bundle. Bundles i…"
+// in the language the app shows.
+func DiagnosticsPrivacy() string { return In(i18n.Locale()).DiagnosticsPrivacy() }
+
+// DiagnosticsPrivacy says "Logs are redacted for viewing. Session folders contain private data; share only an exported support bundle. Bundles i…"
+// in the language of msgs.
+func (msgs Messages) DiagnosticsPrivacy() string {
+	return Catalog.Format(msgs.locale, "diagnosticsPrivacy", nil)
+}
+
+// LogHost says "Host"
+// in the language the app shows.
+func LogHost() string { return In(i18n.Locale()).LogHost() }
+
+// LogHost says "Host"
+// in the language of msgs.
+func (msgs Messages) LogHost() string {
+	return Catalog.Format(msgs.locale, "logHost", nil)
+}
+
+// LogAll says "All sources"
+// in the language the app shows.
+func LogAll() string { return In(i18n.Locale()).LogAll() }
+
+// LogAll says "All sources"
+// in the language of msgs.
+func (msgs Messages) LogAll() string {
+	return Catalog.Format(msgs.locale, "logAll", nil)
+}
+
+// LogUSB says "USB and typing"
+// in the language the app shows.
+func LogUSB() string { return In(i18n.Locale()).LogUSB() }
+
+// LogUSB says "USB and typing"
+// in the language of msgs.
+func (msgs Messages) LogUSB() string {
+	return Catalog.Format(msgs.locale, "logUSB", nil)
+}
+
+// LogPipeline says "Pipeline"
+// in the language the app shows.
+func LogPipeline() string { return In(i18n.Locale()).LogPipeline() }
+
+// LogPipeline says "Pipeline"
+// in the language of msgs.
+func (msgs Messages) LogPipeline() string {
+	return Catalog.Format(msgs.locale, "logPipeline", nil)
+}
+
+// LogAcquisition says "Acquisition"
+// in the language the app shows.
+func LogAcquisition() string { return In(i18n.Locale()).LogAcquisition() }
+
+// LogAcquisition says "Acquisition"
+// in the language of msgs.
+func (msgs Messages) LogAcquisition() string {
+	return Catalog.Format(msgs.locale, "logAcquisition", nil)
+}
+
+// FollowLogs says "Follow logs"
+// in the language the app shows.
+func FollowLogs() string { return In(i18n.Locale()).FollowLogs() }
+
+// FollowLogs says "Follow logs"
+// in the language of msgs.
+func (msgs Messages) FollowLogs() string {
+	return Catalog.Format(msgs.locale, "followLogs", nil)
+}
+
+// NoLogOutput says "No output from this source in this run."
+// in the language the app shows.
+func NoLogOutput() string { return In(i18n.Locale()).NoLogOutput() }
+
+// NoLogOutput says "No output from this source in this run."
+// in the language of msgs.
+func (msgs Messages) NoLogOutput() string {
+	return Catalog.Format(msgs.locale, "noLogOutput", nil)
+}
+
+// OpenSessionFolder says "Open session folder"
+// in the language the app shows.
+func OpenSessionFolder() string { return In(i18n.Locale()).OpenSessionFolder() }
+
+// OpenSessionFolder says "Open session folder"
+// in the language of msgs.
+func (msgs Messages) OpenSessionFolder() string {
+	return Catalog.Format(msgs.locale, "openSessionFolder", nil)
+}
+
+// ExportSupportBundle says "Export redacted support bundle"
+// in the language the app shows.
+func ExportSupportBundle() string { return In(i18n.Locale()).ExportSupportBundle() }
+
+// ExportSupportBundle says "Export redacted support bundle"
+// in the language of msgs.
+func (msgs Messages) ExportSupportBundle() string {
+	return Catalog.Format(msgs.locale, "exportSupportBundle", nil)
+}
+
+// LocalDataFolders says "Local data: {support}/runs (private temporary sessions), past-runs (ended sessions), diagnostics (redacted logs), sup…"
+// in the language the app shows.
+func LocalDataFolders(support string) string { return In(i18n.Locale()).LocalDataFolders(support) }
+
+// LocalDataFolders says "Local data: {support}/runs (private temporary sessions), past-runs (ended sessions), diagnostics (redacted logs), sup…"
+// in the language of msgs.
+func (msgs Messages) LocalDataFolders(support string) string {
+	return Catalog.Format(msgs.locale, "localDataFolders", map[string]any{"support": support})
+}
+
+// SupportBundleSaved says "Support bundle saved to {path}"
+// in the language the app shows.
+func SupportBundleSaved(path string) string { return In(i18n.Locale()).SupportBundleSaved(path) }
+
+// SupportBundleSaved says "Support bundle saved to {path}"
+// in the language of msgs.
+func (msgs Messages) SupportBundleSaved(path string) string {
+	return Catalog.Format(msgs.locale, "supportBundleSaved", map[string]any{"path": path})
+}
+
+// OpenBundleFolder says "Open bundle folder"
+// in the language the app shows.
+func OpenBundleFolder() string { return In(i18n.Locale()).OpenBundleFolder() }
+
+// OpenBundleFolder says "Open bundle folder"
+// in the language of msgs.
+func (msgs Messages) OpenBundleFolder() string {
+	return Catalog.Format(msgs.locale, "openBundleFolder", nil)
+}
+
+// PreviewCleanup says "Preview cleanup"
+// in the language the app shows.
+func PreviewCleanup() string { return In(i18n.Locale()).PreviewCleanup() }
+
+// PreviewCleanup says "Preview cleanup"
+// in the language of msgs.
+func (msgs Messages) PreviewCleanup() string {
+	return Catalog.Format(msgs.locale, "previewCleanup", nil)
+}
+
+// CleanupScope says "Delete only the listed temporary logs and pairing/result metadata from inactive sessions. Backups, save exports, dump…"
+// in the language the app shows.
+func CleanupScope() string { return In(i18n.Locale()).CleanupScope() }
+
+// CleanupScope says "Delete only the listed temporary logs and pairing/result metadata from inactive sessions. Backups, save exports, dump…"
+// in the language of msgs.
+func (msgs Messages) CleanupScope() string {
+	return Catalog.Format(msgs.locale, "cleanupScope", nil)
+}
+
+// NothingToClean says "No safe temporary files to delete."
+// in the language the app shows.
+func NothingToClean() string { return In(i18n.Locale()).NothingToClean() }
+
+// NothingToClean says "No safe temporary files to delete."
+// in the language of msgs.
+func (msgs Messages) NothingToClean() string {
+	return Catalog.Format(msgs.locale, "nothingToClean", nil)
+}
+
+// DeleteTemporaryFiles says "Delete listed temporary files"
+// in the language the app shows.
+func DeleteTemporaryFiles() string { return In(i18n.Locale()).DeleteTemporaryFiles() }
+
+// DeleteTemporaryFiles says "Delete listed temporary files"
+// in the language of msgs.
+func (msgs Messages) DeleteTemporaryFiles() string {
+	return Catalog.Format(msgs.locale, "deleteTemporaryFiles", nil)
+}
+
+// KeepFiles says "Keep files"
+// in the language the app shows.
+func KeepFiles() string { return In(i18n.Locale()).KeepFiles() }
+
+// KeepFiles says "Keep files"
+// in the language of msgs.
+func (msgs Messages) KeepFiles() string {
+	return Catalog.Format(msgs.locale, "keepFiles", nil)
+}
+
+// DiagnosticsFailed says "Diagnostics action could not be completed. Cleanup requires no session lease; a live or unknown owner cannot be clear…"
+// in the language the app shows.
+func DiagnosticsFailed() string { return In(i18n.Locale()).DiagnosticsFailed() }
+
+// DiagnosticsFailed says "Diagnostics action could not be completed. Cleanup requires no session lease; a live or unknown owner cannot be clear…"
+// in the language of msgs.
+func (msgs Messages) DiagnosticsFailed() string {
+	return Catalog.Format(msgs.locale, "diagnosticsFailed", nil)
+}
+
 // AppName says "any2jb"
 // in the language the app shows.
 //
@@ -892,4 +1092,214 @@ func DriverVerifyError() string { return In(i18n.Locale()).DriverVerifyError() }
 // in the language of msgs.
 func (msgs Messages) DriverVerifyError() string {
 	return Catalog.Format(msgs.locale, "driverVerifyError", nil)
+}
+
+// CivTitle says "CivSwitch"
+// in the language the app shows.
+func CivTitle() string { return In(i18n.Locale()).CivTitle() }
+
+// CivTitle says "CivSwitch"
+// in the language of msgs.
+func (msgs Messages) CivTitle() string {
+	return Catalog.Format(msgs.locale, "civTitle", nil)
+}
+
+// CivPrerequisites says "This is a separate Civilization VII route, not SmileBASIC. Confirm the physical Switch 1 edition cartridge, version 1…"
+// in the language the app shows.
+func CivPrerequisites() string { return In(i18n.Locale()).CivPrerequisites() }
+
+// CivPrerequisites says "This is a separate Civilization VII route, not SmileBASIC. Confirm the physical Switch 1 edition cartridge, version 1…"
+// in the language of msgs.
+func (msgs Messages) CivPrerequisites() string {
+	return Catalog.Format(msgs.locale, "civPrerequisites", nil)
+}
+
+// CivNoRPC says "CivSwitch does not provide the SmileBASIC held RPC session. ns2jb homebrew and SaveKit are unavailable from this path."
+// in the language the app shows.
+func CivNoRPC() string { return In(i18n.Locale()).CivNoRPC() }
+
+// CivNoRPC says "CivSwitch does not provide the SmileBASIC held RPC session. ns2jb homebrew and SaveKit are unavailable from this path."
+// in the language of msgs.
+func (msgs Messages) CivNoRPC() string {
+	return Catalog.Format(msgs.locale, "civNoRPC", nil)
+}
+
+// CivCartridge says "Physical Switch 1 Civilization VII cartridge, version 1.0.0"
+// in the language the app shows.
+func CivCartridge() string { return In(i18n.Locale()).CivCartridge() }
+
+// CivCartridge says "Physical Switch 1 Civilization VII cartridge, version 1.0.0"
+// in the language of msgs.
+func (msgs Messages) CivCartridge() string {
+	return Catalog.Format(msgs.locale, "civCartridge", nil)
+}
+
+// CivLanguage says "Console system language is English (US)"
+// in the language the app shows.
+func CivLanguage() string { return In(i18n.Locale()).CivLanguage() }
+
+// CivLanguage says "Console system language is English (US)"
+// in the language of msgs.
+func (msgs Messages) CivLanguage() string {
+	return Catalog.Format(msgs.locale, "civLanguage", nil)
+}
+
+// CivNetwork says "Console and host are on the same reachable network"
+// in the language the app shows.
+func CivNetwork() string { return In(i18n.Locale()).CivNetwork() }
+
+// CivNetwork says "Console and host are on the same reachable network"
+// in the language of msgs.
+func (msgs Messages) CivNetwork() string {
+	return Catalog.Format(msgs.locale, "civNetwork", nil)
+}
+
+// CivChat says "In-game lobby chat input is focused"
+// in the language the app shows.
+func CivChat() string { return In(i18n.Locale()).CivChat() }
+
+// CivChat says "In-game lobby chat input is focused"
+// in the language of msgs.
+func (msgs Messages) CivChat() string {
+	return Catalog.Format(msgs.locale, "civChat", nil)
+}
+
+// CivAddress says "CivSwitch console IPv4"
+// in the language the app shows.
+func CivAddress() string { return In(i18n.Locale()).CivAddress() }
+
+// CivAddress says "CivSwitch console IPv4"
+// in the language of msgs.
+func (msgs Messages) CivAddress() string {
+	return Catalog.Format(msgs.locale, "civAddress", nil)
+}
+
+// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select composit…"
+// in the language the app shows.
+func CivComposite() string { return In(i18n.Locale()).CivComposite() }
+
+// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select composit…"
+// in the language of msgs.
+func (msgs Messages) CivComposite() string {
+	return Catalog.Format(msgs.locale, "civComposite", nil)
+}
+
+// CivDuration says "The 87-line transfer typically takes 20–25 minutes. Progress comes from completed helper lines, not a timer."
+// in the language the app shows.
+func CivDuration() string { return In(i18n.Locale()).CivDuration() }
+
+// CivDuration says "The 87-line transfer typically takes 20–25 minutes. Progress comes from completed helper lines, not a timer."
+// in the language of msgs.
+func (msgs Messages) CivDuration() string {
+	return Catalog.Format(msgs.locale, "civDuration", nil)
+}
+
+// CivEstimate says "Helper duration estimate: {seconds} seconds. This is an estimate, not measured completion."
+// in the language the app shows.
+func CivEstimate(seconds string) string { return In(i18n.Locale()).CivEstimate(seconds) }
+
+// CivEstimate says "Helper duration estimate: {seconds} seconds. This is an estimate, not measured completion."
+// in the language of msgs.
+func (msgs Messages) CivEstimate(seconds string) string {
+	return Catalog.Format(msgs.locale, "civEstimate", map[string]any{"seconds": seconds})
+}
+
+// CivStart says "Start new CivSwitch transfer"
+// in the language the app shows.
+func CivStart() string { return In(i18n.Locale()).CivStart() }
+
+// CivStart says "Start new CivSwitch transfer"
+// in the language of msgs.
+func (msgs Messages) CivStart() string {
+	return Catalog.Format(msgs.locale, "civStart", nil)
+}
+
+// CivAttach says "Connect to open CivSwitch loader"
+// in the language the app shows.
+func CivAttach() string { return In(i18n.Locale()).CivAttach() }
+
+// CivAttach says "Connect to open CivSwitch loader"
+// in the language of msgs.
+func (msgs Messages) CivAttach() string {
+	return Catalog.Format(msgs.locale, "civAttach", nil)
+}
+
+// CivRecheck says "Recheck loader without retyping"
+// in the language the app shows.
+func CivRecheck() string { return In(i18n.Locale()).CivRecheck() }
+
+// CivRecheck says "Recheck loader without retyping"
+// in the language of msgs.
+func (msgs Messages) CivRecheck() string {
+	return Catalog.Format(msgs.locale, "civRecheck", nil)
+}
+
+// CivStop says "Stop CivSwitch and release both HID interfaces"
+// in the language the app shows.
+func CivStop() string { return In(i18n.Locale()).CivStop() }
+
+// CivStop says "Stop CivSwitch and release both HID interfaces"
+// in the language of msgs.
+func (msgs Messages) CivStop() string {
+	return Catalog.Format(msgs.locale, "civStop", nil)
+}
+
+// CivVerified says "CivSwitch Remote JS Loader verified on TCP 9026. This is not ns2jb verification."
+// in the language the app shows.
+func CivVerified() string { return In(i18n.Locale()).CivVerified() }
+
+// CivVerified says "CivSwitch Remote JS Loader verified on TCP 9026. This is not ns2jb verification."
+// in the language of msgs.
+func (msgs Messages) CivVerified() string {
+	return Catalog.Format(msgs.locale, "civVerified", nil)
+}
+
+// CivProbe says "The loader must answer its protocol challenge on TCP 9026 before dependent actions are allowed. An open port alone is…"
+// in the language the app shows.
+func CivProbe() string { return In(i18n.Locale()).CivProbe() }
+
+// CivProbe says "The loader must answer its protocol challenge on TCP 9026 before dependent actions are allowed. An open port alone is…"
+// in the language of msgs.
+func (msgs Messages) CivProbe() string {
+	return Catalog.Format(msgs.locale, "civProbe", nil)
+}
+
+// CivBack says "Back to SmileBASIC"
+// in the language the app shows.
+func CivBack() string { return In(i18n.Locale()).CivBack() }
+
+// CivBack says "Back to SmileBASIC"
+// in the language of msgs.
+func (msgs Messages) CivBack() string {
+	return Catalog.Format(msgs.locale, "civBack", nil)
+}
+
+// CivFinish says "Disconnect CivSwitch"
+// in the language the app shows.
+func CivFinish() string { return In(i18n.Locale()).CivFinish() }
+
+// CivFinish says "Disconnect CivSwitch"
+// in the language of msgs.
+func (msgs Messages) CivFinish() string {
+	return Catalog.Format(msgs.locale, "civFinish", nil)
+}
+
+// CivRestartConfirmed says "I restarted the console, prepare a new attempt"
+// in the language the app shows.
+func CivRestartConfirmed() string { return In(i18n.Locale()).CivRestartConfirmed() }
+
+// CivRestartConfirmed says "I restarted the console, prepare a new attempt"
+// in the language of msgs.
+func (msgs Messages) CivRestartConfirmed() string {
+	return Catalog.Format(msgs.locale, "civRestartConfirmed", nil)
+}
+
+// CivDisconnectNote says "Disconnect releases local resources. It does not stop the loader running on the console."
+// in the language the app shows.
+func CivDisconnectNote() string { return In(i18n.Locale()).CivDisconnectNote() }
+
+// CivDisconnectNote says "Disconnect releases local resources. It does not stop the loader running on the console."
+// in the language of msgs.
+func (msgs Messages) CivDisconnectNote() string {
+	return Catalog.Format(msgs.locale, "civDisconnectNote", nil)
 }

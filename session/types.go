@@ -145,6 +145,10 @@ type Process struct {
 	Name string
 }
 type Snapshot struct {
+	CivSwitch         bool
+	LoaderVerified    bool
+	ConsoleIPv4       string
+	EstimatedDuration time.Duration
 	RunID             string
 	Profile           Profile
 	Edition           string
@@ -169,7 +173,7 @@ type Snapshot struct {
 
 // CanStart is derived from the same copied state used by the controller.
 func (s Snapshot) CanStart() bool {
-	return s.Stage == Ready && !s.Busy && s.Profile.ID != "" && s.Profile.Revision != "" &&
+	return !s.CivSwitch && !s.Profile.CivSwitch && s.Stage == Ready && !s.Busy && s.Profile.ID != "" && s.Profile.Revision != "" &&
 		(s.Profile.BootstrapSHA256 == "" || s.BootstrapSaved) &&
 		(len(s.Profile.Editions) == 0 || slices.Contains(s.Profile.Editions, s.Edition)) &&
 		s.Transport.Capabilities.supports(s.Profile.RequiredTransport) && len(s.Checks) > 0 &&
@@ -256,6 +260,7 @@ type CredentialStore interface {
 type PlatformServices interface {
 	Inspect(context.Context, Run) ([]Check, error)
 	ExportDiagnostics(context.Context, Snapshot) (string, error)
+	ReleaseInterrupted(context.Context) error
 	Credentials() CredentialStore
 }
 type ToolRunner interface {
@@ -263,6 +268,7 @@ type ToolRunner interface {
 	Stop(context.Context, Run) error
 }
 type Environment struct {
+	CivSwitch CivSwitchAdapter
 	Host      HostRunner
 	Input     InputTransport
 	Platform  PlatformServices

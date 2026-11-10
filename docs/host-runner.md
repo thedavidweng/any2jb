@@ -54,6 +54,12 @@ resources, removes only its own lease/workspace and kills its remaining group.
 An owner-crash fixture kills the parent with SIGKILL and checks that no bridge,
 lease or workspace remains.
 
+The runner records its app PID separately from the run-ID lease for guarded
+relaunch recovery. [Diagnostics](diagnostics.md) captures redacted evidence
+before workspace deletion and preserves intentional backup/export directories.
+After an interrupted app, explicit console-restart confirmation can release only
+a lease whose matching owner PID is proven dead. No stale session is adopted.
+
 ## Fixture seam
 
 `NewProtocolRunner(support, CommandFactory)` is the explicit trusted-process test
@@ -93,7 +99,7 @@ and held-host crash recovery. They are not evidence of a console exploit.
 ## Limits
 
 No console or USB hardware was verified. All engine redistribution blockers
-remain unchanged. Input, tools, credentials and diagnostics are explicit
+remain unchanged. Input, tools and credentials are explicit
 unavailable adapters until their owning tickets integrate them.
 
 IZMYSH has a separate native qualification contract, not the ns2jb filesystem
