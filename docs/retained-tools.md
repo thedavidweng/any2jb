@@ -76,6 +76,52 @@ The `savekit` mutation gate runs, in order, per operation:
    The compare action is read-only; it only pulls the live save and reports
    match or difference, and a failed compare blocks nothing.
 
+## Launcher save installers
+
+A launcher save replaces a game's own startup code, so the installers are the
+gated SaveKit write and nothing else: there is no second write path. Each
+package is recorded in [`manifest/profiles.json`](../manifest/profiles.json)
+with its upstream, revision, SHA-256, file count, console title and core file
+names, and all ten are `blocked`: Artemis supplies no license at its pinned
+revision, and the editor, Balatro and Gravity Circuit archives still need their
+own grant and bundled-data review. A packaged app stages none of them and every
+installer shows its recorded reason instead of an action; a developer stage
+(`retained.StageTools`) is the only way to have the bytes present at all.
+
+One install runs, in order:
+
+1. **Restrictions.** `launcher.Validate` accepts a package only for the game,
+   edition and version it supports: the demo packages only for their own demo
+   title, the full-game Seedsow patch only for the full-game title, Balatro only
+   after the user states the physical Switch 1 cartridge in Switch 2
+   compatibility mode (the native Switch 2 edition is unsupported), and Gravity
+   Circuit only for game version 1.0.0 or 1.2.1.
+2. **Package verification and preview.** `launcher.Prepare` re-verifies the
+   recorded source files and the archive digest, refuses an archive whose paths,
+   entry types, sizes or file count differ from the record or whose own save
+   metadata names another title, unpacks it into a private folder off the UI
+   thread, and previews exactly those files. The full-game option instead
+   patches the user's own verified full-game export with the pinned upstream
+   patch module: the demo package is never written to the full game.
+3. **Account choice.** The installer writes only to an account the console's own
+   listing reported, and when more than one account exists none is assumed: the
+   owning account is chosen explicitly.
+4. **The write gate.** The confirmed preview digest, target validation, verified
+   backup, single write and post-write verification are ticket 18's gate,
+   unchanged. The manager prepares the package again at run time, so the digest
+   binds the confirmation to the files that are actually written.
+5. **Existing launcher.** `launcher.CheckExisting` compares the live save
+   against the package's recorded core files. No core file present means a fresh
+   install; all of them matching the pinned package means an upgrade; anything
+   else (unrecognised or partial core files) is refused before any change, with
+   the verified backup kept.
+
+The install states its persistent side effects before it runs: the game's
+startup code stays replaced until the backup is restored, and the installed
+launcher opens its own LAN services (Artemis HTTP 8080, or Lua 9026 with FTP
+5000 and 5001) whenever the game runs. That runtime is separate from the held
+RPC session and keeps running after Finish.
+
 The OunceCake export offers the console's installed titles and accepts exactly
 one of them. A game outside the offered catalog, a second selection or an
 unrequested path is refused.
@@ -218,6 +264,16 @@ recorded reason; it is never silently repaired.
   and the single-owner refusal in both directions. `retained/savekit-host.test.cjs`
   covers the request schema (unknown fields rejected, mutations needing the
   confirmation flag), the argv builder and the inventory parsers.
+- `retained/launcher_test.go` drives one install through the fixture host: the
+  gate order (`accounts`, backup, write, read-back), the refusal of an
+  unrecognised existing launcher before any change, and the recorded reason for
+  every packaged installer. `launcher/launcher_test.go` covers the per-package
+  restrictions and the rights gate, `launcher/prepare_test.go` the digest
+  refusal, unsafe archives and the existing-launcher rule, and
+  `launcher_view_test.go` the gated reason, stated side effects, per-install
+  preview and confirmation and the account rule through MyGo's Tester. The
+  opt-in `ANY2JB_REFERENCE_ROOT` check in `launcher/reference_test.go` prepares
+  every pinned package from the mac2jb clone.
 - `retained/savekit_write_test.go` drives the write gate on the same fixture:
   the backup/write/read-back order, backup-failure abort with its session
   block, target-validation abort that stays correctable, the replacement and
@@ -251,6 +307,9 @@ fixtures, not hardware. Preparing the portable homebrew runtime and the
 IZlauncher runtime needs network access and a C toolchain and stays a
 developer-only step.
 stage of blocked sources and a live console, which remains unverified; the same
+holds for the launcher saves: no package was installed on a console, and the
+full-game autosave patch in particular ran only against the pinned upstream
+module's own inputs, never a real full-game save. The same
 holds for the real ns2-savekit entrypoints and their title-name lookup, which
 the fixture and protocol seam cover instead. The `rpc-copy` row (copying the
 exact RPC command) and the OunceCake ZIP download are not implemented.

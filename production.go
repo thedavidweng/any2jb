@@ -78,7 +78,10 @@ func productionTools(root string, stageError error, options engine.Options, host
 	stageOptions := retained.StageOptions{Support: options.Support,
 		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
 		Components: []string{"ouncecake", "sd-browser", "savekit", "mintbrew", "mintbrew-native",
-			"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime", "modloader"}}
+			"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime", "modloader",
+			"launcher-seedsow-demo", "launcher-seedsow-full", "launcher-nora2-demo", "launcher-nora1-demo",
+			"launcher-hamidashi-demo", "launcher-lua-editor", "launcher-lua-editor-pro",
+			"launcher-balatro", "launcher-balatro-showcase", "launcher-gravity-circuit"}}
 	toolRoot, staged, stageToolsError := retained.StageTools(stageOptions)
 	node, toolHost := "", ""
 	if stageError == nil {

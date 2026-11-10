@@ -63,15 +63,26 @@ type Profile struct {
 }
 
 type Component struct {
-	ResourcePlatform string       `json:"resourcePlatform,omitempty"`
-	Source           *ToolSource  `json:"source,omitempty"`
-	Distribution     Distribution `json:"distribution"`
-	ID               string       `json:"id"`
-	Upstream         string       `json:"upstream"`
-	Revision         string       `json:"revision"`
-	Path             string       `json:"path"`
-	SHA256           string       `json:"sha256"`
-	LicenseStatus    string       `json:"licenseStatus"`
+	Launcher         *LauncherSave `json:"launcher,omitempty"`
+	ResourcePlatform string        `json:"resourcePlatform,omitempty"`
+	Source           *ToolSource   `json:"source,omitempty"`
+	Distribution     Distribution  `json:"distribution"`
+	ID               string        `json:"id"`
+	Upstream         string        `json:"upstream"`
+	Revision         string        `json:"revision"`
+	Path             string        `json:"path"`
+	SHA256           string        `json:"sha256"`
+	LicenseStatus    string        `json:"licenseStatus"`
+}
+
+// LauncherSave pins the supported target and archive layout for a save installer.
+type LauncherSave struct {
+	TitleID               string   `json:"titleId"`
+	Versions              []string `json:"versions,omitempty"`
+	PhysicalCompatibility bool     `json:"physicalCompatibility,omitempty"`
+	FullGame              bool     `json:"fullGame,omitempty"`
+	Files                 int      `json:"files"`
+	Core                  []string `json:"core"`
 }
 
 // Load reads the canonical manifest embedded at build time. The Node bridge

@@ -25,6 +25,8 @@ var dynamicSegments = []struct {
 	{"Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZVacootube},
 	{"Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them or any game or mod files.", locales.DynDistModloader},
 	{"Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notices are unreviewed. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistHomebrewRuntime},
+	{"Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.", locales.DynDistLauncherArchive},
+	{"Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.", locales.DynDistLauncherArtemis},
 	{"Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No installer, Python interpreter or save template is bundled.", locales.DynDistTriggerInstaller},
 	{"USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled.", locales.DynDistUSBDriver},
 	{"MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records.", locales.DynDistMITSourceOnly},

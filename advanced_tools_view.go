@@ -6,8 +6,10 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/launcher"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/retained"
+	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -17,6 +19,7 @@ type toolAdapter interface {
 	Unavailable(tool, profileID string) string
 	State() retained.State
 	Select(titleID string) error
+	PrepareLauncher(context.Context, launcher.Request, savekit.Request) (string, savekit.Preview, error)
 }
 
 type toolsPanel struct {

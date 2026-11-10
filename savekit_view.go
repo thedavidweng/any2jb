@@ -148,6 +148,7 @@ func (a *app) saveKitView(c *ui.Context) {
 	}
 
 	a.saveKitWriteSection(c, p, s, state, observed, ready, target)
+	a.launcherSection(c, s, state, ready)
 
 	if p.failed || a.commandRejected {
 		ui.Text(c, locales.SaveKitFailed())

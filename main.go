@@ -32,6 +32,7 @@ type app struct {
 	homebrewPanel      homebrewPanel
 	saveKit            saveKitPanel
 	tools              toolAdapter
+	launcherPanel      launcherPanel
 	driverPanel        driverPanel
 	about              bool
 	controller         *session.SessionController
@@ -200,6 +201,7 @@ func main() {
 				}
 				a.startDiagnostics(win, store)
 				a.toolsPanel.update = win.Update
+				a.launcherPanel.update = win.Update
 				if recoveryErr != nil {
 					a.diagnostic.failed = true
 				}
