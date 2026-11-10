@@ -51,7 +51,7 @@ func productionEnvironmentWithInput(options engine.Options, inputOptions transpo
 	platform := productionPlatform{root: root, options: options, stageError: stageErr, keyboard: keyboard}
 	inputs := transport.NewDispatcher(transport.NewManual(bootstrap), keyboard, platform.Inspect)
 	return session.Environment{
-		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
+		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest, Support: options.Support}),
 		Host:      engine.NewHostRunner(options),
 		Input:     inputs,
 		Platform:  platform,

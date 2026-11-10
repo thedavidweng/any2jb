@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
@@ -10,6 +11,10 @@ import (
 
 type civSwitchPanel struct {
 	open          bool
+	saveConsent   bool
+	codeConsent   bool
+	openFailed    bool
+	javaScript    string
 	prerequisites session.CivSwitchPrerequisites
 }
 
@@ -56,7 +61,7 @@ func (a *app) civSwitchView(c *ui.Context) {
 		if s.Stage == session.Failed {
 			ui.Text(c, locales.SafeFailure())
 		}
-		if s.Busy {
+		if s.Busy && s.Stage != session.Verified {
 			if ui.Button(c.Key("civ-cancel"), locales.Cancel()).Disabled(s.SideEffects).Clicked() {
 				a.command(a.controller.Cancel())
 			}
@@ -68,6 +73,7 @@ func (a *app) civSwitchView(c *ui.Context) {
 			a.command(a.controller.RecheckCivSwitch())
 		}
 		if s.Stage == session.Verified {
+			a.civSwitchActionsView(c, s)
 			ui.Text(c, locales.CivDisconnectNote())
 			if ui.Button(c.Key("civ-finish"), locales.CivFinish()).Disabled(s.Busy).Clicked() {
 				a.command(a.controller.Finish())
@@ -84,5 +90,60 @@ func (a *app) civSwitchView(c *ui.Context) {
 			a.command(a.controller.SelectProfile(s.Profile, s.Edition))
 		}
 		p.open = false
+	}
+}
+
+// Every action here writes to the console or runs code on it, so each carries
+// its own confirmation and rechecks the loader. The read-only Control Center
+// and its save export need no code consent.
+func (a *app) civSwitchActionsView(c *ui.Context, s session.Snapshot) {
+	p := &a.civSwitchPanel
+	actions := s.CivSwitchActions
+	ui.Text(c, locales.CivPersistence()).Bold()
+	ui.Text(c, locales.CivDependentNote())
+	ui.Text(c, locales.CivTriggerWarning())
+	ui.Checkbox(c.Key("civ-consent-saves"), &p.saveConsent, locales.CivTriggerConsent()).Disabled(s.Busy)
+	if ui.Button(c.Key("civ-trigger"), locales.CivTrigger()).
+		Disabled(s.Busy || !p.saveConsent || actions.TriggerInstalled).Clicked() {
+		a.command(a.controller.InstallCivSwitchTrigger(p.saveConsent))
+	}
+	if actions.TriggerInstalled {
+		ui.Text(c, locales.CivTriggerInstalled())
+	}
+	if actions.BackupPath != "" {
+		ui.Text(c, locales.CivBackupSaved(actions.BackupPath))
+		if ui.Button(c.Key("civ-backup-open"), locales.CivBackupOpen()).Clicked() {
+			p.openFailed = mygo.Shell.OpenPath(actions.BackupPath) != nil
+		}
+	}
+	ui.Text(c, locales.CivCodeWarning()).Bold()
+	ui.TextInput(c.Key("civ-js-file"), &p.javaScript).Label(locales.CivJSFile()).Disabled(s.Busy)
+	ui.Checkbox(c.Key("civ-consent-code"), &p.codeConsent, locales.CivCodeConsent()).Disabled(s.Busy)
+	code := !s.Busy && p.codeConsent && p.javaScript != ""
+	if ui.Button(c.Key("civ-js"), locales.CivJSSend()).Disabled(!code).Clicked() {
+		a.command(a.controller.SendCivSwitchJavaScript(p.javaScript, p.codeConsent))
+	}
+	ui.Text(c, locales.CivControlStageNote())
+	if ui.Button(c.Key("civ-control-stage"), locales.CivControlStage()).Disabled(!code).Clicked() {
+		a.command(a.controller.StageCivSwitchJavaScript(p.javaScript, p.codeConsent))
+	}
+	ui.Text(c, locales.CivControlNote())
+	if ui.Button(c.Key("civ-control-start"), locales.CivControlStart()).Disabled(s.Busy).Clicked() {
+		a.command(a.controller.StartCivSwitchControlCenter())
+	}
+	if actions.ControlCenterLive {
+		ui.Text(c, locales.CivControlLive())
+		if ui.Button(c.Key("civ-control-stop"), locales.CivControlStop()).Clicked() {
+			a.command(a.controller.StopCivSwitchControlCenter())
+		}
+	}
+	if actions.ExportPath != "" {
+		ui.Text(c, locales.CivExportSaved(actions.ExportPath))
+		if ui.Button(c.Key("civ-export-open"), locales.CivExportOpen()).Clicked() {
+			p.openFailed = mygo.Shell.OpenPath(actions.ExportPath) != nil
+		}
+	}
+	if p.openFailed {
+		ui.Text(c, locales.CivOpenFailed())
 	}
 }

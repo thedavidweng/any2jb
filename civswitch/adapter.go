@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/netip"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,12 +25,21 @@ type Options struct {
 	DeveloperSourceRoot string
 	// Explicit digest of the developer-built binary, not redistribution clearance.
 	DeveloperHelperSHA256 string
-	Inspector             *readiness.Inspector
+	// Support is the app support directory. Verified save backups and read-only
+	// save exports are retained there, outside every session workspace.
+	Support string
+	// DeveloperInstallerPython runs the pinned upstream trigger installer. No
+	// interpreter is bundled and PATH is never searched for one.
+	DeveloperInstallerPython string
+	Inspector                *readiness.Inspector
 }
 
 type Adapter struct {
 	options      Options
 	releaseError error
+	// loader replaces the derived console endpoint in loopback fixtures, which
+	// is how the gated actions are exercised without a console.
+	loader string
 }
 
 func New(options Options) *Adapter {
@@ -161,8 +169,7 @@ func (a *Adapter) Probe(ctx context.Context, address string, once bool) error {
 	if err := a.verifySource(); err != nil {
 		return err
 	}
-	ip, err := netip.ParseAddr(address)
-	if err != nil || !ip.Is4() || !ip.IsGlobalUnicast() || ip.IsLoopback() || ip.IsLinkLocalUnicast() {
+	if !consoleAddress(address) {
 		return errors.New("CivSwitch requires the console LAN IPv4 address")
 	}
 	// This action deliberately needs neither a USB helper nor chat transfer.
