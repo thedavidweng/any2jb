@@ -44,6 +44,11 @@ Do not bypass the build command for release packages.
 See [runtime staging](docs/runtime-staging.md) for the engine adapter boundary
 and remaining payload blockers.
 
+Run Go tests and the hardware-free upstream regression harness together with
+`go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb`.
+See [regression checks](docs/regression-checks.md) for runtime assets, Zig
+prerequisites, native dry-runs and explicit skip reasons.
+
 ## UI strings and assets
 
 Add every app-visible string to `locales/en.json`, then run
