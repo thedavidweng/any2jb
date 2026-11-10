@@ -1,0 +1,8 @@
+{
+  "name": "any2jb",
+  "identifier": "io.github.thedavidweng.any2jb",
+  "version": "0.1.0",
+  "out": "build",
+  "i18n": { "dir": "locales", "source": "en" },
+  "macos": { "minimumSystemVersion": "14.0" }
+}

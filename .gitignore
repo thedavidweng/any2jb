@@ -1,2 +1,5 @@
 .DS_Store
 .scratch/
+/build/
+/.mygo/
+mygo_windows_*.syso
