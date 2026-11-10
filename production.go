@@ -24,7 +24,7 @@ func productionEnvironment(options engine.Options) session.Environment {
 	// The manual adapter never sends USB input. A verified Darwin adapter can be
 	// composed here separately when its readiness gates and sender are available.
 	return session.Environment{
-		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
+		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest, Support: options.Support}),
 		Host:      engine.NewHostRunner(options),
 		Input: transport.NewManual(func(run session.Run) (string, error) {
 			if err != nil {
