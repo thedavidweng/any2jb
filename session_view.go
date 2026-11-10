@@ -52,6 +52,9 @@ func (a *app) sessionView(c *ui.Context) {
 	}
 	if s.Total > 0 {
 		ui.Text(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
+		if s.HasEstimate && s.Busy {
+			ui.Text(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000))).TextColor(c.Theme().TextMuted)
+		}
 	}
 	if a.manifest != nil {
 		for _, check := range s.Checks {

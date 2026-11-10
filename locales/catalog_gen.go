@@ -550,11 +550,11 @@ func (msgs Messages) SessionInProgress() string {
 	return Catalog.Format(msgs.locale, "sessionInProgress", nil)
 }
 
-// RestartConsole says "Restart the console before another attempt."
+// RestartConsole says "Inspect and clear any partial console input. Restart the console before another attempt. Do not blindly retry."
 // in the language the app shows.
 func RestartConsole() string { return In(i18n.Locale()).RestartConsole() }
 
-// RestartConsole says "Restart the console before another attempt."
+// RestartConsole says "Inspect and clear any partial console input. Restart the console before another attempt. Do not blindly retry."
 // in the language of msgs.
 func (msgs Messages) RestartConsole() string {
 	return Catalog.Format(msgs.locale, "restartConsole", nil)
@@ -578,6 +578,16 @@ func Progress() string { return In(i18n.Locale()).Progress() }
 // in the language of msgs.
 func (msgs Messages) Progress() string {
 	return Catalog.Format(msgs.locale, "progress", nil)
+}
+
+// TypingRemaining says "Measured typing estimate: {seconds} seconds remaining"
+// in the language the app shows.
+func TypingRemaining(seconds string) string { return In(i18n.Locale()).TypingRemaining(seconds) }
+
+// TypingRemaining says "Measured typing estimate: {seconds} seconds remaining"
+// in the language of msgs.
+func (msgs Messages) TypingRemaining(seconds string) string {
+	return Catalog.Format(msgs.locale, "typingRemaining", map[string]any{"seconds": seconds})
 }
 
 // CommandRejected says "This action is not available in the current session state."

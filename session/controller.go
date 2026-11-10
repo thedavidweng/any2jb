@@ -84,6 +84,7 @@ func (c *SessionController) report(p Progress) {
 	defer c.mu.Unlock()
 	c.s.SideEffects = c.s.SideEffects || p.SideEffect
 	c.s.Current, c.s.Total = p.Current, p.Total
+	c.s.Remaining, c.s.HasEstimate = p.Remaining, p.HasEstimate
 	if p.Processes != nil {
 		c.s.Processes = slices.Clone(p.Processes)
 	}
@@ -111,6 +112,7 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		c.s.SideEffects = false
 		c.s.Outcome = Outcome{}
 		c.s.Current, c.s.Total = 0, 0
+		c.s.Remaining, c.s.HasEstimate = 0, false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancel, c.requested = cancel, ""

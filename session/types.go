@@ -156,6 +156,8 @@ type Snapshot struct {
 	Recovery          Recovery
 	Current           int
 	Total             int
+	Remaining         time.Duration
+	HasEstimate       bool
 	Outcome           Outcome
 	Processes         []Process
 	Simulated         bool
@@ -207,11 +209,14 @@ type BootstrapRecord struct {
 // Observations never transition the state machine. SideEffect must be reported
 // before publishing pairing details, sending keys or otherwise touching console state.
 type Progress struct {
-	Current    int
-	Total      int
-	Message    string
-	SideEffect bool
-	Processes  []Process
+	// Remaining is helper-measured duration, meaningful only with HasEstimate.
+	Remaining   time.Duration
+	HasEstimate bool
+	Current     int
+	Total       int
+	Message     string
+	SideEffect  bool
+	Processes   []Process
 }
 type Report func(Progress)
 type Run struct {
