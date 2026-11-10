@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -113,7 +114,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		ui.Text(c, locales.ToolsGame())
 		ui.Select(c.Key("ouncecake-game"), &p.game, ids).Label(locales.ToolsGame())
 		if ui.Button(c.Key("ouncecake-select"), locales.ToolsGameSelect()).Disabled(p.game == "").Clicked() {
-			title, _, _ := cutTitle(p.game)
+			title, _, _ := strings.Cut(p.game, " ")
 			p.failed = a.tools.Select(title) != nil
 		}
 	}
@@ -204,13 +205,4 @@ func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	if ui.Button(c.Key("rpc-attach"), locales.ToolsAttach()).Disabled(s.Busy || p.chosen == "").Clicked() {
 		a.command(a.controller.AttachRetained(p.chosen))
 	}
-}
-
-func cutTitle(label string) (string, string, bool) {
-	for i := range label {
-		if label[i] == ' ' {
-			return label[:i], label[i+1:], true
-		}
-	}
-	return label, "", false
 }

@@ -23,9 +23,6 @@ type driverPanel struct {
 
 func (a *app) driverView(c *ui.Context) {
 	p := &a.driverPanel
-	if p.gate == nil {
-		p.gate = driver.New(driver.Options{Manifest: a.manifest})
-	}
 	if p.completion != nil {
 		select {
 		case done := <-p.completion:
