@@ -3977,3 +3977,283 @@ func DynDistUSBDriver() string { return In(i18n.Locale()).DynDistUSBDriver() }
 func (msgs Messages) DynDistUSBDriver() string {
 	return Catalog.Format(msgs.locale, "dynDistUSBDriver", nil)
 }
+
+// LauncherSection says "Launcher saves (experimental)"
+// in the language the app shows.
+func LauncherSection() string { return In(i18n.Locale()).LauncherSection() }
+
+// LauncherSection says "Launcher saves (experimental)"
+// in the language of msgs.
+func (msgs Messages) LauncherSection() string {
+	return Catalog.Format(msgs.locale, "launcherSection", nil)
+}
+
+// LauncherIntro says "Each package is a pinned, digest-verified save that replaces the selected game's own startup code. Installing runs th…"
+// in the language the app shows.
+func LauncherIntro() string { return In(i18n.Locale()).LauncherIntro() }
+
+// LauncherIntro says "Each package is a pinned, digest-verified save that replaces the selected game's own startup code. Installing runs th…"
+// in the language of msgs.
+func (msgs Messages) LauncherIntro() string {
+	return Catalog.Format(msgs.locale, "launcherIntro", nil)
+}
+
+// LauncherPackage says "Launcher save package"
+// in the language the app shows.
+func LauncherPackage() string { return In(i18n.Locale()).LauncherPackage() }
+
+// LauncherPackage says "Launcher save package"
+// in the language of msgs.
+func (msgs Messages) LauncherPackage() string {
+	return Catalog.Format(msgs.locale, "launcherPackage", nil)
+}
+
+// LauncherRestrictions says "Install the matching game, open it once so it has a save, then close it fully. Each package is offered only for the g…"
+// in the language the app shows.
+func LauncherRestrictions() string { return In(i18n.Locale()).LauncherRestrictions() }
+
+// LauncherRestrictions says "Install the matching game, open it once so it has a save, then close it fully. Each package is offered only for the g…"
+// in the language of msgs.
+func (msgs Messages) LauncherRestrictions() string {
+	return Catalog.Format(msgs.locale, "launcherRestrictions", nil)
+}
+
+// LauncherAccount says "Console account that owns this game's save"
+// in the language the app shows.
+func LauncherAccount() string { return In(i18n.Locale()).LauncherAccount() }
+
+// LauncherAccount says "Console account that owns this game's save"
+// in the language of msgs.
+func (msgs Messages) LauncherAccount() string {
+	return Catalog.Format(msgs.locale, "launcherAccount", nil)
+}
+
+// LauncherAccountHint says "List console accounts first, then choose the account whose save should be replaced. The app never guesses when more t…"
+// in the language the app shows.
+func LauncherAccountHint() string { return In(i18n.Locale()).LauncherAccountHint() }
+
+// LauncherAccountHint says "List console accounts first, then choose the account whose save should be replaced. The app never guesses when more t…"
+// in the language of msgs.
+func (msgs Messages) LauncherAccountHint() string {
+	return Catalog.Format(msgs.locale, "launcherAccountHint", nil)
+}
+
+// LauncherVersion says "Installed game version"
+// in the language the app shows.
+func LauncherVersion() string { return In(i18n.Locale()).LauncherVersion() }
+
+// LauncherVersion says "Installed game version"
+// in the language of msgs.
+func (msgs Messages) LauncherVersion() string {
+	return Catalog.Format(msgs.locale, "launcherVersion", nil)
+}
+
+// LauncherPhysicalCartridge says "This is the physical Switch 1 cartridge running in Switch 2 compatibility mode, not the native Switch 2 edition"
+// in the language the app shows.
+func LauncherPhysicalCartridge() string { return In(i18n.Locale()).LauncherPhysicalCartridge() }
+
+// LauncherPhysicalCartridge says "This is the physical Switch 1 cartridge running in Switch 2 compatibility mode, not the native Switch 2 edition"
+// in the language of msgs.
+func (msgs Messages) LauncherPhysicalCartridge() string {
+	return Catalog.Format(msgs.locale, "launcherPhysicalCartridge", nil)
+}
+
+// LauncherFullGameExport says "Verified full-game save export folder (absolute path)"
+// in the language the app shows.
+func LauncherFullGameExport() string { return In(i18n.Locale()).LauncherFullGameExport() }
+
+// LauncherFullGameExport says "Verified full-game save export folder (absolute path)"
+// in the language of msgs.
+func (msgs Messages) LauncherFullGameExport() string {
+	return Catalog.Format(msgs.locale, "launcherFullGameExport", nil)
+}
+
+// LauncherFullGameHint says "The full-game option patches your own verified full-game autosave, so export that save with Export verified backup fi…"
+// in the language the app shows.
+func LauncherFullGameHint() string { return In(i18n.Locale()).LauncherFullGameHint() }
+
+// LauncherFullGameHint says "The full-game option patches your own verified full-game autosave, so export that save with Export verified backup fi…"
+// in the language of msgs.
+func (msgs Messages) LauncherFullGameHint() string {
+	return Catalog.Format(msgs.locale, "launcherFullGameHint", nil)
+}
+
+// LauncherPreview says "Preview launcher install"
+// in the language the app shows.
+func LauncherPreview() string { return In(i18n.Locale()).LauncherPreview() }
+
+// LauncherPreview says "Preview launcher install"
+// in the language of msgs.
+func (msgs Messages) LauncherPreview() string {
+	return Catalog.Format(msgs.locale, "launcherPreview", nil)
+}
+
+// LauncherConfirm says "I confirm installing this launcher save to the selected game and account"
+// in the language the app shows.
+func LauncherConfirm() string { return In(i18n.Locale()).LauncherConfirm() }
+
+// LauncherConfirm says "I confirm installing this launcher save to the selected game and account"
+// in the language of msgs.
+func (msgs Messages) LauncherConfirm() string {
+	return Catalog.Format(msgs.locale, "launcherConfirm", nil)
+}
+
+// LauncherInstall says "Back up and install launcher"
+// in the language the app shows.
+func LauncherInstall() string { return In(i18n.Locale()).LauncherInstall() }
+
+// LauncherInstall says "Back up and install launcher"
+// in the language of msgs.
+func (msgs Messages) LauncherInstall() string {
+	return Catalog.Format(msgs.locale, "launcherInstall", nil)
+}
+
+// LauncherSideEffects says "Persistent side effects: the installed save replaces this game's startup code until you restore the backup, and the l…"
+// in the language the app shows.
+func LauncherSideEffects() string { return In(i18n.Locale()).LauncherSideEffects() }
+
+// LauncherSideEffects says "Persistent side effects: the installed save replaces this game's startup code until you restore the backup, and the l…"
+// in the language of msgs.
+func (msgs Messages) LauncherSideEffects() string {
+	return Catalog.Format(msgs.locale, "launcherSideEffects", nil)
+}
+
+// LauncherPreviewFailed says "The launcher package could not be prepared from its pinned, digest-verified source. No save was changed."
+// in the language the app shows.
+func LauncherPreviewFailed() string { return In(i18n.Locale()).LauncherPreviewFailed() }
+
+// LauncherPreviewFailed says "The launcher package could not be prepared from its pinned, digest-verified source. No save was changed."
+// in the language of msgs.
+func (msgs Messages) LauncherPreviewFailed() string {
+	return Catalog.Format(msgs.locale, "launcherPreviewFailed", nil)
+}
+
+// LauncherExistingUntouched says "An existing launcher whose core files are unrecognised or incomplete is left untouched: the verified backup is kept a…"
+// in the language the app shows.
+func LauncherExistingUntouched() string { return In(i18n.Locale()).LauncherExistingUntouched() }
+
+// LauncherExistingUntouched says "An existing launcher whose core files are unrecognised or incomplete is left untouched: the verified backup is kept a…"
+// in the language of msgs.
+func (msgs Messages) LauncherExistingUntouched() string {
+	return Catalog.Format(msgs.locale, "launcherExistingUntouched", nil)
+}
+
+// LauncherSeedsowDemo says "Seedsow Lullaby demo (Artemis launcher v2)"
+// in the language the app shows.
+func LauncherSeedsowDemo() string { return In(i18n.Locale()).LauncherSeedsowDemo() }
+
+// LauncherSeedsowDemo says "Seedsow Lullaby demo (Artemis launcher v2)"
+// in the language of msgs.
+func (msgs Messages) LauncherSeedsowDemo() string {
+	return Catalog.Format(msgs.locale, "launcherSeedsowDemo", nil)
+}
+
+// LauncherSeedsowFull says "Seedsow Lullaby full game (Artemis launcher v2)"
+// in the language the app shows.
+func LauncherSeedsowFull() string { return In(i18n.Locale()).LauncherSeedsowFull() }
+
+// LauncherSeedsowFull says "Seedsow Lullaby full game (Artemis launcher v2)"
+// in the language of msgs.
+func (msgs Messages) LauncherSeedsowFull() string {
+	return Catalog.Format(msgs.locale, "launcherSeedsowFull", nil)
+}
+
+// LauncherNora2Demo says "Nora, Princess and Crying Cat 2 demo (Artemis launcher v2)"
+// in the language the app shows.
+func LauncherNora2Demo() string { return In(i18n.Locale()).LauncherNora2Demo() }
+
+// LauncherNora2Demo says "Nora, Princess and Crying Cat 2 demo (Artemis launcher v2)"
+// in the language of msgs.
+func (msgs Messages) LauncherNora2Demo() string {
+	return Catalog.Format(msgs.locale, "launcherNora2Demo", nil)
+}
+
+// LauncherNora1Demo says "Nora, Princess and Stray Cat HD demo (Artemis launcher)"
+// in the language the app shows.
+func LauncherNora1Demo() string { return In(i18n.Locale()).LauncherNora1Demo() }
+
+// LauncherNora1Demo says "Nora, Princess and Stray Cat HD demo (Artemis launcher)"
+// in the language of msgs.
+func (msgs Messages) LauncherNora1Demo() string {
+	return Catalog.Format(msgs.locale, "launcherNora1Demo", nil)
+}
+
+// LauncherHamidashiDemo says "Hamidashi Creative demo (Artemis launcher v2)"
+// in the language the app shows.
+func LauncherHamidashiDemo() string { return In(i18n.Locale()).LauncherHamidashiDemo() }
+
+// LauncherHamidashiDemo says "Hamidashi Creative demo (Artemis launcher v2)"
+// in the language of msgs.
+func (msgs Messages) LauncherHamidashiDemo() string {
+	return Catalog.Format(msgs.locale, "launcherHamidashiDemo", nil)
+}
+
+// LauncherLuaEditor says "Seedsow Lullaby demo (Lua editor save)"
+// in the language the app shows.
+func LauncherLuaEditor() string { return In(i18n.Locale()).LauncherLuaEditor() }
+
+// LauncherLuaEditor says "Seedsow Lullaby demo (Lua editor save)"
+// in the language of msgs.
+func (msgs Messages) LauncherLuaEditor() string {
+	return Catalog.Format(msgs.locale, "launcherLuaEditor", nil)
+}
+
+// LauncherLuaEditorPro says "Seedsow Lullaby demo (Lua Editor Pro v0.4.0)"
+// in the language the app shows.
+func LauncherLuaEditorPro() string { return In(i18n.Locale()).LauncherLuaEditorPro() }
+
+// LauncherLuaEditorPro says "Seedsow Lullaby demo (Lua Editor Pro v0.4.0)"
+// in the language of msgs.
+func (msgs Messages) LauncherLuaEditorPro() string {
+	return Catalog.Format(msgs.locale, "launcherLuaEditorPro", nil)
+}
+
+// LauncherBalatro says "Balatro (RCE v1.1.0)"
+// in the language the app shows.
+func LauncherBalatro() string { return In(i18n.Locale()).LauncherBalatro() }
+
+// LauncherBalatro says "Balatro (RCE v1.1.0)"
+// in the language of msgs.
+func (msgs Messages) LauncherBalatro() string {
+	return Catalog.Format(msgs.locale, "launcherBalatro", nil)
+}
+
+// LauncherBalatroShowcase says "Balatro (RCE showcase variant)"
+// in the language the app shows.
+func LauncherBalatroShowcase() string { return In(i18n.Locale()).LauncherBalatroShowcase() }
+
+// LauncherBalatroShowcase says "Balatro (RCE showcase variant)"
+// in the language of msgs.
+func (msgs Messages) LauncherBalatroShowcase() string {
+	return Catalog.Format(msgs.locale, "launcherBalatroShowcase", nil)
+}
+
+// LauncherGravityCircuit says "Gravity Circuit (RCE v1.1)"
+// in the language the app shows.
+func LauncherGravityCircuit() string { return In(i18n.Locale()).LauncherGravityCircuit() }
+
+// LauncherGravityCircuit says "Gravity Circuit (RCE v1.1)"
+// in the language of msgs.
+func (msgs Messages) LauncherGravityCircuit() string {
+	return Catalog.Format(msgs.locale, "launcherGravityCircuit", nil)
+}
+
+// DynDistLauncherArtemis says "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled."
+// in the language the app shows.
+func DynDistLauncherArtemis() string { return In(i18n.Locale()).DynDistLauncherArtemis() }
+
+// DynDistLauncherArtemis says "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherArtemis() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherArtemis", nil)
+}
+
+// DynDistLauncherArchive says "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bun…"
+// in the language the app shows.
+func DynDistLauncherArchive() string { return In(i18n.Locale()).DynDistLauncherArchive() }
+
+// DynDistLauncherArchive says "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bun…"
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherArchive() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherArchive", nil)
+}

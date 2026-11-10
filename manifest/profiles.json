@@ -327,7 +327,8 @@
         "notice": "CivSwitch-ControlCenter LICENSE (MIT); Gezine/CivSwitch LICENSE.",
         "reason": "Control Center distribution is blocked pending review of the complete separately authored release inventory and its notices."
       }
-    },    {
+    },
+    {
       "id": "browser-research",
       "upstream": "https://github.com/Jmesmykil/switch2-captive-portal-research",
       "revision": "07cd867af2f1dc8f7b6ce59d964c3827cc3997b3",
@@ -1774,6 +1775,395 @@
         "bundled": false,
         "notice": "packaging/licenses/python-3.13.17; packaging/homebrew-runtime.lock.json.",
         "reason": "Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notices are unreviewed. A developer may stage these pinned sources locally; no package includes them."
+      }
+    },
+    {
+      "id": "launcher-seedsow-demo",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/artemis/upstream-v2/seedsow_save.zip",
+      "sha256": "dfd58a4e1151d29e9152b3a528568f95a990aa427914bafc21711e9b7fca691e",
+      "licenseStatus": "Artemis: not specified upstream",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/artemis/upstream-v2",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "010042d022aea000",
+        "files": 9,
+        "core": [
+          "core.lua",
+          "exploita.lua",
+          "http.lua",
+          "inject.iet",
+          "inject.lua",
+          "proggy.ttf",
+          "save9999.dat"
+        ]
+      }
+    },
+    {
+      "id": "launcher-seedsow-full",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/artemis/upstream-v2/seedsow_save.zip",
+      "sha256": "dfd58a4e1151d29e9152b3a528568f95a990aa427914bafc21711e9b7fca691e",
+      "licenseStatus": "Artemis: not specified upstream",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/artemis/upstream-v2",
+        "format": "selected-files",
+        "files": 2,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c",
+          "scripts/seedsow-full-save.cjs": "c80596a9e0f3477328f0a547b695b3ee11d54a81c92d236d8cf3a79212de6d16"
+        }
+      },
+      "launcher": {
+        "titleId": "0100ee5021c9e000",
+        "files": 9,
+        "core": [
+          "core.lua",
+          "exploita.lua",
+          "http.lua",
+          "inject.iet",
+          "inject.lua",
+          "proggy.ttf"
+        ],
+        "fullGame": true
+      }
+    },
+    {
+      "id": "launcher-nora2-demo",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/artemis/upstream-v2/nora2_save.zip",
+      "sha256": "dfdc4101c4ae16d4277e778b1e1d3c88eb1f7250e993de914850a23c669be7ba",
+      "licenseStatus": "Artemis: not specified upstream",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/artemis/upstream-v2",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "010012900d38a000",
+        "files": 9,
+        "core": [
+          "core.lua",
+          "exploita.lua",
+          "http.lua",
+          "inject.iet",
+          "inject.lua",
+          "proggy.ttf",
+          "save9999.dat"
+        ]
+      }
+    },
+    {
+      "id": "launcher-nora1-demo",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/artemis/upstream-nora1-save.zip",
+      "sha256": "7ddc187f2de7b40bf2cff64008646be20bb5512f32589c2a688b51f4d9fb9b8d",
+      "licenseStatus": "Artemis: not specified upstream",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/artemis",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "01002eb00ce48000",
+        "files": 9,
+        "core": [
+          "core.lua",
+          "exploita.lua",
+          "http.lua",
+          "inject.iet",
+          "inject.lua",
+          "proggy.ttf",
+          "save9999.dat"
+        ]
+      }
+    },
+    {
+      "id": "launcher-hamidashi-demo",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/artemis/upstream-v2/hamidashi_save.zip",
+      "sha256": "25cde9b3e29a512342564e35557a9b61c628657d9d1442e6f09f80a242e384df",
+      "licenseStatus": "Artemis: not specified upstream",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/artemis/upstream-v2",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "0100848014154000",
+        "files": 9,
+        "core": [
+          "core.lua",
+          "exploita.lua",
+          "http.lua",
+          "inject.iet",
+          "inject.lua",
+          "proggy.ttf",
+          "save9999.dat"
+        ]
+      }
+    },
+    {
+      "id": "launcher-lua-editor",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "vendor/ns2-savekit/Seedsow-Lua-Editor-Save.zip",
+      "sha256": "e13f095a920831d7e8ce170d96e12b033531d97491d9d0666e253fb6d4073b34",
+      "licenseStatus": "0BSD editor; archive data review unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "vendor/ns2-savekit",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "010042d022aea000",
+        "files": 273,
+        "core": [
+          "ssedit1.lua",
+          "sed01.asb"
+        ]
+      }
+    },
+    {
+      "id": "launcher-balatro",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/balatro-rce/balatro-switch-rce-1.1.0.zip",
+      "sha256": "2c8055ec080f3c7bd7b5392f4484dbe8247efaa712563b662dfabab1b616b704",
+      "licenseStatus": "GPL-3.0; archive data and corresponding source review unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/balatro-rce",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "0100cd801ce5e000",
+        "files": 20,
+        "core": [
+          ".lovegame/conf.lua",
+          ".lovegame/main.lua",
+          ".lovegame/bl/app.lua",
+          ".lovegame/bl/call.lua",
+          ".lovegame/bl/console.lua",
+          ".lovegame/bl/ffi_call.lua",
+          ".lovegame/bl/ftp.lua",
+          ".lovegame/bl/ftp_server.lua",
+          ".lovegame/bl/hooks.lua",
+          ".lovegame/bl/jffi.lua",
+          ".lovegame/bl/log.lua",
+          ".lovegame/bl/offsets.lua",
+          ".lovegame/bl/repl.lua",
+          ".lovegame/bl/resolve.lua",
+          ".lovegame/bl/rpc.lua",
+          ".lovegame/bl/socket.lua",
+          ".lovegame/bl/socket_types.lua",
+          ".lovegame/bl/stamp.lua",
+          ".lovegame/bl/assets/mono.ttf",
+          ".lovegame/bl/assets/OFL.txt"
+        ],
+        "physicalCompatibility": true
+      }
+    },
+    {
+      "id": "launcher-balatro-showcase",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/balatro-rce/balatro-cpypwn-showcase.zip",
+      "sha256": "4911763bb90c9f4c174df31a29a04a2268ca8068f55feed7fab18230131e03c8",
+      "licenseStatus": "GPL-3.0; archive data and corresponding source review unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/balatro-rce",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "0100cd801ce5e000",
+        "files": 21,
+        "core": [
+          ".lovegame/conf.lua",
+          ".lovegame/main.lua",
+          ".lovegame/bl/app.lua",
+          ".lovegame/bl/call.lua",
+          ".lovegame/bl/console.lua",
+          ".lovegame/bl/ffi_call.lua",
+          ".lovegame/bl/ftp.lua",
+          ".lovegame/bl/ftp_server.lua",
+          ".lovegame/bl/hooks.lua",
+          ".lovegame/bl/jffi.lua",
+          ".lovegame/bl/log.lua",
+          ".lovegame/bl/offsets.lua",
+          ".lovegame/bl/repl.lua",
+          ".lovegame/bl/resolve.lua",
+          ".lovegame/bl/rpc.lua",
+          ".lovegame/bl/socket.lua",
+          ".lovegame/bl/socket_types.lua",
+          ".lovegame/bl/stamp.lua",
+          ".lovegame/bl/assets/mono.ttf",
+          ".lovegame/bl/assets/OFL.txt",
+          ".lovegame/bl/showcase.lua"
+        ],
+        "physicalCompatibility": true
+      }
+    },
+    {
+      "id": "launcher-gravity-circuit",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/gravcirc-rce/GC-v1.1.zip",
+      "sha256": "ab018f3e9947dba3750f18b64100fb76366559fce94bd45db3799fcf9028709e",
+      "licenseStatus": "GPL-3.0; archive data and corresponding source review unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/gravcirc-rce",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "01008d9019128000",
+        "files": 18,
+        "core": [
+          ".Gravity Circuit/main.lua",
+          ".Gravity Circuit/gc/app.lua",
+          ".Gravity Circuit/gc/call.lua",
+          ".Gravity Circuit/gc/console.lua",
+          ".Gravity Circuit/gc/ffi_call.lua",
+          ".Gravity Circuit/gc/ftp.lua",
+          ".Gravity Circuit/gc/ftp_server.lua",
+          ".Gravity Circuit/gc/hooks.lua",
+          ".Gravity Circuit/gc/jffi.lua",
+          ".Gravity Circuit/gc/log.lua",
+          ".Gravity Circuit/gc/main.lua",
+          ".Gravity Circuit/gc/offsets.lua",
+          ".Gravity Circuit/gc/repl.lua",
+          ".Gravity Circuit/gc/resolve.lua",
+          ".Gravity Circuit/gc/rpc.lua",
+          ".Gravity Circuit/gc/socket_nx.lua",
+          ".Gravity Circuit/gc/socket_pc.lua",
+          ".Gravity Circuit/gc/socket_types.lua"
+        ],
+        "versions": [
+          "1.0.0",
+          "1.2.1"
+        ]
+      }
+    },
+    {
+      "id": "launcher-lua-editor-pro",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/seedsow-editor-pro/Seedsow_Pro_v2_JKSV.zip",
+      "sha256": "97c90c057cb4978cf2c0d33fc718a14105a82491a28176e7d85e2f62cfe38415",
+      "licenseStatus": "No upstream license; no redistribution grant at v0.4.0",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "notice": "LICENSE"
+      },
+      "source": {
+        "directory": "integrations/seedsow-editor-pro",
+        "format": "selected-files",
+        "files": 1,
+        "extra": {
+          "LICENSE": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c"
+        }
+      },
+      "launcher": {
+        "titleId": "010042d022aea000",
+        "files": 301,
+        "core": [
+          "core.lua",
+          "exploita.lua",
+          "http.lua",
+          "inject.lua",
+          "pro_editor.lua",
+          "proggy.ttf"
+        ]
       }
     }
   ],

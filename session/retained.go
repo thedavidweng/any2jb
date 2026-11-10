@@ -127,6 +127,7 @@ type ToolRequest struct {
 	Tool        string
 	ConsoleIPv4 string
 	SaveKit     *savekit.Request
+	Launcher    *savekit.LauncherRequest
 	// Modules selects IZlauncher module ids from the staged catalog, SDRomFolder
 	// is the native launcher's read-only console ROM folder, and AppFolder a
 	// Mac folder of previously built native apps. The tool host re-validates
@@ -236,6 +237,9 @@ func (c *SessionController) RunToolWith(request ToolRequest) (Snapshot, error) {
 		if err := request.SaveKit.Validate(); err != nil {
 			return c.configurationError(InvalidConfiguration, err.Error())
 		}
+	}
+	if request.Launcher != nil && (request.Tool != "savekit" || request.SaveKit == nil || request.SaveKit.Action != "write") {
+		return c.configurationError(InvalidConfiguration, "launcher saves require the SaveKit write gate")
 	}
 	if err := request.validateHomebrew(); err != nil {
 		return c.configurationError(InvalidConfiguration, err.Error())

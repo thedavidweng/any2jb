@@ -1,12 +1,16 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"slices"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/launcher"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
+	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -14,11 +18,21 @@ type fakeToolAdapter struct {
 	reasons  map[string]string
 	state    retained.State
 	selected string
+	preview  *savekit.Preview
+	prepared launcher.Request
 }
 
 func (f *fakeToolAdapter) Unavailable(tool, _ string) string { return f.reasons[tool] }
 func (f *fakeToolAdapter) State() retained.State             { return f.state }
 func (f *fakeToolAdapter) Select(titleID string) error       { f.selected = titleID; return nil }
+
+func (f *fakeToolAdapter) PrepareLauncher(_ context.Context, request launcher.Request, _ savekit.Request) (string, savekit.Preview, error) {
+	f.prepared = request
+	if f.preview == nil {
+		return "", savekit.Preview{}, errors.New("no prepared launcher package")
+	}
+	return "/tmp/any2jb-launcher-preview/save", *f.preview, nil
+}
 
 func retainedApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeToolAdapter, tools []string) *app {
 	t.Helper()

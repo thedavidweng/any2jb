@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/engine"
+	"github.com/thedavidweng/any2jb/launcher"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
@@ -217,6 +218,12 @@ func (m *Manager) State() State {
 // Unavailable states why a tool cannot run, or "" when it can. Distribution
 // decisions come from the canonical manifest, never from host capabilities.
 func (m *Manager) Unavailable(tool, profileID string) string {
+	if slices.Contains(launcher.IDs, tool) {
+		if !slices.Contains(m.options.Staged, tool) {
+			return m.stagedReason(tool)
+		}
+		return m.Unavailable("savekit", profileID)
+	}
 	component, ok := map[string]string{
 		"rpc-status": "", "system-code-dump": "",
 		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",

@@ -4,7 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"slices"
 
+	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
 )
@@ -18,10 +22,11 @@ import (
 // read-back failure is reported with the verified backup kept accessible and
 // blocks further mutations until the console restarts. Nothing is retried.
 func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request session.ToolRequest, workspace string, report session.Report) error {
-	req := request.SaveKit
-	if req == nil {
+	if request.SaveKit == nil {
 		return errors.New("missing SaveKit request")
 	}
+	requested := *request.SaveKit
+	req := &requested
 	if err := req.Validate(); err != nil {
 		return err
 	}
@@ -42,6 +47,29 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 		return err
 	}
 	client := savekit.Client{Node: m.options.Node, Module: module, Scenario: m.options.SaveKitScenario}
+	var component manifest.Component
+	if request.Launcher != nil {
+		if request.Tool != "savekit" || req.Action != "write" {
+			return errors.New("launcher saves require the SaveKit write gate")
+		}
+		folder, _, err := m.PrepareLauncher(ctx, *request.Launcher, *req)
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(filepath.Dir(folder))
+		req.SourceFolder = folder
+		component, err = m.options.Manifest.ToolComponent(request.Launcher.ID)
+		if err != nil {
+			return err
+		}
+		users, err := client.Run(ctx, workspace, "", savekit.Request{Action: "accounts"})
+		if err != nil {
+			return err
+		}
+		if !slices.Contains(users.Users, req.UID) {
+			return errors.New("select the console account that owns the launcher save")
+		}
+	}
 	if req.Action == "verify" {
 		return m.compareLiveSave(ctx, client, workspace, req, report)
 	}
@@ -69,6 +97,13 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 			m.recordWrite(SaveKitWrite{Action: req.Action, Failure: err.Error()})
 		}
 		return err
+	}
+	if request.Launcher != nil {
+		// This refusal happens before any console change, so it stays
+		// correctable and records no operation outcome.
+		if err := m.launcherGuard(*request.Launcher, component, live, preview, *req); err != nil {
+			return fmt.Errorf("%w; the verified backup is kept at %s and no file was written", err, backup)
+		}
 	}
 	switch req.Action {
 	case "write":
