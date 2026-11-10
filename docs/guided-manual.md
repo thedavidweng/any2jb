@@ -69,6 +69,13 @@ the verified live lease contract; Finish still requires final cleaned-up evidenc
 The UI reports resource cleanup only after input release, tool stop and host
 cleanup all return successfully. This evidence does not prove console recovery.
 
+**I restarted the console, prepare a new attempt** calls the shared
+`ConfirmConsoleRestart(ctx, true)` command. Stale lease release must succeed
+before recovery leaves indeterminate. A live or unknown owner remains blocked
+and its release error is shown. Recovery clears old checks, verification and
+progress, returns to idle, and never starts another attempt automatically.
+The same confirmation is used for CivSwitch and clears its chat-focus checkbox.
+
 ## Window refresh and evidence
 
 `SessionController.Changes()` wakes the single native window consumer. The manual
@@ -86,6 +93,8 @@ Tests:
   Stop and Finish. The fixture does not emulate console exploit behavior.
 - `session/changes_test.go`, `session_refresh_test.go`: background completion
   wakes the window and the refresh watcher ends on close.
+- `session/recovery_test.go`, `restart_view_test.go`, `session/civswitch_test.go`:
+  explicit restart confirmation, stale lease refusal/error display and shared recovery.
 
 Console, USB and actual exploit execution: **not verified, awaiting hardware**.
 IZMYSH command formatting is tested, but its separate native qualification

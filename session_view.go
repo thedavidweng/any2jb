@@ -44,9 +44,8 @@ func (a *app) sessionView(c *ui.Context) {
 	if s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
 		ui.Text(c, locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName))
 	}
-	if s.Stage == session.Indeterminate {
-		ui.Text(c, locales.RestartConsole())
-	} else if s.Stage == session.Failed {
+	a.restartView(c, s)
+	if s.Stage == session.Failed {
 		ui.Text(c, locales.SafeFailure())
 	}
 	for _, check := range s.Checks {

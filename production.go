@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/thedavidweng/any2jb/civswitch"
+	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
@@ -22,7 +24,8 @@ func productionEnvironment(options engine.Options) session.Environment {
 	// The manual adapter never sends USB input. A verified Darwin adapter can be
 	// composed here separately when its readiness gates and sender are available.
 	return session.Environment{
-		Host: engine.NewHostRunner(options),
+		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
+		Host:      engine.NewHostRunner(options),
 		Input: transport.NewManual(func(run session.Run) (string, error) {
 			if err != nil {
 				return "", err
@@ -106,8 +109,11 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 	return append(checks, observed...), nil
 }
 
-func (productionPlatform) ExportDiagnostics(context.Context, session.Snapshot) (string, error) {
-	return "", errors.New("diagnostics export is not available")
+func (p productionPlatform) ExportDiagnostics(ctx context.Context, snapshot session.Snapshot) (string, error) {
+	return (diagnostics.Store{Support: p.options.Support}).Export(ctx, snapshot)
+}
+func (p productionPlatform) ReleaseInterrupted(ctx context.Context) error {
+	return (diagnostics.Store{Support: p.options.Support}).ReleaseInterrupted(ctx)
 }
 func (productionPlatform) Credentials() session.CredentialStore { return unavailableCredentials{} }
 
