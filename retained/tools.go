@@ -66,6 +66,9 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	if err != nil || !outcome.Valid(true) {
 		return errors.Join(errors.New("the retained session no longer holds a live verified lease"), err)
 	}
+	if request.Tool == "savekit-read" {
+		return m.runSaveKit(ctx, run, request, workspace, report)
+	}
 	m.mu.Lock()
 	if m.state.Lost {
 		m.mu.Unlock()
@@ -75,6 +78,10 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		owner := m.active.tool
 		m.mu.Unlock()
 		return fmt.Errorf("%s already owns the retained session; stop it before starting another tool", owner)
+	}
+	if m.savekitOwner {
+		m.mu.Unlock()
+		return errors.New("savekit-read already owns the retained session; wait for it to finish")
 	}
 	cmd := m.command(run, request, workspace)
 	if cmd == nil {
@@ -297,7 +304,11 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	p := m.active
 	m.active = nil
 	m.state.Endpoint, m.state.Games = "", nil
+	cancel := m.savekitCancel
 	m.mu.Unlock()
+	if cancel != nil {
+		cancel()
+	}
 	if p == nil || p.cmd.Process == nil {
 		return nil
 	}

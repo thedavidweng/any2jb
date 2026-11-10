@@ -20,6 +20,7 @@ type app struct {
 	usbConfirmation    usbPrompt
 	civSwitchPanel     civSwitchPanel
 	toolsPanel         toolsPanel
+	saveKit            saveKitPanel
 	tools              toolAdapter
 	driverPanel        driverPanel
 	about              bool
@@ -56,7 +57,11 @@ func (a *app) view(c *ui.Context) {
 				return
 			}
 			if a.controller != nil && a.toolsPanel.open {
-				a.advancedToolsView(c)
+				if a.saveKit.open {
+					a.saveKitView(c)
+				} else {
+					a.advancedToolsView(c)
+				}
 				return
 			}
 			if a.controller != nil {

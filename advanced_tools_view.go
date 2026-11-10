@@ -124,6 +124,9 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	if ui.Button(c.Key("tool-stop"), locales.ToolsStop()).Disabled(s.Busy || !leased || state.Tool == "").Clicked() {
 		a.command(a.controller.StopTool())
 	}
+	if ui.Button(c.Key("savekit-open"), locales.SaveKitOpen()).Disabled(s.Busy).Clicked() {
+		a.saveKit.open = true
+	}
 	// A gated or excluded component states the recorded reason instead of an
 	// action; host capability booleans never decide this.
 	if a.manifest != nil {

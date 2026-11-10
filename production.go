@@ -69,7 +69,7 @@ func productionEnvironmentWithInput(options engine.Options, inputOptions transpo
 func productionTools(root string, stageError error, options engine.Options, host *engine.HostRunner) *retained.Manager {
 	toolRoot, staged, stageToolsError := retained.StageTools(retained.StageOptions{Support: options.Support,
 		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
-		Components: []string{"ouncecake", "sd-browser"}})
+		Components: []string{"ouncecake", "sd-browser", "savekit"}})
 	node, toolHost := "", ""
 	if stageError == nil {
 		node, toolHost = filepath.Join(root, "runtime/node"), filepath.Join(root, "runtime/toolhost.cjs")

@@ -476,6 +476,39 @@
       }
     },
     {
+      "id": "savekit",
+      "upstream": "https://github.com/dougchansan/ns2-savekit",
+      "revision": "700814ff37fa8f11f12e77b65dc8a33d421e8dd1",
+      "path": "vendor/ns2-savekit/NOTICE",
+      "sha256": "bd601e3ca94d8d1028292c0986dff905b512ccf4f35b1fe2ce469dcf8f88703d",
+      "licenseStatus": "MIT supplied in vendor/ns2-savekit/LICENSE; its dependent patched-engine rights and complete subtree notices are unreviewed.",
+      "source": {
+        "directory": "vendor/ns2-savekit/tools",
+        "format": "selected-files",
+        "files": 12,
+        "extra": {
+          "vendor/ns2-savekit/LICENSE": "6d0272367ba373b86b025c38c42db0682a4380d007fa8e31924aec752d6a015a",
+          "vendor/ns2-savekit/provenance.json": "daf939b276cf7dca7ea84a479542f07e75dd9397a5e929feb7ff845bd02c6cdc",
+          "vendor/ns2-savekit/tools/list-apps.cjs": "b292d44be90aef0dc4d5905618075c57f3106364ecfc7e89a4017bfd07cd9de2",
+          "vendor/ns2-savekit/tools/save-inventory.cjs": "da57a4a6301578c7aa2bd8147a033ada5bbb495e44b4a2cc7e15fdd6cc886376",
+          "vendor/ns2-savekit/tools/save-pull-root.cjs": "b77c8cb17d1b4e7a704d5b7c83b9a367339091dfb5d55712424397e731c0f3be",
+          "vendor/ns2-savekit/tools/lib/app-storages.cjs": "217ca1ca57991126f0b16e2d9658ed44716c28fe2df2703bddb34dc6720493b8",
+          "vendor/ns2-savekit/tools/lib/console-names.cjs": "d77bf4818f6e9c386bb0d8af2d5a997ffb7b0eb7eefb41dca336be03b333ff7f",
+          "vendor/ns2-savekit/tools/lib/content-names.cjs": "408cf81aaee198227b0f83f4056a1ddac5219ece82c867157f7106e97ad91392",
+          "vendor/ns2-savekit/tools/lib/nacp.cjs": "17ab61bfcae01957f939d70ae3d57e71d719a9106527bb556c24c62269b25a35",
+          "vendor/ns2-savekit/tools/lib/save-attr.cjs": "732f1435013fac072436a0d5fee58cd2d94600bb47a042ee8874999f0ee6ff0f",
+          "vendor/ns2-savekit/tools/lib/save-tree.cjs": "20061f32c1a91201e11f8eb0e8b6774807456043daea178a7bc40040599ad472",
+          "vendor/ns2-savekit/tools/lib/titles.cjs": "6ab7db096aab687d2f2b3bbf9165a528e53afb7bc959b0d53f759c354b9c6cb4"
+        }
+      },
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "vendor/ns2-savekit/LICENSE and NOTICE; vendor/ns2-savekit/provenance.json.",
+        "reason": "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned read-only sources locally; no package includes them."
+      }
+    },
+    {
       "id": "usbgadget-binary",
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",

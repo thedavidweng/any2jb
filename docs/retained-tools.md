@@ -38,10 +38,14 @@ controller's retained adapter and its tool runner:
 | `ouncecake-webdav` | Pinned OunceCake engine modules | The console's own service at `http://<console>:2121/` |
 | `ouncecake-ftp` | OunceCake plus mac2jb's FTP bridge | Binds `127.0.0.1` on this Mac only |
 | `sd-browser` | Pinned Super File Bros. modules | The console's FTP service, `/sd` only, `ftp://<console>:2122-2199/sd/` |
+| `savekit-read` | Pinned ns2-savekit read-only entrypoints through `retained/savekit-host.cjs` | Read-only: accounts, titles, archive inventory, inspect, verified backup export and timestamps |
 
 There is no write path in this ticket: no save, mod, launcher or console
 filesystem write exists in the tool host, and the SD export wrapper exposes only
-`list`, `stat`, `openRead`, `read` and `close` under `/sd`. Go refuses any
+`list`, `stat`, `openRead`, `read` and `close` under `/sd`. The SaveKit host
+accepts only the read-only actions above: a write, restore or delete request,
+or an unknown request field, is rejected before anything spawns, and the
+`savekit` request validator refuses the same actions in Go. Go refuses any
 endpoint outside the boundary above, so a tool cannot publish a LAN service of
 its own. The capture's inventory, file sizes and SHA-256 digests are read back
 and verified after it completes; a partial capture is kept and not retried.
@@ -65,7 +69,11 @@ browser-research probe set shows its reason too and has no control at all.
 [runtime staging](runtime-staging.md): it verifies the inventory and every
 recorded file in a pinned mac2jb clone, copies exactly those files into
 `<app support>/tools/<version>/tools/<component>`, and verifies the copy before
-any tool may require it. `stage.json` marks the stage developer-staged and not
+any tool may require it. `savekit` is recorded in the `selected-files` format:
+the component path is a digest-verified notice and `extra` names every staged
+file, and only the read-only entrypoints and their dependencies are recorded.
+Write entrypoints exist upstream but are never recorded or staged; ticket 18
+extends the selected file set for writes behind its own gate. `stage.json` marks the stage developer-staged and not
 redistributable, and the tool host refuses to run without it. A changed or
 unrecorded file fails the stage and leaves that tool unavailable with its
 recorded reason; it is never silently repaired.
@@ -83,6 +91,15 @@ recorded reason; it is never silently repaired.
 - `retained/toolhost.test.cjs` checks the tool host's own held proof (finished,
   public and foreign sessions are refused) and that the SD wrapper has no write
   operation.
+- `retained/savekit_test.go` drives the fixture host module through the manager:
+  the lease requirement, the read-only list, inspect and verified-backup flow,
+  and the single-owner refusal in both directions. `retained/savekit-host.test.cjs`
+  covers the request schema (write actions and unknown fields rejected), the
+  argv builder and the inventory parsers.
+- `savekit/` validates requests, runs the host module's one-request protocol and
+  verifies every export: `savekit/export_test.go` refuses a tampered or partial
+  export, an unrecorded file and an escaping path. A verified backup is kept
+  under `savekit-exports` and never retried.
 - `manifest/tools_test.go` and the opt-in
   `ANY2JB_REFERENCE_ROOT` inventory test check the recorded tool sources,
   including against the pinned mac2jb clone.
@@ -96,6 +113,7 @@ No console, USB or hardware behavior was verified. The fixtures are structured
 processes: they prove the lease rules, refusals, boundaries and teardown of this
 app, not that an upstream export or capture works against a real Switch 2.
 Running the real OunceCake, SD browser or capture modules needs a developer
-stage of blocked sources and a live console, which remains unverified. The
-`rpc-copy` row (copying the exact RPC command) and the OunceCake ZIP download
-are not implemented.
+stage of blocked sources and a live console, which remains unverified; the same
+holds for the real ns2-savekit entrypoints and their title-name lookup, which
+the fixture and protocol seam cover instead. The `rpc-copy` row (copying the
+exact RPC command) and the OunceCake ZIP download are not implemented.

@@ -16,6 +16,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -41,6 +42,9 @@ type Options struct {
 	StageError error
 	Manifest   *manifest.Manifest
 	Runs       Workspaces
+	// SaveKitModule is the explicit host-module test seam, mirroring
+	// CommandFactory. Production leaves it empty and uses the embedded module.
+	SaveKitModule string
 }
 
 // Game is a console-reported title offered for a read-only export.
@@ -49,12 +53,25 @@ type Game struct {
 	Name    string `json:"name"`
 }
 
+// SaveKitState accumulates read-only save observations for the UI: each
+// listing stays visible until the lease ends. It is ephemeral tool-owned data,
+// not session state.
+type SaveKitState struct {
+	Users     []string
+	Titles    []string
+	Inventory []savekit.Entry
+	Action    string
+	Output    string
+	Path      string
+}
+
 // State is ephemeral tool-owned data for the UI. It is not session state.
 type State struct {
 	Tool           string
 	Endpoint       string
 	Export         string
 	Games          []Game
+	SaveKit        *SaveKitState
 	Lost           bool
 	CleanupBlocked bool
 }
@@ -67,9 +84,11 @@ type Manager struct {
 	options  Options
 	command  CommandFactory
 	mu       sync.Mutex
-	attached string
-	active   *toolProcess
-	state    State
+	attached      string
+	active        *toolProcess
+	savekitOwner  bool
+	savekitCancel context.CancelFunc
+	state         State
 }
 
 func New(options Options) *Manager {
@@ -107,6 +126,13 @@ func (m *Manager) State() State {
 	defer m.mu.Unlock()
 	s := m.state
 	s.Games = append([]Game(nil), m.state.Games...)
+	if m.state.SaveKit != nil {
+		observed := *m.state.SaveKit
+		observed.Users = append([]string(nil), observed.Users...)
+		observed.Titles = append([]string(nil), observed.Titles...)
+		observed.Inventory = append([]savekit.Entry(nil), observed.Inventory...)
+		s.SaveKit = &observed
+	}
 	return s
 }
 
@@ -116,6 +142,7 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 	component, ok := map[string]string{
 		"rpc-status": "", "system-code-dump": "",
 		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",
+		"savekit-read": "savekit",
 	}[tool]
 	if !ok {
 		return "This read-only tool is not implemented in this build."
