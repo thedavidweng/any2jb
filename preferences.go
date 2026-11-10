@@ -140,6 +140,7 @@ func (a *app) initializeSession(env session.Environment) error {
 	} else {
 		a.manual, _ = env.Input.(*transport.Manual)
 	}
+	a.tools, _ = env.Tools.(toolAdapter)
 	return nil
 }
 

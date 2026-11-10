@@ -46,6 +46,18 @@ _Avoid_: stop, cancel
 
 ## Readiness
 
+**Retained RPC lease**:
+The live RPC endpoint of a verified held session, owned by one verified run, re-checked against its private evidence and a fresh loopback request before each tool.
+_Avoid_: open port, connection
+
+**Attached session**:
+A verified retained session another app owns, which this app connects to for read-only tools and later disconnects from, leaving the original host running.
+_Avoid_: adopted session, reconnect
+
+**Read-only tool**:
+A tool that observes or exports console data without any write path: RPC status, the system-code capture, the OunceCake exports and the `/sd` export.
+_Avoid_: safe tool
+
 **Readiness check**:
 One independently observed prerequisite with a state of `requires attention`, `available but not verified` or `verified`, plus the next action.
 _Avoid_: status light, health

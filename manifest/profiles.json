@@ -414,6 +414,68 @@
       }
     },
     {
+      "id": "tool-host",
+      "path": "runtime/toolhost.cjs",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "cbc97d251aca9e31554001384c8356e3a90dcb6633736952ee5c85b5d65aec7a",
+      "upstream": "any2jb",
+      "revision": "0.1.0",
+      "licenseStatus": "Original any2jb read-only tool host.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "Original any2jb tool host; no upstream GUI wrapper copied.",
+        "reason": "Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path."
+      }
+    },
+    {
+      "id": "ouncecake",
+      "upstream": "https://github.com/Cellenseres/OunceCake",
+      "revision": "6dfd7750752f8b6c18f2c40b34fdadc628cd9a6e",
+      "path": "packaging/OunceCake-SHA256SUMS",
+      "sha256": "1b30107349ae516e507ec1d3bf72c96a64c63127cc6f62b015886f0041bbbdfc",
+      "licenseStatus": "GNU GPL v2 text supplied in vendor/OunceCake/LICENSE; the precise grant, corresponding source, modifications and notices for a package remain unreviewed.",
+      "source": {
+        "directory": "vendor/OunceCake",
+        "format": "sha256sums",
+        "files": 36,
+        "extra": {
+          "vendor/OunceCake/SHA256SUMS": "6e02a0441991e1a419d94c27c966e8b7380ac964ac85418aeda3db5dcfbf9e16",
+          "packaging/OunceCake-upstream-SHA256SUMS": "6e02a0441991e1a419d94c27c966e8b7380ac964ac85418aeda3db5dcfbf9e16",
+          "packaging/OunceCake-provenance.json": "ba8551787e771e203e824e3ac00f7ba2f41123df72af298c6356261e6ae4e047",
+          "integrations/mintbrew-ouncecake/ftp-bridge.cjs": "a9bd5a086cb3047770974f1836394a8eef873f53b52a39a45a88a9c261f8da3f"
+        }
+      },
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "vendor/OunceCake/LICENSE (GPL v2 text); packaging/OunceCake-provenance.json; cpypwn/mac2jb LICENSE for the Mac-local FTP bridge.",
+        "reason": "Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them."
+      }
+    },
+    {
+      "id": "sd-browser",
+      "upstream": "https://github.com/byizmysh/super-file-bros",
+      "revision": "d7b216bacdd53d25f373c4c07cb6c88fa9b319c4",
+      "path": "integrations/super-file-bros/upstream/SOURCE-MANIFEST.json",
+      "sha256": "337c04fdde259a971190761dd1ceb76e8744447e9a8bfd86c4a531474ebbca36",
+      "licenseStatus": "GPL-2.0-only declared in its provenance; inherited retained-session and OunceCake modules keep their own terms.",
+      "source": {
+        "directory": "integrations/super-file-bros/upstream",
+        "format": "source-manifest",
+        "files": 79,
+        "extra": {
+          "integrations/super-file-bros/PROVENANCE.json": "da20b6c9e7ad25f110885724ff9bf5efa8ea3423e2f2e1e90ee84b1c99e6d6b6"
+        }
+      },
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "integrations/super-file-bros/upstream/LICENSE and THIRD_PARTY_NOTICES.md; integrations/super-file-bros/PROVENANCE.json.",
+        "reason": "Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them."
+      }
+    },
+    {
       "id": "usbgadget-binary",
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
@@ -475,6 +537,7 @@
     "nodeVersion": "24.22.1",
     "node": "node-darwin-arm64",
     "bridge": "engine-bridge",
+    "toolHost": "tool-host",
     "helpers": [
       "sender",
       "commands",
