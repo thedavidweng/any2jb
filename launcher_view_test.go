@@ -19,25 +19,27 @@ func launcherPreview() *savekit.Preview {
 	return &savekit.Preview{Files: files, Bytes: 8, Digest: hex.EncodeToString(body[:])}
 }
 
-// launcherApp publishes a prepared preview the way the window does: on the
-// main thread, after the background preparation finished.
-func launcherApp(t *testing.T, adapter *fakeToolAdapter) (*app, *ui.Tester, <-chan struct{}) {
+// launcherApp models Window.Update: the preparing goroutine only hands its
+// closure over, and the test's own goroutine applies it, so panel state is
+// written on the thread that builds the view.
+func launcherApp(t *testing.T, adapter *fakeToolAdapter) (*app, *ui.Tester, <-chan func()) {
 	t.Helper()
 	f := session.NewFakeEnvironment()
 	a := saveKitApp(t, f, adapter)
-	published := make(chan struct{}, 4)
-	a.launcherPanel.update = func(apply func()) { apply(); published <- struct{}{} }
+	published := make(chan func(), 4)
+	a.launcherPanel.update = func(apply func()) { published <- apply }
 	tt := ui.NewTester(a.saveKitView, 820, 4200)
 	return a, tt, published
 }
 
-// previewPackage clicks Preview and waits for the prepared result.
-func previewPackage(t *testing.T, tt *ui.Tester, published <-chan struct{}) {
+// previewPackage clicks Preview, applies the prepared result on this
+// goroutine, and builds the view again.
+func previewPackage(t *testing.T, tt *ui.Tester, published <-chan func()) {
 	t.Helper()
 	if err := tt.Click("Preview launcher install"); err != nil {
 		t.Fatal(err)
 	}
-	<-published
+	(<-published)()
 	tt.Frame()
 }
 
