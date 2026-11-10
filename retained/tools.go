@@ -186,6 +186,7 @@ func (p *toolProcess) read(output io.ReadCloser) {
 	scanner.Buffer(make([]byte, 4096), 65536)
 	var sequence uint64
 	state := ""
+	delivered := false
 	for scanner.Scan() {
 		var e toolEvent
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
@@ -196,8 +197,10 @@ func (p *toolProcess) read(output io.ReadCloser) {
 		}
 		valid := err == nil && e.Tool == p.tool && e.Sequence == sequence+1
 		switch e.Type {
-		case "started", "progress":
+		case "started":
 			valid = valid && state != "running" && state != "catalog"
+		case "progress":
+			valid = valid && state != "catalog"
 		case "status":
 			valid = valid && state == "" && e.Ready
 		case "catalog":
@@ -225,8 +228,19 @@ func (p *toolProcess) read(output io.ReadCloser) {
 			signalGroup(p.cmd, true)
 			break
 		}
-		sequence, state = e.Sequence, e.Type
-		p.events <- e
+		sequence = e.Sequence
+		if e.Type != "progress" {
+			state = e.Type
+		}
+		// observe returns after its result; keep scanning and reaping without
+		// leaving an unconsumed event queue between the child and Stop.
+		if !delivered {
+			p.events <- e
+			switch e.Type {
+			case "running", "ready", "stopped", "status", "complete":
+				delivered = true
+			}
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		p.err = errProtocol

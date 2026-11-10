@@ -73,6 +73,9 @@ async function main() {
       attemptMarkers: ['.mac2jb-hblauncher-attempt.json']});
     return;
   } else throw Error('unknown fixture tool');
+  if (scenario === 'progress-flood') {
+    for (let i = 0; i < 64; i++) emit('progress');
+  }
   await stopped;
   emit('stopped');
 }

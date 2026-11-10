@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/manifest"
@@ -155,6 +156,26 @@ func TestOneOwnerAtATime(t *testing.T) {
 	}
 	if err := m.Stop(context.Background(), run); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestStopDrainsProgressAfterRunning(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := manager(t, support, runner, "progress-flood", "sd-browser")
+	err := m.RunWith(context.Background(), run, session.ToolRequest{
+		Tool: "sd-browser", ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { done <- m.Stop(context.Background(), run) }()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("progress after running prevented a clean stop: %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("Stop blocked behind unread progress events")
 	}
 }
 
