@@ -16,8 +16,9 @@ to exercise the host locally; this does not authorize redistribution.
    **I saved the bootstrap**. SAVE submission is not proof of saving.
 
 The controller records confirmation for the selected profile and edition.
-Profile changes invalidate that assumption. Persistent saved-bootstrap identity
-belongs to the bootstrap preferences integration, not to the manual adapter.
+Profile changes invalidate that assumption. Persistent
+[saved-bootstrap identity](saved-bootstrap.md) belongs to the bootstrap
+preferences integration, not to the manual adapter.
 
 ### SAVE syntax conflict
 

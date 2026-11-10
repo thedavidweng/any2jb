@@ -27,6 +27,12 @@ func productionEnvironment(options engine.Options) session.Environment {
 // Developer callers may explicitly supply a successful local helper build.
 // Packaged startup leaves Helpers empty; this never changes distribution policy.
 func productionEnvironmentWithInput(options engine.Options, inputOptions transport.DarwinOptions) session.Environment {
+	return productionEnvironmentWithCivSwitch(options, inputOptions, civswitch.Options{})
+}
+
+// All developer-aware adapters compose here. Retained tool staging should use
+// options.DeveloperSourceRoot here too, never read launch environment itself.
+func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions transport.DarwinOptions, civOptions civswitch.Options) session.Environment {
 	root, stageErr := engine.Stage(options)
 	bootstrap := func(run session.Run) (string, error) {
 		if stageErr != nil {
@@ -50,8 +56,10 @@ func productionEnvironmentWithInput(options engine.Options, inputOptions transpo
 	keyboard := transport.NewDarwin(inputOptions)
 	platform := productionPlatform{root: root, options: options, stageError: stageErr, keyboard: keyboard}
 	inputs := transport.NewDispatcher(transport.NewManual(bootstrap), keyboard, platform.Inspect)
+	civOptions.Manifest, civOptions.Support = options.Manifest, options.Support
+	civOptions.DeveloperSourceRoot = options.DeveloperSourceRoot
 	return session.Environment{
-		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest, Support: options.Support}),
+		CivSwitch: civswitch.New(civOptions),
 		Host:      engine.NewHostRunner(options),
 		Input:     inputs,
 		Platform:  platform,
@@ -59,10 +67,9 @@ func productionEnvironmentWithInput(options engine.Options, inputOptions transpo
 	}
 }
 
-// productionDriverGate uses the packaged resource root; packaged startup never
-// opts into a developer driver source.
+// Packaged startup leaves the explicit developer source empty.
 func productionDriverGate(options engine.Options) *driver.Gate {
-	return driver.New(driver.Options{Assets: options.Assets, Manifest: options.Manifest})
+	return driver.New(driver.Options{Assets: options.Assets, Manifest: options.Manifest, DeveloperSourceRoot: options.DeveloperSourceRoot})
 }
 
 type productionPlatform struct {

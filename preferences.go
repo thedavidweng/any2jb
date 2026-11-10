@@ -134,6 +134,9 @@ func (a *app) initializeSession(env session.Environment) error {
 		return err
 	}
 	a.controller = c
+	if err := a.restoreBootstrap(); err != nil {
+		return err
+	}
 	if inputs, ok := env.Input.(*transport.Dispatcher); ok {
 		a.manual = inputs.Manual()
 		a.keyboard.input = inputs.Darwin()
