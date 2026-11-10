@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/engine"
+	"github.com/thedavidweng/any2jb/internal/procgroup"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -154,7 +155,7 @@ func (m *Manager) start(ctx context.Context, p *toolProcess, report session.Repo
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := configureGroup(p.cmd); err != nil {
+	if err := procgroup.Configure(p.cmd); err != nil {
 		return err
 	}
 	output, err := p.cmd.StdoutPipe()
@@ -225,7 +226,7 @@ func (p *toolProcess) read(output io.ReadCloser) {
 		}
 		if !valid {
 			p.err = errProtocol
-			signalGroup(p.cmd, true)
+			procgroup.Signal(p.cmd, true)
 			break
 		}
 		sequence = e.Sequence
@@ -244,7 +245,7 @@ func (p *toolProcess) read(output io.ReadCloser) {
 	}
 	if err := scanner.Err(); err != nil {
 		p.err = errProtocol
-		signalGroup(p.cmd, true)
+		procgroup.Signal(p.cmd, true)
 	}
 	p.err = errors.Join(p.err, p.cmd.Wait())
 }
@@ -400,25 +401,25 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	select {
 	case <-p.done:
 	case <-ctx.Done():
-		if err := signalGroup(p.cmd, true); err != nil {
+		if err := procgroup.Signal(p.cmd, true); err != nil {
 			return err
 		}
 		<-p.done
 	case <-timer.C:
-		if err := signalGroup(p.cmd, false); err != nil {
+		if err := procgroup.Signal(p.cmd, false); err != nil {
 			return err
 		}
 		select {
 		case <-p.done:
 		case <-time.After(2 * time.Second):
-			if err := signalGroup(p.cmd, true); err != nil {
+			if err := procgroup.Signal(p.cmd, true); err != nil {
 				return err
 			}
 			<-p.done
 		}
 	}
 	// Remaining group members must not outlive the owning tool.
-	if err := signalGroup(p.cmd, true); err != nil {
+	if err := procgroup.Signal(p.cmd, true); err != nil {
 		return err
 	}
 	if p.input != nil {
