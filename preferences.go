@@ -74,8 +74,10 @@ func (a *app) applyPreferences() error {
 			return errors.New(locales.CommandRejected())
 		}
 		p, _ := a.manifest.Profile(a.preferences.Profile)
-		if _, err := a.controller.SelectProfile(p.SessionProfile(), a.preferences.Edition); err != nil {
-			return err
+		if s.Profile.ID != p.ID || s.Edition != a.preferences.Edition {
+			if _, err := a.controller.SelectProfile(p.SessionProfile(), a.preferences.Edition); err != nil {
+				return err
+			}
 		}
 		if _, err := a.controller.ConfigureTransport(preferredTransport(a.preferences.Transport), a.preferences.LANIPv4); err != nil {
 			return err
