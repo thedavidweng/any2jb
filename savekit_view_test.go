@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -194,6 +196,94 @@ func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapte
 	return a, adapter, tt, f
 }
 
+func TestSaveKitConfirmationCannotMoveToAnotherTarget(t *testing.T) {
+	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
+	if err := tt.Click("Preview save write"); err != nil {
+		t.Fatal(err)
+	}
+	if err := tt.Click("I confirm this exact target and file preview"); err != nil {
+		t.Fatal(err)
+	}
+	a.saveKit.titleID = "0100000000001000"
+	tt.Frame()
+	write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save")
+	if !ok || !write.Disabled {
+		t.Fatalf("confirmation moved to another title: %+v", write)
+	}
+}
+
+func TestSaveKitDeleteConfirmationCannotMoveToAnotherFile(t *testing.T) {
+	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
+	a.saveKit.deleteName = "first.bin"
+	tt.Frame()
+	if err := tt.Click("I confirm this exact target and file preview"); err != nil {
+		t.Fatal(err)
+	}
+	a.saveKit.deleteName = "second.bin"
+	tt.Frame()
+	remove, ok := tt.AccessByRole(ui.RoleButton, "Back up and delete file")
+	if !ok || !remove.Disabled {
+		t.Fatalf("confirmation moved to another file: %+v", remove)
+	}
+}
+
+func TestSaveKitWriteEditsNeedNewConsent(t *testing.T) {
+	for _, change := range []string{"source", "replace"} {
+		t.Run(change, func(t *testing.T) {
+			a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
+			if err := tt.Click("Preview save write"); err != nil {
+				t.Fatal(err)
+			}
+			if err := tt.Click("I confirm this exact target and file preview"); err != nil {
+				t.Fatal(err)
+			}
+			if change == "source" {
+				a.saveKit.sourceFolder = t.TempDir()
+			} else {
+				a.saveKit.allowReplace = true
+			}
+			tt.Frame()
+			write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save")
+			if !ok || !write.Disabled {
+				t.Fatalf("write edit kept its previous consent: %+v", write)
+			}
+		})
+	}
+}
+
+func TestSaveKitRestoreListsFilesBeforeConsent(t *testing.T) {
+	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "save.bin"), []byte("save"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	manifest := fmt.Sprintf(`{"programId":"010012900d38a000","uid":"11111111111111111111111111111111","space":1,"type":1,"rank":0,"index":0,"files":1,"bytes":4,"partial":false,"failed":[],"entries":[{"path":"/save.bin","size":4,"sha256":"%x"}]}`, sha256.Sum256([]byte("save")))
+	if err := os.WriteFile(filepath.Join(dir, "manifest.json"), []byte(manifest), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	a.saveKit.restoreFolder = dir
+	tt.Frame()
+	if err := tt.Click("Preview restore"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText("/save.bin  4") {
+		t.Fatalf("restore hides the affected file: %v", tt.Texts())
+	}
+	if !tt.HasText("Target: title 010012900d38a000 · account 11111111111111111111111111111111 · space 1 type 1 rank 0 index 0") {
+		t.Fatal("the target does not identify the full account")
+	}
+	if err := tt.Click("I confirm this exact target and file preview"); err != nil {
+		t.Fatal(err)
+	}
+	a.saveKit.restoreFolder = t.TempDir()
+	tt.Frame()
+	restore, ok := tt.AccessByRole(ui.RoleButton, "Back up and restore save")
+	if !ok || !restore.Disabled {
+		t.Fatalf("a changed restore source kept its consent: %+v", restore)
+	}
+}
+
 func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	a, adapter, tt, f := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
 	write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save")
@@ -210,7 +300,7 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	if !tt.HasText("/extra.bin  6") {
 		t.Fatal(tt.Texts())
 	}
-	if !tt.HasText("Target: title 010012900d38a000 · account 1111111111111111 · space 1 type 1 rank 0 index 0") {
+	if !tt.HasText("Target: title 010012900d38a000 · account 11111111111111111111111111111111 · space 1 type 1 rank 0 index 0") {
 		t.Fatal(tt.Texts())
 	}
 	write, ok = tt.AccessByRole(ui.RoleButton, "Back up and write save")
@@ -246,6 +336,9 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	tt.Frame()
 	if !tt.HasText("Write verified: 1 file(s) written, 0 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a") {
 		t.Fatal(tt.Texts())
+	}
+	if _, ok := tt.AccessByRole(ui.RoleStatus, "Write verified: 1 file(s) written, 0 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a"); !ok {
+		t.Fatal("the write outcome is not an accessible status")
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Open backup folder"); !ok {
 		t.Fatal("the recovery backup cannot be opened")

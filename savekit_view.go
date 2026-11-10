@@ -25,17 +25,22 @@ type saveKitPanel struct {
 	// The gated operations. Each preview is recomputed by the manager at run
 	// time and bound to the request by its digest; each confirmation covers
 	// exactly one operation and resets when it ends.
-	sourceFolder   string
-	restoreFolder  string
-	compareFolder  string
-	deleteName     string
-	writePreview   *savekit.Preview
-	restorePreview *savekit.Preview
-	previewInvalid bool
-	allowReplace   bool
-	confirmWrite   bool
-	confirmRestore bool
-	confirmDelete  bool
+	sourceFolder         string
+	restoreFolder        string
+	compareFolder        string
+	deleteName           string
+	writePreview         *savekit.Preview
+	restorePreview       *savekit.Preview
+	previewInvalid       bool
+	allowReplace         bool
+	confirmWrite         bool
+	confirmRestore       bool
+	confirmDelete        bool
+	confirmationTarget   string
+	deletePreviewName    string
+	writePreviewSource   string
+	restorePreviewSource string
+	confirmedReplace     bool
 }
 
 // archiveLabel identifies one inventory archive in the archive selector.
@@ -176,15 +181,21 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	}
 	defaultTarget := archive.Space == 1 && archive.Type == 1 && archive.Rank == 0 &&
 		archive.Index == 0 && archive.StaticID == 0
-	account := target.UID
-	if len(account) > 16 {
-		account = account[:16]
-	}
-	targetText := locales.SaveKitWriteTarget(target.TitleID, account, fmt.Sprint(archive.Space),
+	targetText := locales.SaveKitWriteTarget(target.TitleID, target.UID, fmt.Sprint(archive.Space),
 		fmt.Sprint(archive.Type), fmt.Sprint(archive.Rank), fmt.Sprint(archive.Index))
+	targetKey := fmt.Sprintf("%s:%s:%+v:%t", target.TitleID, target.UID, archive, target.All)
+	if p.confirmationTarget != targetKey {
+		p.confirmWrite, p.confirmRestore, p.confirmDelete = false, false, false
+		p.confirmationTarget = targetKey
+	}
 
 	// Write: a local folder of save files into the default account archive.
 	ui.TextInput(c.Key("savekit-write-source"), &p.sourceFolder).Label(locales.SaveKitSourceFolder())
+	if p.writePreviewSource != p.sourceFolder {
+		p.writePreview = nil
+		p.confirmWrite = false
+		p.writePreviewSource = p.sourceFolder
+	}
 	if ui.Button(c.Key("savekit-preview-write"), locales.SaveKitPreviewWrite()).
 		Disabled(!writeReady || !defaultTarget || strings.TrimSpace(p.sourceFolder) == "").Clicked() {
 		preview, err := savekit.PreviewWrite(strings.TrimSpace(p.sourceFolder))
@@ -198,15 +209,15 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	if p.writePreview != nil {
 		ui.Text(c, locales.SaveKitPreviewFiles(fmt.Sprint(len(p.writePreview.Files)),
 			fmt.Sprint(p.writePreview.Bytes)))
-		shown := p.writePreview.Files
-		if len(shown) > 20 {
-			shown = shown[:20]
-		}
-		for _, file := range shown {
+		for _, file := range p.writePreview.Files {
 			ui.Text(c, file.Path+"  "+fmt.Sprint(file.Size)).Selectable()
 		}
 		ui.Text(c, targetText).Selectable()
 		ui.Checkbox(c.Key("savekit-allow-replace"), &p.allowReplace, locales.SaveKitAllowReplace())
+		if p.confirmedReplace != p.allowReplace {
+			p.confirmWrite = false
+			p.confirmedReplace = p.allowReplace
+		}
 		ui.Checkbox(c.Key("savekit-confirm-write"), &p.confirmWrite, locales.SaveKitConfirmOperation())
 	}
 	write := target
@@ -228,6 +239,11 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 
 	// Restore: a verified backup back into its own archive.
 	ui.TextInput(c.Key("savekit-restore-source"), &p.restoreFolder).Label(locales.SaveKitRestoreFolder())
+	if p.restorePreviewSource != p.restoreFolder {
+		p.restorePreview = nil
+		p.confirmRestore = false
+		p.restorePreviewSource = p.restoreFolder
+	}
 	if ui.Button(c.Key("savekit-preview-restore"), locales.SaveKitPreviewRestore()).
 		Disabled(!writeReady || strings.TrimSpace(p.restoreFolder) == "").Clicked() {
 		preview, err := savekit.PreviewRestore(strings.TrimSpace(p.restoreFolder))
@@ -242,6 +258,9 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	if p.restorePreview != nil {
 		ui.Text(c, locales.SaveKitPreviewFiles(fmt.Sprint(len(p.restorePreview.Files)),
 			fmt.Sprint(p.restorePreview.Bytes)))
+		for _, file := range p.restorePreview.Files {
+			ui.Text(c, file.Path+"  "+fmt.Sprint(file.Size)).Selectable()
+		}
 		ui.Text(c, targetText).Selectable()
 		ui.Checkbox(c.Key("savekit-confirm-restore"), &p.confirmRestore, locales.SaveKitConfirmOperation())
 	}
@@ -269,17 +288,25 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 
 	// Delete: exactly one file at the save root of the default account archive.
 	ui.TextInput(c.Key("savekit-delete-name"), &p.deleteName).Label(locales.SaveKitDeleteName())
+	if p.deletePreviewName != p.deleteName {
+		p.confirmDelete = false
+		p.deletePreviewName = p.deleteName
+	}
 	ui.Text(c, locales.SaveKitDeleteHint()).TextColor(c.Theme().TextMuted)
+	ui.Text(c, targetText).Selectable()
+	if savekit.SafeRootName(p.deleteName) {
+		ui.Text(c, "/"+p.deleteName).Selectable()
+	}
 	ui.Checkbox(c.Key("savekit-confirm-delete"), &p.confirmDelete, locales.SaveKitConfirmOperation())
-	delete_ := target
-	delete_.Archive = nil
-	delete_.Action = "delete"
-	delete_.FileName = p.deleteName
-	delete_.Confirm = p.confirmDelete
-	delete_.PreviewDigest = savekit.PreviewDelete(p.deleteName).Digest
+	remove := target
+	remove.Archive = nil
+	remove.Action = "delete"
+	remove.FileName = p.deleteName
+	remove.Confirm = p.confirmDelete
+	remove.PreviewDigest = savekit.PreviewDelete(p.deleteName).Digest
 	if ui.Button(c.Key("savekit-delete"), locales.SaveKitDelete()).
-		Disabled(!writeReady || !defaultTarget || delete_.Validate() != nil).Clicked() {
-		a.runSaveKitWrite(delete_)
+		Disabled(!writeReady || !defaultTarget || remove.Validate() != nil).Clicked() {
+		a.runSaveKitWrite(remove)
 	}
 	if p.previewInvalid {
 		ui.Text(c, locales.SaveKitPreviewInvalid()).TextColor(c.Theme().TextMuted)
@@ -295,16 +322,16 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 func (a *app) saveKitWriteOutcome(c *ui.Context, p *saveKitPanel, out *retained.SaveKitWrite) {
 	switch {
 	case out.Failure != "" && out.Backup != "":
-		ui.Text(c, locales.SaveKitWriteFailed(out.Backup)).Selectable()
+		ui.Text(c.Key("savekit-outcome"), locales.SaveKitWriteFailed(out.Backup)).Selectable().Role(ui.RoleStatus)
 	case out.Failure != "":
-		ui.Text(c, locales.SaveKitWriteFailedNoBackup())
+		ui.Text(c.Key("savekit-outcome"), locales.SaveKitWriteFailedNoBackup()).Role(ui.RoleStatus)
 	case out.Action == "compare" && out.Verified:
-		ui.Text(c, locales.SaveKitCompareMatch(fmt.Sprint(out.Files), out.Backup)).Selectable()
+		ui.Text(c.Key("savekit-outcome"), locales.SaveKitCompareMatch(fmt.Sprint(out.Files), out.Backup)).Selectable().Role(ui.RoleStatus)
 	case out.Action == "compare":
-		ui.Text(c, locales.SaveKitCompareDiffers(out.Backup)).Selectable()
+		ui.Text(c.Key("savekit-outcome"), locales.SaveKitCompareDiffers(out.Backup)).Selectable().Role(ui.RoleStatus)
 	default:
-		ui.Text(c, locales.SaveKitWriteVerified(saveKitActionName(out.Action),
-			fmt.Sprint(out.Files), fmt.Sprint(out.Replaced), out.Backup)).Selectable()
+		ui.Text(c.Key("savekit-outcome"), locales.SaveKitWriteVerified(saveKitActionName(out.Action),
+			fmt.Sprint(out.Files), fmt.Sprint(out.Replaced), out.Backup)).Selectable().Role(ui.RoleStatus)
 	}
 	if out.Backup != "" {
 		if ui.Button(c.Key("savekit-open-backup"), locales.SaveKitOpenBackup()).Clicked() {
