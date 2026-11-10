@@ -163,6 +163,8 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 			requested = c.requested
 			if c.s.SideEffects || cleanupErr != nil || requested == Indeterminate {
 				c.s.Recovery = RestartConsole
+				// A required console restart invalidates the old run's verification.
+				c.s.Outcome = Outcome{}
 				c.transition(Indeterminate)
 			} else if requested == Ready {
 				c.s.Recovery = RetrySafe
