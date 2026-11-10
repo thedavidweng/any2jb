@@ -45,6 +45,9 @@ func Stage(o Options) (string, error) {
 		return "", errors.New("runtime requires darwin-arm64 Node 24.22.1")
 	}
 	ids := []string{r.Node, r.Bridge}
+	if r.ToolHost != "" {
+		ids = append(ids, r.ToolHost)
+	}
 	var components []manifest.Component
 	for _, id := range ids {
 		found := false
@@ -69,7 +72,7 @@ func Stage(o Options) (string, error) {
 	// USB sidecars are optional for guided manual launch. An actually bundled
 	// sidecar is still integrity-checked; VerifyUSB gates transport availability.
 	for _, c := range o.Manifest.Components {
-		if c.ID == r.Node || c.ID == r.Bridge || !c.Distribution.Available() || !strings.HasPrefix(c.Path, "runtime/") {
+		if c.ID == r.Node || c.ID == r.Bridge || c.ID == r.ToolHost || !c.Distribution.Available() || !strings.HasPrefix(c.Path, "runtime/") {
 			continue
 		}
 		components = append(components, c)
@@ -121,7 +124,7 @@ func Stage(o Options) (string, error) {
 			return "", err
 		}
 		mode := fs.FileMode(0o500)
-		if c.ID == r.Bridge {
+		if c.ID == r.Bridge || c.ID == r.ToolHost {
 			mode = 0o400
 		}
 		if err := os.WriteFile(target, data, mode); err != nil {
@@ -236,7 +239,7 @@ func verify(root string, m *manifest.Manifest, components []manifest.Component) 
 		if err := m.Verify(root, c.ID); err != nil {
 			return err
 		}
-		if c.ID == m.Runtime.Bridge {
+		if c.ID == m.Runtime.Bridge || c.ID == m.Runtime.ToolHost {
 			continue
 		}
 		f, err := macho.Open(filepath.Join(root, filepath.FromSlash(c.Path)))

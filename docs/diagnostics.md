@@ -43,6 +43,8 @@ Automatic cleanup preserves `backups`, `savekit-exports`, `verified-exports` and
 `dumps` by moving them to `past-runs/<workspace-name>` before deleting temporary
 engine workspaces. Tool adapters must put intentionally retained artifacts in
 those directories or outside the workspace. Retention errors stop deletion.
+The read-only system-code capture writes into `verified-exports/system-code-<run
+id>`, outside every session workspace, and must find that destination empty.
 
 The bridge's stdin-EOF cleanup also preserves those directories and private log
 sources, and writes `session-interrupted` before deleting pairing artifacts.

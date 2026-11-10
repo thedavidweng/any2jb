@@ -35,6 +35,14 @@ and still release owned resources. The command's summary labels this as
 simulated engine coverage. These fixture outcomes are not upstream exploit
 or hardware evidence.
 
+The **retained tools** suite reuses that same fixture's `held-verified`
+scenario on loopback with a structured tool-process fixture. It checks the lease
+requirement, the single owner, attach versus launch, detach leaving the host
+running, a lost attachment, refused endpoints and a refused capture destination,
+plus developer tool staging and the tool host's own held proof
+(`node --test retained/toolhost.test.cjs`). See
+[retained tools](retained-tools.md); these are not console or hardware evidence.
+
 On Darwin arm64 the command force-rebuilds libusbd in a disposable copy,
 using `internal/nativehelper.Build`, also used by explicit local developer
 USB staging (see [keyboard input](usb-keyboard.md)).

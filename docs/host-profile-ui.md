@@ -8,9 +8,11 @@ provide transport discovery, grant redistribution permission or prove hardware
 compatibility.
 
 Unsupported demo, retained RPC, SaveKit, native HBLauncher and modloader options
-have an explanation. Tool controls stay disabled until the retained-session and
-tool adapters are integrated. Capability permission is not permission to write
-saves or launch unvalidated software.
+have an explanation. The read-only tools of a retained-RPC host are integrated;
+see [retained tools](retained-tools.md). SaveKit, native HBLauncher and
+modloader controls stay disabled until their write adapters are integrated.
+Capability permission is not permission to write saves or launch unvalidated
+software.
 
 IZMYSH remains selectable for inventory, but cannot launch even from a developer
 stage. Its nine-argument native qualification contract is not the ns2jb
