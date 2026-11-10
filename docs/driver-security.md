@@ -53,8 +53,9 @@ environment variable or UI import route.
 - `driver.New(driver.Options{Assets, DeveloperSourceRoot, Manifest,
   Administrator})`; `Administrator` defaults to the osascript prompt and is
   injected as a fake in tests.
-- The production composition sets `app.driverPanel.gate`; otherwise the panel
-  creates a blocked packaged gate from the canonical manifest.
+- `main` sets `app.driverPanel.gate` from `productionDriverGate`, using the
+  merged MyGo resource root and no developer source. Tests verify it reports
+  the canonical blocker.
 - The panel opens from **Review USB driver setup**, shown when a driver
   readiness check is present.
 

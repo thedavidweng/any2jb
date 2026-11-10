@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/readiness"
@@ -21,6 +22,12 @@ func productionEnvironment(options engine.Options) session.Environment {
 		Platform: productionPlatform{root: root, options: options, stageError: err},
 		Tools:    unavailableTools{},
 	}
+}
+
+// productionDriverGate uses the packaged resource root; packaged startup never
+// opts into a developer driver source.
+func productionDriverGate(options engine.Options) *driver.Gate {
+	return driver.New(driver.Options{Assets: options.Assets, Manifest: options.Manifest})
 }
 
 type productionPlatform struct {

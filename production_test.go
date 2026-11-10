@@ -46,4 +46,9 @@ func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
 	if a.controller.Snapshot().CanStart() {
 		t.Fatal("startup restored readiness without observations")
 	}
+	gate := productionDriverGate(engine.Options{Assets: t.TempDir(), Manifest: a.manifest})
+	blocked, _ := a.manifest.DistributionFor("usbgadget-binary")
+	if gate.DeveloperSource() || gate.Availability() == nil || gate.Availability().Error() != blocked.Reason {
+		t.Fatal("packaged driver gate bypassed the canonical distribution blocker")
+	}
 }

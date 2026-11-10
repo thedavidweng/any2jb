@@ -71,6 +71,7 @@ func main() {
 		log.Fatal(err)
 	}
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
+	a.driverPanel.gate = productionDriverGate(options)
 	mygo.App.WhenReady(func() {
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     locales.AppName(),
