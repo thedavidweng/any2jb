@@ -57,7 +57,7 @@ func (a *app) saveKitView(c *ui.Context) {
 		state = a.tools.State()
 	}
 	observed := state.SaveKit
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.SaveKitTitle()).FontSize(20).Bold()
 	ui.Text(c, locales.SaveKitIntro()).TextColor(c.Theme().TextMuted)
 	switch {

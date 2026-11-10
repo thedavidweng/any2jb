@@ -59,7 +59,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	if a.tools != nil {
 		state = a.tools.State()
 	}
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.ToolsTitle()).FontSize(20).Bold()
 	ui.Text(c, locales.ToolsReadOnly()).TextColor(c.Theme().TextMuted)
 	switch {
@@ -157,7 +157,7 @@ func (a *app) toolGate(s session.Snapshot, state retained.State, tool string) (b
 			reason = a.tools.Unavailable(tool, s.Profile.ID)
 		}
 	}
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	owned := state.Tool != "" && state.Tool != tool
 	return s.Busy || !leased || state.Lost || state.ModloaderInstalled || reason != "" || owned, reason
 }
@@ -178,7 +178,7 @@ func (a *app) runTool(tool, consoleIPv4 string) {
 
 func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	p := &a.toolsPanel
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.ToolsAttachNote())
 	if leased {
 		if s.Attached {

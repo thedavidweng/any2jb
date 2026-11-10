@@ -348,6 +348,9 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 
 func TestSaveKitFailedOperationBlocksAndExplains(t *testing.T) {
 	a, adapter, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
+	// The manager latches a failed mutation in SaveKitBlocked, independently of
+	// the outcome it displays, until the lease is reset.
+	adapter.state.SaveKitBlocked = "post-write verification failed"
 	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "write",
 		Failure: "post-write verification failed", Backup: "/support/savekit-exports/010012900d38a000-b"}
 	tt.Frame()
