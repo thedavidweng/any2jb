@@ -52,6 +52,21 @@ func (a *app) sessionView(c *ui.Context) {
 	}
 	if s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
 		ui.Text(c, locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName))
+		if !s.Busy && !s.SideEffects && !pending && (s.Stage == session.Idle || s.Stage == session.Ready || s.Stage == session.NeedsSetup) {
+			if ui.Button(c.Key("bootstrap-reuse"), locales.UseSavedBootstrap()).Clicked() {
+				a.bootstrapReuse = true
+			}
+			if a.bootstrapReuse {
+				ui.Text(c, locales.ConfirmBootstrapIdentity(s.Profile.ID, s.Edition, s.Profile.SaveName, s.Profile.Revision, s.Profile.BootstrapSHA256))
+				if ui.Button(c.Key("bootstrap-reuse-confirm"), locales.ConfirmBootstrapIdentityAction()).Clicked() {
+					a.bootstrapError = a.confirmExistingBootstrap() != nil
+					a.bootstrapReuse = false
+				}
+			}
+		}
+	}
+	if a.bootstrapError {
+		ui.Text(c, locales.BootstrapPersistenceError())
 	}
 	a.restartView(c, s)
 	if s.Stage == session.Failed {
@@ -123,12 +138,14 @@ func (a *app) sessionView(c *ui.Context) {
 	}
 	if (s.Stage == session.NeedsSetup || s.Stage == session.Ready) && !s.Busy {
 		if ui.Button(c.Key("bootstrap"), locales.PrepareBootstrap()).Disabled(pending).Clicked() {
+			a.allowOverwrite = false
 			a.command(a.controller.PrepareBootstrap())
 		}
 	}
 	if s.Stage == session.BootstrapSetup && !s.Busy && s.BootstrapPrepared {
 		if !s.SaveSubmitted {
-			if ui.Button(c.Key("save"), locales.SubmitSave()).Clicked() {
+			ui.Checkbox(c.Key("bootstrap-overwrite"), &a.allowOverwrite, locales.AllowBootstrapOverwrite())
+			if ui.Button(c.Key("save"), locales.SubmitSave()).Disabled(!a.allowOverwrite).Clicked() {
 				a.command(a.controller.SaveBootstrap(false))
 			}
 		} else {

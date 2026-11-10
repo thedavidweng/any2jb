@@ -1,5 +1,11 @@
 {
   "@@locale": "en",
+  "developerStaged": "developer-staged, not redistributable",
+  "useSavedBootstrap": "Use saved bootstrap",
+  "confirmBootstrapIdentity": "Confirm the console already contains {saveName} for {profile} ({edition}), revision {revision}, bootstrap SHA-256 {digest}. The app cannot read saved program contents. If unsure, prepare and save the matching bootstrap instead.",
+  "confirmBootstrapIdentityAction": "I confirm this exact saved bootstrap",
+  "allowBootstrapOverwrite": "I authorize replacing this saved program if it already exists",
+  "bootstrapPersistenceError": "The saved-bootstrap identity could not be stored. Check local file permissions; do not assume it will be available after relaunch.",
   "diagnostics": "Diagnostics",
   "diagnosticsPrivacy": "Logs are redacted for viewing. Session folders contain private data; share only an exported support bundle. Bundles include structured state, verification and fixed log summaries, never raw logs, pairing details, account identifiers or save data.",
   "logHost": "Host",

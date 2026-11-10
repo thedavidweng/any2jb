@@ -53,6 +53,26 @@ fi
 	}
 }
 
+func TestCompositeHelperCanUseSharedSealedBuildOutsideSourceRoot(t *testing.T) {
+	script := "#!/bin/sh\necho 'MAC2JB_CIVSWITCH {\"type\":\"dry-run\",\"total\":87,\"characters\":21675,\"estimatedMs\":1299100}'\n"
+	options := helperFixture(t, script)
+	options.DeveloperHelperPath = filepath.Join(t.TempDir(), "civswitch-hid")
+	if err := os.WriteFile(options.DeveloperHelperPath, []byte(script), 0500); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := civswitch.New(options).Prepare(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	options.DeveloperHelperSHA256 = fmt.Sprintf("%064d", 0)
+	if _, err := civswitch.New(options).Prepare(context.Background()); err == nil {
+		t.Fatal("changed shared helper digest accepted")
+	}
+	options.DeveloperHelperPath = "relative-helper"
+	if _, err := civswitch.New(options).Prepare(context.Background()); err == nil {
+		t.Fatal("relative shared helper accepted")
+	}
+}
+
 func helperFixture(t *testing.T, script string) civswitch.Options {
 	t.Helper()
 	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {

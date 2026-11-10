@@ -46,6 +46,10 @@ func TestPinnedDeveloperHelpersAreIntegrityCheckedWithoutUSB(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { h.Close() })
+	path, digest, err := h.CompositeHelper()
+	if err != nil || !filepath.IsAbs(path) || len(digest) != 64 {
+		t.Fatal("shared composite helper provenance missing", err)
+	}
 	p, err := m.Profile(m.Default)
 	if err != nil {
 		t.Fatal(err)
@@ -73,6 +77,9 @@ func TestPinnedDeveloperHelpersAreIntegrityCheckedWithoutUSB(t *testing.T) {
 	}
 	if err := d.Check(context.Background(), run); err == nil {
 		t.Fatal("removed helpers remained authorized")
+	}
+	if _, _, err := h.CompositeHelper(); err == nil {
+		t.Fatal("removed composite helper remained authorized")
 	}
 	// This test never calls Send/OpenKeyboard. Compiling and integrity checks
 	// cannot initialize a gadget or send keys.

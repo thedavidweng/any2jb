@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -86,3 +87,13 @@ func (h *DeveloperHelpers) verify() error {
 	return nil
 }
 func (h *DeveloperHelpers) Close() error { return os.RemoveAll(h.root) }
+
+// CompositeHelper exposes the same sealed build to the separate CivSwitch route.
+// The receiving adapter must verify this digest again immediately before use.
+func (h *DeveloperHelpers) CompositeHelper() (string, string, error) {
+	if err := h.verify(); err != nil {
+		return "", "", err
+	}
+	sum := h.digests["civswitch-hid"]
+	return h.path("civswitch-hid"), hex.EncodeToString(sum[:]), nil
+}

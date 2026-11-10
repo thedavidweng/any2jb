@@ -25,6 +25,8 @@ type Options struct {
 	DeveloperSourceRoot string
 	// Explicit digest of the developer-built binary, not redistribution clearance.
 	DeveloperHelperSHA256 string
+	// Absolute path from the shared integrity-checked local helper build.
+	DeveloperHelperPath string
 	// Support is the app support directory. Verified save backups and read-only
 	// save exports are retained there, outside every session workspace.
 	Support string
@@ -95,8 +97,19 @@ func (a *Adapter) verify() error {
 	}
 	// A locally built helper has no release digest. Require the developer's
 	// explicit digest, then use the same symlink-safe verifier as other assets.
-	local := manifest.Manifest{Components: []manifest.Component{{ID: "developer-civswitch-helper", Path: "mac2jb-civswitch-hid", SHA256: a.options.DeveloperHelperSHA256}}}
-	return local.Verify(a.options.DeveloperSourceRoot, "developer-civswitch-helper")
+	path := a.helperPath()
+	if !filepath.IsAbs(path) {
+		return errors.New("CivSwitch developer helper path must be absolute")
+	}
+	local := manifest.Manifest{Components: []manifest.Component{{ID: "developer-civswitch-helper", Path: filepath.Base(path), SHA256: a.options.DeveloperHelperSHA256}}}
+	return local.Verify(filepath.Dir(path), "developer-civswitch-helper")
+}
+
+func (a *Adapter) helperPath() string {
+	if a.options.DeveloperHelperPath != "" {
+		return a.options.DeveloperHelperPath
+	}
+	return filepath.Join(a.options.DeveloperSourceRoot, "mac2jb-civswitch-hid")
 }
 
 func (a *Adapter) payload() string {
@@ -213,7 +226,7 @@ func (a *Adapter) helper(ctx context.Context, dryRun bool, receive func(helperEv
 	}
 	childCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	cmd := exec.CommandContext(childCtx, filepath.Join(a.options.DeveloperSourceRoot, "mac2jb-civswitch-hid"), args...)
+	cmd := exec.CommandContext(childCtx, a.helperPath(), args...)
 	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
 	cmd.WaitDelay = 5 * time.Second
 	stdout, err := cmd.StdoutPipe()
