@@ -1,0 +1,30 @@
+{
+  "schema": "any2jb/hardware-evidence@1",
+  "date": "YYYY-MM-DD",
+  "tester": "your name or handle",
+  "route": "civswitch",
+  "combination": {
+    "macModel": "e.g. MacBook Pro 14-inch (Apple Silicon)",
+    "macosVersion": "e.g. 26.1 (25B78), from sw_vers",
+    "startupSecurity": "e.g. Reduced Security with user-managed kernel extensions, per docs/driver-security.md",
+    "consoleGeneration": "Switch 1",
+    "consoleSystemVersion": "Switch 1 system version",
+    "gameVersion": "Civilization VII cartridge version, expected 1.0.0",
+    "systemLanguage": "expected English (US)",
+    "transport": "composite-hid",
+    "usbController": "observed controller, e.g. usb-drd0",
+    "cable": "cable and power direction",
+    "lanTopology": "e.g. Switch 1 and Mac on the same reachable network"
+  },
+  "steps": [
+    { "id": "civ-prerequisites", "outcome": "pass | fail | blocked", "log": "cartridge, language, lobby/chat focus, console IPv4 confirmed" },
+    { "id": "civ-composite-enumeration", "outcome": "pass | fail | blocked", "log": "keyboard and gamepad interfaces both enumerated" },
+    { "id": "civ-chat-transfer", "outcome": "pass | fail | blocked", "log": "completed lines out of 87, accepted chat input" },
+    { "id": "civ-stop-release", "outcome": "pass | fail | blocked", "log": "both HID interfaces released after Stop" },
+    { "id": "civ-loader-verify", "outcome": "pass | fail | blocked", "log": "fresh nonce and Executed successfully on TCP 9026" },
+    { "id": "civ-save-backup", "outcome": "pass | fail | blocked", "log": "save:/saves/Single backup checksums verified and retained" },
+    { "id": "civ-trigger-install", "outcome": "pass | fail | blocked", "notes": "optional write; omit the step when not performed", "log": "INSTALL DONE - reboot, Load Game" },
+    { "id": "civ-control-center", "outcome": "pass | fail | blocked", "notes": "optional; omit when not performed", "log": "CONTROL_CENTER_READY, verified XSTRIG.Civ7Save export, clean stop" },
+    { "id": "civ-javascript", "outcome": "pass | fail | blocked", "notes": "optional; omit when not performed", "log": "explicit consent, exact file sent, execution confirmation" }
+  ]
+}
