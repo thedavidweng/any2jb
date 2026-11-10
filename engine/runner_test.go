@@ -225,6 +225,20 @@ func TestProtocolRunnerLeaseAndOwner(t *testing.T) {
 	if _, err := runner.Prepare(context.Background(), run, func(session.Progress) {}); err == nil {
 		t.Fatal("concurrent session accepted")
 	}
+	support := filepath.Dir(filepath.Dir(details.Workspace))
+	second := engine.NewProtocolRunner(support, func(session.Run, string) *exec.Cmd {
+		t.Fatal("independent runner bypassed the active disk lease")
+		return nil
+	})
+	if _, err := second.Prepare(context.Background(), run, func(session.Progress) {}); err == nil {
+		t.Fatal("independent runner accepted an active lease")
+	}
+	if err := second.Cleanup(context.Background(), run); err != nil {
+		t.Fatal(err)
+	}
+	if owner, err := os.ReadFile(filepath.Join(support, "session.lock")); err != nil || string(owner) != run.ID {
+		t.Fatal("non-owning runner removed the active lease")
+	}
 	other := run
 	other.ID = "not-owner"
 	if err := runner.Cleanup(context.Background(), other); err == nil {
