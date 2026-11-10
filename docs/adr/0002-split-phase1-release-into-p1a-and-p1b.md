@@ -1,0 +1,3 @@
+# Split Phase 1 macOS delivery into P1a and P1b
+
+Phase 1 (Apple Silicon macOS 14+) is split into **P1a** (initial release gate: core `ns2jb` flow, guided manual launch, USB HID typing and one-click launch, readiness and driver checks, redacted diagnostics, retained RPC lease and read-only tools) and **P1b** (follow-on Phase 1 scope: SaveKit write/restore/delete, launcher-save installers, homebrew launching, live keyboard forwarding and CivSwitch). All `mac2jb` capabilities remain tracked in the parity ledger from the start so nothing is silently dropped, while allowing the core verified session manager to ship without being blocked by save-mutating or secondary-game integrations.
