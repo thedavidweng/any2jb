@@ -189,18 +189,5 @@ func (p productionPlatform) ExportDiagnostics(ctx context.Context, snapshot sess
 func (p productionPlatform) ReleaseInterrupted(ctx context.Context) error {
 	return (diagnostics.Store{Support: p.options.Support}).ReleaseInterrupted(ctx)
 }
-func (productionPlatform) Credentials() session.CredentialStore { return unavailableCredentials{} }
-
-type unavailableCredentials struct{}
-
-func (unavailableCredentials) Get(context.Context, string) ([]byte, error) {
-	return nil, errors.New("credential storage is not available")
-}
-func (unavailableCredentials) Set(context.Context, string, []byte) error {
-	return errors.New("credential storage is not available")
-}
-func (unavailableCredentials) Delete(context.Context, string) error {
-	return errors.New("credential storage is not available")
-}
 
 var _ session.PlatformServices = productionPlatform{}

@@ -272,16 +272,10 @@ type InputTransport interface {
 	Send(context.Context, Run, InputAction, PreparedHost, Report) error
 	Release(context.Context, Run) error
 }
-type CredentialStore interface {
-	Get(context.Context, string) ([]byte, error)
-	Set(context.Context, string, []byte) error
-	Delete(context.Context, string) error
-}
 type PlatformServices interface {
 	Inspect(context.Context, Run) ([]Check, error)
 	ExportDiagnostics(context.Context, Snapshot) (string, error)
 	ReleaseInterrupted(context.Context) error
-	Credentials() CredentialStore
 }
 type ToolRunner interface {
 	Run(context.Context, Run, string, Report) error

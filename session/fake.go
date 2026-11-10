@@ -133,18 +133,7 @@ func (p fakePlatform) Inspect(ctx context.Context, _ Run) ([]Check, error) {
 func (p fakePlatform) ExportDiagnostics(context.Context, Snapshot) (string, error) {
 	return "simulated diagnostics; no real check performed", nil
 }
-func (p fakePlatform) Credentials() CredentialStore             { return fakeCredentials{} }
 func (p fakePlatform) ReleaseInterrupted(context.Context) error { return nil }
-
-type fakeCredentials struct{}
-
-func (fakeCredentials) Get(context.Context, string) ([]byte, error) {
-	return nil, errors.New("no simulated credential")
-}
-func (fakeCredentials) Set(context.Context, string, []byte) error {
-	return errors.New("fake environment does not store secrets")
-}
-func (fakeCredentials) Delete(context.Context, string) error { return nil }
 
 type fakeRetained struct{ f *FakeEnvironment }
 
