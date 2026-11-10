@@ -64,9 +64,12 @@ they may contain pairing secrets. Readiness display text must already be safe.
 for it to unwind, then releases input, stops tools and cleans the owned host.
 `Stop` does the same after side effects, but always requires a console restart.
 Cleanup failure also requires restart. An indeterminate session cannot be
-inspected or started again through this seam; later recovery UI must establish a
-real console restart before creating a new controller. Relaunching the desktop
-app alone is not evidence of console recovery.
+inspected or started again until the user explicitly confirms a console restart.
+`ConfirmConsoleRestart(ctx, true)` is shared by SmileBASIC and CivSwitch. It first
+calls `ReleaseInterrupted(ctx)`; a live or unknown stale lease owner leaves the
+session indeterminate and the UI shows the release error. Successful recovery
+clears old readiness, verification and progress, and returns to idle without
+starting input. Relaunching the desktop app alone is not console recovery.
 Held-capable teardown has a 305-second controller budget, allowing the runner's
 300-second deferred-cleanup grace before a forced process-group termination.
 
@@ -89,8 +92,11 @@ hardware checks.” The production entrypoint does not inject this environment.
 The existing `app` view accepts a controller for windowless `ui.Tester` tests.
 These cover Home, readiness blockers, active input, cancellation, stopping,
 verification, finishing and restart-required recovery. A real window integration
-must arrange refreshes on controller events using MyGo's main-thread
-`Window.Update` boundary. Do not keep a `ui.Context` or element in a worker.
+uses `Changes()` for controller events and the manual prompt wake channel,
+scheduling refreshes through MyGo's main-thread `Window.Update` boundary.
+Both console routes use this one controller redraw mechanism.
+Do not keep a `ui.Context` or element in a worker.
 
-This seam has no hardware implementation or hardware verification. The real
-host, workspace, bootstrap, driver and transport adapters are separate tickets.
+The production host, workspace, driver readiness and guided manual adapters are
+integrated. See [guided manual input](guided-manual.md) for fixture evidence
+and limits. Hardware verification remains outstanding.

@@ -28,9 +28,12 @@ The adapter selects the one discovered `usb-drdN` explicitly. It does not use
 the upstream `auto` parent, which can forcibly kill a worker and still emit
 `cancelled`. Enumeration still happens in the directly owned helper.
 
-`ConfirmCivSwitchRestart(true)` requires an idle writer and indeterminate
-console state. It records the user's explicit restart confirmation and returns
-to idle without sending input. The UI clears the chat-focus confirmation.
+`ConfirmConsoleRestart(ctx, true)` is shared with SmileBASIC. It requires
+indeterminate console state and a stopped writer, releases any interrupted lease
+through the diagnostics adapter, and returns to idle without sending input.
+Release failure leaves the session indeterminate and shows the error.
+The UI clears the chat-focus confirmation. Both routes use the same
+`SessionController.Changes()` window refresh path.
 
 `ConnectCivSwitch` is a separate action. It does not prepare assets, enumerate
 HID, or type a payload. `RecheckCivSwitch` only probes; it never retypes.

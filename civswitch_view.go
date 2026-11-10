@@ -14,10 +14,10 @@ type civSwitchPanel struct {
 }
 
 func (a *app) civSwitchView(c *ui.Context) {
-	a.controller.SetInvalidator(c.Services().Invalidate)
 	p := &a.civSwitchPanel
 	s := a.controller.Snapshot()
 	ui.Text(c, locales.CivTitle()).FontSize(20).Bold()
+	a.restartView(c, s)
 	ui.Text(c, locales.CivPrerequisites())
 	ui.Text(c, locales.CivNoRPC()).Bold()
 	ui.Text(c, locales.CivComposite())
@@ -52,13 +52,6 @@ func (a *app) civSwitchView(c *ui.Context) {
 		}
 		if s.Total > 0 {
 			ui.Text(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
-		}
-		if s.Stage == session.Indeterminate {
-			ui.Text(c, locales.RestartConsole()).Bold()
-			if ui.Button(c.Key("civ-restart"), locales.CivRestartConfirmed()).Disabled(s.Busy).Clicked() {
-				a.command(a.controller.ConfirmCivSwitchRestart(true))
-				p.prerequisites.LobbyChatFocused = false
-			}
 		}
 		if s.Stage == session.Failed {
 			ui.Text(c, locales.SafeFailure())

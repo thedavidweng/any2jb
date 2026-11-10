@@ -162,6 +162,7 @@ type Snapshot struct {
 	Total             int
 	Outcome           Outcome
 	Processes         []Process
+	CleanupConfirmed  bool
 	Simulated         bool
 	Busy              bool
 	SideEffects       bool

@@ -25,14 +25,6 @@ type CivSwitchPrerequisites struct {
 	ConsoleIPv4                 string
 }
 
-// SetInvalidator installs a nonblocking redraw request. The callback must not
-// call back into the controller; views pass their persistent Services.Invalidate.
-func (c *SessionController) SetInvalidator(invalidate func()) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.invalidate = invalidate
-}
-
 // CivSwitchUnavailable is shown even when no adapter was composed.
 func (c *SessionController) CivSwitchUnavailable() string {
 	c.mu.Lock()
@@ -149,20 +141,12 @@ func (c *SessionController) releaseCivSwitch(ctx context.Context) error {
 	if c.env.CivSwitch == nil {
 		return errors.New("CivSwitch adapter unavailable")
 	}
-	return c.env.CivSwitch.Release(ctx)
-}
-
-// ConfirmCivSwitchRestart is explicit recovery after the writer has exited.
-// It does not send input or start another attempt.
-func (c *SessionController) ConfirmCivSwitchRestart(confirmed bool) (Snapshot, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if !confirmed || !c.s.CivSwitch || !c.eligible(Indeterminate) {
-		return c.reject(InvalidState)
+	if err := c.env.CivSwitch.Release(ctx); err != nil {
+		return err
 	}
-	c.s.SideEffects, c.s.LoaderVerified = false, false
-	c.s.Current, c.s.Total, c.s.EstimatedDuration = 0, 0, 0
-	c.s.Recovery = NoRecovery
-	c.transition(Idle)
-	return c.snapshot(), nil
+	c.mu.Lock()
+	c.s.CleanupConfirmed = true
+	c.s.Processes = nil
+	c.mu.Unlock()
+	return nil
 }

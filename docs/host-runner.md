@@ -99,8 +99,8 @@ and held-host crash recovery. They are not evidence of a console exploit.
 ## Limits
 
 No console or USB hardware was verified. All engine redistribution blockers
-remain unchanged. Input, tools and credentials are explicit
-unavailable adapters until their owning tickets integrate them.
+remain unchanged. [Guided manual input](guided-manual.md) is integrated.
+Automated input, tools and credentials remain unavailable until their adapters integrate.
 
 IZMYSH has a separate native qualification contract, not the ns2jb filesystem
 contract. Its adapter is not implemented. The UI and runtime readiness explain
@@ -114,5 +114,5 @@ release or USB capability claim.
 Production `PlatformServices` combines runtime/profile/USB-helper integrity
 checks with `readiness.New().Inspect`. The helper check uses `usb-hid` transport
 gating, so missing helpers never block manual input. LAN recommendations and
-overrides retain the readiness adapter's assignment-only evidence. Input remains
-an explicit blocker until its adapter is integrated.
+overrides retain the readiness adapter's assignment-only evidence. Manual input
+is available; an unavailable automated input adapter remains an explicit blocker.

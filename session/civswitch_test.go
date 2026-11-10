@@ -166,13 +166,13 @@ func TestCivSwitchRestartNeedsExplicitConfirmation(t *testing.T) {
 	c.ConfigureTransport(session.Transport{Mode: "composite", Capabilities: session.Capabilities{Keyboard: true, Gamepad: true}}, "")
 	c.StartCivSwitch(civPrerequisites())
 	await(t, c, session.Indeterminate)
-	if _, err := c.ConfirmCivSwitchRestart(false); err == nil {
+	if _, err := c.ConfirmConsoleRestart(context.Background(), false); err == nil {
 		t.Fatal("reset without console confirmation")
 	}
 	if _, err := c.StartCivSwitch(civPrerequisites()); err == nil {
 		t.Fatal("unsafe replay")
 	}
-	if _, err := c.ConfirmCivSwitchRestart(true); err != nil {
+	if _, err := c.ConfirmConsoleRestart(context.Background(), true); err != nil {
 		t.Fatal(err)
 	}
 	if s := c.Snapshot(); s.Stage != session.Idle || s.LoaderVerified || s.SideEffects {

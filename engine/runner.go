@@ -116,6 +116,15 @@ func Pairing(host session.PreparedHost) (PairingDetails, error) {
 	return p, nil
 }
 
+// PairingFor validates the identity and command again at the input boundary.
+func PairingFor(host session.PreparedHost, run session.Run) (PairingDetails, error) {
+	p, err := Pairing(host)
+	if err != nil || p.RunID != run.ID || !validCommand(p.Command, run) {
+		return PairingDetails{}, errors.New("host pairing does not match this run")
+	}
+	return p, nil
+}
+
 func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report session.Report) (host session.PreparedHost, err error) {
 	r.mu.Lock()
 	var created *hostProcess
