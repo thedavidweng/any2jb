@@ -28,6 +28,8 @@ type helperProcess struct {
 	closed   bool
 	closeErr error
 	released bool
+	inflight bool
+	owned    chan struct{}
 	lease    *os.File
 	audit    *usbAudit
 }
@@ -96,7 +98,7 @@ func (d *Darwin) start(ctx context.Context, run session.Run, workspace string) (
 		return nil, err
 	}
 	cmd.Stderr = io.Discard // never expose text/pairing material
-	p := &helperProcess{owner: d, run: run, cmd: cmd, input: input, lines: make(chan string, 32), done: make(chan struct{}), lease: lease, audit: audit}
+	p := &helperProcess{owner: d, run: run, cmd: cmd, input: input, lines: make(chan string, 32), done: make(chan struct{}), owned: make(chan struct{}), lease: lease, audit: audit}
 	if err := cmd.Start(); err != nil {
 		input.Close()
 		output.Close()
@@ -120,6 +122,10 @@ func (d *Darwin) start(ctx context.Context, run session.Run, workspace string) (
 			terminateHelper(cmd, false)
 		case <-p.done:
 			return
+		case <-p.owned:
+			// After READY, close owns teardown so a signal cannot precede the
+			// acknowledged neutral report.
+			return
 		}
 		timer := time.NewTimer(2 * time.Second)
 		defer timer.Stop()
@@ -138,9 +144,6 @@ func (p *helperProcess) next(ctx context.Context) (string, error) {
 		return "", ctx.Err()
 	case line, ok := <-p.lines:
 		if ok {
-			if line == "MAC2JB_KEYBOARD_RELEASED" {
-				p.released = true
-			}
 			return line, nil
 		}
 		<-p.done
@@ -162,12 +165,23 @@ func (p *helperProcess) clear() {
 func (p *helperProcess) close(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	force := time.AfterFunc(2*time.Second, func() { terminateHelper(p.cmd, true) })
-	defer force.Stop()
-	// An unacknowledged Send must not keep focus loss/Stop waiting on its
-	// mutex. The helper's signal handler releases keys before exiting.
-	if !p.mu.TryLock() {
+	// Signals are only the bounded last resort after the orderly release.
+	escalate := context.AfterFunc(ctx, func() {
 		terminateHelper(p.cmd, false)
+		select {
+		case <-p.done:
+		case <-time.After(time.Second):
+			terminateHelper(p.cmd, true)
+		}
+	})
+	defer escalate()
+	// An unacknowledged Send holding the mutex is ended by escalation.
+	locked := p.mu.TryLock()
+	for !locked && ctx.Err() == nil {
+		time.Sleep(time.Millisecond)
+		locked = p.mu.TryLock()
+	}
+	if !locked {
 		p.mu.Lock()
 	}
 	defer p.mu.Unlock()
@@ -175,33 +189,16 @@ func (p *helperProcess) close(ctx context.Context) error {
 		return p.closeErr
 	}
 	p.closed = true
-	var err error
-	// Acknowledge the neutral report before closing stdin. EOF makes the
-	// helper attempt release again even if the explicit write fails.
-	if !p.released {
-		err = p.write(ctx, [8]byte{})
+	// Release keys first. A cancelled Send can leave its acknowledgement
+	// unread; it precedes the neutral one and is never release evidence.
+	stale := p.inflight
+	err := p.write(ctx, [8]byte{})
+	if err == nil && stale {
+		err = p.ack(ctx)
 	}
+	p.released = err == nil
 	p.input.Close()
-	waiting := true
-	for waiting {
-		select {
-		case line, ok := <-p.lines:
-			if !ok {
-				waiting = false
-			} else if line == "MAC2JB_KEYBOARD_RELEASED" {
-				p.released = true
-			}
-		case <-ctx.Done():
-			err = errors.Join(err, ctx.Err())
-			terminateHelper(p.cmd, true)
-			waiting = false
-		}
-	}
-	// Unblock the bounded output reader even when cancellation won the select.
-	for line := range p.lines {
-		if line == "MAC2JB_KEYBOARD_RELEASED" {
-			p.released = true
-		}
+	for range p.lines {
 	}
 	<-p.done
 	if p.err != nil {

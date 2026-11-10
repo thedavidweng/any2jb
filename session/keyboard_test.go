@@ -13,6 +13,9 @@ type keyboardFixture struct {
 	mu      sync.Mutex
 	reports [][8]byte
 	closed  bool
+	run     context.Context
+	// cancelledFirst records a run cancelled before the neutral release.
+	cancelledFirst bool
 }
 
 func (*keyboardFixture) Send(context.Context, session.Run, session.InputAction, session.PreparedHost, session.Report) error {
@@ -20,7 +23,10 @@ func (*keyboardFixture) Send(context.Context, session.Run, session.InputAction, 
 }
 func (*keyboardFixture) Release(context.Context, session.Run) error { return nil }
 func (*keyboardFixture) SelectedKeyboardController() string         { return "usb-drd0" }
-func (k *keyboardFixture) OpenKeyboardSession(context.Context, session.Run, session.Report) (session.Keyboard, error) {
+func (k *keyboardFixture) OpenKeyboardSession(ctx context.Context, _ session.Run, _ session.Report) (session.Keyboard, error) {
+	k.mu.Lock()
+	k.run = ctx
+	k.mu.Unlock()
 	return keyboardLease{k}, nil
 }
 
@@ -36,6 +42,7 @@ func (k keyboardLease) Close(context.Context) error {
 	k.k.mu.Lock()
 	defer k.k.mu.Unlock()
 	if !k.k.closed {
+		k.k.cancelledFirst = k.k.run.Err() != nil
 		k.k.reports = append(k.k.reports, [8]byte{})
 		k.k.closed = true
 	}
@@ -96,5 +103,8 @@ func TestLiveKeyboardIsControllerOwnedAndPartialCloseRequiresInspection(t *testi
 	defer input.mu.Unlock()
 	if !input.closed || len(input.reports) != 2 || input.reports[1] != [8]byte{} {
 		t.Fatal("controller reported inspection state before neutral close")
+	}
+	if input.cancelledFirst {
+		t.Fatal("run was cancelled before the neutral release")
 	}
 }

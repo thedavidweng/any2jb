@@ -99,9 +99,14 @@ invalid reports or queue overflow stop the mode rather than dropping releases.
 Escape stops capture; Tab leaves it using normal native focus navigation.
 
 Focus loss, window blur/close, errors and mode closure release neutral and wait
-for process teardown. Normal close sends a neutral report, closes stdin and
-requires `MAC2JB_KEYBOARD_RELEASED` plus exit. An unacknowledged Send cannot block
-Stop indefinitely. SIGTERM gets a two-second cleanup grace before group kill.
+for process teardown. Closing or stopping the mode ends the controller's writer
+without cancelling the run. Close then sends the neutral report and requires its
+`MAC2JB_KEYBOARD_SENT` acknowledgement, the only release evidence. An
+acknowledgement left unread by a cancelled Send is consumed first and never
+counts. Close then sends EOF and waits for exit. After READY, the open context
+no longer signals the helper. Only when this two-second bound expires does the
+helper get SIGTERM, then a group kill one second later. The controller cancels
+the run only if its writer has not finished five seconds after the close request.
 EOF releases input when the owning app dies. A failed release instructs the
 user to reconnect the cable if a key repeats.
 
@@ -117,7 +122,8 @@ including before displaying manual instructions that a user could partly type.
 - `transport/typing_test.go`: exact command order, observed LOAD prompt,
   inherited-indent reports, actual line progress, deduplicated starts and Stop.
 - `transport/keyboard_test.go`: raw report acknowledgements, focus/close neutral
-  release, stalled Send interruption and controller exclusivity.
+  release, stalled Send interruption, controller exclusivity, no signal before
+  the acknowledged neutral report, and late acknowledgements never counted as release.
 - `transport/owner_test.go`: abrupt fake-owner death produces helper EOF cleanup.
 - `session/keyboard_test.go`, `session/usb_test.go`: authoritative lifecycle and
   selected-controller-only promotion.

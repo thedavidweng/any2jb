@@ -31,8 +31,8 @@ func (c *SessionController) StartKeyboard() (Snapshot, error) {
 	if !ok || !caps.Keyboard || caps.Manual || caps.Gamepad || caps.ExternalPico || c.s.Profile.CivSwitch {
 		return c.configurationError(KeyboardUnavailable, "Live keyboard forwarding is unavailable: select built-in keyboard HID with a supervised keyboard adapter.")
 	}
-	queue := make(chan [8]byte, 64)
-	c.keyboard = queue
+	queue, stop := make(chan [8]byte, 64), make(chan struct{})
+	c.keyboard, c.keyboardStop = queue, stop
 	c.s.KeyboardOpen = false
 	return c.begin(Inputting, true, func(ctx context.Context, run Run) (err error) {
 		var keyboard Keyboard
@@ -43,7 +43,7 @@ func (c *SessionController) StartKeyboard() (Snapshot, error) {
 				cancel()
 			}
 			c.mu.Lock()
-			c.keyboard = nil
+			c.keyboard, c.keyboardStop = nil, nil
 			c.s.KeyboardOpen = false
 			c.mu.Unlock()
 		}()
@@ -63,6 +63,8 @@ func (c *SessionController) StartKeyboard() (Snapshot, error) {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
+			case <-stop:
+				return nil
 			case report := <-queue:
 				if err := keyboard.Send(ctx, report); err != nil {
 					return err
@@ -95,12 +97,19 @@ func (c *SessionController) ForwardKeyboardReport(report [8]byte) (Snapshot, err
 	}
 }
 
+// keyboardCloseBound exceeds the transport's own neutral-release and exit
+// bound, so cancellation only interrupts a writer that cannot finish.
+const keyboardCloseBound = 5 * time.Second
+
+// Called with mu held. The writer stops after its current report and closes
+// the lease orderly: acknowledged neutral report, EOF, then exit.
 func (c *SessionController) closeKeyboard() {
 	c.requested = Ready
 	if c.s.SideEffects {
 		c.requested = Indeterminate
 	}
-	c.cancel()
+	close(c.keyboardStop)
+	time.AfterFunc(keyboardCloseBound, c.cancel)
 }
 
 func (c *SessionController) CloseKeyboard() (Snapshot, error) {
