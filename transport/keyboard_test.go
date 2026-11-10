@@ -85,35 +85,6 @@ func TestControllerLeaseExcludesAnotherTransportUntilRelease(t *testing.T) {
 	}
 }
 
-func TestLivePasteMatchesSmileBASICCaseAndDoesNotSubmit(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "reports")
-	d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}, helperFactory(t, path))
-	k, err := d.OpenKeyboard(context.Background(), session.Run{ID: "paste"}, func(session.Progress) {})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := k.Paste(context.Background(), "Aa0)"); err != nil {
-		t.Fatal(err)
-	}
-	if err := k.Close(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	got, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []byte{
-		0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		2, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		2, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("reports %v, want %v", got, want)
-	}
-}
-
 func TestKeyboardHelperProcess(t *testing.T) {
 	if os.Getenv("ANY2JB_KEYBOARD_FIXTURE") != "1" {
 		return

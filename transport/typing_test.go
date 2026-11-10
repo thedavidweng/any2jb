@@ -116,7 +116,7 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 }
 
 func TestBootstrapUsesAcknowledgedKeyboardReportsAndInheritedIndent(t *testing.T) {
-	const text = "  A\n B\nC\n"
+	const text = "  Aa\n B\nC\n"
 	sum := sha256.Sum256([]byte(text))
 	path := filepath.Join(t.TempDir(), "reports")
 	options := transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming(), Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
@@ -140,14 +140,19 @@ func TestBootstrapUsesAcknowledgedKeyboardReportsAndInheritedIndent(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	var keys []byte
+	var keys, mods []byte
 	for i := 0; i < len(data); i += 8 {
 		if data[i+2] != 0 {
 			keys = append(keys, data[i+2])
+			mods = append(mods, data[i])
 		}
 	}
-	if want := []byte{44, 44, 4, 40, 42, 5, 40, 42, 6, 40}; !reflect.DeepEqual(keys, want) {
+	if want := []byte{44, 44, 4, 4, 40, 42, 5, 40, 42, 6, 40}; !reflect.DeepEqual(keys, want) {
 		t.Fatalf("strokes %v, want %v", keys, want)
+	}
+	// SmileBASIC inverts letter case: lowercase letters carry the shift modifier.
+	if want := []byte{0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0}; !reflect.DeepEqual(mods, want) {
+		t.Fatalf("modifiers %v, want %v", mods, want)
 	}
 	if !reflect.DeepEqual(lines, []int{0, 1, 2, 3}) {
 		t.Fatalf("acknowledged line progress %v", lines)
