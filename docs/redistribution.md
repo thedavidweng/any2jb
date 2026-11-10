@@ -116,7 +116,14 @@ No combined-work compatibility conclusion is made here.
 - **CivSwitch, SaveKit, native HBLauncher and NSP-Box integration:** supplied
   MIT grants do not clear every dependent engine, save, font, ROM or extracted
   content. Review their `NOTICE`, `THIRD_PARTY.md` and subtree notices and add
-  exact artifacts to the manifest before packaging.
+  exact artifacts to the manifest before packaging. The CivSwitch dependent
+  actions add three recorded source identities, none bundled:
+  `civswitch-backup-payload` (original mac2jb MIT source, may-ship),
+  `civswitch-installer` (blocked: its derived save template, compressor and
+  vendored JavaScript dependencies are unreviewed) and
+  `civswitch-control-center` (blocked: a separately authored MIT release whose
+  complete inventory and notices are unreviewed). No Python interpreter,
+  installer, save template or Control Center payload is packaged.
 - **GPUBrewLauncher, legacy HBLauncher and MintBrew:** no blanket license
   found for their complete vendored trees. Credits or a licensed HID subfolder
   are insufficient. Keep blocked pending per-component review.

@@ -107,8 +107,9 @@ func (h fakeHost) Cleanup(context.Context, Run) error {
 
 type fakeInput struct{ f *FakeEnvironment }
 
-func (i fakeInput) Send(ctx context.Context, _ Run, action InputAction, _ PreparedHost, _ Report) error {
+func (i fakeInput) Send(ctx context.Context, _ Run, action InputAction, _ PreparedHost, report Report) error {
 	i.f.record("input." + string(action))
+	report(Progress{SideEffect: true})
 	if err := gate(ctx, i.f.InputGate); err != nil {
 		return err
 	}

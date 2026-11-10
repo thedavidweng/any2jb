@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/thedavidweng/any2jb/civswitch"
 	"github.com/thedavidweng/any2jb/diagnostics"
@@ -21,31 +22,44 @@ import (
 // Call off the UI thread: Stage performs file integrity checks and disk I/O.
 // Packaged startup never supplies DeveloperSourceRoot or DeveloperProfileID.
 func productionEnvironment(options engine.Options) session.Environment {
-	root, err := engine.Stage(options)
+	return productionEnvironmentWithInput(options, transport.DarwinOptions{Timing: transport.DefaultTiming()})
+}
+
+// Developer callers may explicitly supply a successful local helper build.
+// Packaged startup leaves Helpers empty; this never changes distribution policy.
+func productionEnvironmentWithInput(options engine.Options, inputOptions transport.DarwinOptions) session.Environment {
+	root, stageErr := engine.Stage(options)
+	bootstrap := func(run session.Run) (string, error) {
+		if stageErr != nil {
+			return "", stageErr
+		}
+		profile, err := options.Manifest.Profile(run.Profile.ID)
+		if err != nil {
+			return "", err
+		}
+		if profile.Revision != run.Profile.Revision || profile.BootstrapSHA256 != run.Profile.BootstrapSHA256 ||
+			!slices.Contains(profile.SessionProfile().Editions, run.Edition) {
+			return "", errors.New("bootstrap profile or edition mismatch")
+		}
+		if err := options.Manifest.VerifyProfile(root, profile.ID); err != nil {
+			return "", err
+		}
+		source, err := os.ReadFile(filepath.Join(root, profile.Bootstrap))
+		return string(source), err
+	}
+	inputOptions.Runtime, inputOptions.Bootstrap = options, bootstrap
+	keyboard := transport.NewDarwin(inputOptions)
+	platform := productionPlatform{root: root, options: options, stageError: stageErr, keyboard: keyboard}
+	inputs := transport.NewDispatcher(transport.NewManual(bootstrap), keyboard, platform.Inspect)
 	host := engine.NewHostRunner(options)
-	tools := productionTools(root, err, options, host)
-	// The manual adapter never sends USB input. A verified Darwin adapter can be
-	// composed here separately when its readiness gates and sender are available.
+	tools := productionTools(root, stageErr, options, host)
 	return session.Environment{
-		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
+		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest, Support: options.Support}),
 		Host:      host,
 		Retained:  tools,
-		Input: transport.NewManual(func(run session.Run) (string, error) {
-			if err != nil {
-				return "", err
-			}
-			if verifyErr := options.Manifest.VerifyProfile(root, run.Profile.ID); verifyErr != nil {
-				return "", verifyErr
-			}
-			profile, profileErr := options.Manifest.Profile(run.Profile.ID)
-			if profileErr != nil {
-				return "", profileErr
-			}
-			source, readErr := os.ReadFile(filepath.Join(root, profile.Bootstrap))
-			return string(source), readErr
-		}),
-		Platform: productionPlatform{root: root, options: options, stageError: err},
-		Tools:    tools,
+		Input:     inputs,
+		Platform:  platform,
+		Tools:     tools,
 	}
 }
 
@@ -73,6 +87,7 @@ func productionDriverGate(options engine.Options) *driver.Gate {
 }
 
 type productionPlatform struct {
+	keyboard   *transport.Darwin
 	root       string
 	options    engine.Options
 	stageError error
@@ -117,15 +132,24 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 	if p.stageError == nil && engine.VerifyUSB(p.root, p.options.Manifest) == nil {
 		usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
 	}
+	keyboardReady := p.stageError == nil && p.keyboard != nil && p.keyboard.Check(ctx, run) == nil
+	if keyboardReady {
+		usb.State, usb.Message, usb.NextAction = session.CheckVerified, locales.UsbDeveloperHelpers(), ""
+	}
 	input := session.Check{ID: "input-adapter", State: session.RequiresAttention,
 		Message: locales.AutomatedInputUnavailable(), NextAction: locales.SelectGuidedManual()}
 	if run.Transport.Capabilities.Manual {
 		input.State, input.Message, input.NextAction = session.CheckVerified, locales.ManualInputAvailable(), ""
+	} else if keyboardReady && run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Gamepad && !run.Transport.Capabilities.ExternalPico {
+		input.State, input.Message, input.NextAction = session.CheckVerified, locales.UsbInputAvailable(), ""
 	}
 	checks = append(checks, usb, input)
 	observed, err := readiness.New().Inspect(ctx, run)
 	if err != nil {
 		return nil, err
+	}
+	if keyboardReady {
+		observed = session.ObserveKeyboardEnumeration(observed, run.Transport.Controller, p.keyboard.EnumeratedController())
 	}
 	return append(checks, observed...), nil
 }

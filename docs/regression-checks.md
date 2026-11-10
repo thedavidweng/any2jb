@@ -44,6 +44,8 @@ plus developer tool staging and the tool host's own held proof
 [retained tools](retained-tools.md); these are not console or hardware evidence.
 
 On Darwin arm64 the command force-rebuilds libusbd in a disposable copy,
+using `internal/nativehelper.Build`, also used by explicit local developer
+USB staging (see [keyboard input](usb-keyboard.md)).
 compiles `sender`, `commands`, `keyboard` with the GUI define and
 `civswitch-hid`, and runs their offline input checks. Keyboard uses
 `--validate`, its equivalent of dry-run, including rejection of a truncated

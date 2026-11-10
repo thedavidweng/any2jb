@@ -25,16 +25,22 @@ func (e *IntegrityError) Error() string {
 
 func (e *IntegrityError) Unwrap() error { return e.Err }
 
+// Read returns the recorded artifact's verified bytes. Never read a component's
+// file separately: an unverified second read may differ from the checked one.
+func (m *Manifest) Read(root, componentID string) ([]byte, error) {
+	for _, c := range m.Components {
+		if c.ID == componentID {
+			return verifyFile(root, componentID, c.Path, c.SHA256)
+		}
+	}
+	return nil, &IntegrityError{Component: componentID, Err: errors.New("component is not recorded")}
+}
+
 // Verify checks one recorded artifact, including helpers. Unknown IDs and
 // artifacts without a pinned digest fail closed.
 func (m *Manifest) Verify(root, componentID string) error {
-	for _, c := range m.Components {
-		if c.ID == componentID {
-			_, err := verifyFile(root, componentID, c.Path, c.SHA256)
-			return err
-		}
-	}
-	return &IntegrityError{Component: componentID, Err: errors.New("component is not recorded")}
+	_, err := m.Read(root, componentID)
+	return err
 }
 
 func verifyFile(root, component, name, digest string) ([]byte, error) {

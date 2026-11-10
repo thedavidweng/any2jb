@@ -16,6 +16,8 @@ import (
 )
 
 type app struct {
+	keyboard           keyboardPanel
+	usbConfirmation    usbPrompt
 	civSwitchPanel     civSwitchPanel
 	toolsPanel         toolsPanel
 	tools              toolAdapter
@@ -35,6 +37,12 @@ type app struct {
 }
 
 func (a *app) view(c *ui.Context) {
+	if a.controller != nil {
+		a.keyboard.observe(a.controller.Snapshot())
+	}
+	if a.keyboard.forwarding && (!a.keyboard.open || a.driverPanel.open || a.civSwitchPanel.open) {
+		a.stopKeyboard()
+	}
 	ui.Scroll(c).Fill().Children(func() {
 		ui.Column(c).FillWidth().Gap(16).Padding(24).Children(func() {
 			ui.Text(c, locales.AppName()).FontSize(28).Bold()
@@ -117,10 +125,16 @@ func main() {
 		mygo.App.OnLocaleChanged(func(string) {
 			win.SetTitle(locales.AppName())
 		})
+		win.OnBlur(a.stopKeyboard)
 		closed := make(chan struct{})
-		win.OnClosed(func() { close(closed) })
+		win.OnClosed(func() { a.stopKeyboard(); close(closed) })
+		inputOptions := transport.DarwinOptions{Timing: transport.DefaultTiming(), Confirm: a.usbConfirmation.Wait}
+		if a.preferences.USB != nil {
+			inputOptions.Controller = a.preferences.USB.Controller
+			inputOptions.Timing = a.preferences.USB.Timing
+		}
 		go func() {
-			env := productionEnvironment(options)
+			env := productionEnvironmentWithInput(options, inputOptions)
 			store := diagnostics.Store{Support: support}
 			interrupted, recoveryErr := store.Interrupted()
 			win.Update(func() {

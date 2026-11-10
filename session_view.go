@@ -17,11 +17,19 @@ func (a *app) command(s session.Snapshot, err error) {
 			a.commandInstruction = locales.UnsupportedEdition()
 		case session.BootstrapMismatch, session.BootstrapUnconfirmed:
 			a.commandInstruction = locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName)
+		case session.KeyboardUnavailable:
+			a.commandInstruction = locales.UsbKeyboardUnavailable()
 		}
 	}
 }
 
 func (a *app) sessionView(c *ui.Context) {
+	if a.keyboard.open {
+		a.keyboardView(c)
+		if a.keyboard.forwarding || a.keyboard.completion != nil {
+			return
+		}
+	}
 	s := a.controller.Snapshot()
 	pending := a.manifest != nil && (s.Profile.ID != a.preferences.Profile ||
 		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
@@ -33,6 +41,7 @@ func (a *app) sessionView(c *ui.Context) {
 	}
 	ui.Text(c, stageTitle(s.Stage)).FontSize(20).Bold()
 	a.manualView(c, s)
+	a.usbConfirmation.view(c)
 	if s.CleanupConfirmed {
 		ui.Text(c, locales.ResourcesReleased())
 	}
@@ -53,13 +62,21 @@ func (a *app) sessionView(c *ui.Context) {
 		if check.GatesTransport == "usb-hid" {
 			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
 		}
-		ui.Text(c.Key(check.ID+"-message"), check.Message)
+		message := check.Message
+		if check.State == session.CheckVerified && s.Transport.Controller != "" &&
+			(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
+			message = locales.UsbEnumerationObserved(s.Transport.Controller)
+		}
+		ui.Text(c.Key(check.ID+"-message"), message)
 		if check.NextAction != "" {
 			ui.Text(c.Key(check.ID+"-action"), check.NextAction)
 		}
 	}
 	if s.Total > 0 {
 		ui.Text(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
+		if s.HasEstimate && s.Busy {
+			ui.Text(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000))).TextColor(c.Theme().TextMuted)
+		}
 	}
 	if a.manifest != nil {
 		for _, check := range s.Checks {
@@ -70,6 +87,9 @@ func (a *app) sessionView(c *ui.Context) {
 				break
 			}
 		}
+	}
+	if ui.Button(c.Key("usb-keyboard"), locales.UsbKeyboardTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+		a.keyboard.open = true
 	}
 	if a.commandRejected {
 		message := a.commandInstruction

@@ -11,5 +11,8 @@
   `/sd` exports, with one owner at a time and no console write path.
 - Record OunceCake and the SD browser as pinned tool sources that only a
   developer may stage locally; packaged entries state their recorded reason.
+- Gate the CivSwitch boot trigger, JavaScript send, Payload Mode staging and
+  Control Center behind a rechecked loader, explicit per-action confirmation and
+  a disk-verified save backup, with read-only exports retained outside sessions.
 - Application updates remain disabled until a production public key and
   reviewed release channel are configured.

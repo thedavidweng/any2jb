@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"strings"
 	"time"
@@ -18,44 +17,18 @@ const LoaderPort = 9026
 // ProbeLoader performs the upstream Remote JS Loader challenge, not just a TCP
 // connect. The endpoint parameter permits loopback fixtures without consoles.
 func ProbeLoader(ctx context.Context, endpoint string) error {
-	conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", endpoint)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	stop := context.AfterFunc(ctx, func() { conn.Close() })
-	defer stop()
-	deadline := time.Now().Add(10 * time.Second)
-	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
-		deadline = d
-	}
-	if err := conn.SetDeadline(deadline); err != nil {
-		return err
-	}
 	marker := "any2jb-civswitch-" + rand.Text()
-	if _, err := io.WriteString(conn, fmt.Sprintf("log(%q);", marker)); err != nil {
-		return err
-	}
-	if err := conn.(*net.TCPConn).CloseWrite(); err != nil {
-		return err
-	}
-	response, err := io.ReadAll(io.LimitReader(conn, 65537))
+	found := false
+	executed, err := loaderCall{deadline: 10 * time.Second, limit: 64 << 10, line: func(line string) error {
+		if strings.TrimSpace(line) == marker {
+			found = true
+		}
+		return nil
+	}}.send(ctx, endpoint, fmt.Sprintf("log(%q);", marker))
 	if err != nil {
 		return err
 	}
-	if len(response) > 65536 {
-		return errors.New("CivSwitch loader response exceeds limit")
-	}
-	foundMarker, executed := false, false
-	for _, line := range strings.Split(string(response), "\n") {
-		switch strings.TrimSpace(line) {
-		case marker:
-			foundMarker = true
-		case "Executed successfully":
-			executed = true
-		}
-	}
-	if !foundMarker || !executed {
+	if !found || !executed {
 		return errors.New("port 9026 did not confirm the CivSwitch loader challenge")
 	}
 	return nil
