@@ -134,6 +134,10 @@ type ToolRequest struct {
 	Modules     []string
 	SDRomFolder string
 	AppFolder   string
+	// ModsFolder is the modloader's Mac mod tree and CustomHomebrewFolder a
+	// built custom homebrew app; both are layout-checked before any transfer.
+	ModsFolder           string
+	CustomHomebrewFolder string
 }
 
 // validateHomebrew checks the optional homebrew launch parameters. They cross
@@ -147,6 +151,22 @@ func (r ToolRequest) validateHomebrew() error {
 	}
 	if r.AppFolder != "" && r.Tool != "native-hblauncher" {
 		return errors.New("a native app folder belongs to the native launcher")
+	}
+	if (r.ModsFolder != "") != (r.Tool == "modloader") {
+		return errors.New("the modloader needs exactly one mod folder")
+	}
+	if (r.CustomHomebrewFolder != "") != (r.Tool == "custom-homebrew") {
+		return errors.New("custom homebrew needs exactly one built app folder")
+	}
+	if r.ModsFolder != "" {
+		if err := validateModsFolder(r.ModsFolder); err != nil {
+			return err
+		}
+	}
+	if r.CustomHomebrewFolder != "" {
+		if err := validateCustomHomebrew(r.CustomHomebrewFolder); err != nil {
+			return err
+		}
 	}
 	if len(r.Modules) > 15 {
 		return errors.New("choose up to 15 distinct compatible modules")
@@ -168,7 +188,8 @@ func (r ToolRequest) validateHomebrew() error {
 }
 
 func (r ToolRequest) needsParameterized() bool {
-	return r.ConsoleIPv4 != "" || r.SaveKit != nil || len(r.Modules) > 0 || r.SDRomFolder != "" || r.AppFolder != ""
+	return r.ConsoleIPv4 != "" || r.SaveKit != nil || len(r.Modules) > 0 || r.SDRomFolder != "" || r.AppFolder != "" ||
+		r.ModsFolder != "" || r.CustomHomebrewFolder != ""
 }
 
 // validModuleID mirrors the staged IZlauncher catalog's id shape.

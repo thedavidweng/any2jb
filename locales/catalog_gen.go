@@ -3977,3 +3977,103 @@ func DynDistUSBDriver() string { return In(i18n.Locale()).DynDistUSBDriver() }
 func (msgs Messages) DynDistUSBDriver() string {
 	return Catalog.Format(msgs.locale, "dynDistUSBDriver", nil)
 }
+
+// HbCustomTitle says "Custom homebrew (experimental)"
+// in the language the app shows.
+func HbCustomTitle() string { return In(i18n.Locale()).HbCustomTitle() }
+
+// HbCustomTitle says "Custom homebrew (experimental)"
+// in the language of msgs.
+func (msgs Messages) HbCustomTitle() string {
+	return Catalog.Format(msgs.locale, "hbCustomTitle", nil)
+}
+
+// HbCustomNote says "Runs one built GPU app folder (with app.json) inside MintBrew from a fresh copy; your folder is never changed. The fo…"
+// in the language the app shows.
+func HbCustomNote() string { return In(i18n.Locale()).HbCustomNote() }
+
+// HbCustomNote says "Runs one built GPU app folder (with app.json) inside MintBrew from a fresh copy; your folder is never changed. The fo…"
+// in the language of msgs.
+func (msgs Messages) HbCustomNote() string {
+	return Catalog.Format(msgs.locale, "hbCustomNote", nil)
+}
+
+// HbCustomFolder says "Built homebrew folder on this Mac"
+// in the language the app shows.
+func HbCustomFolder() string { return In(i18n.Locale()).HbCustomFolder() }
+
+// HbCustomFolder says "Built homebrew folder on this Mac"
+// in the language of msgs.
+func (msgs Messages) HbCustomFolder() string {
+	return Catalog.Format(msgs.locale, "hbCustomFolder", nil)
+}
+
+// HbCustom says "Launch custom homebrew (experimental)"
+// in the language the app shows.
+func HbCustom() string { return In(i18n.Locale()).HbCustom() }
+
+// HbCustom says "Launch custom homebrew (experimental)"
+// in the language of msgs.
+func (msgs Messages) HbCustom() string {
+	return Catalog.Format(msgs.locale, "hbCustom", nil)
+}
+
+// ModTitle says "Modloader"
+// in the language the app shows.
+func ModTitle() string { return In(i18n.Locale()).ModTitle() }
+
+// ModTitle says "Modloader"
+// in the language of msgs.
+func (msgs Messages) ModTitle() string {
+	return Catalog.Format(msgs.locale, "modTitle", nil)
+}
+
+// ModNote says "Installing mods is the final action of this session. The mod overlay stays active until the console restarts, and no …"
+// in the language the app shows.
+func ModNote() string { return In(i18n.Locale()).ModNote() }
+
+// ModNote says "Installing mods is the final action of this session. The mod overlay stays active until the console restarts, and no …"
+// in the language of msgs.
+func (msgs Messages) ModNote() string {
+	return Catalog.Format(msgs.locale, "modNote", nil)
+}
+
+// ModFolder says "Mod folder on this Mac (contents/ and exefs_patches/)"
+// in the language the app shows.
+func ModFolder() string { return In(i18n.Locale()).ModFolder() }
+
+// ModFolder says "Mod folder on this Mac (contents/ and exefs_patches/)"
+// in the language of msgs.
+func (msgs Messages) ModFolder() string {
+	return Catalog.Format(msgs.locale, "modFolder", nil)
+}
+
+// ModInstall says "Install mods (final action)"
+// in the language the app shows.
+func ModInstall() string { return In(i18n.Locale()).ModInstall() }
+
+// ModInstall says "Install mods (final action)"
+// in the language of msgs.
+func (msgs Messages) ModInstall() string {
+	return Catalog.Format(msgs.locale, "modInstall", nil)
+}
+
+// ModInstalled says "Modloader installed. Finish this session, close SmileBASIC without restarting the console, then launch the game. Ever…"
+// in the language the app shows.
+func ModInstalled() string { return In(i18n.Locale()).ModInstalled() }
+
+// ModInstalled says "Modloader installed. Finish this session, close SmileBASIC without restarting the console, then launch the game. Ever…"
+// in the language of msgs.
+func (msgs Messages) ModInstalled() string {
+	return Catalog.Format(msgs.locale, "modInstalled", nil)
+}
+
+// DynDistModloader says "Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts,…"
+// in the language the app shows.
+func DynDistModloader() string { return In(i18n.Locale()).DynDistModloader() }
+
+// DynDistModloader says "Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts,…"
+// in the language of msgs.
+func (msgs Messages) DynDistModloader() string {
+	return Catalog.Format(msgs.locale, "dynDistModloader", nil)
+}

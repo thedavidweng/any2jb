@@ -64,6 +64,7 @@ var homebrewComponents = map[string][]string{
 	"mintbrew":          {"mintbrew", "homebrew-runtime"},
 	"native-hblauncher": {"mintbrew", "mintbrew-native"},
 	"izlauncher":        {"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"},
+	"custom-homebrew":   {"mintbrew", "homebrew-runtime"},
 }
 
 func isHomebrew(tool string) bool {
@@ -113,6 +114,10 @@ type State struct {
 	SaveKit        *SaveKitState
 	Lost           bool
 	CleanupBlocked bool
+	// ModloaderInstalled records a verified modloader handoff. Its overlay
+	// stays resident until the console restarts, so no further tool may run
+	// in this boot.
+	ModloaderInstalled bool
 }
 
 // CommandFactory is the explicit trusted-process test seam, mirroring the
@@ -135,7 +140,7 @@ func New(options Options) *Manager {
 	m.command = func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
 		args := []string{options.Host, options.ToolRoot, request.Tool, workspace,
 			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool))}
-		if isHomebrew(request.Tool) {
+		if isHomebrew(request.Tool) || request.Tool == "modloader" {
 			args = append(args, m.homebrewConfig(run, request))
 		}
 		return exec.Command(options.Node, args...)
@@ -166,6 +171,12 @@ func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) s
 	}
 	if request.AppFolder != "" {
 		config["appFolder"] = request.AppFolder
+	}
+	if request.ModsFolder != "" {
+		config["modsFolder"] = request.ModsFolder
+	}
+	if request.CustomHomebrewFolder != "" {
+		config["customHomebrewFolder"] = request.CustomHomebrewFolder
 	}
 	data, err := json.Marshal(config)
 	if err != nil {
@@ -220,7 +231,7 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 	component, ok := map[string]string{
 		"rpc-status": "", "system-code-dump": "",
 		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",
-		"savekit-read": "savekit", "savekit": "savekit",
+		"savekit-read": "savekit", "savekit": "savekit", "modloader": "modloader",
 	}[tool]
 	if !ok {
 		required, homebrew := homebrewComponents[tool]

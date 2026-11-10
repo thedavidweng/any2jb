@@ -389,5 +389,15 @@
   "confirmBootstrapIdentityAction": "我确认这份已保存的引导程序准确无误",
   "allowBootstrapOverwrite": "如果该存档已存在，我授权替换它",
   "bootstrapPersistenceError": "无法保存引导程序身份信息。请检查本地文件权限；不要假定重启应用后它仍可用。",
-  "developerStaged": "开发者暂存，不可再分发"
+  "developerStaged": "开发者暂存，不可再分发",
+  "hbCustomTitle": "自定义 homebrew（实验性）",
+  "hbCustomNote": "在 MintBrew 中从一份新副本运行一个已构建的 GPU 应用文件夹（含 app.json），不会改动你的文件夹。任何内容发送到游戏机之前都会先检查该文件夹；无效的文件夹会被拒绝，保留 RPC 会话仍可继续使用。此版本不支持其他自定义格式。",
+  "hbCustomFolder": "此 Mac 上已构建的 homebrew 文件夹",
+  "hbCustom": "启动自定义 homebrew（实验性）",
+  "modTitle": "Modloader",
+  "modNote": "安装 mod 是本次会话的最后一项操作。mod 覆盖层会一直生效，直到游戏机重启，同一次开机中无法再启动其他工具。仅 Kurumuz 和 Cellenseres 主机配置支持。不包含任何游戏文件或 mod；请选择你自己的文件夹。",
+  "modFolder": "此 Mac 上的 mod 文件夹（contents/ 和 exefs_patches/）",
+  "modInstall": "安装 mod（最后一项操作）",
+  "modInstalled": "Modloader 已安装。请结束会话，在不重启游戏机的情况下关闭 SmileBASIC，然后启动游戏。在游戏机重启之前，所有工具都保持锁定。",
+  "dynDistModloader": "不可用：modloader 的 GPL v2 义务（确切授权、其预构建原生组件的对应源码、修改与声明）对 any2jb 尚未解决。开发者可在本地暂存这些固定版本的源码；任何软件包均不包含它们，也不包含任何游戏或 mod 文件。"
 }

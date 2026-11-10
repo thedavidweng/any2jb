@@ -58,9 +58,9 @@ test('the SD export exposes only read operations under /sd', () => {
   }
 });
 
-test('the catalog of tools has no write path', () => {
+test('the tool catalog adds no write path beyond the modloader', () => {
   assert.deepEqual(TOOLS, ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp', 'sd-browser',
-    'mintbrew', 'native-hblauncher', 'izlauncher']);
+    'mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew', 'modloader']);
 });
 
 // ---------- homebrew loopback fixtures ----------
@@ -444,4 +444,118 @@ test('native hblauncher rejects an untrusted profile before loading the host', {
   assert.ok(failed, JSON.stringify(events));
   assert.match(failed.message, /supported held RPC host profile/);
   assert.equal(failed.cleanupBlocked, false);
+});
+
+// ---------- modloader loopback fixtures ----------
+// A fake staged ns2jb-modloader: its collector accepts contents/<id> folders
+// and its installer only writes the handoff proofs a real install reports.
+const fakeInstaller = `'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const run = process.argv[process.argv.indexOf('--run-dir') + 1];
+if (process.env.FAKE_MOD_FAIL) { console.log('INSTALL STOPPED: fixture refused.'); process.exit(1); }
+const state = path.join(__dirname, 'state', path.basename(run));
+fs.mkdirSync(state, {recursive: true});
+fs.writeFileSync(path.join(state, 'resident-install.json'), JSON.stringify({verified: true,
+  readyForGameHandoff: true, handoff: {stockRoProtocolVerified: true}}));
+fs.writeFileSync(path.join(run, 'ns2jb-modloader-install.json'), JSON.stringify({status: 'ready'}));
+console.log('READY');
+`;
+const fakeCollector = `'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+exports.collectMods = root => {
+  const contents = path.join(root, 'contents');
+  const games = fs.existsSync(contents) ? fs.readdirSync(contents).map(titleId => ({titleId})) : [];
+  if (!games.length) throw Error('No mods found.');
+  return {games, patches: []};
+};
+`;
+
+async function modloaderWorld(t) {
+  const support = fs.mkdtempSync(path.join(os.tmpdir(), 'any2jb-mod-'));
+  t.after(() => fs.rmSync(support, {recursive: true, force: true}));
+  const bridge = await fakeBridge(t);
+  const workspace = heldWorkspaceAt(support, bridge.port);
+  const stagedRoot = stagedRootFixture(support);
+  const component = path.join(stagedRoot, 'tools/modloader/integrations/ns2jb-modloader');
+  writeScript(path.join(component, 'install.cjs'), fakeInstaller);
+  writeScript(path.join(component, 'LICENSE'), 'GPL v2 fixture\n');
+  writeScript(path.join(component, 'lib/mods.cjs'), fakeCollector);
+  writeScript(path.join(component, 'lib/native/artifacts.cjs'), 'exports.artifacts = () => ({});\n');
+  writeScript(path.join(component, 'native/prebuilt/manifest.json'), '{}\n');
+  const mods = path.join(support, 'mods');
+  writeScript(path.join(mods, 'contents/0100000000010000/romfs/data.bin'), 'mod');
+  const config = {supportDir: support, profileID: 'kurumuz', modsFolder: mods};
+  return {bridge, workspace, stagedRoot, config, mods};
+}
+
+const modloaderStaging = workspace => fs.readdirSync(workspace).filter(name => name.startsWith('.any2jb-modloader-'));
+
+test('the modloader verifies its game handoff as the final action', {timeout: 60000}, async t => {
+  const {workspace, stagedRoot, config} = await modloaderWorld(t);
+  const {events, code, stderr} = await runToolhost(
+    [stagedRoot, 'modloader', workspace, '-', '-', JSON.stringify(config)], {stop: false});
+  assert.equal(code, 0, stderr + '\n' + JSON.stringify(events));
+  const ready = events.find(e => e.type === 'ready');
+  assert.ok(ready, JSON.stringify(events));
+  assert.match(ready.message, /overlay stays until the console restarts/);
+});
+
+test('an invalid mod folder is refused before any transfer', {timeout: 60000}, async t => {
+  const {workspace, stagedRoot, config, mods} = await modloaderWorld(t);
+  fs.symlinkSync('/etc', path.join(mods, 'contents/0100000000010000/romfs/link'));
+  const {events, code} = await runToolhost(
+    [stagedRoot, 'modloader', workspace, '-', '-', JSON.stringify(config)], {stop: false});
+  assert.equal(code, 1);
+  const failed = events.find(e => e.type === 'failed');
+  assert.ok(failed, JSON.stringify(events));
+  assert.equal(failed.cleanupBlocked, false);
+  assert.match(failed.message, /regular files and directories/);
+  assert.deepEqual(modloaderStaging(workspace), []);
+  assert.equal(fs.existsSync(path.join(workspace, 'ns2jb-modloader-install.json')), false);
+});
+
+test('the modloader refuses a profile without modloader capability', {timeout: 60000}, async t => {
+  const {workspace, stagedRoot, config} = await modloaderWorld(t);
+  const {events, code} = await runToolhost(
+    [stagedRoot, 'modloader', workspace, '-', '-', JSON.stringify({...config, profileID: 'astral'})], {stop: false});
+  assert.equal(code, 1);
+  const failed = events.find(e => e.type === 'failed');
+  assert.match(failed.message, /Kurumuz or Cellenseres/);
+  assert.equal(failed.cleanupBlocked, false);
+});
+
+test('an unverified modloader handoff requires a console restart', {timeout: 60000}, async t => {
+  const {workspace, stagedRoot, config} = await modloaderWorld(t);
+  const {events, code} = await runToolhost(
+    [stagedRoot, 'modloader', workspace, '-', '-', JSON.stringify(config)], {stop: false, env: {FAKE_MOD_FAIL: '1'}});
+  assert.equal(code, 1);
+  const failed = events.find(e => e.type === 'failed');
+  assert.equal(failed.cleanupBlocked, true);
+  assert.match(failed.message, /fixture refused.*Restart the console/);
+});
+
+test('custom homebrew runs a built GPU app from a fresh session library', {timeout: 120000}, async t => {
+  const {workspace, stagedRoot, config, support} = await mintbrewWorld(t);
+  const app = path.join(support, 'my-app');
+  writeScript(path.join(app, 'app.json'), JSON.stringify({id: 'hello-gpu', name: 'Hello'}));
+  const {events, code, stderr} = await runToolhost([stagedRoot, 'custom-homebrew', workspace, '-', '-',
+    JSON.stringify({...config, customHomebrewFolder: app})]);
+  assert.equal(code, 0, stderr + '\n' + JSON.stringify(events));
+  assert.ok(events.some(e => e.type === 'stopped' && e.cleanupVerified), JSON.stringify(events));
+  assert.deepEqual(fs.readdirSync(app), ['app.json'], 'the original folder stays unchanged');
+});
+
+test('custom homebrew refuses an unsupported format before the console is touched', {timeout: 60000}, async t => {
+  const {bridge, workspace, stagedRoot, config, support} = await mintbrewWorld(t);
+  const module = path.join(support, 'iz-module');
+  writeScript(path.join(module, 'module.json'), '{}');
+  writeScript(path.join(module, 'app.json'), JSON.stringify({id: 'x', name: 'X'}));
+  const {events, code} = await runToolhost([stagedRoot, 'custom-homebrew', workspace, '-', '-',
+    JSON.stringify({...config, customHomebrewFolder: module})], {stop: false});
+  assert.equal(code, 1);
+  assert.equal(events.find(e => e.type === 'failed').cleanupBlocked, false);
+  assert.equal(fs.existsSync(markerPath(workspace)), false);
+  assert.deepEqual(bridge.commands, ['status']);
 });
