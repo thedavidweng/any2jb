@@ -42,8 +42,12 @@ var errProtocol = errors.New("invalid SaveKit host protocol")
 // destination is the empty export folder this app chose; the result must land
 // exactly there and pass export verification. For a mutation, destination is
 // the verified backup the host re-verifies before any console change.
-func (c Client) Run(ctx context.Context, runDir, destination string, request Request) (Result, error) {
+func (c Client) Run(ctx context.Context, runDir, destination string, request Request) (result Result, err error) {
 	if err := request.Validate(); err != nil {
+		return Result{}, err
+	}
+	encoded, err := json.Marshal(request)
+	if err != nil {
 		return Result{}, err
 	}
 	args := []string{c.Module, runDir, "-"}
@@ -59,32 +63,30 @@ func (c Client) Run(ctx context.Context, runDir, destination string, request Req
 	if err != nil {
 		return Result{}, err
 	}
+	defer stdin.Close()
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return Result{}, err
 	}
+	defer stdout.Close()
 	if err := cmd.Start(); err != nil {
 		return Result{}, err
 	}
-	encoded, err := json.Marshal(request)
-	if err != nil {
-		return Result{}, err
-	}
+	defer func() {
+		if err != nil {
+			cmd.Process.Kill()
+		}
+		if wait := cmd.Wait(); err == nil && wait != nil {
+			err = fmt.Errorf("the SaveKit host failed: %w", wait)
+		}
+	}()
 	if _, err := stdin.Write(append(encoded, '\n')); err != nil {
 		return Result{}, err
 	}
 	if err := stdin.Close(); err != nil {
 		return Result{}, err
 	}
-	result, err := c.observe(stdout, request, destination)
-	wait := cmd.Wait()
-	if err != nil {
-		return Result{}, err
-	}
-	if wait != nil {
-		return Result{}, fmt.Errorf("the SaveKit host failed: %w", wait)
-	}
-	return result, nil
+	return c.observe(stdout, request, destination)
 }
 
 func (c Client) observe(output io.Reader, request Request, destination string) (Result, error) {
