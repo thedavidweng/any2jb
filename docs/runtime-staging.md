@@ -5,15 +5,18 @@
 Pass the actual MyGo merged resource root as `Options.Assets`, the app support
 path, app version and `manifest.Load()` result. Development tests must inject
 the resource root: `go run` and `go test` do not merge platform overlays.
-The current UI does not yet call this API.
+The production entrypoint calls it off the UI thread with MyGo's
+`PathResources`, `PathUserData` and `App.Version()`, then initializes the
+controller with real adapters. Missing resources become a readiness blocker.
 
 The returned root contains `runtime/node`, `runtime/bridge.cjs`, a provenance
 record `stage.json`, and a read-only `profiles.json` serialized from the same
 canonical manifest loaded by Go.
 This generated copy is not a second editable configuration. Pass that path
-and a profile ID to the bridge. The bridge emits JSON profile metadata or a
-structured error; engine process launch and supervision belong to the host
-runner, not this bridge.
+and a profile ID to the bridge for metadata. `engine.NewHostRunner` alone
+authorizes developer launches and supervises the process group. Its bridge
+launch mode joins upstream connection/native/qualification APIs to a
+workspace-local pipeline and structured JSON events. See [host runner](host-runner.md).
 
 Staging verifies component SHA-256 digests and native arm64 Mach-O headers
 before atomic activation. Node's exact version is pinned by its binary digest

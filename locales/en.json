@@ -4,6 +4,7 @@
   "developerOptions": "Developer Options",
   "profileSettings": "Host and input preferences",
   "hostProfile": "Host profile",
+  "izmyshUnavailable": "IZMYSH cannot launch yet. Its separate native qualification adapter is not implemented.",
   "matchingBootstrapRequired": "Prepare and save the matching bootstrap for {profile} ({edition}) as {saveName}, then confirm the console save before launching.",
   "smilebasicEdition": "SmileBASIC edition",
   "lanOverride": "Preferred LAN IPv4 (optional)",

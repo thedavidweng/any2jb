@@ -42,6 +42,10 @@ input independent of driver/controller facts. See [readiness](readiness.md).
   process/result integrity, not infer these booleans from a log line.
 - `HostRunner.Finish` supplies final cleaned-up verification, including completion
   of deferred cleanup for a held run. Only then can `Finish` reach `finished`.
+- `HostRunner.Wait` watches the owned host after held verification. An unexpected
+  exit invalidates the lease, cancels active tool work, cleans owned resources
+  and requires a console restart. Finish disarms this watcher before requesting
+  a clean exit. Ticket 16's retained-RPC lease builds on this watcher.
 - `PlatformServices` supplies observed readiness, redacted diagnostics and a
   `CredentialStore`. The production credential adapter will use Keychain; neither
   preferences nor snapshots hold account secrets.
@@ -63,6 +67,8 @@ Cleanup failure also requires restart. An indeterminate session cannot be
 inspected or started again through this seam; later recovery UI must establish a
 real console restart before creating a new controller. Relaunching the desktop
 app alone is not evidence of console recovery.
+Held-capable teardown has a 305-second controller budget, allowing the runner's
+300-second deferred-cleanup grace before a forced process-group termination.
 
 ## Bootstrap confirmation
 

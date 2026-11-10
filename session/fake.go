@@ -26,6 +26,7 @@ type FakeEnvironment struct {
 	RunError        error
 	CleanupError    error
 	ToolError       error
+	HostExitGate    <-chan struct{}
 }
 
 func NewFakeEnvironment() *FakeEnvironment {
@@ -76,6 +77,17 @@ func (h fakeHost) Prepare(ctx context.Context, _ Run, report Report) (PreparedHo
 func (h fakeHost) Run(context.Context, Run, PreparedHost, Report) (Outcome, error) {
 	h.f.record("host.run")
 	return h.f.Outcome, h.f.RunError
+}
+func (h fakeHost) Wait(ctx context.Context, _ Run) error {
+	if err := gate(ctx, h.f.HostExitGate); err != nil {
+		return err
+	}
+	// A default fake host remains live until its watcher is cancelled.
+	if h.f.HostExitGate == nil {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+	return errors.New("simulated host exited")
 }
 func (h fakeHost) Finish(context.Context, Run) (Outcome, error) {
 	h.f.record("host.finish")

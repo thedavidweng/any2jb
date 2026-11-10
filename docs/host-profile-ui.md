@@ -12,6 +12,11 @@ have an explanation. Tool controls stay disabled until the retained-session and
 tool adapters are integrated. Capability permission is not permission to write
 saves or launch unvalidated software.
 
+IZMYSH remains selectable for inventory, but cannot launch even from a developer
+stage. Its nine-argument native qualification contract is not the ns2jb
+filesystem verifier. The UI and readiness explain that its separate adapter is
+not implemented; the runner refuses it before spawning any engine.
+
 ## Preferences
 
 `os.UserConfigDir()/any2jb/preferences.json` stores only the selected profile ID,
