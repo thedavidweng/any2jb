@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "appName": "any2jb",
+  "@appName": { "description": "App name and window title." },
+  "appDescription": "Nintendo Switch 2 session manager",
+  "@appDescription": { "description": "Shell introduction." },
+  "noSession": "No console session is running.",
+  "@noSession": { "description": "Idle shell status, not a readiness claim." },
+  "aboutBuild": "About this build",
+  "@aboutBuild": { "description": "Toggle the development build limitations." },
+  "buildLimitations": "Development shell. Console workflows are not available yet.",
+  "@buildLimitations": { "description": "Honest scope of the initial scaffold." }
+}
