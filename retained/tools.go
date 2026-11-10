@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -46,20 +47,10 @@ const attemptMarkerName = ".mac2jb-hblauncher-attempt.json"
 // verifiedCleanup accepts only the homebrew supervisor's stated proof shape: a
 // verified cleanup, the recorded attempt marker, and its SHA-256 digest.
 func verifiedCleanup(e toolEvent) bool {
+	_, err := hex.DecodeString(e.AttemptMarkerSHA256)
 	return e.CleanupVerified && len(e.AttemptMarkers) == 1 &&
-		e.AttemptMarkers[0] == attemptMarkerName && hexSHA256(e.AttemptMarkerSHA256)
-}
-
-func hexSHA256(value string) bool {
-	if len(value) != 64 {
-		return false
-	}
-	for _, c := range value {
-		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
-			return false
-		}
-	}
-	return true
+		e.AttemptMarkers[0] == attemptMarkerName && len(e.AttemptMarkerSHA256) == 64 &&
+		e.AttemptMarkerSHA256 == strings.ToLower(e.AttemptMarkerSHA256) && err == nil
 }
 
 type toolProcess struct {

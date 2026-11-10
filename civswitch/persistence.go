@@ -205,7 +205,6 @@ type backupReceiver struct {
 	size, written    int
 	digest           hash.Hash
 	checksum         hash.Hash32
-	final            string
 }
 
 func (r *backupReceiver) accept(line string) error {
@@ -360,7 +359,7 @@ func (r *backupReceiver) commit() (string, error) {
 	if err := os.Rename(r.temp, final); err != nil {
 		return "", err
 	}
-	r.final, r.temp = final, ""
+	r.temp = ""
 	return final, nil
 }
 
