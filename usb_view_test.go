@@ -61,7 +61,9 @@ func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "reports")
 			d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}, func(string, ...string) *exec.Cmd {
 				cmd := exec.Command(os.Args[0], "-test.run=^TestNativeKeyboardUIFixture$")
-				cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path)
+				// A -race child otherwise sleeps 1s in its exit hook, which close
+				// correctly waits for before reporting cleanup.
+				cmd.Env = append(os.Environ(), "ANY2JB_UI_KEYBOARD=1", "ANY2JB_UI_REPORTS="+path, "GORACE=atexit_sleep_ms=0")
 				return cmd
 			})
 			f := session.NewFakeEnvironment()
