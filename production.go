@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/thedavidweng/any2jb/civswitch"
 	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/engine"
@@ -18,10 +19,11 @@ import (
 func productionEnvironment(options engine.Options) session.Environment {
 	root, err := engine.Stage(options)
 	return session.Environment{
-		Host:     engine.NewHostRunner(options),
-		Input:    unavailableInput{root: root, options: options},
-		Platform: productionPlatform{root: root, options: options, stageError: err},
-		Tools:    unavailableTools{},
+		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
+		Host:      engine.NewHostRunner(options),
+		Input:     unavailableInput{root: root, options: options},
+		Platform:  productionPlatform{root: root, options: options, stageError: err},
+		Tools:     unavailableTools{},
 	}
 }
 

@@ -1093,3 +1093,213 @@ func DriverVerifyError() string { return In(i18n.Locale()).DriverVerifyError() }
 func (msgs Messages) DriverVerifyError() string {
 	return Catalog.Format(msgs.locale, "driverVerifyError", nil)
 }
+
+// CivTitle says "CivSwitch"
+// in the language the app shows.
+func CivTitle() string { return In(i18n.Locale()).CivTitle() }
+
+// CivTitle says "CivSwitch"
+// in the language of msgs.
+func (msgs Messages) CivTitle() string {
+	return Catalog.Format(msgs.locale, "civTitle", nil)
+}
+
+// CivPrerequisites says "This is a separate Civilization VII route, not SmileBASIC. Confirm the physical Switch 1 edition cartridge, version 1…"
+// in the language the app shows.
+func CivPrerequisites() string { return In(i18n.Locale()).CivPrerequisites() }
+
+// CivPrerequisites says "This is a separate Civilization VII route, not SmileBASIC. Confirm the physical Switch 1 edition cartridge, version 1…"
+// in the language of msgs.
+func (msgs Messages) CivPrerequisites() string {
+	return Catalog.Format(msgs.locale, "civPrerequisites", nil)
+}
+
+// CivNoRPC says "CivSwitch does not provide the SmileBASIC held RPC session. ns2jb homebrew and SaveKit are unavailable from this path."
+// in the language the app shows.
+func CivNoRPC() string { return In(i18n.Locale()).CivNoRPC() }
+
+// CivNoRPC says "CivSwitch does not provide the SmileBASIC held RPC session. ns2jb homebrew and SaveKit are unavailable from this path."
+// in the language of msgs.
+func (msgs Messages) CivNoRPC() string {
+	return Catalog.Format(msgs.locale, "civNoRPC", nil)
+}
+
+// CivCartridge says "Physical Switch 1 Civilization VII cartridge, version 1.0.0"
+// in the language the app shows.
+func CivCartridge() string { return In(i18n.Locale()).CivCartridge() }
+
+// CivCartridge says "Physical Switch 1 Civilization VII cartridge, version 1.0.0"
+// in the language of msgs.
+func (msgs Messages) CivCartridge() string {
+	return Catalog.Format(msgs.locale, "civCartridge", nil)
+}
+
+// CivLanguage says "Console system language is English (US)"
+// in the language the app shows.
+func CivLanguage() string { return In(i18n.Locale()).CivLanguage() }
+
+// CivLanguage says "Console system language is English (US)"
+// in the language of msgs.
+func (msgs Messages) CivLanguage() string {
+	return Catalog.Format(msgs.locale, "civLanguage", nil)
+}
+
+// CivNetwork says "Console and host are on the same reachable network"
+// in the language the app shows.
+func CivNetwork() string { return In(i18n.Locale()).CivNetwork() }
+
+// CivNetwork says "Console and host are on the same reachable network"
+// in the language of msgs.
+func (msgs Messages) CivNetwork() string {
+	return Catalog.Format(msgs.locale, "civNetwork", nil)
+}
+
+// CivChat says "In-game lobby chat input is focused"
+// in the language the app shows.
+func CivChat() string { return In(i18n.Locale()).CivChat() }
+
+// CivChat says "In-game lobby chat input is focused"
+// in the language of msgs.
+func (msgs Messages) CivChat() string {
+	return Catalog.Format(msgs.locale, "civChat", nil)
+}
+
+// CivAddress says "CivSwitch console IPv4"
+// in the language the app shows.
+func CivAddress() string { return In(i18n.Locale()).CivAddress() }
+
+// CivAddress says "CivSwitch console IPv4"
+// in the language of msgs.
+func (msgs Messages) CivAddress() string {
+	return Catalog.Format(msgs.locale, "civAddress", nil)
+}
+
+// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select composit…"
+// in the language the app shows.
+func CivComposite() string { return In(i18n.Locale()).CivComposite() }
+
+// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select composit…"
+// in the language of msgs.
+func (msgs Messages) CivComposite() string {
+	return Catalog.Format(msgs.locale, "civComposite", nil)
+}
+
+// CivDuration says "The 87-line transfer typically takes 20–25 minutes. Progress comes from completed helper lines, not a timer."
+// in the language the app shows.
+func CivDuration() string { return In(i18n.Locale()).CivDuration() }
+
+// CivDuration says "The 87-line transfer typically takes 20–25 minutes. Progress comes from completed helper lines, not a timer."
+// in the language of msgs.
+func (msgs Messages) CivDuration() string {
+	return Catalog.Format(msgs.locale, "civDuration", nil)
+}
+
+// CivEstimate says "Helper duration estimate: {seconds} seconds. This is an estimate, not measured completion."
+// in the language the app shows.
+func CivEstimate(seconds string) string { return In(i18n.Locale()).CivEstimate(seconds) }
+
+// CivEstimate says "Helper duration estimate: {seconds} seconds. This is an estimate, not measured completion."
+// in the language of msgs.
+func (msgs Messages) CivEstimate(seconds string) string {
+	return Catalog.Format(msgs.locale, "civEstimate", map[string]any{"seconds": seconds})
+}
+
+// CivStart says "Start new CivSwitch transfer"
+// in the language the app shows.
+func CivStart() string { return In(i18n.Locale()).CivStart() }
+
+// CivStart says "Start new CivSwitch transfer"
+// in the language of msgs.
+func (msgs Messages) CivStart() string {
+	return Catalog.Format(msgs.locale, "civStart", nil)
+}
+
+// CivAttach says "Connect to open CivSwitch loader"
+// in the language the app shows.
+func CivAttach() string { return In(i18n.Locale()).CivAttach() }
+
+// CivAttach says "Connect to open CivSwitch loader"
+// in the language of msgs.
+func (msgs Messages) CivAttach() string {
+	return Catalog.Format(msgs.locale, "civAttach", nil)
+}
+
+// CivRecheck says "Recheck loader without retyping"
+// in the language the app shows.
+func CivRecheck() string { return In(i18n.Locale()).CivRecheck() }
+
+// CivRecheck says "Recheck loader without retyping"
+// in the language of msgs.
+func (msgs Messages) CivRecheck() string {
+	return Catalog.Format(msgs.locale, "civRecheck", nil)
+}
+
+// CivStop says "Stop CivSwitch and release both HID interfaces"
+// in the language the app shows.
+func CivStop() string { return In(i18n.Locale()).CivStop() }
+
+// CivStop says "Stop CivSwitch and release both HID interfaces"
+// in the language of msgs.
+func (msgs Messages) CivStop() string {
+	return Catalog.Format(msgs.locale, "civStop", nil)
+}
+
+// CivVerified says "CivSwitch Remote JS Loader verified on TCP 9026. This is not ns2jb verification."
+// in the language the app shows.
+func CivVerified() string { return In(i18n.Locale()).CivVerified() }
+
+// CivVerified says "CivSwitch Remote JS Loader verified on TCP 9026. This is not ns2jb verification."
+// in the language of msgs.
+func (msgs Messages) CivVerified() string {
+	return Catalog.Format(msgs.locale, "civVerified", nil)
+}
+
+// CivProbe says "The loader must answer its protocol challenge on TCP 9026 before dependent actions are allowed. An open port alone is…"
+// in the language the app shows.
+func CivProbe() string { return In(i18n.Locale()).CivProbe() }
+
+// CivProbe says "The loader must answer its protocol challenge on TCP 9026 before dependent actions are allowed. An open port alone is…"
+// in the language of msgs.
+func (msgs Messages) CivProbe() string {
+	return Catalog.Format(msgs.locale, "civProbe", nil)
+}
+
+// CivBack says "Back to SmileBASIC"
+// in the language the app shows.
+func CivBack() string { return In(i18n.Locale()).CivBack() }
+
+// CivBack says "Back to SmileBASIC"
+// in the language of msgs.
+func (msgs Messages) CivBack() string {
+	return Catalog.Format(msgs.locale, "civBack", nil)
+}
+
+// CivFinish says "Disconnect CivSwitch"
+// in the language the app shows.
+func CivFinish() string { return In(i18n.Locale()).CivFinish() }
+
+// CivFinish says "Disconnect CivSwitch"
+// in the language of msgs.
+func (msgs Messages) CivFinish() string {
+	return Catalog.Format(msgs.locale, "civFinish", nil)
+}
+
+// CivRestartConfirmed says "I restarted the console, prepare a new attempt"
+// in the language the app shows.
+func CivRestartConfirmed() string { return In(i18n.Locale()).CivRestartConfirmed() }
+
+// CivRestartConfirmed says "I restarted the console, prepare a new attempt"
+// in the language of msgs.
+func (msgs Messages) CivRestartConfirmed() string {
+	return Catalog.Format(msgs.locale, "civRestartConfirmed", nil)
+}
+
+// CivDisconnectNote says "Disconnect releases local resources. It does not stop the loader running on the console."
+// in the language the app shows.
+func CivDisconnectNote() string { return In(i18n.Locale()).CivDisconnectNote() }
+
+// CivDisconnectNote says "Disconnect releases local resources. It does not stop the loader running on the console."
+// in the language of msgs.
+func (msgs Messages) CivDisconnectNote() string {
+	return Catalog.Format(msgs.locale, "civDisconnectNote", nil)
+}
