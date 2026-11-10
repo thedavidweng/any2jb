@@ -14,6 +14,7 @@ import (
 )
 
 type app struct {
+	driverPanel        driverPanel
 	about              bool
 	controller         *session.SessionController
 	commandRejected    bool
@@ -30,6 +31,10 @@ func (a *app) view(c *ui.Context) {
 		ui.Column(c).FillWidth().Gap(16).Padding(24).Children(func() {
 			ui.Text(c, locales.AppName()).FontSize(28).Bold()
 			ui.Text(c, locales.AppDescription()).TextColor(c.Theme().TextMuted)
+			if a.driverPanel.open {
+				a.driverView(c)
+				return
+			}
 			if a.manifest != nil {
 				a.profileView(c)
 			}
@@ -66,6 +71,7 @@ func main() {
 		log.Fatal(err)
 	}
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
+	a.driverPanel.gate = productionDriverGate(options)
 	mygo.App.WhenReady(func() {
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     locales.AppName(),
