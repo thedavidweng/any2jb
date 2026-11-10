@@ -49,6 +49,20 @@ async function launch(manifestPath, profile, workspace, runID, host) {
     if (path.basename(path.dirname(workspace)) !== 'runs' || !path.basename(workspace).startsWith('run-') ||
         !info.isFile() || info.uid !== process.getuid() || (info.mode & 0o077) ||
         fs.readFileSync(lease, 'utf8') !== runID) throw Error('Session lease ownership changed');
+    const past = path.join(support, 'past-runs', path.basename(workspace));
+    for (const name of ['backups', 'savekit-exports', 'verified-exports', 'dumps',
+      'host.log', 'run.log', 'usb.log', 'diagnostics-id', 'switch2/acquisition.log', 'switch2/pipeline.json']) {
+      const source = path.join(workspace, name);
+      const entry = fs.lstatSync(source, {throwIfNoEntry: false});
+      if (!entry) continue;
+      if (entry.isSymbolicLink() || (!entry.isFile() && !entry.isDirectory()))
+        throw Error('Invalid retained session artifact');
+      const destination = path.join(past, name);
+      fs.mkdirSync(path.dirname(destination), {recursive: true, mode: 0o700});
+      if (fs.existsSync(destination)) throw Error('Retained artifact destination exists');
+      fs.renameSync(source, destination);
+    }
+    fs.writeFileSync(path.join(support, 'session-interrupted'), runID, {mode: 0o600});
     fs.rmSync(workspace, {recursive: true});
     fs.unlinkSync(lease);
   };

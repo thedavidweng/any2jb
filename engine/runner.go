@@ -18,6 +18,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -153,6 +154,10 @@ func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report sessio
 	if err := lease.Close(); err != nil {
 		return session.PreparedHost{}, errors.Join(err, os.Remove(filepath.Join(r.support, "session.lock")))
 	}
+	if err := (diagnostics.Store{Support: r.support}).RecordOwner(run.ID); err != nil {
+		os.Remove(filepath.Join(r.support, "session.lock"))
+		return session.PreparedHost{}, err
+	}
 	workspace, err := NewWorkspace(r.support)
 	if err != nil {
 		os.Remove(filepath.Join(r.support, "session.lock"))
@@ -161,6 +166,9 @@ func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report sessio
 	p := &hostProcess{run: run, workspace: workspace, events: make(chan bridgeEvent, 16), done: make(chan struct{})}
 	r.active = p
 	created = p
+	if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0600); err != nil {
+		return session.PreparedHost{}, err
+	}
 	cmd, err := r.launch(run, workspace)
 	if err != nil {
 		return session.PreparedHost{}, err
@@ -280,6 +288,18 @@ func (p *hostProcess) read(output io.ReadCloser) {
 			break
 		}
 		sequence, state = e.Sequence, e.Type
+		log, err := os.OpenFile(filepath.Join(p.workspace, "host.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			p.err = err
+			signalGroup(p.cmd, true)
+			break
+		}
+		_, writeErr := fmt.Fprintf(log, "%s stage=%d\n", e.Type, e.Stage)
+		p.err = errors.Join(writeErr, log.Close())
+		if p.err != nil {
+			signalGroup(p.cmd, true)
+			break
+		}
 		if e.Type == "ready" {
 			p.sideEffect.Store(true)
 		}
@@ -467,7 +487,14 @@ func (r *HostRunner) Cleanup(ctx context.Context, run session.Run) error {
 	if err != nil || string(owner) != run.ID {
 		return errors.New("session lease ownership changed")
 	}
+	diagnosticErr := (diagnostics.Store{Support: r.support}).Capture(p.workspace, run.ID)
+	if err := (diagnostics.Store{Support: r.support}).RetainBackups(p.workspace); err != nil {
+		return err
+	}
 	if err := os.RemoveAll(p.workspace); err != nil {
+		return err
+	}
+	if err := os.Remove(filepath.Join(r.support, "session-owner.json")); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	if err := os.Remove(lock); err != nil {
@@ -477,7 +504,7 @@ func (r *HostRunner) Cleanup(ctx context.Context, run session.Run) error {
 		p.input.Close()
 	}
 	r.active = nil
-	return nil
+	return diagnosticErr
 }
 
 var _ session.HostRunner = (*HostRunner)(nil)

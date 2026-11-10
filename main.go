@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
@@ -24,6 +25,7 @@ type app struct {
 	preferencesPath    string
 	developer          bool
 	preferenceError    string
+	diagnostic         diagnosticUI
 }
 
 func (a *app) view(c *ui.Context) {
@@ -42,6 +44,7 @@ func (a *app) view(c *ui.Context) {
 				ui.Text(c, locales.NoSession())
 			} else {
 				a.sessionView(c)
+				a.diagnosticsView(c)
 			}
 			if a.about {
 				ui.Text(c, locales.BuildLimitations())
@@ -87,9 +90,19 @@ func main() {
 		})
 		go func() {
 			env := productionEnvironment(options)
+			store := diagnostics.Store{Support: support}
+			interrupted, recoveryErr := store.Interrupted()
 			win.Update(func() {
 				if err := a.initializeSession(env); err != nil {
 					a.commandRejected = true
+					return
+				}
+				if interrupted || recoveryErr != nil {
+					a.controller.MarkInterrupted()
+				}
+				a.startDiagnostics(win, store)
+				if recoveryErr != nil {
+					a.diagnostic.failed = true
 				}
 			})
 		}()
