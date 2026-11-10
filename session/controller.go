@@ -22,7 +22,9 @@ type SessionController struct {
 
 func New(env Environment, profile Profile) *SessionController {
 	profile.Tools = slices.Clone(profile.Tools)
+	profile.Editions = slices.Clone(profile.Editions)
 	return &SessionController{env: env, s: Snapshot{Stage: Idle, Profile: profile,
+		Edition:   "full",
 		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
 		Simulated: env.Simulated}}
 }
@@ -31,6 +33,7 @@ func (c *SessionController) snapshot() Snapshot {
 	s.Checks = slices.Clone(s.Checks)
 	s.Processes = slices.Clone(s.Processes)
 	s.Profile.Tools = slices.Clone(s.Profile.Tools)
+	s.Profile.Editions = slices.Clone(s.Profile.Editions)
 	return s
 }
 func (c *SessionController) Snapshot() Snapshot {
@@ -280,6 +283,9 @@ func (c *SessionController) Start() (Snapshot, error) {
 	if !c.s.Transport.Capabilities.supports(c.s.Profile.RequiredTransport) {
 		return c.reject(Unsupported)
 	}
+	if c.s.Profile.BootstrapSHA256 != "" && !c.s.BootstrapSaved && c.s.Stage == Ready {
+		return c.configurationError(BootstrapUnconfirmed, "Prepare and save the matching bootstrap, or confirm its exact host and edition, before launching.")
+	}
 	if !c.s.CanStart() {
 		return c.reject(InvalidConfiguration)
 	}
@@ -412,12 +418,41 @@ func (c *SessionController) SelectProfile(profile Profile, edition string) (Snap
 	if profile.ID == "" || profile.Revision == "" || (edition != "full" && edition != "demo" && edition != "civswitch") {
 		return c.reject(InvalidConfiguration)
 	}
+	if len(profile.Editions) > 0 && !slices.Contains(profile.Editions, edition) {
+		return c.configurationError(EditionUnsupported, "Select a supported SmileBASIC edition for "+profile.ID+"; use full SmileBASIC 4.4.9 or choose a demo-capable host.")
+	}
 	profile.Tools = slices.Clone(profile.Tools)
+	profile.Editions = slices.Clone(profile.Editions)
 	c.s.Profile, c.s.Edition = profile, edition
 	c.s.BootstrapSaved, c.s.BootstrapPrepared = false, false
 	c.s.SaveSubmitted = false
 	c.s.Checks = nil
 	c.transition(Idle)
+	return c.snapshot(), nil
+}
+
+func (c *SessionController) configurationError(reason Reason, instruction string) (Snapshot, error) {
+	err := &Rejection{Reason: reason, Stage: c.s.Stage, Instruction: instruction}
+	c.emit(Warning, reason, instruction)
+	return c.snapshot(), err
+}
+
+// UseSavedBootstrap accepts only a recorded successful setup or explicit console
+// confirmation for this exact host identity. Equal bootstrap bytes are not enough.
+func (c *SessionController) UseSavedBootstrap(record BootstrapRecord) (Snapshot, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if !c.eligible(Idle, NeedsSetup, Ready, Finished, Failed) {
+		return c.reject(InvalidState)
+	}
+	p := c.s.Profile
+	if !record.Confirmed || record.ProfileID != p.ID || record.Revision != p.Revision ||
+		record.SourceSHA256 != p.SourceSHA256 || record.BootstrapSHA256 != p.BootstrapSHA256 ||
+		record.SaveName != p.SaveName || record.Edition != c.s.Edition {
+		c.s.BootstrapSaved = false
+		return c.configurationError(BootstrapMismatch, "Prepare and save the matching bootstrap for "+p.ID+" ("+c.s.Edition+") as "+p.SaveName+", then confirm the console save before launching.")
+	}
+	c.s.BootstrapSaved = true
 	return c.snapshot(), nil
 }
 func (c *SessionController) ConfigureTransport(transport Transport, lanIPv4 string) (Snapshot, error) {
@@ -427,7 +462,7 @@ func (c *SessionController) ConfigureTransport(transport Transport, lanIPv4 stri
 		return c.reject(InvalidState)
 	}
 	ip, err := netip.ParseAddr(lanIPv4)
-	if err != nil || !ip.Is4() || ip.IsUnspecified() || ip.IsMulticast() ||
+	if (lanIPv4 != "" && (err != nil || !ip.Is4() || ip.IsUnspecified() || ip.IsMulticast())) ||
 		transport.Mode == "" || (transport.Capabilities.Manual && (transport.Capabilities.Keyboard || transport.Capabilities.Gamepad || transport.Capabilities.ExternalPico)) ||
 		(!transport.Capabilities.Manual && !transport.Capabilities.Keyboard) {
 		return c.reject(InvalidConfiguration)

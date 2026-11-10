@@ -56,17 +56,26 @@ const (
 	InvalidConfiguration   Reason = "invalid_configuration"
 	AdapterFailure         Reason = "adapter_failure"
 	VerificationIncomplete Reason = "verification_incomplete"
+	EditionUnsupported     Reason = "edition_unsupported"
+	BootstrapMismatch      Reason = "bootstrap_mismatch"
+	BootstrapUnconfirmed   Reason = "bootstrap_unconfirmed"
 )
 
 // Profile is the subset needed by orchestration, not a second source manifest.
 // The manifest adapter supplies this pinned identity and capability projection.
 type Profile struct {
-	ID                string
-	Revision          string
-	CivSwitch         bool
-	RetainsRPC        bool
-	RequiredTransport Capabilities
-	Tools             []string
+	ID                 string
+	Revision           string
+	CivSwitch          bool
+	RetainsRPC         bool
+	RequiredTransport  Capabilities
+	Tools              []string
+	Editions           []string
+	SourceSHA256       string
+	BootstrapSHA256    string
+	SaveName           string
+	StartArgumentCount int
+	StartPort          int
 }
 type Capabilities struct {
 	Manual       bool
@@ -148,6 +157,8 @@ type Snapshot struct {
 // CanStart is derived from the same copied state used by the controller.
 func (s Snapshot) CanStart() bool {
 	return s.Stage == Ready && !s.Busy && s.Profile.ID != "" && s.Profile.Revision != "" &&
+		(s.Profile.BootstrapSHA256 == "" || s.BootstrapSaved) &&
+		(len(s.Profile.Editions) == 0 || slices.Contains(s.Profile.Editions, s.Edition)) &&
 		s.Transport.Capabilities.supports(s.Profile.RequiredTransport) && len(s.Checks) > 0 &&
 		!slices.ContainsFunc(s.Checks, func(check Check) bool { return check.State != CheckVerified })
 }
@@ -163,11 +174,22 @@ type Event struct {
 	Message  string
 }
 type Rejection struct {
-	Reason Reason
-	Stage  Stage
+	Reason      Reason
+	Stage       Stage
+	Instruction string
 }
 
-func (e *Rejection) Error() string { return string(e.Reason) + ": " + string(e.Stage) }
+func (e *Rejection) Error() string {
+	if e.Instruction != "" {
+		return e.Instruction
+	}
+	return string(e.Reason) + ": " + string(e.Stage)
+}
+
+type BootstrapRecord struct {
+	ProfileID, Revision, SourceSHA256, BootstrapSHA256, SaveName, Edition string
+	Confirmed                                                             bool
+}
 
 // Observations never transition the state machine. SideEffect must be reported
 // before publishing pairing details, sending keys or otherwise touching console state.

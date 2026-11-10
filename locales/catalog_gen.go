@@ -46,6 +46,228 @@ func (msgs Messages) AppName() string {
 	return Catalog.Format(msgs.locale, "appName", nil)
 }
 
+// DeveloperOptions says "Developer Options"
+// in the language the app shows.
+func DeveloperOptions() string { return In(i18n.Locale()).DeveloperOptions() }
+
+// DeveloperOptions says "Developer Options"
+// in the language of msgs.
+func (msgs Messages) DeveloperOptions() string {
+	return Catalog.Format(msgs.locale, "developerOptions", nil)
+}
+
+// ProfileSettings says "Host and input preferences"
+// in the language the app shows.
+func ProfileSettings() string { return In(i18n.Locale()).ProfileSettings() }
+
+// ProfileSettings says "Host and input preferences"
+// in the language of msgs.
+func (msgs Messages) ProfileSettings() string {
+	return Catalog.Format(msgs.locale, "profileSettings", nil)
+}
+
+// HostProfile says "Host profile"
+// in the language the app shows.
+func HostProfile() string { return In(i18n.Locale()).HostProfile() }
+
+// HostProfile says "Host profile"
+// in the language of msgs.
+func (msgs Messages) HostProfile() string {
+	return Catalog.Format(msgs.locale, "hostProfile", nil)
+}
+
+// MatchingBootstrapRequired says "Prepare and save the matching bootstrap for {profile} ({edition}) as {saveName}, then confirm the console save before…"
+// in the language the app shows.
+func MatchingBootstrapRequired(profile string, edition string, saveName string) string {
+	return In(i18n.Locale()).MatchingBootstrapRequired(profile, edition, saveName)
+}
+
+// MatchingBootstrapRequired says "Prepare and save the matching bootstrap for {profile} ({edition}) as {saveName}, then confirm the console save before…"
+// in the language of msgs.
+func (msgs Messages) MatchingBootstrapRequired(profile string, edition string, saveName string) string {
+	return Catalog.Format(msgs.locale, "matchingBootstrapRequired", map[string]any{"profile": profile, "edition": edition, "saveName": saveName})
+}
+
+// SmilebasicEdition says "SmileBASIC edition"
+// in the language the app shows.
+func SmilebasicEdition() string { return In(i18n.Locale()).SmilebasicEdition() }
+
+// SmilebasicEdition says "SmileBASIC edition"
+// in the language of msgs.
+func (msgs Messages) SmilebasicEdition() string {
+	return Catalog.Format(msgs.locale, "smilebasicEdition", nil)
+}
+
+// LanOverride says "Preferred LAN IPv4 (optional)"
+// in the language the app shows.
+func LanOverride() string { return In(i18n.Locale()).LanOverride() }
+
+// LanOverride says "Preferred LAN IPv4 (optional)"
+// in the language of msgs.
+func (msgs Messages) LanOverride() string {
+	return Catalog.Format(msgs.locale, "lanOverride", nil)
+}
+
+// TransportMode says "Input transport"
+// in the language the app shows.
+func TransportMode() string { return In(i18n.Locale()).TransportMode() }
+
+// TransportMode says "Input transport"
+// in the language of msgs.
+func (msgs Messages) TransportMode() string {
+	return Catalog.Format(msgs.locale, "transportMode", nil)
+}
+
+// ApplyPreferences says "Apply preferences"
+// in the language the app shows.
+func ApplyPreferences() string { return In(i18n.Locale()).ApplyPreferences() }
+
+// ApplyPreferences says "Apply preferences"
+// in the language of msgs.
+func (msgs Messages) ApplyPreferences() string {
+	return Catalog.Format(msgs.locale, "applyPreferences", nil)
+}
+
+// ApplyBeforeLaunch says "Apply the host and input preferences in Developer Options before preparing or launching a session."
+// in the language the app shows.
+func ApplyBeforeLaunch() string { return In(i18n.Locale()).ApplyBeforeLaunch() }
+
+// ApplyBeforeLaunch says "Apply the host and input preferences in Developer Options before preparing or launching a session."
+// in the language of msgs.
+func (msgs Messages) ApplyBeforeLaunch() string {
+	return Catalog.Format(msgs.locale, "applyBeforeLaunch", nil)
+}
+
+// ChooseKnownHost says "Choose a host from Developer Options. The saved host is not in the pinned manifest."
+// in the language the app shows.
+func ChooseKnownHost() string { return In(i18n.Locale()).ChooseKnownHost() }
+
+// ChooseKnownHost says "Choose a host from Developer Options. The saved host is not in the pinned manifest."
+// in the language of msgs.
+func (msgs Messages) ChooseKnownHost() string {
+	return Catalog.Format(msgs.locale, "chooseKnownHost", nil)
+}
+
+// UnsupportedEdition says "This host does not support that edition. Select full SmileBASIC 4.4.9 or choose a demo-capable host."
+// in the language the app shows.
+func UnsupportedEdition() string { return In(i18n.Locale()).UnsupportedEdition() }
+
+// UnsupportedEdition says "This host does not support that edition. Select full SmileBASIC 4.4.9 or choose a demo-capable host."
+// in the language of msgs.
+func (msgs Messages) UnsupportedEdition() string {
+	return Catalog.Format(msgs.locale, "unsupportedEdition", nil)
+}
+
+// ChooseTransport says "Select manual, keyboard, composite or external-pico input."
+// in the language the app shows.
+func ChooseTransport() string { return In(i18n.Locale()).ChooseTransport() }
+
+// ChooseTransport says "Select manual, keyboard, composite or external-pico input."
+// in the language of msgs.
+func (msgs Messages) ChooseTransport() string {
+	return Catalog.Format(msgs.locale, "chooseTransport", nil)
+}
+
+// ChooseLANIPv4 says "Enter a usable LAN IPv4 address, or clear the override to use network discovery."
+// in the language the app shows.
+func ChooseLANIPv4() string { return In(i18n.Locale()).ChooseLANIPv4() }
+
+// ChooseLANIPv4 says "Enter a usable LAN IPv4 address, or clear the override to use network discovery."
+// in the language of msgs.
+func (msgs Messages) ChooseLANIPv4() string {
+	return Catalog.Format(msgs.locale, "chooseLANIPv4", nil)
+}
+
+// HeldRPC says "Retained RPC"
+// in the language the app shows.
+func HeldRPC() string { return In(i18n.Locale()).HeldRPC() }
+
+// HeldRPC says "Retained RPC"
+// in the language of msgs.
+func (msgs Messages) HeldRPC() string {
+	return Catalog.Format(msgs.locale, "heldRPC", nil)
+}
+
+// DemoEdition says "Demo edition"
+// in the language the app shows.
+func DemoEdition() string { return In(i18n.Locale()).DemoEdition() }
+
+// DemoEdition says "Demo edition"
+// in the language of msgs.
+func (msgs Messages) DemoEdition() string {
+	return Catalog.Format(msgs.locale, "demoEdition", nil)
+}
+
+// SaveKit says "SaveKit"
+// in the language the app shows.
+func SaveKit() string { return In(i18n.Locale()).SaveKit() }
+
+// SaveKit says "SaveKit"
+// in the language of msgs.
+func (msgs Messages) SaveKit() string {
+	return Catalog.Format(msgs.locale, "saveKit", nil)
+}
+
+// NativeLauncher says "Native HBLauncher"
+// in the language the app shows.
+func NativeLauncher() string { return In(i18n.Locale()).NativeLauncher() }
+
+// NativeLauncher says "Native HBLauncher"
+// in the language of msgs.
+func (msgs Messages) NativeLauncher() string {
+	return Catalog.Format(msgs.locale, "nativeLauncher", nil)
+}
+
+// Modloader says "Modloader"
+// in the language the app shows.
+func Modloader() string { return In(i18n.Locale()).Modloader() }
+
+// Modloader says "Modloader"
+// in the language of msgs.
+func (msgs Messages) Modloader() string {
+	return Catalog.Format(msgs.locale, "modloader", nil)
+}
+
+// HostUnsupported says "Not supported by this host. Choose a compatible host in Developer Options."
+// in the language the app shows.
+func HostUnsupported() string { return In(i18n.Locale()).HostUnsupported() }
+
+// HostUnsupported says "Not supported by this host. Choose a compatible host in Developer Options."
+// in the language of msgs.
+func (msgs Messages) HostUnsupported() string {
+	return Catalog.Format(msgs.locale, "hostUnsupported", nil)
+}
+
+// RequiresVerifiedSession says "Requires a verified retained-RPC session and the tool adapter."
+// in the language the app shows.
+func RequiresVerifiedSession() string { return In(i18n.Locale()).RequiresVerifiedSession() }
+
+// RequiresVerifiedSession says "Requires a verified retained-RPC session and the tool adapter."
+// in the language of msgs.
+func (msgs Messages) RequiresVerifiedSession() string {
+	return Catalog.Format(msgs.locale, "requiresVerifiedSession", nil)
+}
+
+// SupportedEdition says "Supported edition. Use the matching bootstrap setup."
+// in the language the app shows.
+func SupportedEdition() string { return In(i18n.Locale()).SupportedEdition() }
+
+// SupportedEdition says "Supported edition. Use the matching bootstrap setup."
+// in the language of msgs.
+func (msgs Messages) SupportedEdition() string {
+	return Catalog.Format(msgs.locale, "supportedEdition", nil)
+}
+
+// TransportUnverified says "Input preference only. Readiness must verify the actual transport before use."
+// in the language the app shows.
+func TransportUnverified() string { return In(i18n.Locale()).TransportUnverified() }
+
+// TransportUnverified says "Input preference only. Readiness must verify the actual transport before use."
+// in the language of msgs.
+func (msgs Messages) TransportUnverified() string {
+	return Catalog.Format(msgs.locale, "transportUnverified", nil)
+}
+
 // AppDescription says "Nintendo Switch 2 session manager"
 // in the language the app shows.
 //
