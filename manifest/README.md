@@ -11,6 +11,23 @@ Astral is mac2jb's custom `0.2.0-experimental` kurumuz derivative, not a separat
 upstream repository. All six profiles retain an unresolved inherited ns2jb
 distribution gate.
 
+## Before packaging or exposing a tool
+
+Each record's `distribution` object stores `decision` (`may-ship`, `blocked`,
+`excluded`), `bundled`, the supplied `notice`, and the user-facing `reason`.
+Use `m.DistributionFor(id)` and its `Available()` method as a separate
+capability gate. Host support flags never override a distribution blocker.
+Unknown IDs return an error. A source record with `bundled: false` is not a
+working installed capability.
+
+`m.CheckPackage(stagedResourceRoot)` rejects every unrecorded resource,
+unbundled/denied file, symlink, digest mismatch and missing bundled artifact.
+The MyGo `buildCommand` invokes this gate over `resources/` automatically.
+Profiles are not packaging allowlists: before any host is shipped its rights
+must be resolved and its individual packaged files recorded as components.
+See [the redistribution assessment](../docs/redistribution.md) for scope,
+GPL v2/v3 assessments, release blockers and alternate acquisition boundaries.
+
 ## Before execution or bootstrap transfer
 
 Load the manifest once, select with `m.Profile(id)`, and call
@@ -32,10 +49,12 @@ lookup. A profile check verifies:
 - The selected bootstrap's digest and byte equality with its host's bootstrap.
 
 The runtime must remain immutable from verification through process execution.
-This package verifies content, not file ownership, code signing, licenses,
-process launch, or hardware behavior. Launch adapters own the verification call.
+Integrity verification checks content, not file ownership, code signing,
+license obligations, process launch, or hardware behavior. Distribution checks
+enforce recorded decisions, not legal clearance. Launch adapters own both
+availability and integrity checks.
 
-The initial component records pin the four mac2jb C helper **sources** only.
+The C helper component records pin four mac2jb **sources** only.
 No host, helper binary, or Node runtime is bundled by this package. When those
 artifacts are built/staged, add their exact paths and SHA-256 digests to
 `components` in this same manifest. Unrecorded binaries are rejected, not
@@ -51,5 +70,7 @@ ANY2JB_REFERENCE_ROOT=/path/to/pinned/mac2jb go test ./manifest -run TestPinnedS
 
 The last check is optional and read-only. Use mac2jb revision
 `ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308`. It verifies all six actual source
-inventories, bootstraps, provenance manifests, and four helper source digests.
+inventories, bootstraps, provenance manifests, four helper source digests and
+the excluded research notice. MyGo icon/license records are checked separately
+against this repository's resource tree.
 It does not execute an exploit or verify a console.

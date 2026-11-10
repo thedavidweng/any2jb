@@ -33,6 +33,12 @@ On Apple Silicon macOS the build produces an app and DMG in
 signing or notarization. Linux and Windows are later product targets.
 Console and USB hardware behavior is **not verified**.
 
+The build runs a fail-closed redistribution check over packaged input resources.
+All six host profiles remain blocked by unresolved inherited rights; no engine
+or bootstrap is bundled. See the [redistribution assessment](docs/redistribution.md)
+and [release blockers](docs/parity-ledger.md#redistribution-release-blockers).
+Do not bypass the build command for release packages.
+
 ## UI strings and assets
 
 Add every app-visible string to `locales/en.json`, then run
