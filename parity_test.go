@@ -128,8 +128,16 @@ func TestParityLedger(t *testing.T) {
 
 func isParityControl(name string) bool {
 	switch strings.TrimSuffix(name, "Base") {
-	case "Button", "Checkbox", "CheckboxState", "Combobox", "MenuButton", "Radio", "Segmented", "Select", "SelectBaseOpen", "Slider", "Switch", "TextArea", "TextAreaBuffer", "TextInput", "TextInputBuffer", "Toggle":
+	case "Button", "PrimaryButton", "Checkbox", "CheckboxState", "Combobox", "MenuButton", "Radio", "Segmented", "Select", "SelectBaseOpen", "Slider", "Switch", "TextArea", "TextAreaBuffer", "TextInput", "TextInputBuffer", "Toggle":
 		return true
 	}
 	return false
+}
+
+func TestParityControlIncludesPrimaryButton(t *testing.T) {
+	for _, name := range []string{"PrimaryButton", "PrimaryButtonBase"} {
+		if !isParityControl(name) {
+			t.Errorf("%s must require a ledger UI key", name)
+		}
+	}
 }
