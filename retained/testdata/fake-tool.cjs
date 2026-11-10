@@ -44,7 +44,16 @@ async function main() {
   } else if (tool === 'sd-browser') {
     emit('running', {readOnly: true, endpoint: scenario === 'exposed'
       ? 'ftp://192.0.2.9:2122/sd/' : 'ftp://' + consoleAddress + ':2122/sd/'});
-  } else if (['mintbrew', 'native-hblauncher', 'izlauncher'].includes(tool)) {
+  } else if (tool === 'modloader') {
+    if (scenario === 'mod-fail-retry' || scenario === 'mod-fail-blocked') {
+      emit('failed', {cleanupBlocked: scenario === 'mod-fail-blocked', message: 'fixture modloader failure'});
+      process.exitCode = 1;
+      return;
+    }
+    emit('progress', {message: 'READY'});
+    emit('ready', {message: 'fixture handoff verified'});
+    return;
+  } else if (['mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew'].includes(tool)) {
     const marker = path.join(workspace, '.mac2jb-hblauncher-attempt.json');
     fs.writeFileSync(marker, JSON.stringify({application: tool, started: 'fixture'}) + '\n',
       {mode: 0o600, flag: 'wx'});

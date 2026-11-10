@@ -104,6 +104,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	a.toolReason(c, "sd-browser", state, sdReason)
 	a.homebrewView(c, s, state)
+	a.modloaderView(c, s, state)
 	if len(state.Games) > 0 {
 		ids := make([]string, 0, len(state.Games))
 		for _, game := range state.Games {
@@ -158,7 +159,7 @@ func (a *app) toolGate(s session.Snapshot, state retained.State, tool string) (b
 	}
 	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
 	owned := state.Tool != "" && state.Tool != tool
-	return s.Busy || !leased || state.Lost || reason != "" || owned, reason
+	return s.Busy || !leased || state.Lost || state.ModloaderInstalled || reason != "" || owned, reason
 }
 
 func (a *app) toolReason(c *ui.Context, tool string, state retained.State, reason string) {

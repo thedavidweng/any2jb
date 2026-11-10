@@ -10,7 +10,8 @@ compatibility.
 Unsupported demo, retained RPC, SaveKit, native HBLauncher and modloader options
 have an explanation. The read-only tools of a retained-RPC host are integrated;
 see [retained tools](retained-tools.md). SaveKit, native HBLauncher and
-modloader controls stay disabled until their write adapters are integrated.
+modloader controls are offered only on hosts that declare the capability, and
+each stays disabled with its recorded reason until its components are staged.
 Capability permission is not permission to write saves or launch unvalidated
 software.
 

@@ -23,6 +23,7 @@ var dynamicSegments = []struct {
 	{"Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZBlitbun},
 	{"Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZShell},
 	{"Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZVacootube},
+	{"Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them or any game or mod files.", locales.DynDistModloader},
 	{"Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notices are unreviewed. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistHomebrewRuntime},
 	{"Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.", locales.DynDistLauncherArchive},
 	{"Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.", locales.DynDistLauncherArtemis},

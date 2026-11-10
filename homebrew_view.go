@@ -12,8 +12,8 @@ import (
 // homebrewPanel is the homebrew launcher's ephemeral input. The session
 // controller validates every field again before a launch.
 type homebrewPanel struct {
-	sdFolder, appFolder            string
-	izExchange, blitbun, vacootube bool
+	sdFolder, appFolder, customFolder, modsFolder string
+	izExchange, blitbun, vacootube                bool
 }
 
 // homebrewView offers the pinned homebrew launchers. Gating is the same
@@ -45,6 +45,32 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 		a.runHomebrew("izlauncher")
 	}
 	a.toolReason(c, "hb-izlauncher", state, izReason)
+	ui.Text(c, locales.HbCustomTitle()).Bold()
+	ui.Text(c, locales.HbCustomNote()).TextColor(c.Theme().TextMuted)
+	ui.TextInput(c.Key("hb-custom-folder"), &p.customFolder).Label(locales.HbCustomFolder()).Disabled(s.Busy || !leased)
+	custom, customReason := a.toolGate(s, state, "custom-homebrew")
+	if ui.Button(c.Key("hb-custom"), locales.HbCustom()).Disabled(custom).Clicked() {
+		a.runHomebrew("custom-homebrew")
+	}
+	a.toolReason(c, "hb-custom", state, customReason)
+}
+
+// modloaderView offers the modloader as the session's final action. A verified
+// handoff locks every tool until the console restarts, and the view says so.
+func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.State) {
+	p := &a.homebrewPanel
+	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	ui.Text(c, locales.ModTitle()).FontSize(16).Bold()
+	ui.Text(c, locales.ModNote()).TextColor(c.Theme().TextMuted)
+	if state.ModloaderInstalled {
+		ui.Text(c.Key("mod-installed"), locales.ModInstalled()).Bold().Role(ui.RoleStatus)
+	}
+	ui.TextInput(c.Key("mod-folder"), &p.modsFolder).Label(locales.ModFolder()).Disabled(s.Busy || !leased || state.ModloaderInstalled)
+	install, reason := a.toolGate(s, state, "modloader")
+	if ui.Button(c.Key("mod-install"), locales.ModInstall()).Disabled(install).Clicked() {
+		a.runHomebrew("modloader")
+	}
+	a.toolReason(c, "mod-install", state, reason)
 }
 
 func (a *app) runHomebrew(tool string) {
@@ -54,6 +80,10 @@ func (a *app) runHomebrew(tool string) {
 	case "native-hblauncher":
 		request.SDRomFolder = strings.TrimSpace(p.sdFolder)
 		request.AppFolder = strings.TrimSpace(p.appFolder)
+	case "custom-homebrew":
+		request.CustomHomebrewFolder = strings.TrimSpace(p.customFolder)
+	case "modloader":
+		request.ModsFolder = strings.TrimSpace(p.modsFolder)
 	case "izlauncher":
 		for _, module := range []struct {
 			id      string
