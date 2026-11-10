@@ -19,6 +19,7 @@ type SessionController struct {
 	cancel        context.CancelFunc
 	requested     Stage
 	monitorCancel context.CancelFunc
+	keyboard      chan [8]byte
 	changes       chan struct{}
 }
 
@@ -58,6 +59,7 @@ func (c *SessionController) Events(sequence uint64) []Event {
 	}
 	return slices.Clone(c.events[i:])
 }
+
 func (c *SessionController) emit(severity Severity, reason Reason, message string) {
 	elapsed := time.Duration(0)
 	if !c.started.IsZero() {
@@ -93,6 +95,10 @@ func (c *SessionController) report(p Progress) {
 	defer c.mu.Unlock()
 	c.s.SideEffects = c.s.SideEffects || p.SideEffect
 	c.s.Current, c.s.Total = p.Current, p.Total
+	c.s.Remaining, c.s.HasEstimate = p.Remaining, p.HasEstimate
+	if p.KeyboardController != "" {
+		c.s.Checks = ObserveKeyboardEnumeration(c.s.Checks, c.s.Transport.Controller, p.KeyboardController)
+	}
 	if p.Processes != nil {
 		c.s.Processes = slices.Clone(p.Processes)
 	}
@@ -121,13 +127,11 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		c.s.Outcome = Outcome{}
 		c.s.CleanupConfirmed = false
 		c.s.Current, c.s.Total = 0, 0
+		c.s.Remaining, c.s.HasEstimate = 0, false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancel, c.requested = cancel, ""
 	c.s.Busy = true
-	if stage == BootstrapSetup {
-		c.s.SideEffects = true
-	}
 	c.s.Recovery = NoRecovery
 	c.transition(stage)
 	run := c.run()
@@ -282,9 +286,17 @@ func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 	c.s.BootstrapPrepared, c.s.BootstrapSaved = false, false
 	c.s.SaveSubmitted = false
 	return c.begin(BootstrapSetup, true, func(ctx context.Context, run Run) error {
-		// Conservative boundary: an input adapter may write immediately.
-		if err := c.stage(ctx, BootstrapSetup, true); err != nil {
+		if err := c.stage(ctx, BootstrapSetup, false); err != nil {
 			return err
+		}
+		if run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Manual && !run.Transport.Capabilities.ExternalPico {
+			input, ok := c.env.Input.(KeyboardTransport)
+			if !ok {
+				return errors.New("USB bootstrap adapter is unavailable")
+			}
+			if err := c.inspectKeyboard(ctx, run, input); err != nil {
+				return err
+			}
 		}
 		if err := c.env.Input.Send(ctx, run, Bootstrap, PreparedHost{}, c.report); err != nil {
 			return err
@@ -312,10 +324,20 @@ func (c *SessionController) SaveBootstrap(confirmed bool) (Snapshot, error) {
 		if !c.s.SaveSubmitted {
 			return c.reject(InvalidState)
 		}
-		c.s.BootstrapSaved = true
-		c.s.SideEffects = false
-		c.transition(Ready)
-		return c.snapshot(), nil
+		return c.begin(BootstrapSetup, false, func(ctx context.Context, run Run) error {
+			if err := c.cleanup(ctx, run); err != nil {
+				return err
+			}
+			c.mu.Lock()
+			defer c.mu.Unlock()
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			c.s.BootstrapSaved = true
+			c.s.SideEffects = false
+			c.transition(Ready)
+			return nil
+		}), nil
 	}
 	if c.s.SaveSubmitted {
 		return c.reject(InvalidState)
@@ -412,7 +434,7 @@ func (c *SessionController) Cancel() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.s.Busy || c.s.SideEffects || c.requested != "" ||
-		(!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput}, c.s.Stage) &&
+		(!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput, BootstrapSetup}, c.s.Stage) &&
 			!(c.s.CivSwitch && c.s.Stage == Verifying)) {
 		return c.reject(InvalidState)
 	}

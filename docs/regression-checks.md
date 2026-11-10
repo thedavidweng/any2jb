@@ -36,6 +36,8 @@ simulated engine coverage. These fixture outcomes are not upstream exploit
 or hardware evidence.
 
 On Darwin arm64 the command force-rebuilds libusbd in a disposable copy,
+using `internal/nativehelper.Build`, also used by explicit local developer
+USB staging (see [keyboard input](usb-keyboard.md)).
 compiles `sender`, `commands`, `keyboard` with the GUI define and
 `civswitch-hid`, and runs their offline input checks. Keyboard uses
 `--validate`, its equivalent of dry-run, including rejection of a truncated

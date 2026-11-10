@@ -246,6 +246,350 @@ func (msgs Messages) AppName() string {
 	return Catalog.Format(msgs.locale, "appName", nil)
 }
 
+// UsbKeyboardTitle says "Live keyboard forwarding"
+// in the language the app shows.
+func UsbKeyboardTitle() string { return In(i18n.Locale()).UsbKeyboardTitle() }
+
+// UsbKeyboardTitle says "Live keyboard forwarding"
+// in the language of msgs.
+func (msgs Messages) UsbKeyboardTitle() string {
+	return Catalog.Format(msgs.locale, "usbKeyboardTitle", nil)
+}
+
+// UsbProfile says "USB console input: {profile} ({edition})"
+// in the language the app shows.
+func UsbProfile(profile string, edition string) string {
+	return In(i18n.Locale()).UsbProfile(profile, edition)
+}
+
+// UsbProfile says "USB console input: {profile} ({edition})"
+// in the language of msgs.
+func (msgs Messages) UsbProfile(profile string, edition string) string {
+	return Catalog.Format(msgs.locale, "usbProfile", map[string]any{"profile": profile, "edition": edition})
+}
+
+// UsbInputAvailable says "Supervised keyboard input is available; each operation waits for enumeration."
+// in the language the app shows.
+func UsbInputAvailable() string { return In(i18n.Locale()).UsbInputAvailable() }
+
+// UsbInputAvailable says "Supervised keyboard input is available; each operation waits for enumeration."
+// in the language of msgs.
+func (msgs Messages) UsbInputAvailable() string {
+	return Catalog.Format(msgs.locale, "usbInputAvailable", nil)
+}
+
+// UsbEnumerationObserved says "Keyboard enumeration was observed on {controller}. Each operation re-enumerates; console text acceptance is not verif…"
+// in the language the app shows.
+func UsbEnumerationObserved(controller string) string {
+	return In(i18n.Locale()).UsbEnumerationObserved(controller)
+}
+
+// UsbEnumerationObserved says "Keyboard enumeration was observed on {controller}. Each operation re-enumerates; console text acceptance is not verif…"
+// in the language of msgs.
+func (msgs Messages) UsbEnumerationObserved(controller string) string {
+	return Catalog.Format(msgs.locale, "usbEnumerationObserved", map[string]any{"controller": controller})
+}
+
+// UsbKeyboardUnavailable says "Live keyboard forwarding is unavailable: select built-in USB keyboard input with a supervised keyboard adapter."
+// in the language the app shows.
+func UsbKeyboardUnavailable() string { return In(i18n.Locale()).UsbKeyboardUnavailable() }
+
+// UsbKeyboardUnavailable says "Live keyboard forwarding is unavailable: select built-in USB keyboard input with a supervised keyboard adapter."
+// in the language of msgs.
+func (msgs Messages) UsbKeyboardUnavailable() string {
+	return Catalog.Format(msgs.locale, "usbKeyboardUnavailable", nil)
+}
+
+// UsbKeyboardSafety says "Use the console's US English keyboard layout. Escape stops forwarding. Leaving the input area or window releases ever…"
+// in the language the app shows.
+func UsbKeyboardSafety() string { return In(i18n.Locale()).UsbKeyboardSafety() }
+
+// UsbKeyboardSafety says "Use the console's US English keyboard layout. Escape stops forwarding. Leaving the input area or window releases ever…"
+// in the language of msgs.
+func (msgs Messages) UsbKeyboardSafety() string {
+	return Catalog.Format(msgs.locale, "usbKeyboardSafety", nil)
+}
+
+// UsbKeyboardCapture says "Keyboard forwarding area. Type here; Escape or Tab stops forwarding."
+// in the language the app shows.
+func UsbKeyboardCapture() string { return In(i18n.Locale()).UsbKeyboardCapture() }
+
+// UsbKeyboardCapture says "Keyboard forwarding area. Type here; Escape or Tab stops forwarding."
+// in the language of msgs.
+func (msgs Messages) UsbKeyboardCapture() string {
+	return Catalog.Format(msgs.locale, "usbKeyboardCapture", nil)
+}
+
+// UsbKeyboardOpening says "Waiting for the console to enumerate the keyboard…"
+// in the language the app shows.
+func UsbKeyboardOpening() string { return In(i18n.Locale()).UsbKeyboardOpening() }
+
+// UsbKeyboardOpening says "Waiting for the console to enumerate the keyboard…"
+// in the language of msgs.
+func (msgs Messages) UsbKeyboardOpening() string {
+	return Catalog.Format(msgs.locale, "usbKeyboardOpening", nil)
+}
+
+// UsbKeyboardClosing says "Closing keyboard input. Waiting for neutral key release…"
+// in the language the app shows.
+func UsbKeyboardClosing() string { return In(i18n.Locale()).UsbKeyboardClosing() }
+
+// UsbKeyboardClosing says "Closing keyboard input. Waiting for neutral key release…"
+// in the language of msgs.
+func (msgs Messages) UsbKeyboardClosing() string {
+	return Catalog.Format(msgs.locale, "usbKeyboardClosing", nil)
+}
+
+// UsbHelpersUnavailable says "USB helpers are unavailable. Use guided manual input."
+// in the language the app shows.
+func UsbHelpersUnavailable() string { return In(i18n.Locale()).UsbHelpersUnavailable() }
+
+// UsbHelpersUnavailable says "USB helpers are unavailable. Use guided manual input."
+// in the language of msgs.
+func (msgs Messages) UsbHelpersUnavailable() string {
+	return Catalog.Format(msgs.locale, "usbHelpersUnavailable", nil)
+}
+
+// UsbDeveloperHelpers says "Developer-staged USB helpers, not redistributable. Console input is not hardware-verified."
+// in the language the app shows.
+func UsbDeveloperHelpers() string { return In(i18n.Locale()).UsbDeveloperHelpers() }
+
+// UsbDeveloperHelpers says "Developer-staged USB helpers, not redistributable. Console input is not hardware-verified."
+// in the language of msgs.
+func (msgs Messages) UsbDeveloperHelpers() string {
+	return Catalog.Format(msgs.locale, "usbDeveloperHelpers", nil)
+}
+
+// UsbController says "Observed USB controller"
+// in the language the app shows.
+func UsbController() string { return In(i18n.Locale()).UsbController() }
+
+// UsbController says "Observed USB controller"
+// in the language of msgs.
+func (msgs Messages) UsbController() string {
+	return Catalog.Format(msgs.locale, "usbController", nil)
+}
+
+// UsbDiscoverControllers says "Run Check readiness to discover attached controllers. A USB-C port alone is not a gadget controller."
+// in the language the app shows.
+func UsbDiscoverControllers() string { return In(i18n.Locale()).UsbDiscoverControllers() }
+
+// UsbDiscoverControllers says "Run Check readiness to discover attached controllers. A USB-C port alone is not a gadget controller."
+// in the language of msgs.
+func (msgs Messages) UsbDiscoverControllers() string {
+	return Catalog.Format(msgs.locale, "usbDiscoverControllers", nil)
+}
+
+// UsbGap says "Release gap, 1–2000 ms"
+// in the language the app shows.
+func UsbGap() string { return In(i18n.Locale()).UsbGap() }
+
+// UsbGap says "Release gap, 1–2000 ms"
+// in the language of msgs.
+func (msgs Messages) UsbGap() string {
+	return Catalog.Format(msgs.locale, "usbGap", nil)
+}
+
+// UsbHold says "Key hold, 0–2000 ms"
+// in the language the app shows.
+func UsbHold() string { return In(i18n.Locale()).UsbHold() }
+
+// UsbHold says "Key hold, 0–2000 ms"
+// in the language of msgs.
+func (msgs Messages) UsbHold() string {
+	return Catalog.Format(msgs.locale, "usbHold", nil)
+}
+
+// UsbEnter says "Enter settle, 0–2000 ms"
+// in the language the app shows.
+func UsbEnter() string { return In(i18n.Locale()).UsbEnter() }
+
+// UsbEnter says "Enter settle, 0–2000 ms"
+// in the language of msgs.
+func (msgs Messages) UsbEnter() string {
+	return Catalog.Format(msgs.locale, "usbEnter", nil)
+}
+
+// UsbEnumeration says "Enumeration timeout, 1–120 seconds"
+// in the language the app shows.
+func UsbEnumeration() string { return In(i18n.Locale()).UsbEnumeration() }
+
+// UsbEnumeration says "Enumeration timeout, 1–120 seconds"
+// in the language of msgs.
+func (msgs Messages) UsbEnumeration() string {
+	return Catalog.Format(msgs.locale, "usbEnumeration", nil)
+}
+
+// UsbLoadWait says "LOAD wait, 0–120000 ms"
+// in the language the app shows.
+func UsbLoadWait() string { return In(i18n.Locale()).UsbLoadWait() }
+
+// UsbLoadWait says "LOAD wait, 0–120000 ms"
+// in the language of msgs.
+func (msgs Messages) UsbLoadWait() string {
+	return Catalog.Format(msgs.locale, "usbLoadWait", nil)
+}
+
+// UsbRunWait says "RUN wait, 0–120000 ms"
+// in the language the app shows.
+func UsbRunWait() string { return In(i18n.Locale()).UsbRunWait() }
+
+// UsbRunWait says "RUN wait, 0–120000 ms"
+// in the language of msgs.
+func (msgs Messages) UsbRunWait() string {
+	return Catalog.Format(msgs.locale, "usbRunWait", nil)
+}
+
+// UsbRemoveWait says "REMOVE wait, 0–120000 ms"
+// in the language the app shows.
+func UsbRemoveWait() string { return In(i18n.Locale()).UsbRemoveWait() }
+
+// UsbRemoveWait says "REMOVE wait, 0–120000 ms"
+// in the language of msgs.
+func (msgs Messages) UsbRemoveWait() string {
+	return Catalog.Format(msgs.locale, "usbRemoveWait", nil)
+}
+
+// UsbInvalidSettings says "Choose an observed controller and enter whole-number delays within the displayed bounds."
+// in the language the app shows.
+func UsbInvalidSettings() string { return In(i18n.Locale()).UsbInvalidSettings() }
+
+// UsbInvalidSettings says "Choose an observed controller and enter whole-number delays within the displayed bounds."
+// in the language of msgs.
+func (msgs Messages) UsbInvalidSettings() string {
+	return Catalog.Format(msgs.locale, "usbInvalidSettings", nil)
+}
+
+// UsbStockDefaults says "Restore stock timing"
+// in the language the app shows.
+func UsbStockDefaults() string { return In(i18n.Locale()).UsbStockDefaults() }
+
+// UsbStockDefaults says "Restore stock timing"
+// in the language of msgs.
+func (msgs Messages) UsbStockDefaults() string {
+	return Catalog.Format(msgs.locale, "usbStockDefaults", nil)
+}
+
+// UsbApplySettings says "Apply USB settings"
+// in the language the app shows.
+func UsbApplySettings() string { return In(i18n.Locale()).UsbApplySettings() }
+
+// UsbApplySettings says "Apply USB settings"
+// in the language of msgs.
+func (msgs Messages) UsbApplySettings() string {
+	return Catalog.Format(msgs.locale, "usbApplySettings", nil)
+}
+
+// UsbStartForwarding says "Start forwarding"
+// in the language the app shows.
+func UsbStartForwarding() string { return In(i18n.Locale()).UsbStartForwarding() }
+
+// UsbStartForwarding says "Start forwarding"
+// in the language of msgs.
+func (msgs Messages) UsbStartForwarding() string {
+	return Catalog.Format(msgs.locale, "usbStartForwarding", nil)
+}
+
+// UsbStopForwarding says "Stop forwarding and release keys"
+// in the language the app shows.
+func UsbStopForwarding() string { return In(i18n.Locale()).UsbStopForwarding() }
+
+// UsbStopForwarding says "Stop forwarding and release keys"
+// in the language of msgs.
+func (msgs Messages) UsbStopForwarding() string {
+	return Catalog.Format(msgs.locale, "usbStopForwarding", nil)
+}
+
+// UsbClosePanel says "Close keyboard panel"
+// in the language the app shows.
+func UsbClosePanel() string { return In(i18n.Locale()).UsbClosePanel() }
+
+// UsbClosePanel says "Close keyboard panel"
+// in the language of msgs.
+func (msgs Messages) UsbClosePanel() string {
+	return Catalog.Format(msgs.locale, "usbClosePanel", nil)
+}
+
+// UsbConfirmContinue says "Console is ready, continue"
+// in the language the app shows.
+func UsbConfirmContinue() string { return In(i18n.Locale()).UsbConfirmContinue() }
+
+// UsbConfirmContinue says "Console is ready, continue"
+// in the language of msgs.
+func (msgs Messages) UsbConfirmContinue() string {
+	return Catalog.Format(msgs.locale, "usbConfirmContinue", nil)
+}
+
+// UsbConfirmEditor says "Confirm SmileBASIC has an empty slot 0 editor focused before typing the bootstrap."
+// in the language the app shows.
+func UsbConfirmEditor() string { return In(i18n.Locale()).UsbConfirmEditor() }
+
+// UsbConfirmEditor says "Confirm SmileBASIC has an empty slot 0 editor focused before typing the bootstrap."
+// in the language of msgs.
+func (msgs Messages) UsbConfirmEditor() string {
+	return Catalog.Format(msgs.locale, "usbConfirmEditor", nil)
+}
+
+// UsbConfirmLoad says "Confirm SmileBASIC Direct mode is focused before sending LOAD."
+// in the language the app shows.
+func UsbConfirmLoad() string { return In(i18n.Locale()).UsbConfirmLoad() }
+
+// UsbConfirmLoad says "Confirm SmileBASIC Direct mode is focused before sending LOAD."
+// in the language of msgs.
+func (msgs Messages) UsbConfirmLoad() string {
+	return Catalog.Format(msgs.locale, "usbConfirmLoad", nil)
+}
+
+// UsbConfirmLoadPrompt says "Confirm the console shows the LOAD YES or LOADV OK prompt."
+// in the language the app shows.
+func UsbConfirmLoadPrompt() string { return In(i18n.Locale()).UsbConfirmLoadPrompt() }
+
+// UsbConfirmLoadPrompt says "Confirm the console shows the LOAD YES or LOADV OK prompt."
+// in the language of msgs.
+func (msgs Messages) UsbConfirmLoadPrompt() string {
+	return Catalog.Format(msgs.locale, "usbConfirmLoadPrompt", nil)
+}
+
+// UsbConfirmRun says "Confirm the matching bootstrap loaded into slot 0 and Direct mode is focused before RUN."
+// in the language the app shows.
+func UsbConfirmRun() string { return In(i18n.Locale()).UsbConfirmRun() }
+
+// UsbConfirmRun says "Confirm the matching bootstrap loaded into slot 0 and Direct mode is focused before RUN."
+// in the language of msgs.
+func (msgs Messages) UsbConfirmRun() string {
+	return Catalog.Format(msgs.locale, "usbConfirmRun", nil)
+}
+
+// UsbConfirmRemove says "Confirm RUN finished and Direct mode is focused before REMOVE. Never repeat REMOVE in the same game session."
+// in the language the app shows.
+func UsbConfirmRemove() string { return In(i18n.Locale()).UsbConfirmRemove() }
+
+// UsbConfirmRemove says "Confirm RUN finished and Direct mode is focused before REMOVE. Never repeat REMOVE in the same game session."
+// in the language of msgs.
+func (msgs Messages) UsbConfirmRemove() string {
+	return Catalog.Format(msgs.locale, "usbConfirmRemove", nil)
+}
+
+// UsbConfirmStart says "Inspect the expected REMOVE result and confirm Direct mode is focused before sending this session's START."
+// in the language the app shows.
+func UsbConfirmStart() string { return In(i18n.Locale()).UsbConfirmStart() }
+
+// UsbConfirmStart says "Inspect the expected REMOVE result and confirm Direct mode is focused before sending this session's START."
+// in the language of msgs.
+func (msgs Messages) UsbConfirmStart() string {
+	return Catalog.Format(msgs.locale, "usbConfirmStart", nil)
+}
+
+// UsbConfirmSave says "Confirm the complete, checked bootstrap is in slot 0 and Direct mode is focused before SAVE. Confirm any overwrite on…"
+// in the language the app shows.
+func UsbConfirmSave() string { return In(i18n.Locale()).UsbConfirmSave() }
+
+// UsbConfirmSave says "Confirm the complete, checked bootstrap is in slot 0 and Direct mode is focused before SAVE. Confirm any overwrite on…"
+// in the language of msgs.
+func (msgs Messages) UsbConfirmSave() string {
+	return Catalog.Format(msgs.locale, "usbConfirmSave", nil)
+}
+
 // DeveloperOptions says "Developer Options"
 // in the language the app shows.
 func DeveloperOptions() string { return In(i18n.Locale()).DeveloperOptions() }
@@ -750,11 +1094,11 @@ func (msgs Messages) SessionInProgress() string {
 	return Catalog.Format(msgs.locale, "sessionInProgress", nil)
 }
 
-// RestartConsole says "Restart the console before another attempt."
+// RestartConsole says "Inspect and clear any partial console input. Restart the console before another attempt. Do not blindly retry."
 // in the language the app shows.
 func RestartConsole() string { return In(i18n.Locale()).RestartConsole() }
 
-// RestartConsole says "Restart the console before another attempt."
+// RestartConsole says "Inspect and clear any partial console input. Restart the console before another attempt. Do not blindly retry."
 // in the language of msgs.
 func (msgs Messages) RestartConsole() string {
 	return Catalog.Format(msgs.locale, "restartConsole", nil)
@@ -778,6 +1122,16 @@ func Progress() string { return In(i18n.Locale()).Progress() }
 // in the language of msgs.
 func (msgs Messages) Progress() string {
 	return Catalog.Format(msgs.locale, "progress", nil)
+}
+
+// TypingRemaining says "Measured typing estimate: {seconds} seconds remaining"
+// in the language the app shows.
+func TypingRemaining(seconds string) string { return In(i18n.Locale()).TypingRemaining(seconds) }
+
+// TypingRemaining says "Measured typing estimate: {seconds} seconds remaining"
+// in the language of msgs.
+func (msgs Messages) TypingRemaining(seconds string) string {
+	return Catalog.Format(msgs.locale, "typingRemaining", map[string]any{"seconds": seconds})
 }
 
 // CommandRejected says "This action is not available in the current session state."

@@ -54,8 +54,10 @@ func usbChecks(o Observation) []session.Check {
 	checks = append(checks, controllers)
 	if o.ControllerError == nil {
 		for _, id := range o.Controllers {
-			checks = append(checks, check(id, id+": attached gadget controller, available but not verified.",
-				"Connect a USB-C data cable so the Mac receives power from the console; verify keyboard enumeration before sending input.", session.Available))
+			controller := check(id, id+": attached gadget controller, available but not verified.",
+				"Connect a USB-C data cable so the Mac receives power from the console; verify keyboard enumeration before sending input.", session.Available)
+			controller.Controller = id
+			checks = append(checks, controller)
 		}
 	}
 	return checks

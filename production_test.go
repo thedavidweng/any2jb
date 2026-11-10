@@ -22,11 +22,15 @@ func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
 	if _, ok := env.Host.(*engine.HostRunner); !ok {
 		t.Fatal("production did not use the real host runner")
 	}
-	if _, ok := env.Input.(*transport.Manual); !ok {
-		t.Fatal("production did not compose the guided manual adapter")
+	inputs, ok := env.Input.(*transport.Dispatcher)
+	if !ok || inputs.Manual() == nil || inputs.Darwin() == nil {
+		t.Fatal("production did not compose both input adapters")
 	}
 	if err := a.initializeSession(env); err != nil {
 		t.Fatal(err)
+	}
+	if a.manual != inputs.Manual() || a.keyboard.input != inputs.Darwin() {
+		t.Fatal("native panels lost access to the composed adapters")
 	}
 	checks, err := env.Platform.Inspect(context.Background(), session.Run{Profile: a.controller.Snapshot().Profile})
 	if err != nil {
