@@ -256,6 +256,7 @@ type CredentialStore interface {
 type PlatformServices interface {
 	Inspect(context.Context, Run) ([]Check, error)
 	ExportDiagnostics(context.Context, Snapshot) (string, error)
+	ReleaseInterrupted(context.Context) error
 	Credentials() CredentialStore
 }
 type ToolRunner interface {

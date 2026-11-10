@@ -32,6 +32,206 @@ type Messages struct{ locale string }
 // source language.
 func In(locale string) Messages { return Messages{locale} }
 
+// Diagnostics says "Diagnostics"
+// in the language the app shows.
+func Diagnostics() string { return In(i18n.Locale()).Diagnostics() }
+
+// Diagnostics says "Diagnostics"
+// in the language of msgs.
+func (msgs Messages) Diagnostics() string {
+	return Catalog.Format(msgs.locale, "diagnostics", nil)
+}
+
+// DiagnosticsPrivacy says "Logs are redacted for viewing. Session folders contain private data; share only an exported support bundle. Bundles i…"
+// in the language the app shows.
+func DiagnosticsPrivacy() string { return In(i18n.Locale()).DiagnosticsPrivacy() }
+
+// DiagnosticsPrivacy says "Logs are redacted for viewing. Session folders contain private data; share only an exported support bundle. Bundles i…"
+// in the language of msgs.
+func (msgs Messages) DiagnosticsPrivacy() string {
+	return Catalog.Format(msgs.locale, "diagnosticsPrivacy", nil)
+}
+
+// LogHost says "Host"
+// in the language the app shows.
+func LogHost() string { return In(i18n.Locale()).LogHost() }
+
+// LogHost says "Host"
+// in the language of msgs.
+func (msgs Messages) LogHost() string {
+	return Catalog.Format(msgs.locale, "logHost", nil)
+}
+
+// LogAll says "All sources"
+// in the language the app shows.
+func LogAll() string { return In(i18n.Locale()).LogAll() }
+
+// LogAll says "All sources"
+// in the language of msgs.
+func (msgs Messages) LogAll() string {
+	return Catalog.Format(msgs.locale, "logAll", nil)
+}
+
+// LogUSB says "USB and typing"
+// in the language the app shows.
+func LogUSB() string { return In(i18n.Locale()).LogUSB() }
+
+// LogUSB says "USB and typing"
+// in the language of msgs.
+func (msgs Messages) LogUSB() string {
+	return Catalog.Format(msgs.locale, "logUSB", nil)
+}
+
+// LogPipeline says "Pipeline"
+// in the language the app shows.
+func LogPipeline() string { return In(i18n.Locale()).LogPipeline() }
+
+// LogPipeline says "Pipeline"
+// in the language of msgs.
+func (msgs Messages) LogPipeline() string {
+	return Catalog.Format(msgs.locale, "logPipeline", nil)
+}
+
+// LogAcquisition says "Acquisition"
+// in the language the app shows.
+func LogAcquisition() string { return In(i18n.Locale()).LogAcquisition() }
+
+// LogAcquisition says "Acquisition"
+// in the language of msgs.
+func (msgs Messages) LogAcquisition() string {
+	return Catalog.Format(msgs.locale, "logAcquisition", nil)
+}
+
+// FollowLogs says "Follow logs"
+// in the language the app shows.
+func FollowLogs() string { return In(i18n.Locale()).FollowLogs() }
+
+// FollowLogs says "Follow logs"
+// in the language of msgs.
+func (msgs Messages) FollowLogs() string {
+	return Catalog.Format(msgs.locale, "followLogs", nil)
+}
+
+// NoLogOutput says "No output from this source in this run."
+// in the language the app shows.
+func NoLogOutput() string { return In(i18n.Locale()).NoLogOutput() }
+
+// NoLogOutput says "No output from this source in this run."
+// in the language of msgs.
+func (msgs Messages) NoLogOutput() string {
+	return Catalog.Format(msgs.locale, "noLogOutput", nil)
+}
+
+// OpenSessionFolder says "Open session folder"
+// in the language the app shows.
+func OpenSessionFolder() string { return In(i18n.Locale()).OpenSessionFolder() }
+
+// OpenSessionFolder says "Open session folder"
+// in the language of msgs.
+func (msgs Messages) OpenSessionFolder() string {
+	return Catalog.Format(msgs.locale, "openSessionFolder", nil)
+}
+
+// ExportSupportBundle says "Export redacted support bundle"
+// in the language the app shows.
+func ExportSupportBundle() string { return In(i18n.Locale()).ExportSupportBundle() }
+
+// ExportSupportBundle says "Export redacted support bundle"
+// in the language of msgs.
+func (msgs Messages) ExportSupportBundle() string {
+	return Catalog.Format(msgs.locale, "exportSupportBundle", nil)
+}
+
+// LocalDataFolders says "Local data: {support}/runs (private temporary sessions), past-runs (ended sessions), diagnostics (redacted logs), sup…"
+// in the language the app shows.
+func LocalDataFolders(support string) string { return In(i18n.Locale()).LocalDataFolders(support) }
+
+// LocalDataFolders says "Local data: {support}/runs (private temporary sessions), past-runs (ended sessions), diagnostics (redacted logs), sup…"
+// in the language of msgs.
+func (msgs Messages) LocalDataFolders(support string) string {
+	return Catalog.Format(msgs.locale, "localDataFolders", map[string]any{"support": support})
+}
+
+// SupportBundleSaved says "Support bundle saved to {path}"
+// in the language the app shows.
+func SupportBundleSaved(path string) string { return In(i18n.Locale()).SupportBundleSaved(path) }
+
+// SupportBundleSaved says "Support bundle saved to {path}"
+// in the language of msgs.
+func (msgs Messages) SupportBundleSaved(path string) string {
+	return Catalog.Format(msgs.locale, "supportBundleSaved", map[string]any{"path": path})
+}
+
+// OpenBundleFolder says "Open bundle folder"
+// in the language the app shows.
+func OpenBundleFolder() string { return In(i18n.Locale()).OpenBundleFolder() }
+
+// OpenBundleFolder says "Open bundle folder"
+// in the language of msgs.
+func (msgs Messages) OpenBundleFolder() string {
+	return Catalog.Format(msgs.locale, "openBundleFolder", nil)
+}
+
+// PreviewCleanup says "Preview cleanup"
+// in the language the app shows.
+func PreviewCleanup() string { return In(i18n.Locale()).PreviewCleanup() }
+
+// PreviewCleanup says "Preview cleanup"
+// in the language of msgs.
+func (msgs Messages) PreviewCleanup() string {
+	return Catalog.Format(msgs.locale, "previewCleanup", nil)
+}
+
+// CleanupScope says "Delete only the listed temporary logs and pairing/result metadata from inactive sessions. Backups, save exports, dump…"
+// in the language the app shows.
+func CleanupScope() string { return In(i18n.Locale()).CleanupScope() }
+
+// CleanupScope says "Delete only the listed temporary logs and pairing/result metadata from inactive sessions. Backups, save exports, dump…"
+// in the language of msgs.
+func (msgs Messages) CleanupScope() string {
+	return Catalog.Format(msgs.locale, "cleanupScope", nil)
+}
+
+// NothingToClean says "No safe temporary files to delete."
+// in the language the app shows.
+func NothingToClean() string { return In(i18n.Locale()).NothingToClean() }
+
+// NothingToClean says "No safe temporary files to delete."
+// in the language of msgs.
+func (msgs Messages) NothingToClean() string {
+	return Catalog.Format(msgs.locale, "nothingToClean", nil)
+}
+
+// DeleteTemporaryFiles says "Delete listed temporary files"
+// in the language the app shows.
+func DeleteTemporaryFiles() string { return In(i18n.Locale()).DeleteTemporaryFiles() }
+
+// DeleteTemporaryFiles says "Delete listed temporary files"
+// in the language of msgs.
+func (msgs Messages) DeleteTemporaryFiles() string {
+	return Catalog.Format(msgs.locale, "deleteTemporaryFiles", nil)
+}
+
+// KeepFiles says "Keep files"
+// in the language the app shows.
+func KeepFiles() string { return In(i18n.Locale()).KeepFiles() }
+
+// KeepFiles says "Keep files"
+// in the language of msgs.
+func (msgs Messages) KeepFiles() string {
+	return Catalog.Format(msgs.locale, "keepFiles", nil)
+}
+
+// DiagnosticsFailed says "Diagnostics action could not be completed. Cleanup requires no session lease; a live or unknown owner cannot be clear…"
+// in the language the app shows.
+func DiagnosticsFailed() string { return In(i18n.Locale()).DiagnosticsFailed() }
+
+// DiagnosticsFailed says "Diagnostics action could not be completed. Cleanup requires no session lease; a live or unknown owner cannot be clear…"
+// in the language of msgs.
+func (msgs Messages) DiagnosticsFailed() string {
+	return Catalog.Format(msgs.locale, "diagnosticsFailed", nil)
+}
+
 // AppName says "any2jb"
 // in the language the app shows.
 //

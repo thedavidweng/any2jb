@@ -14,6 +14,10 @@ test('killing the owner closes bridge stdin and removes its owned lease/workspac
   const source = path.join(staged, 'profile/engine/lib');
   fs.mkdirSync(source, {recursive: true});
   fs.mkdirSync(workspace, {recursive: true, mode: 0o700});
+  for (const name of ['backups', 'savekit-exports', 'verified-exports', 'dumps']) {
+    fs.mkdirSync(path.join(workspace, name));
+    fs.writeFileSync(path.join(workspace, name, 'retained.bin'), 'retained private data');
+  }
   fs.writeFileSync(path.join(root, 'session.lock'), 'orphan-run', {mode: 0o600});
   const profile = {id: 'fixture', revision: 'pinned', sourceSha256: 'fixture', sourceDirectory: 'profile',
     startArgumentCount: 5, startPort: 39380};
@@ -53,6 +57,11 @@ test('killing the owner closes bridge stdin and removes its owned lease/workspac
     await closed;
     assert.equal(fs.existsSync(workspace), false);
     assert.equal(fs.existsSync(path.join(root, 'session.lock')), false);
+    assert.equal(fs.readFileSync(path.join(root, 'session-interrupted'), 'utf8'), 'orphan-run');
+    for (const name of ['backups', 'savekit-exports', 'verified-exports', 'dumps']) {
+      assert.equal(fs.readFileSync(path.join(root, 'past-runs', 'run-orphan', name, 'retained.bin'), 'utf8'),
+        'retained private data');
+    }
     assert.throws(() => process.kill(pid, 0), {code: 'ESRCH'});
   } finally {
     parent.kill('SIGKILL');
