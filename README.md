@@ -43,6 +43,8 @@ and [release blockers](docs/parity-ledger.md#redistribution-release-blockers).
 Do not bypass the build command for release packages.
 See [runtime staging](docs/runtime-staging.md) for the engine adapter boundary
 and remaining payload blockers.
+See [packaging and updates](docs/releases.md) for reproducible arm64 builds,
+the hardware-free packaged `--self-test`, signing status and update release gates.
 
 Run Go tests and the hardware-free upstream regression harness together with
 `go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb`.

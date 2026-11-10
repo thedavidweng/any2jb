@@ -54,6 +54,12 @@ func (a *app) view(c *ui.Context) {
 }
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "--self-test" {
+		if err := packagedSelfTest(); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		log.Fatal(err)
