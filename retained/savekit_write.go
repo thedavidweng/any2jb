@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"slices"
@@ -71,6 +72,14 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 	}
 	if req.Action == "verify" {
 		return m.compareLiveSave(ctx, client, workspace, req, report)
+	}
+	if req.Action == "write" || req.Action == "restore" {
+		folder, err := stageSaveSource(workspace, req)
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(folder)
+		req.SourceFolder = folder
 	}
 	// The preview the user confirmed must match the source exactly as it is
 	// now; for a restore the verified backup's identity is the target proof.
@@ -145,6 +154,59 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 	m.recordWrite(SaveKitWrite{Action: req.Action, Verified: true,
 		Files: result.Files, Replaced: result.Replaced, Backup: backup})
 	return nil
+}
+
+// stageSaveSource freezes only the previewed files before the live backup.
+// Copy lengths are bounded by the validated preview, then the private copy is
+// independently hashed and compared with the user's confirmed digest.
+func stageSaveSource(workspace string, req *savekit.Request) (folder string, err error) {
+	preview, err := previewFor(req)
+	if err != nil {
+		return "", err
+	}
+	root, err := os.OpenRoot(req.SourceFolder)
+	if err != nil {
+		return "", err
+	}
+	defer root.Close()
+	folder, err = os.MkdirTemp(workspace, "savekit-source-")
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		if err != nil {
+			os.RemoveAll(folder)
+		}
+	}()
+	files := slices.Clone(preview.Files)
+	if req.Action == "restore" {
+		// The manifest is re-verified together with the staged restore files.
+		files = append(files, savekit.ExportFile{Path: "/manifest.json", Size: 1 << 20})
+	}
+	for _, file := range files {
+		name := filepath.FromSlash(file.Path[1:])
+		if err = os.MkdirAll(filepath.Join(folder, filepath.Dir(name)), 0700); err != nil {
+			return folder, err
+		}
+		input, openErr := root.Open(name)
+		if openErr != nil {
+			return folder, openErr
+		}
+		output, openErr := os.OpenFile(filepath.Join(folder, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if openErr != nil {
+			input.Close()
+			return folder, openErr
+		}
+		written, copyErr := io.Copy(output, io.LimitReader(input, file.Size+1))
+		err = errors.Join(copyErr, input.Close(), output.Close())
+		if err != nil {
+			return folder, err
+		}
+		if written > file.Size {
+			return folder, errors.New("the source changed since its preview; preview it again before confirming")
+		}
+	}
+	return folder, nil
 }
 
 // compareLiveSave checks the live save against a verified export. It is

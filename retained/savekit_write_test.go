@@ -235,6 +235,33 @@ func TestSaveKitWriteRefusesAnUnpreviewedSource(t *testing.T) {
 	}
 }
 
+func TestSaveKitWritesConfirmedSnapshotWhenSourceChangesDuringBackup(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := savekitManager(t, support, runner, "ok", "savekit")
+	source, preview := writeSourceFolder(t, map[string]string{"extra.bin": "confirmed\n"})
+	changed := false
+	err := m.RunWith(context.Background(), run, writeRequest(t, source, preview, false), func(p session.Progress) {
+		if p.SideEffect && !changed {
+			changed = true
+			if err := os.WriteFile(filepath.Join(source, "extra.bin"), []byte("unconfirmed\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
+	if err != nil {
+		t.Fatalf("the confirmed source was not isolated before backup: %v", err)
+	}
+	if !changed || !m.State().SaveKit.Write.Verified {
+		t.Fatal("fixture did not change the external source during the verified write")
+	}
+	expected := exportFolder(t, map[string]string{"savegame.bin": "save data\n", "extra.bin": "confirmed\n"})
+	err = m.RunWith(context.Background(), run, session.ToolRequest{Tool: "savekit", SaveKit: &savekit.Request{
+		Action: "verify", TitleID: writeTitle, UID: writeUID, ExpectedFolder: expected}}, func(session.Progress) {})
+	if err != nil {
+		t.Fatalf("unconfirmed bytes reached the live save: %v", err)
+	}
+}
+
 func TestSaveKitWriteRequiresReplacementConsent(t *testing.T) {
 	log := fixtureLog(t)
 	runner, run, support := heldSession(t)
