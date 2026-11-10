@@ -14,7 +14,11 @@ import (
 type Keyboard struct{ p *helperProcess }
 
 func (d *Darwin) OpenKeyboard(ctx context.Context, run session.Run, report session.Report) (*Keyboard, error) {
-	p, err := d.start(ctx, run)
+	return d.openKeyboard(ctx, run, report, "")
+}
+
+func (d *Darwin) openKeyboard(ctx context.Context, run session.Run, report session.Report, workspace string) (*Keyboard, error) {
+	p, err := d.start(ctx, run, workspace)
 	if err != nil {
 		return nil, err
 	}
@@ -28,6 +32,11 @@ func (d *Darwin) OpenKeyboard(ctx context.Context, run session.Run, report sessi
 	d.mu.Lock()
 	d.enumerated = controller
 	d.mu.Unlock()
+	if err := p.audit.event("enumeration_ready", "controller="+controller); err != nil {
+		cleanup, cancel := context.WithTimeout(context.Background(), 3e9)
+		defer cancel()
+		return nil, errors.Join(err, p.close(cleanup))
+	}
 	report(session.Progress{KeyboardController: controller, Processes: []session.Process{{PID: p.cmd.Process.Pid, Name: "keyboard"}}})
 	return &Keyboard{p}, nil
 }
@@ -59,6 +68,9 @@ func (p *helperProcess) write(ctx context.Context, report [8]byte) error {
 		return fmt.Errorf("invalid keyboard acknowledgement")
 	}
 	p.count++
+	if p.count == 1 || p.count%64 == 0 {
+		return p.audit.event("reports_delivered", "count="+strconv.Itoa(p.count))
+	}
 	return nil
 }
 

@@ -6,20 +6,20 @@ import (
 	"strconv"
 )
 
-// Timing preserves the upstream stock values. Interval is a USB descriptor
-// exponent, not milliseconds. No invalid preference is silently replaced.
+// Timing preserves upstream stroke and command waits. The native keyboard's
+// descriptor interval remains its fixed stock value of 10.
 type Timing struct {
-	GapMS, HoldMS, EnterMS, Interval, EnumerationSeconds int
-	LoadMS, RunMS, RemoveMS                              int
+	GapMS, HoldMS, EnterMS, EnumerationSeconds int
+	LoadMS, RunMS, RemoveMS                    int
 }
 
 func DefaultTiming() Timing {
-	return Timing{GapMS: 10, Interval: 10, EnumerationSeconds: 4, LoadMS: 1000}
+	return Timing{GapMS: 10, EnumerationSeconds: 4, LoadMS: 1000}
 }
 
 func (t Timing) Validate() error {
 	if t.GapMS < 1 || t.GapMS > 2000 || t.HoldMS < 0 || t.HoldMS > 2000 ||
-		t.EnterMS < 0 || t.EnterMS > 2000 || t.Interval < 1 || t.Interval > 16 ||
+		t.EnterMS < 0 || t.EnterMS > 2000 ||
 		t.EnumerationSeconds < 1 || t.EnumerationSeconds > 120 ||
 		t.LoadMS < 0 || t.LoadMS > 120000 || t.RunMS < 0 || t.RunMS > 120000 ||
 		t.RemoveMS < 0 || t.RemoveMS > 120000 {
@@ -36,10 +36,7 @@ func (d *Darwin) environment() ([]string, error) {
 	if err := ValidateController(c); err != nil {
 		return nil, err
 	}
-	return []string{"MAC2JB_CONTROLLER=" + c, "MAC2JB_AUTO_WORKER=1",
-		"MAC2JB_KEY_HOLD_MS=" + strconv.Itoa(t.HoldMS),
-		"MAC2JB_ENTER_SETTLE_MS=" + strconv.Itoa(t.EnterMS),
-		"MAC2JB_POLL_INTERVAL=" + strconv.Itoa(t.Interval),
+	return []string{"MAC2JB_CONTROLLER=" + c,
 		"MAC2JB_ENUMERATION_TIMEOUT_SECONDS=" + strconv.Itoa(t.EnumerationSeconds)}, nil
 }
 

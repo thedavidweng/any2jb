@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-func keyboardPrerequisites(checks []Check, selected string) error {
+func KeyboardPrerequisites(checks []Check, selected string) error {
 	observed := slices.ContainsFunc(checks, func(check Check) bool {
 		return check.ID == selected && check.GatesTransport == "usb-hid" && check.State != RequiresAttention
 	})
@@ -29,7 +29,7 @@ func (c *SessionController) inspectKeyboard(ctx context.Context, run Run, input 
 	c.mu.Lock()
 	c.s.Checks = slices.Clone(checks)
 	c.mu.Unlock()
-	return keyboardPrerequisites(checks, input.SelectedKeyboardController())
+	return KeyboardPrerequisites(checks, input.SelectedKeyboardController())
 }
 
 // ObserveKeyboardEnumeration promotes only an explicitly selected, currently

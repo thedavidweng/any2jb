@@ -21,6 +21,7 @@ import (
 
 func TestUSBConsoleGateWaitsForExplicitAcknowledgement(t *testing.T) {
 	a := &app{}
+	a.controller = session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "fixture", Revision: "pinned"})
 	done := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -55,7 +56,7 @@ func TestUSBConsoleGateWaitsForExplicitAcknowledgement(t *testing.T) {
 }
 
 func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
-	for _, stop := range []string{"focus", "window-close"} {
+	for _, stop := range []string{"focus", "window-close", "panel-hidden"} {
 		t.Run(stop, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "reports")
 			d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}, func(string, ...string) *exec.Cmd {
@@ -93,7 +94,10 @@ func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
 			tt.CodeDown(ui.Shift, ui.CodeShiftLeft)
 			tt.CodeDown(ui.Shift, ui.CodeKeyA)
 			waitKeyboardUI(t, tt, func() bool { return c.Snapshot().Current >= 2 })
-			if stop == "focus" {
+			if stop == "panel-hidden" {
+				a.keyboard.open = false
+				tt.Frame()
+			} else if stop == "focus" {
 				tt.SetFocused(false)
 				tt.Frame()
 			} else {

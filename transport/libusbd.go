@@ -48,6 +48,7 @@ type Darwin struct {
 	controller string
 	timing     Timing
 	enumerated string
+	workspaces map[string]string
 }
 
 func NewDarwin(options DarwinOptions) *Darwin {
@@ -152,12 +153,12 @@ func (d *Darwin) Release(ctx context.Context, run session.Run) error {
 	p := d.active
 	d.mu.Unlock()
 	if p == nil {
-		return nil
+		return d.releaseWorkspace(run)
 	}
 	if p.run.ID != run.ID {
 		return errors.New("run does not own USB keyboard")
 	}
-	return p.close(ctx)
+	return errors.Join(p.close(ctx), d.releaseWorkspace(run))
 }
 
 var _ InputTransport = (*Darwin)(nil)

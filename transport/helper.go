@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -27,10 +28,11 @@ type helperProcess struct {
 	closed   bool
 	closeErr error
 	released bool
-	lease    string
+	lease    *os.File
+	audit    *usbAudit
 }
 
-func (d *Darwin) start(ctx context.Context, run session.Run) (*helperProcess, error) {
+func (d *Darwin) start(ctx context.Context, run session.Run, workspace string) (*helperProcess, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.active != nil {
@@ -69,9 +71,19 @@ func (d *Darwin) start(ctx context.Context, run session.Run) (*helperProcess, er
 		return nil, err
 	}
 	started := false
+	audit, err := d.audit(run, workspace)
+	if err != nil {
+		if lease != nil {
+			lease.Close()
+		}
+		return nil, err
+	}
 	defer func() {
-		if !started && lease != "" {
-			os.Remove(lease)
+		if !started && lease != nil {
+			lease.Close()
+		}
+		if !started && audit != nil {
+			audit.file.Close()
 		}
 	}()
 	input, err := cmd.StdinPipe()
@@ -84,7 +96,7 @@ func (d *Darwin) start(ctx context.Context, run session.Run) (*helperProcess, er
 		return nil, err
 	}
 	cmd.Stderr = io.Discard // never expose text/pairing material
-	p := &helperProcess{owner: d, run: run, cmd: cmd, input: input, lines: make(chan string, 32), done: make(chan struct{}), lease: lease}
+	p := &helperProcess{owner: d, run: run, cmd: cmd, input: input, lines: make(chan string, 32), done: make(chan struct{}), lease: lease, audit: audit}
 	if err := cmd.Start(); err != nil {
 		input.Close()
 		output.Close()
@@ -195,6 +207,11 @@ func (p *helperProcess) close(ctx context.Context) error {
 	if p.err != nil {
 		err = errors.Join(err, errors.New("keyboard helper exited with an error"))
 	}
+	status := "neutral_release_confirmed"
+	if !p.released {
+		status = "neutral_release_unconfirmed"
+	}
+	err = errors.Join(err, p.audit.event(status, "delivered_reports="+strconv.Itoa(p.count)), p.audit.close())
 	// The leader may have exited with children still in its owned group.
 	terminateHelper(p.cmd, true)
 	err = errors.Join(err, p.releaseLease())

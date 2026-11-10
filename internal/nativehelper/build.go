@@ -2,11 +2,14 @@
 package nativehelper
 
 import (
+	"archive/tar"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -46,10 +49,53 @@ func Build(ctx context.Context, out io.Writer, root, stage string, m *manifest.M
 			return err
 		}
 	}
-	// Compile in a disposable copy. Never modify the pinned reference checkout.
+	// Copy only pinned commit files. Untracked headers must not shadow SDK
+	// includes, and generated artifacts from the reference are not build inputs.
 	lib := filepath.Join(stage, "vendor", "libusbd")
-	if err := os.CopyFS(lib, os.DirFS(filepath.Join(root, "vendor", "libusbd"))); err != nil {
-		return err
+	archive, err := exec.CommandContext(ctx, "git", "-C", root, "archive", "--format=tar", reference.Revision, "vendor/libusbd").Output()
+	if err != nil {
+		return errors.New("could not read pinned libusbd inventory")
+	}
+	reader := tar.NewReader(bytes.NewReader(archive))
+	for {
+		entry, err := reader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if entry.Typeflag == tar.TypeXGlobalHeader {
+			continue
+		}
+		name := strings.TrimSuffix(entry.Name, "/")
+		if name == "vendor" && entry.Typeflag == tar.TypeDir {
+			continue
+		}
+		if !fs.ValidPath(name) || (name != "vendor/libusbd" && !strings.HasPrefix(name, "vendor/libusbd/")) {
+			return errors.New("invalid libusbd inventory path")
+		}
+		dest := filepath.Join(stage, filepath.FromSlash(name))
+		if entry.Typeflag == tar.TypeDir {
+			if err := os.MkdirAll(dest, 0700); err != nil {
+				return err
+			}
+			continue
+		}
+		if entry.Typeflag != tar.TypeReg {
+			return errors.New("libusbd inventory contains a non-regular source")
+		}
+		if err := os.MkdirAll(filepath.Dir(dest), 0700); err != nil {
+			return err
+		}
+		file, err := os.OpenFile(dest, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+		_, copyErr := io.Copy(file, reader)
+		if err := errors.Join(copyErr, file.Close()); err != nil {
+			return err
+		}
 	}
 	if err := command(ctx, out, lib, "make", "-B"); err != nil {
 		return fmt.Errorf("libusbd build: %w", err)

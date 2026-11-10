@@ -35,9 +35,14 @@ type app struct {
 }
 
 func (a *app) view(c *ui.Context) {
+	if a.controller != nil {
+		a.keyboard.observe(a.controller.Snapshot())
+	}
+	if a.keyboard.forwarding && (!a.keyboard.open || a.driverPanel.open || a.civSwitchPanel.open) {
+		a.stopKeyboard()
+	}
 	ui.Scroll(c).Fill().Children(func() {
 		ui.Column(c).FillWidth().Gap(16).Padding(24).Children(func() {
-			a.usbConfirmation.view(c)
 			ui.Text(c, locales.AppName()).FontSize(28).Bold()
 			ui.Text(c, locales.AppDescription()).TextColor(c.Theme().TextMuted)
 			if a.driverPanel.open {
@@ -97,7 +102,6 @@ func main() {
 		log.Fatal(err)
 	}
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
-	a.keyboard.input = transport.NewDarwin(transport.DarwinOptions{Runtime: options, Timing: transport.DefaultTiming(), Confirm: a.usbConfirmation.Wait})
 	a.driverPanel.gate = productionDriverGate(options)
 	mygo.App.WhenReady(func() {
 		win := mygo.NewWindow(mygo.WindowOptions{
@@ -115,8 +119,13 @@ func main() {
 		win.OnBlur(a.stopKeyboard)
 		closed := make(chan struct{})
 		win.OnClosed(func() { a.stopKeyboard(); close(closed) })
+		inputOptions := transport.DarwinOptions{Timing: transport.DefaultTiming(), Confirm: a.usbConfirmation.Wait}
+		if a.preferences.USB != nil {
+			inputOptions.Controller = a.preferences.USB.Controller
+			inputOptions.Timing = a.preferences.USB.Timing
+		}
 		go func() {
-			env := productionEnvironment(options)
+			env := productionEnvironmentWithInput(options, inputOptions)
 			store := diagnostics.Store{Support: support}
 			interrupted, recoveryErr := store.Interrupted()
 			win.Update(func() {

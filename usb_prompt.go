@@ -12,14 +12,15 @@ import (
 )
 
 type usbPrompt struct {
-	mu       sync.Mutex
-	step     transport.ConsoleStep
-	sequence uint64
-	pending  chan struct{}
-	notify   func()
+	mu               sync.Mutex
+	step             transport.ConsoleStep
+	sequence         uint64
+	pending          chan struct{}
+	notify           func()
+	profile, edition string
 }
 
-func (p *usbPrompt) Wait(ctx context.Context, _ session.Run, step transport.ConsoleStep) error {
+func (p *usbPrompt) Wait(ctx context.Context, run session.Run, step transport.ConsoleStep) error {
 	if consolePrompt(step) == "" {
 		return errors.New("unsupported USB console confirmation")
 	}
@@ -31,6 +32,7 @@ func (p *usbPrompt) Wait(ctx context.Context, _ session.Run, step transport.Cons
 	done := make(chan struct{})
 	p.pending = done
 	p.step = step
+	p.profile, p.edition = run.Profile.ID, run.Edition
 	p.sequence++
 	notify := p.notify
 	p.mu.Unlock()
@@ -60,11 +62,12 @@ func (p *usbPrompt) view(c *ui.Context) {
 	p.mu.Lock()
 	p.notify = c.Services().Invalidate
 	step, id, pending := p.step, p.sequence, p.pending
+	profile, edition := p.profile, p.edition
 	p.mu.Unlock()
 	if pending == nil {
 		return
 	}
-	ui.Text(c, consolePrompt(step)).Bold()
+	consoleStepView(c, locales.UsbProfile(profile, edition), consolePrompt(step))
 	if ui.PrimaryButton(c.Key("usb-confirm-console"), locales.UsbConfirmContinue()).Clicked() {
 		p.mu.Lock()
 		if p.pending == pending && p.sequence == id {

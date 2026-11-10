@@ -32,7 +32,7 @@ func TestLaunchWaitsForObservedLoadPromptAndPreservesCommandOrder(t *testing.T) 
 		return nil
 	}
 	d := transport.NewHelperDarwin(options, helperFactory(t, path))
-	run := session.Run{ID: "launch", Edition: "full", Profile: session.Profile{SaveName: "NS2"}}
+	run := session.Run{ID: "launch", Edition: "full", LANIPv4: "192.0.2.1", Profile: session.Profile{SaveName: "NS2", StartArgumentCount: 5, StartPort: 39380}}
 	host := session.PreparedHost{Listening: true, PairingValid: true, Opaque: engine.PairingDetails{RunID: "launch", Command: "V=START(39380,192,0,2,1)"}}
 	var completed []int
 	err := d.Send(context.Background(), run, session.Launch, host, func(p session.Progress) {

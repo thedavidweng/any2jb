@@ -324,10 +324,20 @@ func (c *SessionController) SaveBootstrap(confirmed bool) (Snapshot, error) {
 		if !c.s.SaveSubmitted {
 			return c.reject(InvalidState)
 		}
-		c.s.BootstrapSaved = true
-		c.s.SideEffects = false
-		c.transition(Ready)
-		return c.snapshot(), nil
+		return c.begin(BootstrapSetup, false, func(ctx context.Context, run Run) error {
+			if err := c.cleanup(ctx, run); err != nil {
+				return err
+			}
+			c.mu.Lock()
+			defer c.mu.Unlock()
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			c.s.BootstrapSaved = true
+			c.s.SideEffects = false
+			c.transition(Ready)
+			return nil
+		}), nil
 	}
 	if c.s.SaveSubmitted {
 		return c.reject(InvalidState)

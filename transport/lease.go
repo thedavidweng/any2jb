@@ -8,42 +8,54 @@ import (
 	"github.com/thedavidweng/any2jb/session"
 )
 
-func (d *Darwin) claim(run session.Run) (string, error) {
+func (d *Darwin) claim(run session.Run) (*os.File, error) {
 	support := d.options.Runtime.Support
-	// Process fixtures may omit disk ownership; production authorization requires
-	// an explicit app-support root.
 	if d.trusted && support == "" {
-		return "", nil
+		return nil, nil
 	}
 	if !filepath.IsAbs(support) {
-		return "", errors.New("USB input requires an absolute app-support path")
+		return nil, errors.New("USB input requires an absolute app-support path")
 	}
 	controller, _ := d.settings()
-	name := filepath.Join(support, "usb-hid-"+controller+".lock")
-	f, err := os.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	root, err := os.OpenRoot(support)
 	if err != nil {
-		return "", errors.New("USB controller lease unavailable; close its owner or inspect the stale lease before retrying")
+		return nil, err
 	}
-	_, writeErr := f.WriteString(run.ID)
-	err = errors.Join(writeErr, f.Close())
+	defer root.Close()
+	name := "usb-hid-" + controller + ".lock"
+	if info, err := root.Lstat(name); err == nil && !info.Mode().IsRegular() {
+		return nil, errors.New("USB controller lease is not a regular file")
+	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+	file, err := root.OpenFile(name, os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
-		os.Remove(name)
-		return "", err
+		return nil, err
 	}
-	return name, nil
+	if info, err := file.Stat(); err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 {
+		file.Close()
+		return nil, errors.New("USB controller lease is not private")
+	}
+	if err := lockHelperLease(file); err != nil {
+		file.Close()
+		return nil, errors.New("USB controller is owned by another input operation")
+	}
+	if err := file.Truncate(0); err != nil {
+		file.Close()
+		return nil, err
+	}
+	if _, err := file.WriteString(run.ID); err != nil {
+		file.Close()
+		return nil, err
+	}
+	return file, nil
 }
 
 func (p *helperProcess) releaseLease() error {
-	if p.lease == "" {
+	if p.lease == nil {
 		return nil
 	}
-	info, err := os.Lstat(p.lease)
-	if err != nil || !info.Mode().IsRegular() {
-		return errors.New("USB controller lease changed")
-	}
-	owner, err := os.ReadFile(p.lease)
-	if err != nil || string(owner) != p.run.ID {
-		return errors.New("USB controller lease ownership changed")
-	}
-	return os.Remove(p.lease)
+	// Keep the inode stable. Removing it could let a concurrent opener lock a
+	// different inode. The OS releases this advisory lease on owner death.
+	return p.lease.Close()
 }

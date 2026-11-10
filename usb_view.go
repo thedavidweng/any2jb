@@ -24,6 +24,7 @@ type keyboardPanel struct {
 	forwarding, closing, focused, focusRequested                 bool
 	focus                                                        ui.Handle
 	report                                                       [8]byte
+	runID                                                        string
 	applied                                                      [8]string
 	checkedProfile, checkedEdition                               string
 }
@@ -47,6 +48,17 @@ func (p *keyboardPanel) values() [8]string {
 	return [8]string{p.controller, p.gap, p.hold, p.enter, p.enumeration, p.load, p.run, p.remove}
 }
 
+func (p *keyboardPanel) observe(s session.Snapshot) {
+	if p.forwarding && (!s.Busy || p.runID != s.RunID) {
+		p.forwarding = false
+		p.closing = false
+		p.focused = false
+		p.focusRequested = false
+		p.report = [8]byte{}
+		p.runID = ""
+	}
+}
+
 func (a *app) keyboardView(c *ui.Context) {
 	p := &a.keyboard
 	p.defaults(a.preferences.USB)
@@ -61,13 +73,7 @@ func (a *app) keyboardView(c *ui.Context) {
 	if a.controller != nil {
 		s = a.controller.Snapshot()
 	}
-	if p.forwarding && !s.Busy {
-		p.forwarding = false
-		p.closing = false
-		p.focused = false
-		p.focusRequested = false
-		p.report = [8]byte{}
-	}
+	p.observe(s)
 	ui.Text(c, locales.UsbKeyboardTitle()).FontSize(20).Bold()
 	ui.Text(c, locales.UsbKeyboardSafety())
 	if p.forwarding {
@@ -152,6 +158,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		a.command(s, err)
 		if err == nil {
 			p.forwarding = true
+			p.runID = s.RunID
 			p.closing = false
 			p.focused = false
 			p.focusRequested = false
@@ -176,7 +183,7 @@ func (a *app) applyUSBSettings(c *ui.Context, controllers []string, s session.Sn
 			return
 		}
 	}
-	t := transport.Timing{GapMS: n[0], HoldMS: n[1], EnterMS: n[2], EnumerationSeconds: n[3], LoadMS: n[4], RunMS: n[5], RemoveMS: n[6], Interval: 10}
+	t := transport.Timing{GapMS: n[0], HoldMS: n[1], EnterMS: n[2], EnumerationSeconds: n[3], LoadMS: n[4], RunMS: n[5], RemoveMS: n[6]}
 	if t.Validate() != nil || !slices.Contains(controllers, p.controller) {
 		p.invalid = true
 		return

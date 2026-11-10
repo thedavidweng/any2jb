@@ -256,6 +256,40 @@ func (msgs Messages) UsbKeyboardTitle() string {
 	return Catalog.Format(msgs.locale, "usbKeyboardTitle", nil)
 }
 
+// UsbProfile says "USB console input: {profile} ({edition})"
+// in the language the app shows.
+func UsbProfile(profile string, edition string) string {
+	return In(i18n.Locale()).UsbProfile(profile, edition)
+}
+
+// UsbProfile says "USB console input: {profile} ({edition})"
+// in the language of msgs.
+func (msgs Messages) UsbProfile(profile string, edition string) string {
+	return Catalog.Format(msgs.locale, "usbProfile", map[string]any{"profile": profile, "edition": edition})
+}
+
+// UsbInputAvailable says "Supervised keyboard input is available; each operation waits for enumeration."
+// in the language the app shows.
+func UsbInputAvailable() string { return In(i18n.Locale()).UsbInputAvailable() }
+
+// UsbInputAvailable says "Supervised keyboard input is available; each operation waits for enumeration."
+// in the language of msgs.
+func (msgs Messages) UsbInputAvailable() string {
+	return Catalog.Format(msgs.locale, "usbInputAvailable", nil)
+}
+
+// UsbEnumerationObserved says "Keyboard enumeration was observed on {controller}. Each operation re-enumerates; console text acceptance is not verif…"
+// in the language the app shows.
+func UsbEnumerationObserved(controller string) string {
+	return In(i18n.Locale()).UsbEnumerationObserved(controller)
+}
+
+// UsbEnumerationObserved says "Keyboard enumeration was observed on {controller}. Each operation re-enumerates; console text acceptance is not verif…"
+// in the language of msgs.
+func (msgs Messages) UsbEnumerationObserved(controller string) string {
+	return Catalog.Format(msgs.locale, "usbEnumerationObserved", map[string]any{"controller": controller})
+}
+
 // UsbKeyboardUnavailable says "Live keyboard forwarding is unavailable: select built-in USB keyboard input with a supervised keyboard adapter."
 // in the language the app shows.
 func UsbKeyboardUnavailable() string { return In(i18n.Locale()).UsbKeyboardUnavailable() }

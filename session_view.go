@@ -41,6 +41,7 @@ func (a *app) sessionView(c *ui.Context) {
 	}
 	ui.Text(c, stageTitle(s.Stage)).FontSize(20).Bold()
 	a.manualView(c, s)
+	a.usbConfirmation.view(c)
 	if s.CleanupConfirmed {
 		ui.Text(c, locales.ResourcesReleased())
 	}
@@ -61,7 +62,12 @@ func (a *app) sessionView(c *ui.Context) {
 		if check.GatesTransport == "usb-hid" {
 			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
 		}
-		ui.Text(c.Key(check.ID+"-message"), check.Message)
+		message := check.Message
+		if check.State == session.CheckVerified && s.Transport.Controller != "" &&
+			(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
+			message = locales.UsbEnumerationObserved(s.Transport.Controller)
+		}
+		ui.Text(c.Key(check.ID+"-message"), message)
 		if check.NextAction != "" {
 			ui.Text(c.Key(check.ID+"-action"), check.NextAction)
 		}

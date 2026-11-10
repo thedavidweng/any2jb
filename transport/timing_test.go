@@ -22,7 +22,6 @@ func TestControllerAndTimingAreValidatedBeforeStartingAHelper(t *testing.T) {
 		func(t *transport.Timing) { t.GapMS = 0 }, func(t *transport.Timing) { t.GapMS = 2001 },
 		func(t *transport.Timing) { t.HoldMS = -1 }, func(t *transport.Timing) { t.HoldMS = 2001 },
 		func(t *transport.Timing) { t.EnterMS = -1 }, func(t *transport.Timing) { t.EnterMS = 2001 },
-		func(t *transport.Timing) { t.Interval = 0 }, func(t *transport.Timing) { t.Interval = 17 },
 		func(t *transport.Timing) { t.EnumerationSeconds = 0 }, func(t *transport.Timing) { t.EnumerationSeconds = 121 },
 		func(t *transport.Timing) { t.LoadMS = -1 }, func(t *transport.Timing) { t.LoadMS = 120001 },
 		func(t *transport.Timing) { t.RunMS = -1 }, func(t *transport.Timing) { t.RunMS = 120001 },

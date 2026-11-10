@@ -134,7 +134,12 @@ func (a *app) initializeSession(env session.Environment) error {
 		return err
 	}
 	a.controller = c
-	a.manual, _ = env.Input.(*transport.Manual)
+	if inputs, ok := env.Input.(*transport.Dispatcher); ok {
+		a.manual = inputs.Manual()
+		a.keyboard.input = inputs.Darwin()
+	} else {
+		a.manual, _ = env.Input.(*transport.Manual)
+	}
 	return nil
 }
 

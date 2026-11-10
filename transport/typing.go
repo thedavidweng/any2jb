@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 		return d.bootstrap(ctx, run, report)
 	}
 	var commands []string
+	workspace := ""
 	switch action {
 	case session.Save:
 		if !programName(run.Profile.SaveName) {
@@ -31,10 +33,11 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 		}
 		commands = []string{command}
 	case session.Launch:
-		p, err := engine.Pairing(host)
-		if err != nil || p.RunID != run.ID {
+		p, err := engine.PairingFor(host, run)
+		if err != nil {
 			return errors.New("USB command lacks matching host pairing")
 		}
+		workspace = p.Workspace
 		if !programName(run.Profile.SaveName) {
 			return errors.New("invalid bootstrap save name")
 		}
@@ -52,7 +55,7 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 			return err
 		}
 	}
-	k, err := d.OpenKeyboard(ctx, run, report)
+	k, err := d.openKeyboard(ctx, run, report, workspace)
 	if err != nil {
 		return err
 	}
@@ -84,6 +87,9 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 			}
 		}
 		report(session.Progress{Current: i + 1, Total: len(commands), SideEffect: true})
+		if err := k.p.audit.event("command_complete", fmt.Sprintf("completed=%d total=%d", i+1, len(commands))); err != nil {
+			return err
+		}
 		if action == session.Launch && i < 3 {
 			_, timing := d.settings()
 			wait := []int{timing.LoadMS, timing.RunMS, timing.RemoveMS}[i]
@@ -150,6 +156,9 @@ func (d *Darwin) bootstrap(ctx context.Context, run session.Run, report session.
 		}
 		report(session.Progress{Current: i + 1, Total: len(plan), SideEffect: true,
 			Remaining: left, HasEstimate: sent > 0})
+		if err := k.p.auditLine(i+1, len(plan), left); err != nil {
+			return err
+		}
 	}
 	return nil
 }
