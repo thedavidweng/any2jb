@@ -54,6 +54,52 @@ The OunceCake export offers the console's installed titles and accepts exactly
 one of them. A game outside the offered catalog, a second selection or an
 unrequested path is refused.
 
+## Homebrew launching (experimental)
+
+From the same verified lease the Homebrew section offers MintBrew, the native
+HBLauncher (with MintNES) and the experimental IZlauncher. They are not
+read-only: each one allocates console graphics and audio, so the contract is
+stricter than the read-only tools.
+
+- **One owner at a time.** Launching a second homebrew while one runs is
+  refused naming the owner; switching means stopping the active app and
+  waiting for its proven cleanup. Switching is experimental and the UI says so.
+- **Cleanup is proven, not assumed.** The tool host writes an exclusive
+  attempt marker in the session workspace before any launch and verifies it
+  again at stop: the owner children must confirm their own shutdown
+  (`launcher-auto-loop.json`, `game-audio.json` or the IZlauncher frame
+  proofs), the lease must still be live and the marker must be unchanged. Only
+  then is the marker released and another launch allowed. An unproven cleanup
+  keeps the marker, blocks every later homebrew launch with its stated reason
+  and advises a console restart; the session controller surfaces it as
+  `indeterminate_console_restart_required`. A failure before any console
+  change is retry-safe: the unchanged marker is removed and the lease stays
+  usable.
+- **Every child speaks to the console through a loopback RPC proxy** that
+  re-checks the live lease on each request and forwards only the documented
+  bridge commands, never to the console over the LAN.
+
+| Launcher | What runs | Input |
+| --- | --- | --- |
+| `mintbrew` | The pinned MintBrew stages and owner scripts, with the default Stremio configuration (no add-ons) | None |
+| `native-hblauncher` | The pinned MIT fork's host with any2jb adapters: held proof, loopback requests, developer engine sources | Optional SD ROM folder under `/sd` (mapper-0 iNES only; default `/sd/roms/nes`) and an optional existing app folder on this Mac |
+| `izlauncher` | The pinned IZ2S-Platform stages, frame and catalog proofs, RPC drain | Up to 15 distinct module ids from the staged catalog |
+
+The native launcher's MintNES reads the any2jb-owned Mac ROM folder
+(`<app support>/MintNES/roms`) and, when the SD browser component is staged,
+the chosen SD folder read-only. No commercial ROMs or game assets are bundled;
+the one open-source ROM shipped by MintNES (Diamond Chase, MIT, ROM-LICENSE)
+is digest-pinned in the `mintbrew-native` component inventory.
+
+All seven homebrew components (`mintbrew`, `mintbrew-native`, `izlauncher`,
+its three modules and `homebrew-runtime`) are recorded with `blocked`
+distribution decisions: MintBrew's rights review is unresolved, the IZ2S
+platform is GPL-2.0-or-later with unresolved inherited rights, and the
+portable runtime bundles unreviewed third-party interpreters. A packaged app
+stages none of them; each gated launcher shows its recorded reason. The
+IZlauncher modules share one staged destination, and a developer stage
+additionally prepares the portable runtime (CPython, shader tools, font) and
+the IZlauncher runtime, each re-verified against its manifest before use.
 ## Distribution and local developer staging
 
 `resources/darwin-arm64/runtime/toolhost.cjs` is original any2jb code, recorded
@@ -90,6 +136,19 @@ recorded reason; it is never silently repaired.
   startup stages nothing.
 - `retained/toolhost.test.cjs` checks the tool host's own held proof (finished,
   public and foreign sessions are refused) and that the SD wrapper has no write
+  operation. Its loopback homebrew fixtures run the full MintBrew and
+  IZlauncher lifecycles against a fake bridge and staged tree: proven cleanup
+  releasing the marker, a second owner refused, a retry-safe early failure,
+  an unproven shutdown keeping the marker, module validation and the process
+  qualification gate.
+- `retained/homebrew_test.go` covers the manager-side contract: recorded
+  reasons per launcher, the second-owner refusal, stop-then-switch and the
+  unproven-cleanup block.
+- `session/homebrew_test.go` covers launch input validation (module ids, the
+  SD folder shape, the Mac app folder).
+- `homebrew_view_test.go` exercises the gated reasons, single-active
+  switching, module selection and folder inputs through MyGo's windowless
+  Tester.
   operation.
 - `retained/savekit_test.go` drives the fixture host module through the manager:
   the lease requirement, the read-only list, inspect and verified-backup flow,
@@ -100,7 +159,7 @@ recorded reason; it is never silently repaired.
   verifies every export: `savekit/export_test.go` refuses a tampered or partial
   export, an unrecorded file and an escaping path. A verified backup is kept
   under `savekit-exports` and never retried.
-- `manifest/tools_test.go` and the opt-in
+ `manifest/tools_test.go` and the opt-in
   `ANY2JB_REFERENCE_ROOT` inventory test check the recorded tool sources,
   including against the pinned mac2jb clone.
 - `advanced_tools_view_test.go` exercises the gated reasons, the one-owner
@@ -113,6 +172,14 @@ No console, USB or hardware behavior was verified. The fixtures are structured
 processes: they prove the lease rules, refusals, boundaries and teardown of this
 app, not that an upstream export or capture works against a real Switch 2.
 Running the real OunceCake, SD browser or capture modules needs a developer
+stage of blocked sources and a live console, which remains unverified. The
+`rpc-copy` row (copying the exact RPC command) and the OunceCake ZIP download
+are not implemented. The homebrew supervisors were verified only against
+loopback fixtures: no real MintBrew, HBLauncher or IZlauncher launch ran
+against a console, and the retry-safe and cleanup-blocked paths are proven by
+fixtures, not hardware. Preparing the portable homebrew runtime and the
+IZlauncher runtime needs network access and a C toolchain and stays a
+developer-only step.
 stage of blocked sources and a live console, which remains unverified; the same
 holds for the real ns2-savekit entrypoints and their title-name lookup, which
 the fixture and protocol seam cover instead. The `rpc-copy` row (copying the

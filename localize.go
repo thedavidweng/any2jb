@@ -17,6 +17,13 @@ var dynamicSegments = []struct {
 }{
 	{"Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistOunceCake},
 	{"Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistSDBrowser},
+	{"Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolved. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistMintbrew},
+	{"Unavailable: the MIT native HBLauncher fork still stages MintBrew sources whose rights review is unresolved. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistMintbrewNative},
+	{"Unavailable: the IZlauncher's GPL-2.0-or-later scope and inherited rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZLauncher},
+	{"Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZBlitbun},
+	{"Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZShell},
+	{"Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them.", locales.DynDistIZVacootube},
+	{"Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notices are unreviewed. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistHomebrewRuntime},
 	{"Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No installer, Python interpreter or save template is bundled.", locales.DynDistTriggerInstaller},
 	{"USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled.", locales.DynDistUSBDriver},
 	{"MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records.", locales.DynDistMITSourceOnly},
