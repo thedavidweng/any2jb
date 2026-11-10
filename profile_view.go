@@ -15,16 +15,27 @@ func (a *app) profileView(c *ui.Context) {
 	if p.Engine == "izmysh" {
 		ui.Text(c, locales.IzmyshUnavailable()).TextColor(c.Theme().TextMuted)
 	}
+	disabled := false
+	if a.controller != nil {
+		s := a.controller.Snapshot()
+		disabled = s.Busy || s.SideEffects || s.Stage == session.Indeterminate
+	}
+	ui.Text(c, locales.LanOverride())
+	ui.TextInput(c.Key("lan-override"), &a.preferences.LANIPv4).Label(locales.LanOverride()).Placeholder(locales.AutomaticLAN()).Disabled(disabled)
+	if ui.Button(c.Key("apply-preferences"), locales.ApplyPreferences()).Disabled(disabled).Clicked() {
+		a.preferenceError = ""
+		if err := a.applyPreferences(); err != nil {
+			a.preferenceError = err.Error()
+		}
+	}
+	if a.preferenceError != "" {
+		ui.Text(c, a.preferenceError)
+	}
 	if ui.Button(c.Key("developer-options"), locales.DeveloperOptions()).Clicked() {
 		a.developer = !a.developer
 	}
 	if !a.developer {
 		return
-	}
-	disabled := false
-	if a.controller != nil {
-		s := a.controller.Snapshot()
-		disabled = s.Busy || s.SideEffects || s.Stage == session.Indeterminate
 	}
 	ui.Column(c).Gap(8).Children(func() {
 		ui.Text(c, locales.ProfileSettings()).Bold()
@@ -40,20 +51,9 @@ func (a *app) profileView(c *ui.Context) {
 		}
 		ui.Text(c, locales.SmilebasicEdition()+": "+strings.Join(p.SupportedSmileBASIC, ", "))
 		ui.Select(c.Key("smilebasic-edition"), &a.preferences.Edition, editions).Label(locales.SmilebasicEdition()).Disabled(disabled)
-		ui.Text(c, locales.LanOverride())
-		ui.TextInput(c.Key("lan-override"), &a.preferences.LANIPv4).Label(locales.LanOverride()).Placeholder(locales.LanOverride()).Disabled(disabled)
 		ui.Text(c, locales.TransportMode())
 		ui.Select(c.Key("transport-mode"), &a.preferences.Transport, []string{"manual", "keyboard", "composite", "external-pico"}).Label(locales.TransportMode()).Disabled(disabled)
 		ui.Text(c, locales.TransportUnverified()).TextColor(c.Theme().TextMuted)
-		if ui.Button(c.Key("apply-preferences"), locales.ApplyPreferences()).Disabled(disabled).Clicked() {
-			a.preferenceError = ""
-			if err := a.applyPreferences(); err != nil {
-				a.preferenceError = err.Error()
-			}
-		}
-		if a.preferenceError != "" {
-			ui.Text(c, a.preferenceError)
-		}
 		ui.Text(c, fmt.Sprintf("%s · START: %d · TCP: %d", p.SaveName, p.StartArgumentCount, p.StartPort))
 		ui.Button(c.Key("capability-rpc"), locales.HeldRPC()).Disabled(true)
 		capabilityReason(c, p.SupportsHeldRPC, locales.RequiresVerifiedSession())

@@ -118,6 +118,116 @@ func (msgs Messages) LanOverride() string {
 	return Catalog.Format(msgs.locale, "lanOverride", nil)
 }
 
+// AutomaticLAN says "Automatic recommendation; leave empty to rediscover"
+// in the language the app shows.
+func AutomaticLAN() string { return In(i18n.Locale()).AutomaticLAN() }
+
+// AutomaticLAN says "Automatic recommendation; leave empty to rediscover"
+// in the language of msgs.
+func (msgs Messages) AutomaticLAN() string {
+	return Catalog.Format(msgs.locale, "automaticLAN", nil)
+}
+
+// CheckVerified says "Verified"
+// in the language the app shows.
+func CheckVerified() string { return In(i18n.Locale()).CheckVerified() }
+
+// CheckVerified says "Verified"
+// in the language of msgs.
+func (msgs Messages) CheckVerified() string {
+	return Catalog.Format(msgs.locale, "checkVerified", nil)
+}
+
+// CheckAvailable says "Available but not verified"
+// in the language the app shows.
+func CheckAvailable() string { return In(i18n.Locale()).CheckAvailable() }
+
+// CheckAvailable says "Available but not verified"
+// in the language of msgs.
+func (msgs Messages) CheckAvailable() string {
+	return Catalog.Format(msgs.locale, "checkAvailable", nil)
+}
+
+// CheckAttention says "Requires attention"
+// in the language the app shows.
+func CheckAttention() string { return In(i18n.Locale()).CheckAttention() }
+
+// CheckAttention says "Requires attention"
+// in the language of msgs.
+func (msgs Messages) CheckAttention() string {
+	return Catalog.Format(msgs.locale, "checkAttention", nil)
+}
+
+// UsbOnly says "Required for built-in USB input, not guided manual input."
+// in the language the app shows.
+func UsbOnly() string { return In(i18n.Locale()).UsbOnly() }
+
+// UsbOnly says "Required for built-in USB input, not guided manual input."
+// in the language of msgs.
+func (msgs Messages) UsbOnly() string {
+	return Catalog.Format(msgs.locale, "usbOnly", nil)
+}
+
+// ReferencePrerequisites says "Reference prerequisites, not compatibility guarantees"
+// in the language the app shows.
+func ReferencePrerequisites() string { return In(i18n.Locale()).ReferencePrerequisites() }
+
+// ReferencePrerequisites says "Reference prerequisites, not compatibility guarantees"
+// in the language of msgs.
+func (msgs Messages) ReferencePrerequisites() string {
+	return Catalog.Format(msgs.locale, "referencePrerequisites", nil)
+}
+
+// ConsoleFirmware says "Switch 2 firmware 23.0.1 is the reference target. Newer firmware is not assumed compatible."
+// in the language the app shows.
+func ConsoleFirmware() string { return In(i18n.Locale()).ConsoleFirmware() }
+
+// ConsoleFirmware says "Switch 2 firmware 23.0.1 is the reference target. Newer firmware is not assumed compatible."
+// in the language of msgs.
+func (msgs Messages) ConsoleFirmware() string {
+	return Catalog.Format(msgs.locale, "consoleFirmware", nil)
+}
+
+// SmilebasicPrerequisites says "Use SmileBASIC full 4.4.9, or demo 4.4.6 only with a demo-capable host. Keep the game on internal storage with more t…"
+// in the language the app shows.
+func SmilebasicPrerequisites() string { return In(i18n.Locale()).SmilebasicPrerequisites() }
+
+// SmilebasicPrerequisites says "Use SmileBASIC full 4.4.9, or demo 4.4.6 only with a demo-capable host. Keep the game on internal storage with more t…"
+// in the language of msgs.
+func (msgs Messages) SmilebasicPrerequisites() string {
+	return Catalog.Format(msgs.locale, "smilebasicPrerequisites", nil)
+}
+
+// NetworkPrerequisites says "Connect the console by Ethernet to a LAN reachable from this host. Use a US English USB keyboard layout."
+// in the language the app shows.
+func NetworkPrerequisites() string { return In(i18n.Locale()).NetworkPrerequisites() }
+
+// NetworkPrerequisites says "Connect the console by Ethernet to a LAN reachable from this host. Use a US English USB keyboard layout."
+// in the language of msgs.
+func (msgs Messages) NetworkPrerequisites() string {
+	return Catalog.Format(msgs.locale, "networkPrerequisites", nil)
+}
+
+// CablePrerequisites says "Use a USB-C data cable, not a charge-only cable. The Mac must receive power from the console for the required USB dat…"
+// in the language the app shows.
+func CablePrerequisites() string { return In(i18n.Locale()).CablePrerequisites() }
+
+// CablePrerequisites says "Use a USB-C data cable, not a charge-only cable. The Mac must receive power from the console for the required USB dat…"
+// in the language of msgs.
+func (msgs Messages) CablePrerequisites() string {
+	return Catalog.Format(msgs.locale, "cablePrerequisites", nil)
+}
+
+// DriverSecurityGuidance says "USB input requires Apple Silicon macOS 14 or later and an approved unsigned driver. Review Recovery and startup secur…"
+// in the language the app shows.
+func DriverSecurityGuidance() string { return In(i18n.Locale()).DriverSecurityGuidance() }
+
+// DriverSecurityGuidance says "USB input requires Apple Silicon macOS 14 or later and an approved unsigned driver. Review Recovery and startup secur…"
+// in the language of msgs.
+func (msgs Messages) DriverSecurityGuidance() string {
+	return Catalog.Format(msgs.locale, "driverSecurityGuidance", nil)
+}
+
 // TransportMode says "Input transport"
 // in the language the app shows.
 func TransportMode() string { return In(i18n.Locale()).TransportMode() }
@@ -138,11 +248,11 @@ func (msgs Messages) ApplyPreferences() string {
 	return Catalog.Format(msgs.locale, "applyPreferences", nil)
 }
 
-// ApplyBeforeLaunch says "Apply the host and input preferences in Developer Options before preparing or launching a session."
+// ApplyBeforeLaunch says "Apply the host and input preferences before preparing or launching a session."
 // in the language the app shows.
 func ApplyBeforeLaunch() string { return In(i18n.Locale()).ApplyBeforeLaunch() }
 
-// ApplyBeforeLaunch says "Apply the host and input preferences in Developer Options before preparing or launching a session."
+// ApplyBeforeLaunch says "Apply the host and input preferences before preparing or launching a session."
 // in the language of msgs.
 func (msgs Messages) ApplyBeforeLaunch() string {
 	return Catalog.Format(msgs.locale, "applyBeforeLaunch", nil)

@@ -20,6 +20,11 @@ bootstraps from different hosts are not interchangeable. See
 [host profile choices](host-profile-ui.md) for preference and bootstrap
 integration obligations. `ConfigureTransport` accepts an empty IPv4 to request
 network discovery; this does not establish readiness or a usable LAN address.
+The readiness adapter returns the observed assignment in `Check.LANIPv4`.
+The controller selects it into `Snapshot.LANIPv4`, keeps the explicit preference
+in `Snapshot.LANOverride`, and re-inspects before host preparation.
+`Check.GatesTransport = "usb-hid"` gates built-in USB only, leaving guided manual
+input independent of driver/controller facts. See [readiness](readiness.md).
 
 ## Adapter contract
 

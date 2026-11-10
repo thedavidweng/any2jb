@@ -22,6 +22,12 @@ Host profile selection, edition/capability gates and local preference reload are
 covered by the [host profile tests](host-profile-ui.md#host-profile-tests).
 Capability buttons do not claim working tool adapters or console verification.
 
+The [read-only readiness adapter](readiness.md) implements local LAN selection,
+independent driver facts and attached-controller discovery. The dashboard shows
+the override outside Developer Options and distinguishes all three check states.
+Console reachability, USB enumeration and accepted keyboard input remain not
+verified. Production composition belongs to the host integration.
+
 ## Reading and maintaining the ledger
 
 - **Tier:** `P1a` is core macOS and read-only tools; `P1b` is extended parity.
@@ -130,8 +136,8 @@ implementation can be treated as scheduled.
 | setup-guide | Setup | Open setup guide and firmware/game/LAN prerequisites | P1a | [README.md#L5-L16](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/README.md#L5-L16) | Show profile-specific requirements; no compatibility guess | read-only | gated | not verified | false | [not verified](#not-verified) | 09,23 | inspect |
 | route-choice | Setup | Choose ns2jb versus distinct CivSwitch route | P1a | [gui/ContentView.swift#L361-L580](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/gui/ContentView.swift#L361-L580) | Idle; show each game's prerequisites independently | session | gated | not verified | false | [not verified](#not-verified) | 14,21 | - |
 | edition-choice | Setup | Select full SmileBASIC or demo | P1a | [gui/ContentView.swift#L285-L289](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/gui/ContentView.swift#L285-L289) | Core; profile declares edition support | session | gated | not verified | false | [not verified](#not-verified) | 11,12,13 | smilebasic-edition,capability-demo |
-| network-choice | Setup | Select/refresh Mac LAN IPv4 or explicit override | P1a | [gui/NetworkSelection.swift](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/gui/NetworkSelection.swift) | Reachable selected interface; not USB networking | network | gated | not verified | false | [not verified](#not-verified) | 09,14 | lan-override |
-| driver-status | Driver | Inspect/refresh loaded driver and restart requirement | P1a | [gui/ContentView.swift#L311-L316](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/gui/ContentView.swift#L311-L316) | HID; file presence does not prove loaded/enumerated | read-only | gated | not verified | false | [not verified](#not-verified) | 09,10 | - |
+| network-choice | Setup | Select/refresh Mac LAN IPv4 or explicit override | P1a | [gui/NetworkSelection.swift](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/gui/NetworkSelection.swift) | Local assignment only; console reachability requires launch evidence | network | reimplemented | unit-tested | false | [readiness tests](readiness.md#evidence) | 09,14 | lan-override |
+| driver-status | Driver | Inspect/refresh loaded driver and restart requirement | P1a | [gui/ContentView.swift#L311-L316](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/gui/ContentView.swift#L311-L316) | HID; file presence does not prove loaded/enumerated | read-only | reimplemented | unit-tested | false | [driver blocker fixtures](../readiness/blockers_test.go) | 09,10 | - |
 | driver-install | Driver | Install or reinstall and load driver with approval | P1a | [scripts/install-driver.sh](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/scripts/install-driver.sh) | Informed admin consent; each reinstall creates restart barrier | security | gated | not verified | false | [not verified](#not-verified) | 10 | - |
 | driver-recovery | Driver | Explain Recovery/security approval and manual restart | P1a | [README.md#L18-L63](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/README.md#L18-L63) | No automatic SIP reduction; do not change working custom security | security | gated | not verified | false | [not verified](#not-verified) | 10 | - |
 | usb-role | USB | Diagnose cable/data-role/power direction | P1a | [README.md#L65-L71](https://github.com/cpypwn/mac2jb/blob/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308/README.md#L65-L71) | HID; Switch supplies power; loaded kext alone insufficient | read-only | gated | not verified | false | [not verified](#not-verified) | 09,12 | - |

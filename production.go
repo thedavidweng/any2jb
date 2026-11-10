@@ -6,6 +6,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
+	"github.com/thedavidweng/any2jb/readiness"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -62,11 +63,18 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 		state, message, action = session.RequiresAttention, locales.IzmyshUnavailable(), "Choose an ns2jb host with an implemented verifier."
 	}
 	checks = append(checks, session.Check{ID: "engine", State: state, Message: message, NextAction: action})
-	// Ticket 09 supplies the real readiness adapter here. Until then, startup
-	// reports an unavailable check rather than manufacturing observed readiness.
-	checks = append(checks, session.Check{ID: "platform", State: session.RequiresAttention,
-		Message: "Platform readiness checks are not connected.", NextAction: "Readiness integration is required before launching."})
-	return checks, nil
+	usb := session.Check{ID: "usb-runtime", GatesTransport: "usb-hid", State: session.RequiresAttention,
+		Message: "Verified USB helpers are not available.", NextAction: "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."}
+	if p.stageError == nil && engine.VerifyUSB(p.root, p.options.Manifest) == nil {
+		usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
+	}
+	checks = append(checks, usb, session.Check{ID: "input-adapter", State: session.RequiresAttention,
+		Message: "The input workflow is not integrated.", NextAction: "Connect the manual or USB input adapter before launching."})
+	observed, err := readiness.New().Inspect(ctx, run)
+	if err != nil {
+		return nil, err
+	}
+	return append(checks, observed...), nil
 }
 
 func (productionPlatform) ExportDiagnostics(context.Context, session.Snapshot) (string, error) {

@@ -104,3 +104,9 @@ Windows is compile-checked but refuses process launch because process-tree
 supervision/ACL validation is not implemented. Linux process supervision and
 interfaces compile; the staged runtime is still darwin-arm64, not a Linux
 release or USB capability claim.
+
+Production `PlatformServices` combines runtime/profile/USB-helper integrity
+checks with `readiness.New().Inspect`. The helper check uses `usb-hid` transport
+gating, so missing helpers never block manual input. LAN recommendations and
+overrides retain the readiness adapter's assignment-only evidence. Input remains
+an explicit blocker until its adapter is integrated.
