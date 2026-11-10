@@ -55,6 +55,28 @@ func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 	}
 }
 
+func TestHomebrewLaunchReportsUnknownProfileBeforeStartingChild(t *testing.T) {
+	runner, run, support := heldSession(t)
+	mf, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	host, err := filepath.Abs("testdata/fake-tool.cjs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := retained.New(retained.Options{Support: support, Runs: runner, Manifest: mf,
+		Node: nodePath(t), Host: host, Staged: homebrewStaged})
+	defer m.Stop(context.Background(), run)
+	run.Profile.ID = "missing-profile"
+	err = m.Run(context.Background(), run, "mintbrew", func(session.Progress) {
+		t.Error("a child started despite an invalid profile")
+	})
+	if err == nil || !strings.Contains(err.Error(), "missing-profile") {
+		t.Fatalf("manifest profile failure was hidden: %v", err)
+	}
+}
+
 func TestHomebrewLaunchRefusesASecondOwner(t *testing.T) {
 	runner, run, support := heldSession(t)
 	m := manager(t, support, runner, "ok", homebrewStaged...)

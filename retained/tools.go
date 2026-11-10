@@ -126,7 +126,11 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		m.mu.Unlock()
 		return errors.New(owner + " already owns the retained session; wait for it to finish")
 	}
-	cmd := m.command(run, request, workspace)
+	cmd, err := m.command(run, request, workspace)
+	if err != nil {
+		m.mu.Unlock()
+		return err
+	}
 	if cmd == nil {
 		m.mu.Unlock()
 		return errors.New("missing read-only tool command")
