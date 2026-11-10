@@ -7,6 +7,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/transport"
 )
 
 func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
@@ -20,6 +21,9 @@ func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
 	}
 	if _, ok := env.Host.(*engine.HostRunner); !ok {
 		t.Fatal("production did not use the real host runner")
+	}
+	if _, ok := env.Input.(*transport.Manual); !ok {
+		t.Fatal("production did not compose the guided manual adapter")
 	}
 	if err := a.initializeSession(env); err != nil {
 		t.Fatal(err)

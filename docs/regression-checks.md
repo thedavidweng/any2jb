@@ -67,6 +67,10 @@ evidence that those skipped checks passed.
 On 2026-11-10 the standalone checks passed on Darwin arm64, including all six
 source inventories, pepsipu's 11 upstream tests, the real-engine partial-reply
 test, simulated engine controller scenarios and all four compiled native helpers.
-Payload rebuilding was skipped because Zig 0.15.2 was absent. Physical
+With the official minisign-verified Zig 0.15.2 compiler installed and selected
+using `-zig`, the full harness also passed on 2026-11-10. The rebuilt payload
+matched 4757 bytes with SHA-256
+`d590cbfc5d9152c24d5a36f083f8470a2f3164be6b78130129d44132b939701a`.
+The optional read-only local OS inspection was not enabled. Physical
 console/USB behavior remains
 **not verified**.

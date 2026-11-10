@@ -1,9 +1,13 @@
 package manifest
 
 import (
+	"bytes"
+	"debug/macho"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -59,8 +63,25 @@ func (m *Manifest) checkPackage(root string) error {
 			if !c.Distribution.Available() {
 				return fmt.Errorf("component %s is bundled but %s", c.ID, c.Distribution.Decision)
 			}
-			if _, err := verifyFile(root, c.ID, c.Path, c.SHA256); err != nil {
+			data, err := verifyFile(root, c.ID, c.Path, c.SHA256)
+			if err != nil {
 				return err
+			}
+			if c.ID == m.Runtime.Node || slices.Contains(m.Runtime.Helpers, c.ID) {
+				f, err := macho.NewFile(bytes.NewReader(data))
+				if err != nil {
+					return fmt.Errorf("%s: %w", c.ID, err)
+				}
+				if m.Runtime.Platform != "darwin-arm64" || f.Cpu != macho.CpuArm64 {
+					return fmt.Errorf("%s: expected darwin-arm64 Mach-O", c.ID)
+				}
+				info, err := os.Stat(filepath.Join(root, filepath.FromSlash(c.Path)))
+				if err != nil {
+					return err
+				}
+				if info.Mode().Perm()&0o111 == 0 {
+					return fmt.Errorf("%s: packaged executable bits missing", c.ID)
+				}
 			}
 		}
 	}

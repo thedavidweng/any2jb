@@ -273,6 +273,20 @@
       }
     },
     {
+      "id": "civswitch-payload",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/civswitch/payload.txt",
+      "sha256": "6ea468ca392558ab2f8f2384200745a8619187cebc5357d5e985fd3ffdada37d",
+      "licenseStatus": "Gezine/CivSwitch MIT; derived payload and bundled dependency notices require a distribution review.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "Gezine/CivSwitch LICENSE; cpypwn/mac2jb LICENSE.",
+        "reason": "CivSwitch payload distribution is blocked pending derived-payload and dependency notice review."
+      }
+    },
+    {
       "id": "browser-research",
       "upstream": "https://github.com/Jmesmykil/switch2-captive-portal-research",
       "revision": "07cd867af2f1dc8f7b6ce59d964c3827cc3997b3",
@@ -347,7 +361,7 @@
       "id": "engine-bridge",
       "path": "runtime/bridge.cjs",
       "resourcePlatform": "darwin-arm64",
-      "sha256": "8d7b6301ead0567ec72fe2f038a37d163e59f9bdef4532a686f216b618d9c433",
+      "sha256": "3b209bce24882f505d8c3e769a343ec7f209bd25053eabb70ae6cb995089afde",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb bridge.",

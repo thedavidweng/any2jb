@@ -134,6 +134,7 @@ func (a *app) initializeSession(env session.Environment) error {
 		return err
 	}
 	a.controller = c
+	a.manual, _ = env.Input.(*transport.Manual)
 	return nil
 }
 

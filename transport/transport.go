@@ -4,24 +4,12 @@ package transport
 
 import (
 	"context"
-	"errors"
 
 	"github.com/thedavidweng/any2jb/session"
 )
 
 // InputTransport uses the controller's single authoritative input contract.
 type InputTransport = session.InputTransport
-
-var ErrManualInputRequired = errors.New("guided manual input requires the user to enter and confirm console commands")
-
-type Manual struct{}
-
-func NewManual() *Manual { return &Manual{} }
-
-func (*Manual) Send(context.Context, session.Run, session.InputAction, session.PreparedHost, session.Report) error {
-	return ErrManualInputRequired
-}
-func (*Manual) Release(context.Context, session.Run) error { return nil }
 
 // Mock injects behavior only at the public transport boundary.
 type Mock struct {

@@ -3,12 +3,17 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 
+	"github.com/thedavidweng/any2jb/civswitch"
+	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/readiness"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/transport"
 )
 
 // productionEnvironment is the single production adapter composition point.
@@ -16,9 +21,25 @@ import (
 // Packaged startup never supplies DeveloperSourceRoot or DeveloperProfileID.
 func productionEnvironment(options engine.Options) session.Environment {
 	root, err := engine.Stage(options)
+	// The manual adapter never sends USB input. A verified Darwin adapter can be
+	// composed here separately when its readiness gates and sender are available.
 	return session.Environment{
-		Host:     engine.NewHostRunner(options),
-		Input:    unavailableInput{root: root, options: options},
+		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
+		Host:      engine.NewHostRunner(options),
+		Input: transport.NewManual(func(run session.Run) (string, error) {
+			if err != nil {
+				return "", err
+			}
+			if verifyErr := options.Manifest.VerifyProfile(root, run.Profile.ID); verifyErr != nil {
+				return "", verifyErr
+			}
+			profile, profileErr := options.Manifest.Profile(run.Profile.ID)
+			if profileErr != nil {
+				return "", profileErr
+			}
+			source, readErr := os.ReadFile(filepath.Join(root, profile.Bootstrap))
+			return string(source), readErr
+		}),
 		Platform: productionPlatform{root: root, options: options, stageError: err},
 		Tools:    unavailableTools{},
 	}
@@ -75,8 +96,12 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 	if p.stageError == nil && engine.VerifyUSB(p.root, p.options.Manifest) == nil {
 		usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
 	}
-	checks = append(checks, usb, session.Check{ID: "input-adapter", State: session.RequiresAttention,
-		Message: "The input workflow is not integrated.", NextAction: "Connect the manual or USB input adapter before launching."})
+	input := session.Check{ID: "input-adapter", State: session.RequiresAttention,
+		Message: locales.AutomatedInputUnavailable(), NextAction: locales.SelectGuidedManual()}
+	if run.Transport.Capabilities.Manual {
+		input.State, input.Message, input.NextAction = session.CheckVerified, locales.ManualInputAvailable(), ""
+	}
+	checks = append(checks, usb, input)
 	observed, err := readiness.New().Inspect(ctx, run)
 	if err != nil {
 		return nil, err
@@ -84,25 +109,13 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 	return append(checks, observed...), nil
 }
 
-func (productionPlatform) ExportDiagnostics(context.Context, session.Snapshot) (string, error) {
-	return "", errors.New("diagnostics export is not available")
+func (p productionPlatform) ExportDiagnostics(ctx context.Context, snapshot session.Snapshot) (string, error) {
+	return (diagnostics.Store{Support: p.options.Support}).Export(ctx, snapshot)
+}
+func (p productionPlatform) ReleaseInterrupted(ctx context.Context) error {
+	return (diagnostics.Store{Support: p.options.Support}).ReleaseInterrupted(ctx)
 }
 func (productionPlatform) Credentials() session.CredentialStore { return unavailableCredentials{} }
-
-type unavailableInput struct {
-	root    string
-	options engine.Options
-}
-
-func (i unavailableInput) Send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) error {
-	if !run.Transport.Capabilities.Manual && !run.Transport.Capabilities.ExternalPico {
-		if err := engine.VerifyUSB(i.root, i.options.Manifest); err != nil {
-			return err
-		}
-	}
-	return errors.New("input adapter is not available; no commands were sent")
-}
-func (unavailableInput) Release(context.Context, session.Run) error { return nil }
 
 type unavailableTools struct{}
 

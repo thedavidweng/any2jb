@@ -125,7 +125,8 @@ func (p fakePlatform) Inspect(ctx context.Context, _ Run) ([]Check, error) {
 func (p fakePlatform) ExportDiagnostics(context.Context, Snapshot) (string, error) {
 	return "simulated diagnostics; no real check performed", nil
 }
-func (p fakePlatform) Credentials() CredentialStore { return fakeCredentials{} }
+func (p fakePlatform) Credentials() CredentialStore             { return fakeCredentials{} }
+func (p fakePlatform) ReleaseInterrupted(context.Context) error { return nil }
 
 type fakeCredentials struct{}
 

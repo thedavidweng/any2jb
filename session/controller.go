@@ -20,13 +20,13 @@ type SessionController struct {
 	requested     Stage
 	monitorCancel context.CancelFunc
 	keyboard      chan [8]byte
-	changed       chan struct{}
+	changes       chan struct{}
 }
 
 func New(env Environment, profile Profile) *SessionController {
 	profile.Tools = slices.Clone(profile.Tools)
 	profile.Editions = slices.Clone(profile.Editions)
-	return &SessionController{env: env, changed: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
+	return &SessionController{env: env, changes: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
 		Edition:   "full",
 		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
 		Simulated: env.Simulated}}
@@ -45,6 +45,10 @@ func (c *SessionController) Snapshot() Snapshot {
 	return c.snapshot()
 }
 
+// Changes wakes the single window consumer. Read Snapshot after each wake;
+// coalescing never loses state or the ordered Events history.
+func (c *SessionController) Changes() <-chan struct{} { return c.changes }
+
 // Events returns all observations after sequence, without dropping slow UI updates.
 func (c *SessionController) Events(sequence uint64) []Event {
 	c.mu.Lock()
@@ -56,10 +60,6 @@ func (c *SessionController) Events(sequence uint64) []Event {
 	return slices.Clone(c.events[i:])
 }
 
-// Changes coalesces redraw notifications for one UI observer. Events retains the
-// complete ordered history; this channel is never the progress source.
-func (c *SessionController) Changes() <-chan struct{} { return c.changed }
-
 func (c *SessionController) emit(severity Severity, reason Reason, message string) {
 	elapsed := time.Duration(0)
 	if !c.started.IsZero() {
@@ -70,7 +70,7 @@ func (c *SessionController) emit(severity Severity, reason Reason, message strin
 		Stage: c.s.Stage, Elapsed: elapsed, Severity: severity, Recovery: c.s.Recovery,
 		Reason: reason, Message: message})
 	select {
-	case c.changed <- struct{}{}:
+	case c.changes <- struct{}{}:
 	default:
 	}
 }
@@ -125,6 +125,7 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		c.started = time.Now()
 		c.s.SideEffects = false
 		c.s.Outcome = Outcome{}
+		c.s.CleanupConfirmed = false
 		c.s.Current, c.s.Total = 0, 0
 		c.s.Remaining, c.s.HasEstimate = 0, false
 	}
@@ -213,15 +214,20 @@ func (c *SessionController) watchHost(run Run) {
 }
 func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	c.mu.Lock()
+	civSwitch := c.s.CivSwitch
 	if c.monitorCancel != nil {
 		c.monitorCancel()
 		c.monitorCancel = nil
 	}
 	c.mu.Unlock()
+	if civSwitch {
+		return c.releaseCivSwitch(ctx)
+	}
 	err := errors.Join(c.env.Input.Release(ctx, run), c.env.Tools.Stop(ctx, run), c.env.Host.Cleanup(ctx, run))
 	if err == nil {
 		c.mu.Lock()
 		c.s.Processes = nil
+		c.s.CleanupConfirmed = true
 		c.mu.Unlock()
 	}
 	return err
@@ -229,7 +235,7 @@ func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 func (c *SessionController) Inspect() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if !c.eligible(Idle, Ready, NeedsSetup, Finished, Failed) {
+	if c.s.CivSwitch || !c.eligible(Idle, Ready, NeedsSetup, Finished, Failed) {
 		return c.reject(InvalidState)
 	}
 	override := c.s.LANOverride
@@ -271,7 +277,7 @@ func (c *SessionController) Inspect() (Snapshot, error) {
 func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if !c.eligible(NeedsSetup, Ready) {
+	if c.s.CivSwitch || !c.eligible(NeedsSetup, Ready) {
 		return c.reject(InvalidState)
 	}
 	if !c.s.Transport.Capabilities.supports(c.s.Profile.RequiredTransport) {
@@ -355,11 +361,7 @@ func (c *SessionController) Start() (Snapshot, error) {
 	if !c.s.CanStart() {
 		return c.reject(InvalidConfiguration)
 	}
-	stage := PreparingHost
-	if c.s.Profile.CivSwitch {
-		stage = CivSwitchFetching
-	}
-	return c.begin(stage, true, func(ctx context.Context, run Run) error {
+	return c.begin(PreparingHost, true, func(ctx context.Context, run Run) error {
 		// Re-observe the selected address before any host or console side effect.
 		checks, err := c.env.Platform.Inspect(ctx, run)
 		if err != nil {
@@ -422,7 +424,8 @@ func (c *SessionController) Cancel() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.s.Busy || c.s.SideEffects || c.requested != "" ||
-		!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput, BootstrapSetup}, c.s.Stage) {
+		(!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput, BootstrapSetup}, c.s.Stage) &&
+			!(c.s.CivSwitch && c.s.Stage == Verifying)) {
 		return c.reject(InvalidState)
 	}
 	c.requested = Ready
@@ -456,6 +459,16 @@ func (c *SessionController) Finish() (Snapshot, error) {
 		c.monitorCancel = nil
 	}
 	return c.begin(c.s.Stage, false, func(ctx context.Context, run Run) error {
+		if c.Snapshot().CivSwitch {
+			if err := c.releaseCivSwitch(ctx); err != nil {
+				return err
+			}
+			c.mu.Lock()
+			c.s.SideEffects, c.s.LoaderVerified = false, false
+			c.transition(Finished)
+			c.mu.Unlock()
+			return nil
+		}
 		outcome, err := c.env.Host.Finish(ctx, run)
 		if err != nil {
 			return err
@@ -505,6 +518,8 @@ func (c *SessionController) SelectProfile(profile Profile, edition string) (Snap
 	profile.Tools = slices.Clone(profile.Tools)
 	profile.Editions = slices.Clone(profile.Editions)
 	c.s.Profile, c.s.Edition = profile, edition
+	c.s.CivSwitch, c.s.LoaderVerified = false, false
+	c.s.ConsoleIPv4, c.s.EstimatedDuration = "", 0
 	c.s.BootstrapSaved, c.s.BootstrapPrepared = false, false
 	c.s.SaveSubmitted = false
 	c.s.Checks = nil
