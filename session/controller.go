@@ -386,14 +386,23 @@ func (c *SessionController) Start() (Snapshot, error) {
 	if !c.s.CanStart() {
 		return c.reject(InvalidConfiguration)
 	}
+	override := c.s.LANOverride
 	return c.begin(PreparingHost, true, func(ctx context.Context, run Run) error {
 		// Re-observe the selected address before any host or console side effect.
+		run.LANIPv4 = override
 		checks, err := c.env.Platform.Inspect(ctx, run)
 		if err != nil {
 			return err
 		}
 		c.mu.Lock()
 		c.s.Checks = slices.Clone(checks)
+		c.s.LANIPv4 = override
+		for _, check := range checks {
+			if check.ID == "network" && check.State == CheckVerified && check.LANIPv4 != "" {
+				c.s.LANIPv4 = check.LANIPv4
+			}
+		}
+		run.LANIPv4 = c.s.LANIPv4
 		c.mu.Unlock()
 		if len(checks) == 0 || slices.ContainsFunc(checks, func(check Check) bool { return check.Blocks(run.Transport) }) {
 			return errors.New("readiness changed before launch")
