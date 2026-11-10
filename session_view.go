@@ -8,16 +8,33 @@ import (
 	"github.com/thedavidweng/any2jb/session"
 )
 
-func (a *app) command(_ session.Snapshot, err error) {
+func (a *app) command(s session.Snapshot, err error) {
 	a.commandRejected = err != nil
+	a.commandInstruction = ""
+	if rejection, ok := err.(*session.Rejection); ok {
+		switch rejection.Reason {
+		case session.EditionUnsupported:
+			a.commandInstruction = locales.UnsupportedEdition()
+		case session.BootstrapMismatch, session.BootstrapUnconfirmed:
+			a.commandInstruction = locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName)
+		}
+	}
 }
 
 func (a *app) sessionView(c *ui.Context) {
 	s := a.controller.Snapshot()
+	pending := a.manifest != nil && (s.Profile.ID != a.preferences.Profile ||
+		s.Edition != a.preferences.Edition || s.LANIPv4 != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
+	if pending {
+		ui.Text(c, locales.ApplyBeforeLaunch())
+	}
 	if s.Simulated {
 		ui.Text(c, locales.SimulatedEnvironment()).TextColor(c.Theme().TextMuted)
 	}
 	ui.Text(c, stageTitle(s.Stage)).FontSize(20).Bold()
+	if s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
+		ui.Text(c, locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName))
+	}
 	if s.Stage == session.Indeterminate {
 		ui.Text(c, locales.RestartConsole())
 	} else if s.Stage == session.Failed {
@@ -33,18 +50,22 @@ func (a *app) sessionView(c *ui.Context) {
 		ui.Text(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
 	}
 	if a.commandRejected {
-		ui.Text(c, locales.CommandRejected())
+		message := a.commandInstruction
+		if message == "" {
+			message = locales.CommandRejected()
+		}
+		ui.Text(c, message)
 	}
 	ui.Row(c).Gap(12).Children(func() {
 		if ui.Button(c.Key("inspect"), locales.CheckReadiness()).
-			Disabled(s.Busy || s.Stage == session.Indeterminate || s.SideEffects).Clicked() {
+			Disabled(pending || s.Busy || s.Stage == session.Indeterminate || s.SideEffects).Clicked() {
 			a.command(a.controller.Inspect())
 		}
 		label := locales.StartJailbreak()
 		if s.Transport.Capabilities.Manual {
 			label = locales.GuidedManualLaunch()
 		}
-		if ui.PrimaryButton(c.Key("start"), label).Disabled(!s.CanStart()).Clicked() {
+		if ui.PrimaryButton(c.Key("start"), label).Disabled(pending || !s.CanStart()).Clicked() {
 			a.command(a.controller.Start())
 		}
 	})
@@ -59,7 +80,7 @@ func (a *app) sessionView(c *ui.Context) {
 		})
 	}
 	if (s.Stage == session.NeedsSetup || s.Stage == session.Ready) && !s.Busy {
-		if ui.Button(c.Key("bootstrap"), locales.PrepareBootstrap()).Clicked() {
+		if ui.Button(c.Key("bootstrap"), locales.PrepareBootstrap()).Disabled(pending).Clicked() {
 			a.command(a.controller.PrepareBootstrap())
 		}
 	}

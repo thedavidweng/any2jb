@@ -12,6 +12,15 @@ manifest. The manifest integration supplies profile identity and capabilities.
 `SelectProfile` and `ConfigureTransport` invalidate readiness; switching profiles
 also invalidates saved-bootstrap assumptions.
 
+`manifest.Profile.SessionProfile()` supplies the pinned projection, including
+editions, bootstrap/source digests, save name, START arity and port. Canonical
+profiles require a confirmed matching bootstrap before Start. The
+`UseSavedBootstrap` command validates the full `BootstrapRecord`; same-digest
+bootstraps from different hosts are not interchangeable. See
+[host profile choices](host-profile-ui.md) for preference and bootstrap
+integration obligations. `ConfigureTransport` accepts an empty IPv4 to request
+network discovery; this does not establish readiness or a usable LAN address.
+
 ## Adapter contract
 
 - `HostRunner.Prepare` owns a fresh run's host resources and returns only after
