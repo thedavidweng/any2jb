@@ -1,0 +1,30 @@
+{
+  "schema": "any2jb/hardware-evidence@1",
+  "date": "YYYY-MM-DD",
+  "tester": "your name or handle",
+  "route": "p1a",
+  "combination": {
+    "macModel": "e.g. MacBook Pro 14-inch (Apple Silicon)",
+    "macosVersion": "e.g. 26.1 (25B78), from sw_vers",
+    "startupSecurity": "e.g. Reduced Security with user-managed kernel extensions, per docs/driver-security.md",
+    "hostProfile": "pepsipu | kurumuz | cellenseres | BermTheSequel | astral | izmysh",
+    "consoleSystemVersion": "Switch 2 system version, e.g. 23.0.1",
+    "gameEdition": "full | demo",
+    "gameVersion": "SmileBASIC version, e.g. 4.4.9",
+    "bootstrapSHA256": "lowercase SHA-256 of the pinned profile bootstrap.bas; must match manifest/profiles.json",
+    "transport": "usb-hid | guided-manual",
+    "usbController": "observed controller, e.g. usb-drd0; required for usb-hid",
+    "cable": "cable and power direction, e.g. USB-C data cable, console supplies power",
+    "lanTopology": "e.g. Switch 2 on Ethernet, Mac on Wi-Fi, same router, host IPv4 recorded in notes"
+  },
+  "steps": [
+    { "id": "helper-dry-run", "outcome": "pass | fail | blocked", "notes": "optional; required for fail/blocked", "log": "redacted excerpt or file next to this JSON" },
+    { "id": "usb-enumeration", "outcome": "pass | fail | blocked", "log": "e.g. MAC2JB_KEYBOARD_READY on usb-drd0" },
+    { "id": "harmless-typing", "outcome": "pass | fail | blocked", "log": "what was typed where and what arrived" },
+    { "id": "stop-key-release", "outcome": "pass | fail | blocked", "log": "no repeating keys after Stop; cancelled run returned to ready" },
+    { "id": "console-bootstrap-save", "outcome": "pass | fail | blocked", "log": "save name, console prompts observed" },
+    { "id": "host-connection", "outcome": "pass | fail | blocked", "log": "host reported console connected; never paste the START pairing command" },
+    { "id": "verification-4of4", "outcome": "pass | fail | blocked", "log": "structured 4/4 result, not a stdout line" },
+    { "id": "retained-rpc-readonly", "outcome": "pass | fail | blocked", "log": "rpc-status/system-code-dump results and Finish cleanup, or why blocked" }
+  ]
+}

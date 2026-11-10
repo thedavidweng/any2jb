@@ -140,7 +140,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 			return nativeChecks(ctx, out, root, m)
 		})
 	}
-	s.skip("console/USB hardware qualification", "requires a real console and Apple Silicon device-mode USB rig; no hardware operations run")
+	s.skip("console/USB hardware qualification", "manual gate: a human runs docs/hardware-acceptance.md and files docs/hardware-evidence logs; no hardware operations run")
 	if s.failed {
 		return fmt.Errorf("regression checks failed (see FAIL suites above)")
 	}

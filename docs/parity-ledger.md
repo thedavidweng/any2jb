@@ -51,6 +51,11 @@ verified. Production composition belongs to the host integration.
   and the `experimental` boolean. A drawn button is not integration evidence.
   Link the exact test/log when advancing a row. Hardware evidence must record
   platform, firmware, game, host revision, transport, date and observed result.
+  A row may read `hardware-verified` only with a matching validated log in
+  [hardware-evidence](hardware-evidence/), filed through the
+  [hardware acceptance protocol](hardware-acceptance.md);
+  `go test . -run TestHardwareEvidenceMatchesLedger` fails on any claim
+  without one.
 - **Experimental:** preserves upstream prototype/hardware-test qualifications,
   including experimental writes and switching. `false` does not establish
   hardware compatibility.
@@ -129,7 +134,8 @@ development is not a redistributable functional release.
 
 Every row linking this note is **not verified in any2jb**: the capability is
 not implemented or integrated, no authentic end-to-end result is available,
-and hardware acceptance is awaiting a real rig (ticket 24). Unit tests for
+and hardware acceptance is awaiting a human run of the
+[hardware acceptance protocol](hardware-acceptance.md). Unit tests for
 ledger completeness do not advance a capability's evidence. Gated optional
 tools remain visible here even if their UI or redistributable assets never ship.
 Rows marked `backlog: deferred parity` need a follow-up ticket before their
