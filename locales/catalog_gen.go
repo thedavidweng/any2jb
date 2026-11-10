@@ -693,3 +693,193 @@ func BuildLimitations() string { return In(i18n.Locale()).BuildLimitations() }
 func (msgs Messages) BuildLimitations() string {
 	return Catalog.Format(msgs.locale, "buildLimitations", nil)
 }
+
+// DriverSetup says "Review USB driver setup"
+// in the language the app shows.
+func DriverSetup() string { return In(i18n.Locale()).DriverSetup() }
+
+// DriverSetup says "Review USB driver setup"
+// in the language of msgs.
+func (msgs Messages) DriverSetup() string {
+	return Catalog.Format(msgs.locale, "driverSetup", nil)
+}
+
+// DriverTitle says "USB driver and startup security"
+// in the language the app shows.
+func DriverTitle() string { return In(i18n.Locale()).DriverTitle() }
+
+// DriverTitle says "USB driver and startup security"
+// in the language of msgs.
+func (msgs Messages) DriverTitle() string {
+	return Catalog.Format(msgs.locale, "driverTitle", nil)
+}
+
+// DriverDisclosure says "This driver is unsigned. It requires reduced startup security and user-approved kernel extensions. Re-enabling full p…"
+// in the language the app shows.
+func DriverDisclosure() string { return In(i18n.Locale()).DriverDisclosure() }
+
+// DriverDisclosure says "This driver is unsigned. It requires reduced startup security and user-approved kernel extensions. Re-enabling full p…"
+// in the language of msgs.
+func (msgs Messages) DriverDisclosure() string {
+	return Catalog.Format(msgs.locale, "driverDisclosure", nil)
+}
+
+// DriverSigning says "The pinned upstream setup also calls for disabling SIP, which reduces macOS protection. A working custom configuratio…"
+// in the language the app shows.
+func DriverSigning() string { return In(i18n.Locale()).DriverSigning() }
+
+// DriverSigning says "The pinned upstream setup also calls for disabling SIP, which reduces macOS protection. A working custom configuratio…"
+// in the language of msgs.
+func (msgs Messages) DriverSigning() string {
+	return Catalog.Format(msgs.locale, "driverSigning", nil)
+}
+
+// DriverRecovery says "If you choose USB input, shut down your Apple Silicon Mac, hold the power button for startup options, choose Options,…"
+// in the language the app shows.
+func DriverRecovery() string { return In(i18n.Locale()).DriverRecovery() }
+
+// DriverRecovery says "If you choose USB input, shut down your Apple Silicon Mac, hold the power button for startup options, choose Options,…"
+// in the language of msgs.
+func (msgs Messages) DriverRecovery() string {
+	return Catalog.Format(msgs.locale, "driverRecovery", nil)
+}
+
+// DriverApproval says "After installation, review the kernel-extension approval request in System Settings, Privacy & Security. Follow macOS…"
+// in the language the app shows.
+func DriverApproval() string { return In(i18n.Locale()).DriverApproval() }
+
+// DriverApproval says "After installation, review the kernel-extension approval request in System Settings, Privacy & Security. Follow macOS…"
+// in the language of msgs.
+func (msgs Messages) DriverApproval() string {
+	return Catalog.Format(msgs.locale, "driverApproval", nil)
+}
+
+// DriverRestart says "Every installation or reinstall requires a Mac restart. After approval and restart, check readiness again. A loaded d…"
+// in the language the app shows.
+func DriverRestart() string { return In(i18n.Locale()).DriverRestart() }
+
+// DriverRestart says "Every installation or reinstall requires a Mac restart. After approval and restart, check readiness again. A loaded d…"
+// in the language of msgs.
+func (msgs Messages) DriverRestart() string {
+	return Catalog.Format(msgs.locale, "driverRestart", nil)
+}
+
+// DriverDecline says "Decline driver installation"
+// in the language the app shows.
+func DriverDecline() string { return In(i18n.Locale()).DriverDecline() }
+
+// DriverDecline says "Decline driver installation"
+// in the language of msgs.
+func (msgs Messages) DriverDecline() string {
+	return Catalog.Format(msgs.locale, "driverDecline", nil)
+}
+
+// DriverManual says "Use Guided manual launch instead"
+// in the language the app shows.
+func DriverManual() string { return In(i18n.Locale()).DriverManual() }
+
+// DriverManual says "Use Guided manual launch instead"
+// in the language of msgs.
+func (msgs Messages) DriverManual() string {
+	return Catalog.Format(msgs.locale, "driverManual", nil)
+}
+
+// DriverApprove says "Approve driver installation"
+// in the language the app shows.
+func DriverApprove() string { return In(i18n.Locale()).DriverApprove() }
+
+// DriverApprove says "Approve driver installation"
+// in the language of msgs.
+func (msgs Messages) DriverApprove() string {
+	return Catalog.Format(msgs.locale, "driverApprove", nil)
+}
+
+// DriverConfirmTitle says "Confirm unsigned driver installation"
+// in the language the app shows.
+func DriverConfirmTitle() string { return In(i18n.Locale()).DriverConfirmTitle() }
+
+// DriverConfirmTitle says "Confirm unsigned driver installation"
+// in the language of msgs.
+func (msgs Messages) DriverConfirmTitle() string {
+	return Catalog.Format(msgs.locale, "driverConfirmTitle", nil)
+}
+
+// DriverConfirmText says "I understand the security consequences. Continue to the macOS administrator prompt to run the verified upstream insta…"
+// in the language the app shows.
+func DriverConfirmText() string { return In(i18n.Locale()).DriverConfirmText() }
+
+// DriverConfirmText says "I understand the security consequences. Continue to the macOS administrator prompt to run the verified upstream insta…"
+// in the language of msgs.
+func (msgs Messages) DriverConfirmText() string {
+	return Catalog.Format(msgs.locale, "driverConfirmText", nil)
+}
+
+// DriverConfirm says "Install with administrator approval"
+// in the language the app shows.
+func DriverConfirm() string { return In(i18n.Locale()).DriverConfirm() }
+
+// DriverConfirm says "Install with administrator approval"
+// in the language of msgs.
+func (msgs Messages) DriverConfirm() string {
+	return Catalog.Format(msgs.locale, "driverConfirm", nil)
+}
+
+// DriverBack says "Back"
+// in the language the app shows.
+func DriverBack() string { return In(i18n.Locale()).DriverBack() }
+
+// DriverBack says "Back"
+// in the language of msgs.
+func (msgs Messages) DriverBack() string {
+	return Catalog.Format(msgs.locale, "driverBack", nil)
+}
+
+// DriverInstalling says "Waiting for administrator approval and driver installation. Do not start a console session."
+// in the language the app shows.
+func DriverInstalling() string { return In(i18n.Locale()).DriverInstalling() }
+
+// DriverInstalling says "Waiting for administrator approval and driver installation. Do not start a console session."
+// in the language of msgs.
+func (msgs Messages) DriverInstalling() string {
+	return Catalog.Format(msgs.locale, "driverInstalling", nil)
+}
+
+// DriverInstallError says "Installation did not complete. It may have changed the installed driver. Check approval and restart state before retr…"
+// in the language the app shows.
+func DriverInstallError() string { return In(i18n.Locale()).DriverInstallError() }
+
+// DriverInstallError says "Installation did not complete. It may have changed the installed driver. Check approval and restart state before retr…"
+// in the language of msgs.
+func (msgs Messages) DriverInstallError() string {
+	return Catalog.Format(msgs.locale, "driverInstallError", nil)
+}
+
+// DriverDeveloper says "Developer-supplied pinned driver source. Not bundled or cleared for redistribution."
+// in the language the app shows.
+func DriverDeveloper() string { return In(i18n.Locale()).DriverDeveloper() }
+
+// DriverDeveloper says "Developer-supplied pinned driver source. Not bundled or cleared for redistribution."
+// in the language of msgs.
+func (msgs Messages) DriverDeveloper() string {
+	return Catalog.Format(msgs.locale, "driverDeveloper", nil)
+}
+
+// DriverNoSecurityChange says "Guided manual launch does not require this driver or reduced security."
+// in the language the app shows.
+func DriverNoSecurityChange() string { return In(i18n.Locale()).DriverNoSecurityChange() }
+
+// DriverNoSecurityChange says "Guided manual launch does not require this driver or reduced security."
+// in the language of msgs.
+func (msgs Messages) DriverNoSecurityChange() string {
+	return Catalog.Format(msgs.locale, "driverNoSecurityChange", nil)
+}
+
+// DriverVerifyError says "Driver package verification or availability failed. Nothing was installed. Restore the pinned driver files before ret…"
+// in the language the app shows.
+func DriverVerifyError() string { return In(i18n.Locale()).DriverVerifyError() }
+
+// DriverVerifyError says "Driver package verification or availability failed. Nothing was installed. Restore the pinned driver files before ret…"
+// in the language of msgs.
+func (msgs Messages) DriverVerifyError() string {
+	return Catalog.Format(msgs.locale, "driverVerifyError", nil)
+}

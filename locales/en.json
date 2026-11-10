@@ -34,13 +34,21 @@
   "requiresVerifiedSession": "Requires a verified retained-RPC session and the tool adapter.",
   "supportedEdition": "Supported edition. Use the matching bootstrap setup.",
   "transportUnverified": "Input preference only. Readiness must verify the actual transport before use.",
-  "@appName": { "description": "App name and window title." },
+  "@appName": {
+    "description": "App name and window title."
+  },
   "appDescription": "Nintendo Switch 2 session manager",
-  "@appDescription": { "description": "Shell introduction." },
+  "@appDescription": {
+    "description": "Shell introduction."
+  },
   "noSession": "No console session is running.",
-  "@noSession": { "description": "Idle shell status, not a readiness claim." },
+  "@noSession": {
+    "description": "Idle shell status, not a readiness claim."
+  },
   "aboutBuild": "About this build",
-  "@aboutBuild": { "description": "Toggle the development build limitations." },
+  "@aboutBuild": {
+    "description": "Toggle the development build limitations."
+  },
   "simulatedEnvironment": "Simulated environment. No real hardware checks.",
   "home": "Home",
   "checkingReadiness": "Checking readiness",
@@ -68,5 +76,26 @@
   "savePrompt": "Complete the console save or overwrite prompt, then confirm here.",
   "confirmSaved": "I saved the bootstrap",
   "buildLimitations": "Development shell. Console workflows are not available yet.",
-  "@buildLimitations": { "description": "Honest scope of the initial scaffold." }
+  "@buildLimitations": {
+    "description": "Honest scope of the initial scaffold."
+  },
+  "driverSetup": "Review USB driver setup",
+  "driverTitle": "USB driver and startup security",
+  "driverDisclosure": "This driver is unsigned. It requires reduced startup security and user-approved kernel extensions. Re-enabling full protection with this driver has not been verified.",
+  "driverSigning": "The pinned upstream setup also calls for disabling SIP, which reduces macOS protection. A working custom configuration may differ. Signing or notarizing this app does not approve the kernel extension. The app never changes SIP or startup security.",
+  "driverRecovery": "If you choose USB input, shut down your Apple Silicon Mac, hold the power button for startup options, choose Options, then open Startup Security Utility in Recovery. Review Reduced Security and the option to allow user management of kernel extensions from identified developers. These steps are yours to perform, not commands run by this app. Do not change a working custom security configuration blindly.",
+  "driverApproval": "After installation, review the kernel-extension approval request in System Settings, Privacy & Security. Follow macOS approval and restart prompts. An unsigned extension may still be rejected by the current policy; a SIP status summary cannot prove compatibility.",
+  "driverRestart": "Every installation or reinstall requires a Mac restart. After approval and restart, check readiness again. A loaded driver does not prove USB keyboard enumeration or accepted console input.",
+  "driverDecline": "Decline driver installation",
+  "driverManual": "Use Guided manual launch instead",
+  "driverApprove": "Approve driver installation",
+  "driverConfirmTitle": "Confirm unsigned driver installation",
+  "driverConfirmText": "I understand the security consequences. Continue to the macOS administrator prompt to run the verified upstream installer. This does not change startup security for me.",
+  "driverConfirm": "Install with administrator approval",
+  "driverBack": "Back",
+  "driverInstalling": "Waiting for administrator approval and driver installation. Do not start a console session.",
+  "driverInstallError": "Installation did not complete. It may have changed the installed driver. Check approval and restart state before retrying.",
+  "driverDeveloper": "Developer-supplied pinned driver source. Not bundled or cleared for redistribution.",
+  "driverNoSecurityChange": "Guided manual launch does not require this driver or reduced security.",
+  "driverVerifyError": "Driver package verification or availability failed. Nothing was installed. Restore the pinned driver files before retrying."
 }

@@ -1,0 +1,40 @@
+// Package transport is the platform input boundary. Stubs are deliberately
+// buildable on every target; compiling a backend does not qualify its hardware.
+package transport
+
+import (
+	"context"
+	"errors"
+
+	"github.com/thedavidweng/any2jb/session"
+)
+
+// InputTransport uses the controller's single authoritative input contract.
+type InputTransport = session.InputTransport
+
+var ErrManualInputRequired = errors.New("guided manual input requires the user to enter and confirm console commands")
+
+type Manual struct{}
+
+func NewManual() *Manual { return &Manual{} }
+
+func (*Manual) Send(context.Context, session.Run, session.InputAction, session.PreparedHost, session.Report) error {
+	return ErrManualInputRequired
+}
+func (*Manual) Release(context.Context, session.Run) error { return nil }
+
+// Mock injects behavior only at the public transport boundary.
+type Mock struct {
+	SendFunc    func(context.Context, session.Run, session.InputAction, session.PreparedHost, session.Report) error
+	ReleaseFunc func(context.Context, session.Run) error
+}
+
+func (m Mock) Send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) error {
+	return m.SendFunc(ctx, run, action, host, report)
+}
+func (m Mock) Release(ctx context.Context, run session.Run) error { return m.ReleaseFunc(ctx, run) }
+
+var (
+	_ InputTransport = (*Manual)(nil)
+	_ InputTransport = Mock{}
+)
