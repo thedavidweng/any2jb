@@ -119,6 +119,23 @@ func TestLauncherInstallUsesTheSaveKitGate(t *testing.T) {
 	}
 }
 
+func TestLauncherPreviewRemovesPreparedSave(t *testing.T) {
+	support := t.TempDir()
+	m := launcherManager(t, support, nil, "core.lua")
+	preview, err := m.PreviewLauncher(context.Background(), launcher.Request{ID: "launcher-nora2-demo"},
+		savekit.Request{TitleID: writeTitle, UID: writeUID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(preview.Files) != 1 || preview.Files[0].Path != "/core.lua" {
+		t.Fatalf("preview lost its file record: %+v", preview)
+	}
+	entries, err := os.ReadDir(filepath.Join(support, "launcher-previews"))
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("preview retained a prepared save: %v %v", entries, err)
+	}
+}
+
 func TestLauncherUnknownCoreNeverWrites(t *testing.T) {
 	log := fixtureLog(t)
 	runner, run, support := heldSession(t)
