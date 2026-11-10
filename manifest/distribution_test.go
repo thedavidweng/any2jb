@@ -1,6 +1,7 @@
 package manifest_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,6 +31,30 @@ func TestPackageGate(t *testing.T) {
 				t.Fatal("unbundled component accepted")
 			}
 		})
+	}
+}
+
+func TestPlatformOverlayPreservesHostDistributionGate(t *testing.T) {
+	root := t.TempDir()
+	name := filepath.Join(root, "darwin-arm64/vendor/blocked/run.cjs")
+	if err := os.MkdirAll(filepath.Dir(name), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(name, []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := &manifest.Manifest{
+		Profiles: []manifest.Profile{{ID: "blocked", SourceDirectory: "vendor/blocked", Distribution: manifest.Distribution{Decision: "blocked"}}},
+		Components: []manifest.Component{{ID: "misclassified-host", Path: "vendor/blocked/run.cjs", ResourcePlatform: "darwin-arm64",
+			SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true}}},
+	}
+	if err := m.CheckPackage(root); err == nil {
+		t.Fatal("overlay bypassed blocked host decision")
+	}
+	m.Profiles[0].Distribution = manifest.Distribution{Decision: "may-ship", Bundled: true}
+	if err := m.CheckPackage(root); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -94,6 +119,18 @@ func TestCanonicalResourcesPassDistributionGate(t *testing.T) {
 	m, err := manifest.Load()
 	if err != nil {
 		t.Fatal(err)
+	}
+	// Ordinary tests stay offline. A source checkout has no generated Node
+	// binary until prepare-runtime runs; the build gate must reject that state.
+	if _, err := os.Stat("../resources/darwin-arm64/runtime/node"); os.IsNotExist(err) {
+		if err := m.CheckPackage("../resources"); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("missing generated Node accepted: %v", err)
+		}
+		for i := range m.Components {
+			if m.Components[i].ID == "node-darwin-arm64" {
+				m.Components[i].Distribution.Bundled = false
+			}
+		}
 	}
 	if err := m.CheckPackage("../resources"); err != nil {
 		t.Fatal(err)
