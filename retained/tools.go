@@ -93,12 +93,6 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	if err != nil || !outcome.Valid(true) {
 		return errors.Join(errors.New("the retained session no longer holds a live verified lease"), err)
 	}
-	if request.Tool == "savekit-read" {
-		return m.runSaveKit(ctx, run, request, workspace, report)
-	}
-	if request.Tool == "savekit" {
-		return m.runSaveKitWrite(ctx, run, request, workspace, report)
-	}
 	m.mu.Lock()
 	if m.state.Lost {
 		m.mu.Unlock()
@@ -110,9 +104,16 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	}
 	// An unproven homebrew shutdown leaves console state unknown; only a
 	// console restart makes the workspace safe for another launcher.
-	if (isHomebrew(request.Tool) || request.Tool == "modloader") && m.state.CleanupBlocked {
+	if (isHomebrew(request.Tool) || request.Tool == "modloader" || request.Tool == "savekit" || request.Tool == "savekit-read") && m.state.CleanupBlocked {
 		m.mu.Unlock()
 		return errors.New("the previous homebrew launcher did not prove a clean shutdown; restart the console before launching homebrew again")
+	}
+	if request.Tool == "savekit-read" || request.Tool == "savekit" {
+		m.mu.Unlock()
+		if request.Tool == "savekit-read" {
+			return m.runSaveKit(ctx, run, request, workspace, report)
+		}
+		return m.runSaveKitWrite(ctx, run, request, workspace, report)
 	}
 	if m.active != nil {
 		owner := m.active.tool

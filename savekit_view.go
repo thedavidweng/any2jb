@@ -79,7 +79,7 @@ func (a *app) saveKitView(c *ui.Context) {
 	if owned {
 		ui.Text(c.Key("savekit-owner"), locales.ToolsOwner(state.Tool)).TextColor(c.Theme().TextMuted)
 	}
-	ready := leased && !s.Busy && !state.Lost && reason == "" && !owned
+	ready := leased && !s.Busy && !state.Lost && !state.ModloaderInstalled && !state.CleanupBlocked && reason == "" && !owned
 
 	ui.Text(c, locales.SaveKitManual()).TextColor(c.Theme().TextMuted)
 	if ui.Button(c.Key("savekit-accounts"), locales.SaveKitAccounts()).Disabled(!ready).Clicked() {
