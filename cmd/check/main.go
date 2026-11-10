@@ -104,7 +104,8 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		if err != nil {
 			return err
 		}
-		return command(ctx, out, "", "node", append([]string{"--test", "manifest/profiles.test.cjs"}, tests...)...)
+		return command(ctx, out, "", "node",
+			append([]string{"--test", "manifest/profiles.test.cjs", "retained/toolhost.test.cjs"}, tests...)...)
 	})
 	pepsipuVerified := false
 	for _, p := range m.Profiles {
