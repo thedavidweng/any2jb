@@ -20,6 +20,7 @@ type SessionController struct {
 	requested     Stage
 	monitorCancel context.CancelFunc
 	keyboard      chan [8]byte
+	keyboardStop  chan struct{}
 	changes       chan struct{}
 }
 
@@ -291,6 +292,7 @@ func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 		return c.reject(Unsupported)
 	}
 	c.s.BootstrapPrepared, c.s.BootstrapSaved = false, false
+	c.s.SavedBootstrap = BootstrapRecord{}
 	c.s.SaveSubmitted = false
 	return c.begin(BootstrapSetup, true, func(ctx context.Context, run Run) error {
 		if err := c.stage(ctx, BootstrapSetup, false); err != nil {
@@ -341,6 +343,11 @@ func (c *SessionController) SaveBootstrap(confirmed bool) (Snapshot, error) {
 				return err
 			}
 			c.s.BootstrapSaved = true
+			c.s.SavedBootstrap = BootstrapRecord{
+				ProfileID: run.Profile.ID, Revision: run.Profile.Revision,
+				SourceSHA256: run.Profile.SourceSHA256, BootstrapSHA256: run.Profile.BootstrapSHA256,
+				SaveName: run.Profile.SaveName, Edition: run.Edition, Confirmed: true, SavedAt: time.Now().UTC(),
+			}
 			c.s.SideEffects = false
 			c.transition(Ready)
 			return nil
@@ -457,6 +464,11 @@ func (c *SessionController) Stop() (Snapshot, error) {
 		!slices.Contains([]Stage{BootstrapSetup, PreparingHost, CivSwitchFetching, WaitingForInput, Inputting, WaitingForConsole, RunningExploit, Verifying, RunningTool}, c.s.Stage) {
 		return c.reject(InvalidState)
 	}
+	if c.keyboard != nil {
+		c.closeKeyboard()
+		c.emit(Warning, "", "Stop requested; console restart required.")
+		return c.snapshot(), nil
+	}
 	if c.s.Busy {
 		c.requested = Indeterminate
 		c.cancel()
@@ -528,6 +540,7 @@ func (c *SessionController) SelectProfile(profile Profile, edition string) (Snap
 	c.s.CivSwitch, c.s.LoaderVerified = false, false
 	c.s.ConsoleIPv4, c.s.EstimatedDuration = "", 0
 	c.s.BootstrapSaved, c.s.BootstrapPrepared = false, false
+	c.s.SavedBootstrap = BootstrapRecord{}
 	c.s.SaveSubmitted = false
 	c.s.Checks = nil
 	c.transition(Idle)
@@ -553,9 +566,11 @@ func (c *SessionController) UseSavedBootstrap(record BootstrapRecord) (Snapshot,
 		record.SourceSHA256 != p.SourceSHA256 || record.BootstrapSHA256 != p.BootstrapSHA256 ||
 		record.SaveName != p.SaveName || record.Edition != c.s.Edition {
 		c.s.BootstrapSaved = false
+		c.s.SavedBootstrap = BootstrapRecord{}
 		return c.configurationError(BootstrapMismatch, "Prepare and save the matching bootstrap for "+p.ID+" ("+c.s.Edition+") as "+p.SaveName+", then confirm the console save before launching.")
 	}
 	c.s.BootstrapSaved = true
+	c.s.SavedBootstrap = record
 	return c.snapshot(), nil
 }
 func (c *SessionController) ConfigureTransport(transport Transport, lanIPv4 string) (Snapshot, error) {

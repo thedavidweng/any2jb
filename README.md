@@ -14,6 +14,9 @@ The MyGo library and local CLI tool are pinned together to
 go tool mygo dev
 ```
 
+For explicit local engine/helper staging, see
+[developer launch](docs/developer-launch.md). Packaged builds ignore that option.
+
 Run the full check suite, including a windowless native UI test, and package
 the app with one command:
 

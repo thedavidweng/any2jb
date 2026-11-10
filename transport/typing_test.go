@@ -202,6 +202,9 @@ func decodeConsoleReports(t *testing.T, data []byte) string {
 				c = '-'
 			case 46:
 				c = '='
+				if shift {
+					c = '+'
+				}
 			case 51:
 				if shift {
 					c = ':'
