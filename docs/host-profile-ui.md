@@ -42,7 +42,7 @@ two host profiles do not make their records interchangeable. Profile selection
 invalidates saved-bootstrap assumptions and readiness.
 
 Canonical profiles cannot Start without a matching confirmed bootstrap.
-Bootstrap persistence/setup UI is ticket 13's responsibility: record identity
+[Saved-bootstrap persistence and setup](saved-bootstrap.md) record identity
 only after the console save prompt is handled, then use this controller check on
 reload. Do not treat the desktop preference file as proof of a console save.
 The engine/input adapters consume profile-specific command metadata, never a

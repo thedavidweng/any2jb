@@ -181,6 +181,7 @@ type Snapshot struct {
 	BootstrapPrepared bool
 	SaveSubmitted     bool
 	BootstrapSaved    bool
+	SavedBootstrap    BootstrapRecord
 	LastMessage       string
 }
 
@@ -219,6 +220,7 @@ func (e *Rejection) Error() string {
 type BootstrapRecord struct {
 	ProfileID, Revision, SourceSHA256, BootstrapSHA256, SaveName, Edition string
 	Confirmed                                                             bool
+	SavedAt                                                               time.Time
 }
 
 // Observations never transition the state machine. SideEffect must be reported

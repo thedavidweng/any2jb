@@ -32,6 +32,70 @@ type Messages struct{ locale string }
 // source language.
 func In(locale string) Messages { return Messages{locale} }
 
+// DeveloperStaged says "developer-staged, not redistributable"
+// in the language the app shows.
+func DeveloperStaged() string { return In(i18n.Locale()).DeveloperStaged() }
+
+// DeveloperStaged says "developer-staged, not redistributable"
+// in the language of msgs.
+func (msgs Messages) DeveloperStaged() string {
+	return Catalog.Format(msgs.locale, "developerStaged", nil)
+}
+
+// UseSavedBootstrap says "Use saved bootstrap"
+// in the language the app shows.
+func UseSavedBootstrap() string { return In(i18n.Locale()).UseSavedBootstrap() }
+
+// UseSavedBootstrap says "Use saved bootstrap"
+// in the language of msgs.
+func (msgs Messages) UseSavedBootstrap() string {
+	return Catalog.Format(msgs.locale, "useSavedBootstrap", nil)
+}
+
+// ConfirmBootstrapIdentity says "Confirm the console already contains {saveName} for {profile} ({edition}), revision {revision}, bootstrap SHA-256 {di…"
+// in the language the app shows.
+func ConfirmBootstrapIdentity(saveName string, profile string, edition string, revision string, digest string) string {
+	return In(i18n.Locale()).ConfirmBootstrapIdentity(saveName, profile, edition, revision, digest)
+}
+
+// ConfirmBootstrapIdentity says "Confirm the console already contains {saveName} for {profile} ({edition}), revision {revision}, bootstrap SHA-256 {di…"
+// in the language of msgs.
+func (msgs Messages) ConfirmBootstrapIdentity(saveName string, profile string, edition string, revision string, digest string) string {
+	return Catalog.Format(msgs.locale, "confirmBootstrapIdentity", map[string]any{"saveName": saveName, "profile": profile, "edition": edition, "revision": revision, "digest": digest})
+}
+
+// ConfirmBootstrapIdentityAction says "I confirm this exact saved bootstrap"
+// in the language the app shows.
+func ConfirmBootstrapIdentityAction() string {
+	return In(i18n.Locale()).ConfirmBootstrapIdentityAction()
+}
+
+// ConfirmBootstrapIdentityAction says "I confirm this exact saved bootstrap"
+// in the language of msgs.
+func (msgs Messages) ConfirmBootstrapIdentityAction() string {
+	return Catalog.Format(msgs.locale, "confirmBootstrapIdentityAction", nil)
+}
+
+// AllowBootstrapOverwrite says "I authorize replacing this saved program if it already exists"
+// in the language the app shows.
+func AllowBootstrapOverwrite() string { return In(i18n.Locale()).AllowBootstrapOverwrite() }
+
+// AllowBootstrapOverwrite says "I authorize replacing this saved program if it already exists"
+// in the language of msgs.
+func (msgs Messages) AllowBootstrapOverwrite() string {
+	return Catalog.Format(msgs.locale, "allowBootstrapOverwrite", nil)
+}
+
+// BootstrapPersistenceError says "The saved-bootstrap identity could not be stored. Check local file permissions; do not assume it will be available af…"
+// in the language the app shows.
+func BootstrapPersistenceError() string { return In(i18n.Locale()).BootstrapPersistenceError() }
+
+// BootstrapPersistenceError says "The saved-bootstrap identity could not be stored. Check local file permissions; do not assume it will be available af…"
+// in the language of msgs.
+func (msgs Messages) BootstrapPersistenceError() string {
+	return Catalog.Format(msgs.locale, "bootstrapPersistenceError", nil)
+}
+
 // Diagnostics says "Diagnostics"
 // in the language the app shows.
 func Diagnostics() string { return In(i18n.Locale()).Diagnostics() }
