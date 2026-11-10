@@ -39,7 +39,7 @@ func (a *app) sessionView(c *ui.Context) {
 	if s.Simulated {
 		ui.Text(c, locales.SimulatedEnvironment()).TextColor(c.Theme().TextMuted)
 	}
-	ui.Text(c, stageTitle(s.Stage)).FontSize(20).Bold()
+	ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).FontSize(20).Bold().Role(ui.RoleStatus)
 	a.manualView(c, s)
 	a.usbConfirmation.view(c)
 	if s.CleanupConfirmed {
@@ -73,7 +73,14 @@ func (a *app) sessionView(c *ui.Context) {
 		ui.Text(c, locales.SafeFailure())
 	}
 	for _, check := range s.Checks {
-		ui.Text(c.Key(check.ID+"-state"), checkStateTitle(check.State)).Bold()
+		stateColor := c.Theme().Danger
+		switch check.State {
+		case session.CheckVerified:
+			stateColor = c.Theme().Success
+		case session.Available:
+			stateColor = c.Theme().Warning
+		}
+		ui.Text(c.Key(check.ID+"-state"), checkStateTitle(check.State)).Bold().TextColor(stateColor).Role(ui.RoleStatus)
 		if check.GatesTransport == "usb-hid" {
 			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
 		}
@@ -82,9 +89,9 @@ func (a *app) sessionView(c *ui.Context) {
 			(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
 			message = locales.UsbEnumerationObserved(s.Transport.Controller)
 		}
-		ui.Text(c.Key(check.ID+"-message"), message)
+		ui.Text(c.Key(check.ID+"-message"), localize(message))
 		if check.NextAction != "" {
-			ui.Text(c.Key(check.ID+"-action"), check.NextAction)
+			ui.Text(c.Key(check.ID+"-action"), localize(check.NextAction))
 		}
 	}
 	if s.Total > 0 {
