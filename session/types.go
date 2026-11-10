@@ -163,6 +163,7 @@ type Snapshot struct {
 	Outcome           Outcome
 	Processes         []Process
 	CleanupConfirmed  bool
+	Attached          bool
 	Simulated         bool
 	Busy              bool
 	SideEffects       bool
@@ -271,6 +272,7 @@ type ToolRunner interface {
 type Environment struct {
 	CivSwitch CivSwitchAdapter
 	Host      HostRunner
+	Retained  RetainedAdapter
 	Input     InputTransport
 	Platform  PlatformServices
 	Tools     ToolRunner

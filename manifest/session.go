@@ -17,6 +17,13 @@ func (p Profile) SessionProfile() session.Profile {
 		_, name, _ := strings.Cut(edition, " ")
 		s.Editions = append(s.Editions, name)
 	}
+	// Read-only tools come with the retained lease itself; the write tools below
+	// additionally need their own host capability. Neither is consent or a
+	// redistribution grant: the adapter still consults DistributionFor.
+	if p.SupportsHeldRPC {
+		s.Tools = append(s.Tools, "rpc-status", "system-code-dump",
+			"ouncecake-webdav", "ouncecake-ftp", "sd-browser")
+	}
 	for _, tool := range []struct {
 		name      string
 		supported bool

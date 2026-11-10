@@ -70,6 +70,13 @@ func privateJSON(root, name string, target any) error {
 	return json.Unmarshal(data, target)
 }
 
+// VerifyHeld re-checks one retained session's private evidence and asks its
+// live loopback endpoint for a fresh status. A stale result file alone is never
+// accepted, and a failed request is never replayed.
+func VerifyHeld(ctx context.Context, workspace string) (session.Outcome, error) {
+	return verifyResult(ctx, workspace, true)
+}
+
 func verifyResult(ctx context.Context, workspace string, held bool) (session.Outcome, error) {
 	var result engineResult
 	info, err := os.Lstat(workspace)

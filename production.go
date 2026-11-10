@@ -12,6 +12,7 @@ import (
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/readiness"
+	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/transport"
 )
@@ -21,11 +22,14 @@ import (
 // Packaged startup never supplies DeveloperSourceRoot or DeveloperProfileID.
 func productionEnvironment(options engine.Options) session.Environment {
 	root, err := engine.Stage(options)
+	host := engine.NewHostRunner(options)
+	tools := productionTools(root, err, options, host)
 	// The manual adapter never sends USB input. A verified Darwin adapter can be
 	// composed here separately when its readiness gates and sender are available.
 	return session.Environment{
 		CivSwitch: civswitch.New(civswitch.Options{Manifest: options.Manifest}),
-		Host:      engine.NewHostRunner(options),
+		Host:      host,
+		Retained:  tools,
 		Input: transport.NewManual(func(run session.Run) (string, error) {
 			if err != nil {
 				return "", err
@@ -41,8 +45,25 @@ func productionEnvironment(options engine.Options) session.Environment {
 			return string(source), readErr
 		}),
 		Platform: productionPlatform{root: root, options: options, stageError: err},
-		Tools:    unavailableTools{},
+		Tools:    tools,
 	}
+}
+
+// productionTools composes the retained lease and read-only tool adapter. Tool
+// sources are only staged from an explicit developer source root; a packaged app
+// stages nothing and every entry keeps the manifest's unavailable reason.
+func productionTools(root string, stageError error, options engine.Options, host *engine.HostRunner) *retained.Manager {
+	toolRoot, staged, stageToolsError := retained.StageTools(retained.StageOptions{Support: options.Support,
+		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
+		Components: []string{"ouncecake", "sd-browser"}})
+	node, toolHost := "", ""
+	if stageError == nil {
+		node, toolHost = filepath.Join(root, "runtime/node"), filepath.Join(root, "runtime/toolhost.cjs")
+	}
+	return retained.New(retained.Options{Support: options.Support, Node: node, Host: toolHost,
+		ToolRoot: toolRoot, Staged: staged, StageError: stageToolsError,
+		EngineStaged: options.DeveloperSourceRoot != "" && options.DeveloperProfileID != "",
+		Manifest:     options.Manifest, Runs: host})
 }
 
 // productionDriverGate uses the packaged resource root; packaged startup never
@@ -116,13 +137,6 @@ func (p productionPlatform) ReleaseInterrupted(ctx context.Context) error {
 	return (diagnostics.Store{Support: p.options.Support}).ReleaseInterrupted(ctx)
 }
 func (productionPlatform) Credentials() session.CredentialStore { return unavailableCredentials{} }
-
-type unavailableTools struct{}
-
-func (unavailableTools) Run(context.Context, session.Run, string, session.Report) error {
-	return errors.New("tool adapter is not available")
-}
-func (unavailableTools) Stop(context.Context, session.Run) error { return nil }
 
 type unavailableCredentials struct{}
 

@@ -25,6 +25,7 @@ type Runtime struct {
 	NodeVersion       string   `json:"nodeVersion"`
 	Node              string   `json:"node"`
 	Bridge            string   `json:"bridge"`
+	ToolHost          string   `json:"toolHost"`
 	Helpers           []string `json:"helpers"`
 	NodeArchive       string   `json:"nodeArchive"`
 	NodeArchiveSHA256 string   `json:"nodeArchiveSha256"`
@@ -63,6 +64,7 @@ type Profile struct {
 
 type Component struct {
 	ResourcePlatform string       `json:"resourcePlatform,omitempty"`
+	Source           *ToolSource  `json:"source,omitempty"`
 	Distribution     Distribution `json:"distribution"`
 	ID               string       `json:"id"`
 	Upstream         string       `json:"upstream"`
