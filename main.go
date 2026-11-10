@@ -29,6 +29,7 @@ type app struct {
 	usbConfirmation    usbPrompt
 	civSwitchPanel     civSwitchPanel
 	toolsPanel         toolsPanel
+	homebrewPanel      homebrewPanel
 	tools              toolAdapter
 	driverPanel        driverPanel
 	about              bool

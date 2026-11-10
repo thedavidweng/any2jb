@@ -100,6 +100,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		a.runTool("sd-browser", p.consoleIPv4)
 	}
 	a.toolReason(c, "sd-browser", state, sdReason)
+	a.homebrewView(c, s, state)
 	if len(state.Games) > 0 {
 		ids := make([]string, 0, len(state.Games))
 		for _, game := range state.Games {
