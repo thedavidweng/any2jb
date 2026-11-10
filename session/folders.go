@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"syscall"
 )
 
 // The modloader and custom homebrew layout rules mirror the pinned mac2jb
@@ -39,16 +38,10 @@ func ownedFolder(value string) error {
 	if err != nil || !info.IsDir() {
 		return errors.New("choose an existing absolute folder on this Mac")
 	}
-	if !ownedByMe(info) {
-		return errors.New("the folder must be an owned directory without symlinks")
-	}
-	return nil
+	return ownedByMe(info)
 }
 
-func ownedByMe(info fs.FileInfo) bool {
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	return ok && int(stat.Uid) == os.Getuid()
-}
+var errOwnership = errors.New("the folder and its files must be owned by you, without symlinks")
 
 // regularTree walks a subtree and refuses symlinks, special files, foreign
 // owners and more than the recorded file limit.
@@ -64,8 +57,8 @@ func regularTree(root string, count *int) error {
 		if info.Mode()&fs.ModeSymlink != 0 || !(info.IsDir() || info.Mode().IsRegular()) {
 			return fmt.Errorf("mod folders may contain only regular files and directories: %s", name)
 		}
-		if !ownedByMe(info) {
-			return fmt.Errorf("a mod file is owned by another user: %s", name)
+		if err := ownedByMe(info); err != nil {
+			return fmt.Errorf("%w: %s", err, name)
 		}
 		if info.Mode().IsRegular() {
 			if *count++; *count > maxModFiles {
