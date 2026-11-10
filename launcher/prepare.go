@@ -120,10 +120,20 @@ func Prepare(ctx context.Context, m *manifest.Manifest, c manifest.Component, ro
 		defer cancel()
 		// This pinned upstream helper only patches local save bytes. It does
 		// not receive a workspace, lease or console address.
-		cmd := exec.CommandContext(ctx, node, "-e", `require(process.argv[1]).stageFullSeedsow(process.argv[2],process.argv[3],{preferUpdate:false}).catch(()=>process.exitCode=1)`,
+		cmd := exec.CommandContext(ctx, node, "-e", `require(process.argv[1]).stageFullSeedsow(process.argv[2],process.argv[3],{preferUpdate:false}).catch(()=>process.exitCode=2)`,
 			filepath.Join(root, "scripts/seedsow-full-save.cjs"), dest, backup)
 		if err := cmd.Run(); err != nil {
-			return savekit.Preview{}, errors.New("the full-game autosave is not compatible with the pinned Seedsow BOWS v1003 patch")
+			if ctx.Err() != nil {
+				return savekit.Preview{}, fmt.Errorf("the full-game patch was interrupted: %w", ctx.Err())
+			}
+			var exit *exec.ExitError
+			if !errors.As(err, &exit) {
+				return savekit.Preview{}, fmt.Errorf("could not start the full-game patch helper: %w", err)
+			}
+			if exit.ExitCode() == 2 {
+				return savekit.Preview{}, errors.New("the full-game patch helper rejected the autosave")
+			}
+			return savekit.Preview{}, errors.New("the full-game patch helper failed; no save was changed")
 		}
 	}
 	return savekit.PreviewWrite(dest)
