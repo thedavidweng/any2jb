@@ -27,6 +27,12 @@ async function main() {
   if (!fs.existsSync(path.join(workspace, 'result.json'))) throw Error('fixture requires a held run');
   if (tool === 'rpc-status') { emit('status', {ready: true}); return; }
   emit('started');
+  if (scenario === 'pre-result-flood') {
+    for (let i = 0; i < 64; i++) emit('progress');
+    await stopped;
+    emit('stopped');
+    return;
+  }
   if (scenario === 'dirty') { process.exitCode = 1; return; }
   if (tool === 'system-code-dump') {
     fs.mkdirSync(destination, {recursive: true, mode: 0o700});

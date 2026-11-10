@@ -382,6 +382,12 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	if p == nil || p.cmd.Process == nil {
 		return nil
 	}
+	// Cancellation can also leave observe before its first result. Drain while
+	// waiting for shutdown so a full startup queue cannot prevent reaping.
+	go func() {
+		for range p.events {
+		}
+	}()
 	if p.input != nil {
 		io.WriteString(p.input, "{\"type\":\"stop\"}\n")
 	}

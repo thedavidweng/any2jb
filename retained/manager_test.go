@@ -179,6 +179,26 @@ func TestStopDrainsProgressAfterRunning(t *testing.T) {
 	}
 }
 
+func TestCancellationDrainsProgressBeforeRunning(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := manager(t, support, runner, "pre-result-flood", "sd-browser")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	go func() {
+		done <- m.RunWith(ctx, run, session.ToolRequest{Tool: "sd-browser", ConsoleIPv4: "192.0.2.7"},
+			func(session.Progress) { cancel() })
+	}()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("cancelled startup reported success")
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("cancelled startup blocked behind unread progress")
+	}
+}
+
 func TestExportsStayInsideTheirStatedBoundary(t *testing.T) {
 	runner, run, support := heldSession(t)
 	exposed := manager(t, support, runner, "exposed", "sd-browser")
