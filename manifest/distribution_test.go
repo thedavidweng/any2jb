@@ -1,0 +1,124 @@
+package manifest_test
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/thedavidweng/any2jb/manifest"
+)
+
+func TestPackageGate(t *testing.T) {
+	for _, decision := range []string{"may-ship", "excluded", "blocked", ""} {
+		t.Run(decision, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "helper"), []byte("hello"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			m := &manifest.Manifest{Components: []manifest.Component{{
+				ID: "helper", Path: "helper",
+				SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+				Distribution: manifest.Distribution{Decision: decision, Bundled: true, Reason: "fixture"},
+			}}}
+			err := m.CheckPackage(root)
+			if (err == nil) != (decision == "may-ship") {
+				t.Fatalf("decision %q: %v", decision, err)
+			}
+			m.Components[0].Distribution.Bundled = false
+			if err := m.CheckPackage(root); err == nil {
+				t.Fatal("unbundled component accepted")
+			}
+		})
+	}
+}
+
+func TestDistributionAvailability(t *testing.T) {
+	m, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{"pepsipu", "kurumuz", "cellenseres", "BermTheSequel", "izmysh", "astral", "browser-research"} {
+		gate, err := m.DistributionFor(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if gate.Available() || gate.Bundled || gate.Reason == "" {
+			t.Fatalf("%s must be unavailable with a reason: %+v", id, gate)
+		}
+	}
+	if _, err := m.DistributionFor("unknown"); err == nil {
+		t.Fatal("unknown capability accepted")
+	}
+}
+
+func TestPackageRejectsUnknownChangedAndLinkedResources(t *testing.T) {
+	m := &manifest.Manifest{
+		Profiles: []manifest.Profile{{ID: "blocked-host", SourceDirectory: "vendor/host", Distribution: manifest.Distribution{Decision: "blocked"}}},
+		Components: []manifest.Component{{
+			ID: "icon", Path: "icon.png",
+			SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true},
+		}},
+	}
+	for _, name := range []string{"unrecorded.cjs", "icon.png", "vendor/host/run.cjs", "renamed-probe.js"} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "icon.png"), []byte("hello"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			file := filepath.Join(root, filepath.FromSlash(name))
+			if err := os.MkdirAll(filepath.Dir(file), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(file, []byte("unapproved bytes"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := m.CheckPackage(root); err == nil {
+				t.Fatal("unapproved resource accepted")
+			}
+		})
+	}
+	t.Run("symlink", func(t *testing.T) {
+		root := t.TempDir()
+		if err := os.Symlink("../outside", filepath.Join(root, "icon.png")); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.CheckPackage(root); err == nil {
+			t.Fatal("symlink accepted")
+		}
+	})
+}
+
+func TestCanonicalResourcesPassDistributionGate(t *testing.T) {
+	m, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.CheckPackage("../resources"); err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range m.Profiles {
+		if p.Upstream == "" || p.Revision == "" || p.SourceSHA256 == "" ||
+			p.LicenseStatus == "" || p.Distribution.Notice == "" || p.Distribution.Reason == "" {
+			t.Errorf("incomplete license inventory for %s", p.ID)
+		}
+	}
+	for _, c := range m.Components {
+		if c.Upstream == "" || c.Revision == "" || c.SHA256 == "" ||
+			c.LicenseStatus == "" || c.Distribution.Notice == "" || c.Distribution.Reason == "" {
+			t.Errorf("incomplete license inventory for %s", c.ID)
+		}
+	}
+}
+
+func TestPackageRequiresBundledNotices(t *testing.T) {
+	m := &manifest.Manifest{Components: []manifest.Component{{
+		ID: "notice", Path: "LICENSE",
+		SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+		Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true},
+	}}}
+	if err := m.CheckPackage(t.TempDir()); err == nil || !strings.Contains(err.Error(), "notice") {
+		t.Fatalf("missing bundled notice accepted or unidentified: %v", err)
+	}
+}

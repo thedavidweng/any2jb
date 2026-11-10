@@ -27,7 +27,13 @@
       "supportsModloader": false,
       "distributionManifestSha256": "720a676eaeaaf56305cee2b76f537bc5fd3461024ede780c6a0a0951b9ce646f",
       "upstreamManifestSha256": "c3c2c7f58dda61c6729d39cb49081b98ddc1af6534a043d23b5d4af5684a2c20",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved"
+      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
+        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+      }
     },
     {
       "id": "kurumuz",
@@ -57,7 +63,13 @@
       "distributionManifestSha256": "c6652bc6a281b32c0c59b664df77b128b3129c82494873151d19688b632fe3eb",
       "upstreamManifestSha256": "27599a4fd15f16e15ce59426846cab3c32157903fdee8fdd6a9f5fec2168ee4f",
       "localPatchSha256": "14fa7eadd68814d4fba075d043ec380832ea00bd6ce2e53918af5ba1431d54d3",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved"
+      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
+        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+      }
     },
     {
       "id": "cellenseres",
@@ -87,7 +99,13 @@
       "distributionManifestSha256": "0d0ed2e096acf2d081504491b37ff169fea63ec69c0e49618cab27bfdb317daa",
       "upstreamManifestSha256": "f553061089d03a92b1553f948781176c27ad0033d6ca34b98fae88cc51ee269b",
       "localPatchSha256": "0f55a14a7eea437b2cb692897d924515ae02d9449294cecb45258a921d685db1",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved"
+      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
+        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+      }
     },
     {
       "id": "BermTheSequel",
@@ -115,7 +133,13 @@
       "supportsModloader": false,
       "distributionManifestSha256": "40f1e6af5a79f8b3b0aee728171dd22f8129bd12a50d7e222b426f4c00f32f45",
       "upstreamManifestSha256": "c4f231aae9a646882e45922db05e24aeda2eda90681b1df4cd10eba6748fa063",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved"
+      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
+        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+      }
     },
     {
       "id": "izmysh",
@@ -141,7 +165,13 @@
       "supportsNativeHBLauncher": false,
       "supportsModloader": false,
       "distributionManifestSha256": "345f6d1f906f8a7e87678ba6b99d1b2e5abb892bf0bf8c274e4b9b860807d0a7",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved"
+      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "LICENSE-SCOPE.md; THIRD_PARTY.json",
+        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+      }
     },
     {
       "id": "astral",
@@ -172,7 +202,13 @@
       "distributionManifestSha256": "d339deda48e081c118f59c81903a2094d34e77c712bfd2e6806b95415d49964c",
       "upstreamManifestSha256": "27599a4fd15f16e15ce59426846cab3c32157903fdee8fdd6a9f5fec2168ee4f",
       "localPatchSha256": "14fa7eadd68814d4fba075d043ec380832ea00bd6ce2e53918af5ba1431d54d3",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved"
+      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
+        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+      }
     }
   ],
   "reference": {
@@ -186,7 +222,13 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "sender.c",
       "sha256": "cd6d70207ddba0c2263880e9720d223639f887899fdff570e53d78b1527583d8",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper."
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": false,
+        "notice": "cpypwn/mac2jb LICENSE (MIT)",
+        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+      }
     },
     {
       "id": "commands.c",
@@ -194,7 +236,13 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "commands.c",
       "sha256": "1bd5009c06471ca0466db0265f9ff6d9472317ab2dba32936bc1a5fb6272ff5b",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper."
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": false,
+        "notice": "cpypwn/mac2jb LICENSE (MIT)",
+        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+      }
     },
     {
       "id": "keyboard.c",
@@ -202,7 +250,13 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "keyboard.c",
       "sha256": "3ea91856cdd3c8ef4f8d09b1eddbfd1da8693a596a04ddba9c6f2a85aca77644",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper."
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": false,
+        "notice": "cpypwn/mac2jb LICENSE (MIT)",
+        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+      }
     },
     {
       "id": "civswitch-hid.c",
@@ -210,7 +264,55 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "civswitch-hid.c",
       "sha256": "531c46a32c76a109dc729cd508cef523aaa990b284272e8a6ef393071c181b8e",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper."
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": false,
+        "notice": "cpypwn/mac2jb LICENSE (MIT)",
+        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+      }
+    },
+    {
+      "id": "browser-research",
+      "upstream": "https://github.com/Jmesmykil/switch2-captive-portal-research",
+      "revision": "07cd867af2f1dc8f7b6ce59d964c3827cc3997b3",
+      "path": "vendor/switch2-captive-portal-research/LICENSE-NOTICE.md",
+      "sha256": "45c59586108d1ee75d3c18437e7705b8beaa17b2c2bef554cfc7318a45d066fd",
+      "licenseStatus": "No open-source license selected; public availability does not grant redistribution or reuse.",
+      "distribution": {
+        "decision": "excluded",
+        "bundled": false,
+        "notice": "LICENSE-NOTICE.md; mac2jb packaging/switch2-browser-research-provenance.json",
+        "reason": "Unavailable: the research probe set has no redistribution grant for any2jb. Permission reported for mac2jb does not authorize this package."
+      }
+    },
+    {
+      "id": "placeholder-icon",
+      "upstream": "https://github.com/egoist/mygo",
+      "revision": "a4b6734f7715c9f73709092f7bae80d861572c03",
+      "path": "icon.png",
+      "sha256": "9458f078158e62e71585ae86e46329ed9075eb0711b84c1ebcb694a2652bf887",
+      "licenseStatus": "MIT; generated MyGo template placeholder.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "licenses/mygo.txt",
+        "reason": "MIT template asset; retain MyGo copyright and permission notice."
+      }
+    },
+    {
+      "id": "mygo-notice",
+      "upstream": "https://github.com/egoist/mygo",
+      "revision": "a4b6734f7715c9f73709092f7bae80d861572c03",
+      "path": "licenses/mygo.txt",
+      "sha256": "f0b56f4ab53beb6e18c5e155219c2e2b6000b5475c0ae3ddb3af3894fd9349b4",
+      "licenseStatus": "MIT copyright and permission notice, verbatim upstream LICENSE.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "licenses/mygo.txt",
+        "reason": "Required notice for the MyGo framework and placeholder icon."
+      }
     }
   ]
 }
