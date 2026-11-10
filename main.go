@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
@@ -56,6 +57,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	assets, err := mygo.App.Path(mygo.PathResources)
+	if err != nil {
+		log.Fatal(err)
+	}
+	support, err := mygo.App.Path(mygo.PathUserData)
+	if err != nil {
+		log.Fatal(err)
+	}
+	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
 	mygo.App.WhenReady(func() {
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     locales.AppName(),
@@ -69,6 +79,14 @@ func main() {
 		mygo.App.OnLocaleChanged(func(string) {
 			win.SetTitle(locales.AppName())
 		})
+		go func() {
+			env := productionEnvironment(options)
+			win.Update(func() {
+				if err := a.initializeSession(env); err != nil {
+					a.commandRejected = true
+				}
+			})
+		}()
 	})
 	if err := mygo.App.Run(); err != nil {
 		log.Fatal(err)

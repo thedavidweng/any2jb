@@ -76,6 +76,16 @@ func (msgs Messages) HostProfile() string {
 	return Catalog.Format(msgs.locale, "hostProfile", nil)
 }
 
+// IzmyshUnavailable says "IZMYSH cannot launch yet. Its separate native qualification adapter is not implemented."
+// in the language the app shows.
+func IzmyshUnavailable() string { return In(i18n.Locale()).IzmyshUnavailable() }
+
+// IzmyshUnavailable says "IZMYSH cannot launch yet. Its separate native qualification adapter is not implemented."
+// in the language of msgs.
+func (msgs Messages) IzmyshUnavailable() string {
+	return Catalog.Format(msgs.locale, "izmyshUnavailable", nil)
+}
+
 // MatchingBootstrapRequired says "Prepare and save the matching bootstrap for {profile} ({edition}) as {saveName}, then confirm the console save before…"
 // in the language the app shows.
 func MatchingBootstrapRequired(profile string, edition string, saveName string) string {

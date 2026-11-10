@@ -12,6 +12,9 @@ import (
 func (a *app) profileView(c *ui.Context) {
 	p, _ := a.manifest.Profile(a.preferences.Profile)
 	ui.Text(c, locales.HostProfile()+": "+p.Label)
+	if p.Engine == "izmysh" {
+		ui.Text(c, locales.IzmyshUnavailable()).TextColor(c.Theme().TextMuted)
+	}
 	if ui.Button(c.Key("developer-options"), locales.DeveloperOptions()).Clicked() {
 		a.developer = !a.developer
 	}

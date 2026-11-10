@@ -89,3 +89,15 @@ func TestAllSixHostsCanBeSelected(t *testing.T) {
 		}
 	}
 }
+
+func TestIZMYSHQualificationBlockerIsVisible(t *testing.T) {
+	a, err := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.preferences.Profile = "izmysh"
+	tt := ui.NewTester(a.view, 720, 1000)
+	if !tt.HasText("IZMYSH cannot launch yet. Its separate native qualification adapter is not implemented.") {
+		t.Fatal(tt.Texts())
+	}
+}

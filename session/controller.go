@@ -11,13 +11,14 @@ import (
 )
 
 type SessionController struct {
-	mu        sync.Mutex
-	env       Environment
-	s         Snapshot
-	events    []Event
-	started   time.Time
-	cancel    context.CancelFunc
-	requested Stage
+	mu            sync.Mutex
+	env           Environment
+	s             Snapshot
+	events        []Event
+	started       time.Time
+	cancel        context.CancelFunc
+	requested     Stage
+	monitorCancel context.CancelFunc
 }
 
 func New(env Environment, profile Profile) *SessionController {
@@ -128,13 +129,20 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		if err == nil && requested == "" {
 			c.s.Busy = false
 			c.cancel = nil
+			if c.s.Stage == RetainedRPC && c.monitorCancel == nil {
+				c.watchHost(run)
+			}
 			c.emit(Info, "", c.s.LastMessage)
 			c.mu.Unlock()
 			return
 		}
 		c.mu.Unlock()
 		if err != nil || requested != "" {
-			cleanupCtx, done := context.WithTimeout(context.Background(), 5*time.Second)
+			timeout := 5 * time.Second
+			if run.Profile.RetainsRPC {
+				timeout = 305 * time.Second
+			}
+			cleanupCtx, done := context.WithTimeout(context.Background(), timeout)
 			cleanupErr := c.cleanup(cleanupCtx, run)
 			done()
 			c.mu.Lock()
@@ -165,7 +173,38 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 	}()
 	return c.snapshot()
 }
+
+// Called with mu held. Finish disarms this watcher before asking the host to
+// exit; any other exit invalidates the retained lease, including during a tool.
+func (c *SessionController) watchHost(run Run) {
+	ctx, cancel := context.WithCancel(context.Background())
+	c.monitorCancel = cancel
+	go func() {
+		c.env.Host.Wait(ctx, run)
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		if ctx.Err() != nil {
+			return
+		}
+		cancel()
+		c.monitorCancel = nil
+		if c.s.Busy {
+			c.requested = Indeterminate
+			c.cancel()
+			return
+		}
+		c.begin(c.s.Stage, false, func(context.Context, Run) error {
+			return errors.New("retained host exited unexpectedly")
+		})
+	}()
+}
 func (c *SessionController) cleanup(ctx context.Context, run Run) error {
+	c.mu.Lock()
+	if c.monitorCancel != nil {
+		c.monitorCancel()
+		c.monitorCancel = nil
+	}
+	c.mu.Unlock()
 	err := errors.Join(c.env.Input.Release(ctx, run), c.env.Tools.Stop(ctx, run), c.env.Host.Cleanup(ctx, run))
 	if err == nil {
 		c.mu.Lock()
@@ -373,6 +412,10 @@ func (c *SessionController) Finish() (Snapshot, error) {
 	defer c.mu.Unlock()
 	if !c.eligible(Verified, RetainedRPC) {
 		return c.reject(InvalidState)
+	}
+	if c.monitorCancel != nil {
+		c.monitorCancel()
+		c.monitorCancel = nil
 	}
 	return c.begin(c.s.Stage, false, func(ctx context.Context, run Run) error {
 		outcome, err := c.env.Host.Finish(ctx, run)
