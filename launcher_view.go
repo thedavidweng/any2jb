@@ -71,9 +71,9 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 	ui.Text(c, locales.LauncherSideEffects())
 	ui.Text(c, locales.LauncherExistingUntouched()).TextColor(c.Theme().TextMuted)
 
-	labels := make([]string, 0, len(launcher.IDs))
+	labels := make([]string, 0, len(launcher.IDs(a.manifest)))
 	ids := map[string]string{}
-	for _, id := range launcher.IDs {
+	for _, id := range launcher.IDs(a.manifest) {
 		label := launcherLabel(id)
 		labels = append(labels, label)
 		ids[label] = id

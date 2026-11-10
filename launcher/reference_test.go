@@ -23,7 +23,7 @@ func TestPinnedLauncherPackagesPrepare(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range launcher.IDs {
+	for _, id := range launcher.IDs(m) {
 		c, err := m.ToolComponent(id)
 		if err != nil {
 			t.Fatal(err)

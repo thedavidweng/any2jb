@@ -235,7 +235,7 @@ func (m *Manager) State() State {
 // Unavailable states why a tool cannot run, or "" when it can. Distribution
 // decisions come from the canonical manifest, never from host capabilities.
 func (m *Manager) Unavailable(tool, profileID string) string {
-	if slices.Contains(launcher.IDs, tool) {
+	if m.options.Manifest != nil && slices.Contains(launcher.IDs(m.options.Manifest), tool) {
 		if !slices.Contains(m.options.Staged, tool) {
 			return m.stagedReason(tool)
 		}

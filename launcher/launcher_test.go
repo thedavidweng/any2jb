@@ -1,6 +1,8 @@
 package launcher_test
 
 import (
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/thedavidweng/any2jb/launcher"
@@ -8,12 +10,33 @@ import (
 	"github.com/thedavidweng/any2jb/savekit"
 )
 
+func TestLauncherChoicesAndVersionRefusalFollowManifest(t *testing.T) {
+	m, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := m.ToolComponent("launcher-gravity-circuit")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.ID = "launcher-fixture"
+	c.Launcher.Versions = []string{"2.0", "3.0"}
+	m.Components = append(m.Components, c)
+	if !slices.Contains(launcher.IDs(m), c.ID) {
+		t.Fatal("manifest launcher omitted from choices")
+	}
+	err = launcher.Validate(launcher.Request{ID: c.ID}, c, savekit.Request{TitleID: c.Launcher.TitleID})
+	if err == nil || !strings.Contains(err.Error(), "launcher-fixture requires version 2.0 or 3.0") {
+		t.Fatalf("version refusal ignored component metadata: %v", err)
+	}
+}
+
 func TestLauncherRestrictions(t *testing.T) {
 	m, err := manifest.Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range launcher.IDs {
+	for _, id := range launcher.IDs(m) {
 		c, err := m.ToolComponent(id)
 		if err != nil {
 			t.Fatal(err)

@@ -168,7 +168,7 @@ func TestPackagedLauncherEntriesAreGated(t *testing.T) {
 		t.Fatal(err)
 	}
 	manager := retained.New(retained.Options{Manifest: m})
-	for _, id := range launcher.IDs {
+	for _, id := range launcher.IDs(m) {
 		d, _ := m.DistributionFor(id)
 		if got := manager.Unavailable(id, "kurumuz"); got != d.Reason {
 			t.Fatalf("%s: %q", id, got)
