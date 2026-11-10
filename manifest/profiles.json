@@ -417,7 +417,7 @@
       "id": "tool-host",
       "path": "runtime/toolhost.cjs",
       "resourcePlatform": "darwin-arm64",
-      "sha256": "ddeeb13faf9c9f0520662e6e1031eeb0b80749171daaca26f2655f6e0a3fadf4",
+      "sha256": "19a4fb100c9812be6cfc524884d31b89fff3b3bb658e25f7a4787e89e041e806",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb read-only tool host.",

@@ -201,7 +201,8 @@ async function heldProof(requested) {
     result.fs?.cleanup?.deferred === true && result.fs?.cleanup?.cleanedUp !== true &&
     result.fs?.cleanup?.donor?.cleanedUp === true && result.fs?.retainedEndpoint?.ready === true &&
     result.fs.retainedEndpoint.session === session && result.rpc?.mode === 'held' &&
-    result.rpc?.state === 'listening' && !result.completed && !result.error,
+    result.rpc?.state === 'listening' && !result.completed && !result.error &&
+    (!result.cleanupErrors || Array.isArray(result.cleanupErrors) && result.cleanupErrors.length === 0),
   'A verified session with a live retained RPC lease is required.');
   const connection = await privateJSON(workspace, 'connection.json');
   check(connection.addresses?.session === session && connection.addresses?.target === 'switch2' &&
