@@ -160,9 +160,12 @@ wire that entry when the Advanced Tools view exists.
 The canonical host `upstream` URLs identify where a user can inspect or obtain
 sources independently. Artemis and research upstream links above identify
 their authors; request explicit permission before redistribution.
-An upstream download is not permission to rebundle it. No auto-download or
-user-supplied-source execution route is implemented or approved here.
-Such a route needs a separate trust, integrity and rights decision and must
-not silently unlock an excluded entry.
+An upstream download is not permission to rebundle it. No end-user engine
+auto-download or source-import route is implemented. Local developers may
+explicitly stage a selected canonical engine profile from a pinned mac2jb
+clone after full integrity verification, as described in
+[runtime staging](runtime-staging.md#explicit-local-developer-staging).
+That isolated stage is marked developer-staged, not redistributable. It does
+not change any package decision or unlock excluded tools.
 
 See the [parity ledger's release blockers](parity-ledger.md#redistribution-release-blockers).

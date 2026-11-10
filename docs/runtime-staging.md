@@ -7,8 +7,9 @@ path, app version and `manifest.Load()` result. Development tests must inject
 the resource root: `go run` and `go test` do not merge platform overlays.
 The current UI does not yet call this API.
 
-The returned root contains `runtime/node`, `runtime/bridge.cjs` and a read-only
-`profiles.json` serialized from the same canonical manifest loaded by Go.
+The returned root contains `runtime/node`, `runtime/bridge.cjs`, a provenance
+record `stage.json`, and a read-only `profiles.json` serialized from the same
+canonical manifest loaded by Go.
 This generated copy is not a second editable configuration. Pass that path
 and a profile ID to the bridge. The bridge emits JSON profile metadata or a
 structured error; engine process launch and supervision belong to the host
@@ -55,12 +56,39 @@ when packaging; do not add it to runtime paths.
 
 ## Distribution and transport gates
 
-All six engine profiles remain blocked and uncopied. Their source trees,
-bootstraps and checksum inventories must not be staged until redistribution
-is resolved and each permitted packaged file is recorded in the canonical
-manifest. `Stage` preparing Node is not proof that an engine can launch.
-The host runner must check `DistributionFor(profileID).Available()` and
-`VerifyProfile` before execution or bootstrap transfer.
+All six engine profiles remain blocked from packaging. Their source trees,
+bootstraps and checksum inventories must not enter resources or app bundles
+until redistribution is resolved and each permitted packaged file is recorded
+in the canonical manifest. `Stage` preparing Node is not proof that an engine
+can launch. Packaged host runners must check
+`DistributionFor(profileID).Available()` and `VerifyProfile` before execution
+or bootstrap transfer.
+
+### Explicit local developer staging
+
+For local development only, pass both `Options.DeveloperSourceRoot` (the pinned
+mac2jb clone) and `Options.DeveloperProfileID` to `Stage`. A developer entrypoint
+or test may obtain that explicit root from `ANY2JB_REFERENCE_ROOT`. `Stage`
+never reads the environment itself. Packaged startup must leave both options
+empty; the build hook does not set them and still rejects blocked engine files.
+
+The developer stage lives separately at
+`<app support>/runtime/developer/<app version>/<profile ID>/`. The selected
+profile's entire verified source inventory, bootstrap, distribution checksum
+manifest and upstream/local-patch provenance are copied with their canonical
+relative paths. Other profile trees and mac2jb GUI scripts are not copied.
+`VerifyProfile` must pass on the source before copying and on the copy before
+activation. Reuse verifies the source, staged profile and sealed runtime again.
+
+`engine.ReadRecord(root)` exposes `source: developer-staged`,
+`redistributable: false`, profile ID, upstream, revision and source digest.
+Diagnostics can therefore say **developer-staged, not redistributable** without
+exposing a personal source path. Canonical distribution flags stay unchanged.
+Developer host runners must explicitly request this path, obtain a successful
+`Stage` result, match its selected profile, and call `VerifyProfile` before
+execution. Reading a record alone is not authorization or integrity evidence.
+The metadata-only bridge retains its packaged distribution gate; development
+host execution belongs to the Go runner.
 
 The four USB binaries remain unbundled pending the libusbd/APSL/source
 obligations review. Their existing `.c` records identify source, not binaries.
@@ -80,8 +108,13 @@ node --test engine/bridge.test.cjs manifest/profiles.test.cjs
 go run ./cmd/prepare-runtime
 go run ./cmd/check-package
 ANY2JB_RUNTIME_ASSETS="$PWD/resources/darwin-arm64" go test ./engine -run TestBundledNodeRuntime -v
+ANY2JB_REFERENCE_ROOT=/path/to/pinned/mac2jb go test ./engine -run TestPinnedDeveloperStaging -v
 ```
 
-The last check is opt-in, local Apple Silicon integration: stage the verified
+The Node check is opt-in, local Apple Silicon integration: stage the verified
 Node binary, check `--version`, and exercise the bridge's blocked-profile
-response. It does not execute an exploit or communicate with hardware.
+response. The pinned-source check stages all six selected profiles separately
+using fixture native sidecars, verifies provenance, rejects modified source
+metadata/tampered stages, and confirms packaging still rejects their bootstraps.
+Both opt-in checks skip when their environment variable is absent. Neither
+executes an exploit or communicates with hardware.

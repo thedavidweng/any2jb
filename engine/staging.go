@@ -20,6 +20,9 @@ type Options struct {
 	// merge MyGo's platform resource overlays. Support is the app support path.
 	Assets, Support, Version string
 	Manifest                 *manifest.Manifest
+	// DeveloperSourceRoot and DeveloperProfileID opt into local engine staging.
+	// Packaged startup must leave both empty. Stage never reads environment.
+	DeveloperSourceRoot, DeveloperProfileID string
 }
 
 // Stage verifies an existing version or atomically installs one. No child
@@ -32,6 +35,10 @@ func Stage(o Options) (string, error) {
 	}
 	if o.Manifest == nil {
 		return "", errors.New("missing runtime manifest")
+	}
+	profile, record, err := developerSource(o)
+	if err != nil {
+		return "", err
 	}
 	r := o.Manifest.Runtime
 	if r.Platform != "darwin-arm64" || r.NodeVersion != "24.22.1" {
@@ -68,6 +75,9 @@ func Stage(o Options) (string, error) {
 		components = append(components, c)
 	}
 	parent := filepath.Join(o.Support, "runtime")
+	if profile != nil {
+		parent = filepath.Join(parent, "developer", o.Version)
+	}
 	if err := privateDir(o.Support); err != nil {
 		return "", err
 	}
@@ -75,10 +85,16 @@ func Stage(o Options) (string, error) {
 		return "", err
 	}
 	dest := filepath.Join(parent, o.Version)
+	if profile != nil {
+		dest = filepath.Join(parent, profile.ID)
+	}
 	if _, err := os.Lstat(dest); err == nil {
 		err := verify(dest, o.Manifest, components)
+		if err == nil && profile != nil {
+			err = o.Manifest.VerifyProfile(dest, profile.ID)
+		}
 		if err == nil {
-			err = verifySealed(dest, o.Manifest)
+			err = verifySealed(dest, o.Manifest, record)
 		}
 		if err != nil {
 			return "", errors.Join(err, discard(dest))
@@ -112,11 +128,26 @@ func Stage(o Options) (string, error) {
 			return "", err
 		}
 	}
+	if profile != nil {
+		if err := copyDeveloperProfile(o.DeveloperSourceRoot, tmp, *profile); err != nil {
+			return "", err
+		}
+		if err := o.Manifest.VerifyProfile(tmp, profile.ID); err != nil {
+			return "", err
+		}
+	}
 	document, err := json.Marshal(o.Manifest)
 	if err != nil {
 		return "", err
 	}
 	if err := os.WriteFile(filepath.Join(tmp, "profiles.json"), document, 0o400); err != nil {
+		return "", err
+	}
+	stagedRecord, err := json.Marshal(record)
+	if err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(filepath.Join(tmp, "stage.json"), stagedRecord, 0o400); err != nil {
 		return "", err
 	}
 	if err := verify(tmp, o.Manifest, components); err != nil {
@@ -133,7 +164,7 @@ func Stage(o Options) (string, error) {
 	}); err != nil {
 		return "", err
 	}
-	if err := verifySealed(tmp, o.Manifest); err != nil {
+	if err := verifySealed(tmp, o.Manifest, record); err != nil {
 		return "", err
 	}
 	if err := os.Rename(tmp, dest); err != nil {
@@ -142,7 +173,18 @@ func Stage(o Options) (string, error) {
 	return dest, nil
 }
 
-func verifySealed(root string, m *manifest.Manifest) error {
+func verifySealed(root string, m *manifest.Manifest, record StagedRecord) error {
+	wantRecord, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	gotRecord, err := os.ReadFile(filepath.Join(root, "stage.json"))
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(gotRecord, wantRecord) {
+		return errors.New("staged engine provenance mismatch")
+	}
 	want, err := json.Marshal(m)
 	if err != nil {
 		return err
