@@ -20,6 +20,7 @@ type SessionController struct {
 	requested     Stage
 	monitorCancel context.CancelFunc
 	keyboard      chan [8]byte
+	keyboardStop  chan struct{}
 	changes       chan struct{}
 }
 
@@ -449,6 +450,11 @@ func (c *SessionController) Stop() (Snapshot, error) {
 	if c.requested != "" || !c.s.SideEffects ||
 		!slices.Contains([]Stage{BootstrapSetup, PreparingHost, CivSwitchFetching, WaitingForInput, Inputting, WaitingForConsole, RunningExploit, Verifying, RunningTool}, c.s.Stage) {
 		return c.reject(InvalidState)
+	}
+	if c.keyboard != nil {
+		c.closeKeyboard()
+		c.emit(Warning, "", "Stop requested; console restart required.")
+		return c.snapshot(), nil
 	}
 	if c.s.Busy {
 		c.requested = Indeterminate

@@ -28,6 +28,7 @@ func (d *Darwin) openKeyboard(ctx context.Context, run session.Run, report sessi
 		defer cancel()
 		return nil, errors.Join(errors.New("USB keyboard did not enumerate"), err, p.close(cleanup))
 	}
+	close(p.owned)
 	controller, _ := d.settings()
 	d.mu.Lock()
 	d.enumerated = controller
@@ -60,6 +61,11 @@ func (p *helperProcess) write(ctx context.Context, report [8]byte) error {
 	if _, err := p.input.Write(report[:]); err != nil {
 		return errors.New("USB keyboard write failed")
 	}
+	p.inflight = true
+	return p.ack(ctx)
+}
+
+func (p *helperProcess) ack(ctx context.Context) error {
 	line, err := p.next(ctx)
 	if err != nil {
 		return err
@@ -67,6 +73,7 @@ func (p *helperProcess) write(ctx context.Context, report [8]byte) error {
 	if line != "MAC2JB_KEYBOARD_SENT "+strconv.Itoa(p.count+1) {
 		return fmt.Errorf("invalid keyboard acknowledgement")
 	}
+	p.inflight = false
 	p.count++
 	if p.count == 1 || p.count%64 == 0 {
 		return p.audit.event("reports_delivered", "count="+strconv.Itoa(p.count))
