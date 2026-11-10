@@ -1,6 +1,9 @@
 package manifest_test
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"os"
 	"path/filepath"
@@ -9,6 +12,37 @@ import (
 
 	"github.com/thedavidweng/any2jb/manifest"
 )
+
+func TestPackageRejectsWrongArchitectureEvenWithMatchingDigest(t *testing.T) {
+	for _, cpu := range []uint32{0x100000c, 0x1000007} {
+		root := t.TempDir()
+		data := make([]byte, 32)
+		binary.LittleEndian.PutUint32(data, 0xfeedfacf)
+		binary.LittleEndian.PutUint32(data[4:], cpu)
+		if err := os.WriteFile(filepath.Join(root, "node"), data, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		digest := sha256.Sum256(data)
+		m := &manifest.Manifest{
+			Runtime: manifest.Runtime{Platform: "darwin-arm64", Node: "node"},
+			Components: []manifest.Component{{ID: "node", Path: "node",
+				SHA256:       hex.EncodeToString(digest[:]),
+				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true}}},
+		}
+		err := m.CheckPackage(root)
+		if (err == nil) != (cpu == 0x100000c) {
+			t.Fatalf("CPU %x package result: %v", cpu, err)
+		}
+		if cpu == 0x100000c {
+			if err := os.Chmod(filepath.Join(root, "node"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := m.CheckPackage(root); err == nil {
+				t.Fatal("missing executable permissions accepted")
+			}
+		}
+	}
+}
 
 func TestPackageGate(t *testing.T) {
 	for _, decision := range []string{"may-ship", "excluded", "blocked", ""} {

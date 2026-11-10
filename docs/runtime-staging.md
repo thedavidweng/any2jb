@@ -100,8 +100,9 @@ USB input, not core runtime staging or guided manual launch. If a helper is
 marked bundled, a missing/tampered helper is a corrupt payload and is rejected.
 No `gui-host.cjs` or `host-profiles.json` is copied from mac2jb.
 
-Zig 0.15.2 payload rebuild and all console/USB hardware checks remain
-**not verified**. Nothing here clears an engine's redistribution blocker.
+The Zig 0.15.2 payload rebuild passed the hardware-free regression harness;
+see [regression checks](regression-checks.md). All console/USB hardware checks
+remain **not verified**. Nothing here clears an engine's redistribution blocker.
 
 ## Checks
 
