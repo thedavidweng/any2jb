@@ -62,6 +62,7 @@ type toolProcess struct {
 	err             error
 	selection       chan string
 	reportedFailure bool
+	cleanupBlocked  bool
 }
 
 // Run satisfies the session adapter for tools that need no user parameter.
@@ -216,6 +217,8 @@ func (p *toolProcess) read(output io.ReadCloser) {
 			valid = valid && state != "" && (!isHomebrew(p.tool) || verifiedCleanup(e))
 		case "failed":
 			p.reportedFailure = true
+			p.cleanupBlocked = e.CleanupBlocked
+			p.err = errors.New("the read-only tool reported a failure; see redacted diagnostics")
 		default:
 			valid = false
 		}
@@ -432,7 +435,7 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	if p.err != nil {
 		// A homebrew supervisor that exits without a protocol-reported failure
 		// (protocol violation, kill, crash) left its cleanup unproven.
-		if isHomebrew(p.tool) && !p.reportedFailure {
+		if p.cleanupBlocked || isHomebrew(p.tool) && !p.reportedFailure {
 			m.mu.Lock()
 			m.state.CleanupBlocked = true
 			m.mu.Unlock()

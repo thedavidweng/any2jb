@@ -156,6 +156,23 @@ func TestHomebrewStopThenSwitch(t *testing.T) {
 	}
 }
 
+func TestHomebrewFailureAfterRunningBlocksReentry(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := manager(t, support, runner, "hb-late-failure", homebrewStaged...)
+	if err := m.Run(context.Background(), run, "mintbrew", func(session.Progress) {}); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Stop(context.Background(), run); err == nil {
+		t.Fatal("a failed shutdown reported success")
+	}
+	if !m.State().CleanupBlocked {
+		t.Fatal("the reported shutdown failure was lost after running")
+	}
+	if err := m.Run(context.Background(), run, "native-hblauncher", func(session.Progress) {}); err == nil {
+		t.Fatal("another homebrew launched after an unproven shutdown")
+	}
+}
+
 func TestRetrySafeHomebrewFailureKeepsReentryOpen(t *testing.T) {
 	runner, run, support := heldSession(t)
 	m := manager(t, support, runner, "hb-fail-retry", homebrewStaged...)

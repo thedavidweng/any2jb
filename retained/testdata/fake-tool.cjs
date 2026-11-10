@@ -75,6 +75,11 @@ async function main() {
       for (let i = 0; i < 64; i++) emit('progress');
     }
     await stopped;
+    if (scenario === 'hb-late-failure') {
+      emit('failed', {cleanupBlocked: true, message: 'fixture shutdown failure'});
+      process.exitCode = 1;
+      return;
+    }
     if (scenario === 'hb-unproven') { emit('stopped'); return; }
     const digest = crypto.createHash('sha256').update(fs.readFileSync(marker)).digest('hex');
     fs.unlinkSync(marker);
