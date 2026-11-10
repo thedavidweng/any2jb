@@ -52,6 +52,9 @@ type Options struct {
 	// SaveKitModule is the explicit host-module test seam, mirroring
 	// CommandFactory. Production leaves it empty and uses the embedded module.
 	SaveKitModule string
+	// SaveKitScenario selects the structured fixture's behavior. It is a test
+	// seam and stays empty in production.
+	SaveKitScenario string
 }
 
 // homebrewComponents lists the staged components each homebrew launcher needs
@@ -74,9 +77,23 @@ type Game struct {
 	Name    string `json:"name"`
 }
 
-// SaveKitState accumulates read-only save observations for the UI: each
-// listing stays visible until the lease ends. It is ephemeral tool-owned data,
-// not session state.
+// SaveKitWrite is the reported outcome of one gated save operation. Verified
+// is set only after the post-write read-back matched (or, for a compare, the
+// live save matched the export); it is never assumed. Backup keeps the
+// verified pre-operation backup accessible for recovery. A nonempty Failure
+// blocks further mutations until the console restarts: nothing is retried.
+type SaveKitWrite struct {
+	Action   string
+	Verified bool
+	Files    int
+	Replaced int
+	Backup   string
+	Failure  string
+}
+
+// SaveKitState accumulates save observations for the UI: each listing and
+// operation outcome stays visible until the lease ends. It is ephemeral
+// tool-owned data, not session state.
 type SaveKitState struct {
 	Users     []string
 	Titles    []string
@@ -84,6 +101,7 @@ type SaveKitState struct {
 	Action    string
 	Output    string
 	Path      string
+	Write     *SaveKitWrite
 }
 
 // State is ephemeral tool-owned data for the UI. It is not session state.
@@ -187,6 +205,10 @@ func (m *Manager) State() State {
 		observed.Users = append([]string(nil), observed.Users...)
 		observed.Titles = append([]string(nil), observed.Titles...)
 		observed.Inventory = append([]savekit.Entry(nil), observed.Inventory...)
+		if observed.Write != nil {
+			outcome := *observed.Write
+			observed.Write = &outcome
+		}
 		s.SaveKit = &observed
 	}
 	return s
@@ -198,7 +220,7 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 	component, ok := map[string]string{
 		"rpc-status": "", "system-code-dump": "",
 		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",
-		"savekit-read": "savekit",
+		"savekit-read": "savekit", "savekit": "savekit",
 	}[tool]
 	if !ok {
 		required, homebrew := homebrewComponents[tool]

@@ -1330,31 +1330,31 @@ func (msgs Messages) HbAppFolder() string {
 	return Catalog.Format(msgs.locale, "hbAppFolder", nil)
 }
 
-// SaveKitTitle says "SaveKit save inspection (read-only)"
+// SaveKitTitle says "SaveKit save management"
 // in the language the app shows.
 func SaveKitTitle() string { return In(i18n.Locale()).SaveKitTitle() }
 
-// SaveKitTitle says "SaveKit save inspection (read-only)"
+// SaveKitTitle says "SaveKit save management"
 // in the language of msgs.
 func (msgs Messages) SaveKitTitle() string {
 	return Catalog.Format(msgs.locale, "saveKitTitle", nil)
 }
 
-// SaveKitOpen says "Open SaveKit save inspection"
+// SaveKitOpen says "Open SaveKit save management"
 // in the language the app shows.
 func SaveKitOpen() string { return In(i18n.Locale()).SaveKitOpen() }
 
-// SaveKitOpen says "Open SaveKit save inspection"
+// SaveKitOpen says "Open SaveKit save management"
 // in the language of msgs.
 func (msgs Messages) SaveKitOpen() string {
 	return Catalog.Format(msgs.locale, "saveKitOpen", nil)
 }
 
-// SaveKitIntro says "Inspect accounts, installed titles and save archives, and export verified read-only backups. Nothing in this panel wr…"
+// SaveKitIntro says "Inspect accounts, installed titles and save archives, export verified backups, and run gated save operations. Every o…"
 // in the language the app shows.
 func SaveKitIntro() string { return In(i18n.Locale()).SaveKitIntro() }
 
-// SaveKitIntro says "Inspect accounts, installed titles and save archives, and export verified read-only backups. Nothing in this panel wr…"
+// SaveKitIntro says "Inspect accounts, installed titles and save archives, export verified backups, and run gated save operations. Every o…"
 // in the language of msgs.
 func (msgs Messages) SaveKitIntro() string {
 	return Catalog.Format(msgs.locale, "saveKitIntro", nil)
@@ -1530,6 +1530,304 @@ func SaveKitFailed() string { return In(i18n.Locale()).SaveKitFailed() }
 // in the language of msgs.
 func (msgs Messages) SaveKitFailed() string {
 	return Catalog.Format(msgs.locale, "saveKitFailed", nil)
+}
+
+// SaveKitWriteSection says "Write, restore and compare"
+// in the language the app shows.
+func SaveKitWriteSection() string { return In(i18n.Locale()).SaveKitWriteSection() }
+
+// SaveKitWriteSection says "Write, restore and compare"
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteSection() string {
+	return Catalog.Format(msgs.locale, "saveKitWriteSection", nil)
+}
+
+// SaveKitWriteHint says "Each operation backs up the live save and verifies that backup before any change, then reads the save back to prove t…"
+// in the language the app shows.
+func SaveKitWriteHint() string { return In(i18n.Locale()).SaveKitWriteHint() }
+
+// SaveKitWriteHint says "Each operation backs up the live save and verifies that backup before any change, then reads the save back to prove t…"
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteHint() string {
+	return Catalog.Format(msgs.locale, "saveKitWriteHint", nil)
+}
+
+// SaveKitSourceFolder says "Local save folder (absolute path)"
+// in the language the app shows.
+func SaveKitSourceFolder() string { return In(i18n.Locale()).SaveKitSourceFolder() }
+
+// SaveKitSourceFolder says "Local save folder (absolute path)"
+// in the language of msgs.
+func (msgs Messages) SaveKitSourceFolder() string {
+	return Catalog.Format(msgs.locale, "saveKitSourceFolder", nil)
+}
+
+// SaveKitRestoreFolder says "Verified backup to restore (absolute path)"
+// in the language the app shows.
+func SaveKitRestoreFolder() string { return In(i18n.Locale()).SaveKitRestoreFolder() }
+
+// SaveKitRestoreFolder says "Verified backup to restore (absolute path)"
+// in the language of msgs.
+func (msgs Messages) SaveKitRestoreFolder() string {
+	return Catalog.Format(msgs.locale, "saveKitRestoreFolder", nil)
+}
+
+// SaveKitCompareFolder says "Verified backup to compare (absolute path)"
+// in the language the app shows.
+func SaveKitCompareFolder() string { return In(i18n.Locale()).SaveKitCompareFolder() }
+
+// SaveKitCompareFolder says "Verified backup to compare (absolute path)"
+// in the language of msgs.
+func (msgs Messages) SaveKitCompareFolder() string {
+	return Catalog.Format(msgs.locale, "saveKitCompareFolder", nil)
+}
+
+// SaveKitPreviewWrite says "Preview save write"
+// in the language the app shows.
+func SaveKitPreviewWrite() string { return In(i18n.Locale()).SaveKitPreviewWrite() }
+
+// SaveKitPreviewWrite says "Preview save write"
+// in the language of msgs.
+func (msgs Messages) SaveKitPreviewWrite() string {
+	return Catalog.Format(msgs.locale, "saveKitPreviewWrite", nil)
+}
+
+// SaveKitPreviewRestore says "Preview restore"
+// in the language the app shows.
+func SaveKitPreviewRestore() string { return In(i18n.Locale()).SaveKitPreviewRestore() }
+
+// SaveKitPreviewRestore says "Preview restore"
+// in the language of msgs.
+func (msgs Messages) SaveKitPreviewRestore() string {
+	return Catalog.Format(msgs.locale, "saveKitPreviewRestore", nil)
+}
+
+// SaveKitPreviewInvalid says "The folder is not a valid preview source. Check the path and its files."
+// in the language the app shows.
+func SaveKitPreviewInvalid() string { return In(i18n.Locale()).SaveKitPreviewInvalid() }
+
+// SaveKitPreviewInvalid says "The folder is not a valid preview source. Check the path and its files."
+// in the language of msgs.
+func (msgs Messages) SaveKitPreviewInvalid() string {
+	return Catalog.Format(msgs.locale, "saveKitPreviewInvalid", nil)
+}
+
+// SaveKitPreviewFiles says "{count} file(s), {bytes} bytes"
+// in the language the app shows.
+func SaveKitPreviewFiles(count string, bytes string) string {
+	return In(i18n.Locale()).SaveKitPreviewFiles(count, bytes)
+}
+
+// SaveKitPreviewFiles says "{count} file(s), {bytes} bytes"
+// in the language of msgs.
+func (msgs Messages) SaveKitPreviewFiles(count string, bytes string) string {
+	return Catalog.Format(msgs.locale, "saveKitPreviewFiles", map[string]any{"count": count, "bytes": bytes})
+}
+
+// SaveKitWriteTarget says "Target: title {title} · account {account} · space {space} type {type} rank {rank} index {index}"
+// in the language the app shows.
+func SaveKitWriteTarget(title string, account string, space string, type_ string, rank string, index string) string {
+	return In(i18n.Locale()).SaveKitWriteTarget(title, account, space, type_, rank, index)
+}
+
+// SaveKitWriteTarget says "Target: title {title} · account {account} · space {space} type {type} rank {rank} index {index}"
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteTarget(title string, account string, space string, type_ string, rank string, index string) string {
+	return Catalog.Format(msgs.locale, "saveKitWriteTarget", map[string]any{"title": title, "account": account, "space": space, "type": type_, "rank": rank, "index": index})
+}
+
+// SaveKitDefaultArchiveOnly says "Writes and deletes target the default account archive (space 1, type 1, rank 0, index 0); the selected archive differs."
+// in the language the app shows.
+func SaveKitDefaultArchiveOnly() string { return In(i18n.Locale()).SaveKitDefaultArchiveOnly() }
+
+// SaveKitDefaultArchiveOnly says "Writes and deletes target the default account archive (space 1, type 1, rank 0, index 0); the selected archive differs."
+// in the language of msgs.
+func (msgs Messages) SaveKitDefaultArchiveOnly() string {
+	return Catalog.Format(msgs.locale, "saveKitDefaultArchiveOnly", nil)
+}
+
+// SaveKitAllowReplace says "Replace existing save files with the same names"
+// in the language the app shows.
+func SaveKitAllowReplace() string { return In(i18n.Locale()).SaveKitAllowReplace() }
+
+// SaveKitAllowReplace says "Replace existing save files with the same names"
+// in the language of msgs.
+func (msgs Messages) SaveKitAllowReplace() string {
+	return Catalog.Format(msgs.locale, "saveKitAllowReplace", nil)
+}
+
+// SaveKitConfirmOperation says "I confirm this exact target and file preview"
+// in the language the app shows.
+func SaveKitConfirmOperation() string { return In(i18n.Locale()).SaveKitConfirmOperation() }
+
+// SaveKitConfirmOperation says "I confirm this exact target and file preview"
+// in the language of msgs.
+func (msgs Messages) SaveKitConfirmOperation() string {
+	return Catalog.Format(msgs.locale, "saveKitConfirmOperation", nil)
+}
+
+// SaveKitWrite says "Back up and write save"
+// in the language the app shows.
+func SaveKitWrite() string { return In(i18n.Locale()).SaveKitWrite() }
+
+// SaveKitWrite says "Back up and write save"
+// in the language of msgs.
+func (msgs Messages) SaveKitWrite() string {
+	return Catalog.Format(msgs.locale, "saveKitWrite", nil)
+}
+
+// SaveKitRestore says "Back up and restore save"
+// in the language the app shows.
+func SaveKitRestore() string { return In(i18n.Locale()).SaveKitRestore() }
+
+// SaveKitRestore says "Back up and restore save"
+// in the language of msgs.
+func (msgs Messages) SaveKitRestore() string {
+	return Catalog.Format(msgs.locale, "saveKitRestore", nil)
+}
+
+// SaveKitRestoreHint says "Restore accepts a verified backup for an Account or Device archive at rank 0 and index 0. It replaces the backup's fi…"
+// in the language the app shows.
+func SaveKitRestoreHint() string { return In(i18n.Locale()).SaveKitRestoreHint() }
+
+// SaveKitRestoreHint says "Restore accepts a verified backup for an Account or Device archive at rank 0 and index 0. It replaces the backup's fi…"
+// in the language of msgs.
+func (msgs Messages) SaveKitRestoreHint() string {
+	return Catalog.Format(msgs.locale, "saveKitRestoreHint", nil)
+}
+
+// SaveKitCompare says "Compare live save with backup"
+// in the language the app shows.
+func SaveKitCompare() string { return In(i18n.Locale()).SaveKitCompare() }
+
+// SaveKitCompare says "Compare live save with backup"
+// in the language of msgs.
+func (msgs Messages) SaveKitCompare() string {
+	return Catalog.Format(msgs.locale, "saveKitCompare", nil)
+}
+
+// SaveKitCompareMatch says "The live save matches the export ({count} file(s)). The comparison export is kept at {path}"
+// in the language the app shows.
+func SaveKitCompareMatch(count string, path string) string {
+	return In(i18n.Locale()).SaveKitCompareMatch(count, path)
+}
+
+// SaveKitCompareMatch says "The live save matches the export ({count} file(s)). The comparison export is kept at {path}"
+// in the language of msgs.
+func (msgs Messages) SaveKitCompareMatch(count string, path string) string {
+	return Catalog.Format(msgs.locale, "saveKitCompareMatch", map[string]any{"count": count, "path": path})
+}
+
+// SaveKitCompareDiffers says "The live save differs from the export. The comparison export is kept at {path}"
+// in the language the app shows.
+func SaveKitCompareDiffers(path string) string { return In(i18n.Locale()).SaveKitCompareDiffers(path) }
+
+// SaveKitCompareDiffers says "The live save differs from the export. The comparison export is kept at {path}"
+// in the language of msgs.
+func (msgs Messages) SaveKitCompareDiffers(path string) string {
+	return Catalog.Format(msgs.locale, "saveKitCompareDiffers", map[string]any{"path": path})
+}
+
+// SaveKitDeleteName says "File name at save root"
+// in the language the app shows.
+func SaveKitDeleteName() string { return In(i18n.Locale()).SaveKitDeleteName() }
+
+// SaveKitDeleteName says "File name at save root"
+// in the language of msgs.
+func (msgs Messages) SaveKitDeleteName() string {
+	return Catalog.Format(msgs.locale, "saveKitDeleteName", nil)
+}
+
+// SaveKitDeleteHint says "Delete removes exactly this one file after a verified backup. Without the backup it cannot be undone."
+// in the language the app shows.
+func SaveKitDeleteHint() string { return In(i18n.Locale()).SaveKitDeleteHint() }
+
+// SaveKitDeleteHint says "Delete removes exactly this one file after a verified backup. Without the backup it cannot be undone."
+// in the language of msgs.
+func (msgs Messages) SaveKitDeleteHint() string {
+	return Catalog.Format(msgs.locale, "saveKitDeleteHint", nil)
+}
+
+// SaveKitDelete says "Back up and delete file"
+// in the language the app shows.
+func SaveKitDelete() string { return In(i18n.Locale()).SaveKitDelete() }
+
+// SaveKitDelete says "Back up and delete file"
+// in the language of msgs.
+func (msgs Messages) SaveKitDelete() string {
+	return Catalog.Format(msgs.locale, "saveKitDelete", nil)
+}
+
+// SaveKitActionWrite says "Write"
+// in the language the app shows.
+func SaveKitActionWrite() string { return In(i18n.Locale()).SaveKitActionWrite() }
+
+// SaveKitActionWrite says "Write"
+// in the language of msgs.
+func (msgs Messages) SaveKitActionWrite() string {
+	return Catalog.Format(msgs.locale, "saveKitActionWrite", nil)
+}
+
+// SaveKitActionRestore says "Restore"
+// in the language the app shows.
+func SaveKitActionRestore() string { return In(i18n.Locale()).SaveKitActionRestore() }
+
+// SaveKitActionRestore says "Restore"
+// in the language of msgs.
+func (msgs Messages) SaveKitActionRestore() string {
+	return Catalog.Format(msgs.locale, "saveKitActionRestore", nil)
+}
+
+// SaveKitActionDelete says "Delete"
+// in the language the app shows.
+func SaveKitActionDelete() string { return In(i18n.Locale()).SaveKitActionDelete() }
+
+// SaveKitActionDelete says "Delete"
+// in the language of msgs.
+func (msgs Messages) SaveKitActionDelete() string {
+	return Catalog.Format(msgs.locale, "saveKitActionDelete", nil)
+}
+
+// SaveKitWriteVerified says "{action} verified: {files} file(s) written, {replaced} replaced. The pre-operation backup is kept at {path}"
+// in the language the app shows.
+func SaveKitWriteVerified(action string, files string, replaced string, path string) string {
+	return In(i18n.Locale()).SaveKitWriteVerified(action, files, replaced, path)
+}
+
+// SaveKitWriteVerified says "{action} verified: {files} file(s) written, {replaced} replaced. The pre-operation backup is kept at {path}"
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteVerified(action string, files string, replaced string, path string) string {
+	return Catalog.Format(msgs.locale, "saveKitWriteVerified", map[string]any{"action": action, "files": files, "replaced": replaced, "path": path})
+}
+
+// SaveKitWriteFailed says "The save operation failed. The verified backup is kept at {path}. Finish this session and restart the console before …"
+// in the language the app shows.
+func SaveKitWriteFailed(path string) string { return In(i18n.Locale()).SaveKitWriteFailed(path) }
+
+// SaveKitWriteFailed says "The save operation failed. The verified backup is kept at {path}. Finish this session and restart the console before …"
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteFailed(path string) string {
+	return Catalog.Format(msgs.locale, "saveKitWriteFailed", map[string]any{"path": path})
+}
+
+// SaveKitWriteFailedNoBackup says "The save operation failed before the console save changed. Finish this session and restart the console before another…"
+// in the language the app shows.
+func SaveKitWriteFailedNoBackup() string { return In(i18n.Locale()).SaveKitWriteFailedNoBackup() }
+
+// SaveKitWriteFailedNoBackup says "The save operation failed before the console save changed. Finish this session and restart the console before another…"
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteFailedNoBackup() string {
+	return Catalog.Format(msgs.locale, "saveKitWriteFailedNoBackup", nil)
+}
+
+// SaveKitOpenBackup says "Open backup folder"
+// in the language the app shows.
+func SaveKitOpenBackup() string { return In(i18n.Locale()).SaveKitOpenBackup() }
+
+// SaveKitOpenBackup says "Open backup folder"
+// in the language of msgs.
+func (msgs Messages) SaveKitOpenBackup() string {
+	return Catalog.Format(msgs.locale, "saveKitOpenBackup", nil)
 }
 
 // SaveKitBack says "Back to Advanced Tools"

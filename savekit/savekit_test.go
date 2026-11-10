@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestOnlyReadOperationsCanBeRequested(t *testing.T) {
+func TestReadOperationsAndUngatedMutations(t *testing.T) {
 	for _, action := range []string{"accounts", "titles", "inventory"} {
 		if err := (savekit.Request{Action: action}).Validate(); err != nil {
 			t.Fatal(err)
@@ -18,10 +18,12 @@ func TestOnlyReadOperationsCanBeRequested(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	// Mutations and the read-only compare without their full gate are
+	// refused; the gated forms are covered in mutation_gate_test.go.
 	for _, action := range []string{"write", "restore", "delete", "verify", "unknown"} {
 		target.Action = action
 		if target.Validate() == nil {
-			t.Fatalf("accepted %s", action)
+			t.Fatalf("accepted ungated %s", action)
 		}
 	}
 	target.Action = "filetime"

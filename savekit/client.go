@@ -11,10 +11,10 @@ import (
 	"os/exec"
 )
 
-// Client drives the read-only SaveKit host module. Go owns policy and
-// verification; the module only joins the pinned upstream tool scripts to JSON
-// lines. There is no write path: Request cannot express one and any host event
-// claiming a mutation action is refused.
+// Client drives the SaveKit host module. Go owns policy and verification; the
+// module only joins the pinned upstream tool scripts to JSON lines. A result
+// must echo the requested action exactly: protocol drift, including a host
+// claiming an action it was not asked for, is refused.
 type Client struct {
 	Node, Module string
 	// Scenario selects the structured fixture's behavior. It is a test seam and
@@ -32,13 +32,16 @@ type hostEvent struct {
 	Inventory []Entry  `json:"inventory,omitempty"`
 	Output    string   `json:"output,omitempty"`
 	Path      string   `json:"path,omitempty"`
+	Files     int      `json:"files,omitempty"`
+	Replaced  int      `json:"replaced,omitempty"`
 }
 
-var errProtocol = errors.New("invalid read-only SaveKit host protocol")
+var errProtocol = errors.New("invalid SaveKit host protocol")
 
-// Run executes one read-only operation against the held run directory. For a
-// backup, destination is the empty export folder this app chose; the result
-// must land exactly there and pass export verification.
+// Run executes one operation against the held run directory. For a backup,
+// destination is the empty export folder this app chose; the result must land
+// exactly there and pass export verification. For a mutation, destination is
+// the verified backup the host re-verifies before any console change.
 func (c Client) Run(ctx context.Context, runDir, destination string, request Request) (Result, error) {
 	if err := request.Validate(); err != nil {
 		return Result{}, err
@@ -79,7 +82,7 @@ func (c Client) Run(ctx context.Context, runDir, destination string, request Req
 		return Result{}, err
 	}
 	if wait != nil {
-		return Result{}, fmt.Errorf("the read-only SaveKit host failed: %w", wait)
+		return Result{}, fmt.Errorf("the SaveKit host failed: %w", wait)
 	}
 	return result, nil
 }
@@ -110,7 +113,7 @@ func (c Client) observe(output io.Reader, request Request, destination string) (
 			if finished {
 				return Result{}, errProtocol
 			}
-			return Result{}, errors.New("the read-only SaveKit operation failed; see redacted diagnostics")
+			return Result{}, errors.New("the SaveKit operation failed; see redacted diagnostics")
 		case "result":
 			if finished {
 				return Result{}, errProtocol
@@ -124,13 +127,12 @@ func (c Client) observe(output io.Reader, request Request, destination string) (
 	if err := scanner.Err(); err != nil {
 		return Result{}, err
 	}
-	return Result{}, errors.New("the read-only SaveKit host ended without a result")
+	return Result{}, errors.New("the SaveKit host ended without a result")
 }
 
 func checkedResult(event hostEvent, request Request, destination string) (Result, error) {
 	if event.Action != request.Action {
-		// A host reporting any action but the requested read is protocol drift;
-		// this is also what refuses a host attempting a mutation.
+		// A host reporting any action but the requested one is protocol drift.
 		return Result{}, errProtocol
 	}
 	result := Result{Action: event.Action}
@@ -179,6 +181,16 @@ func checkedResult(event hostEvent, request Request, destination string) (Result
 			return Result{}, err
 		}
 		result.Path = event.Path
+	case "write", "restore", "delete":
+		// The host reports the pinned tool's own post-commit verification;
+		// Go still reads the save back before calling the operation verified.
+		if destination == "" || event.Files < 1 || event.Files > 2048 ||
+			event.Replaced < 0 || event.Replaced > event.Files ||
+			(request.Action == "delete" && (event.Files != 1 || event.Replaced != 0)) {
+			return Result{}, errProtocol
+		}
+		result.Files = event.Files
+		result.Replaced = event.Replaced
 	default:
 		return Result{}, errProtocol
 	}

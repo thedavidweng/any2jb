@@ -32,7 +32,7 @@ func savekitManager(t *testing.T, support string, runner retained.Workspaces, sc
 	}
 	options := retained.Options{Support: support, Node: node, Host: fixture, Manifest: m,
 		Runs: runner, Staged: staged, EngineStaged: true, ToolRoot: filepath.Join(support, "tools"),
-		SaveKitModule: module}
+		SaveKitModule: module, SaveKitScenario: scenario}
 	return retained.NewProtocolManager(options, func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
 		return exec.Command(node, fixture, options.ToolRoot, request.Tool, workspace,
 			request.ConsoleIPv4, filepath.Join(support, "verified-exports", "system-code-"+run.ID), scenario)

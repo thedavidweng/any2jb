@@ -44,11 +44,9 @@ func VerifyExport(dir string) error {
 	if err != nil {
 		return err
 	}
-	var m exportManifest
-	decoder := json.NewDecoder(strings.NewReader(string(data)))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&m); err != nil {
-		return fmt.Errorf("the save export manifest is unreadable: %w", err)
+	m, err := parseExportManifest(data)
+	if err != nil {
+		return err
 	}
 	if m.Partial || len(m.Failed) > 0 {
 		return errors.New("the save export is partial; it is not a verified backup")
@@ -119,6 +117,16 @@ func VerifyExport(dir string) error {
 		}
 		return fmt.Errorf("the save export contains a link or special file: %s", relative)
 	})
+}
+
+func parseExportManifest(data []byte) (exportManifest, error) {
+	var m exportManifest
+	decoder := json.NewDecoder(strings.NewReader(string(data)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&m); err != nil {
+		return exportManifest{}, fmt.Errorf("the save export manifest is unreadable: %w", err)
+	}
+	return m, nil
 }
 
 func safeExportPath(value string) (string, error) {
