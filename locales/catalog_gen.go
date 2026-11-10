@@ -6,14 +6,16 @@ import (
 	"embed"
 
 	"github.com/egoist/mygo/i18n"
+
+	// MyGo's own strings in the app's languages.
+	_ "github.com/egoist/mygo/locales/zh-Hans"
 )
 
 //go:embed *.json
 var files embed.FS
 
-// Catalog holds the messages in en, the source language, and no other
-// language. It is registered with package i18n, which makes its languages
-// the app's.
+// Catalog holds the messages in en, the source language, and zh-CN. It is
+// registered with package i18n, which makes its languages the app's.
 var Catalog *i18n.Catalog
 
 func init() {
@@ -2370,4 +2372,854 @@ func CivOpenFailed() string { return In(i18n.Locale()).CivOpenFailed() }
 // in the language of msgs.
 func (msgs Messages) CivOpenFailed() string {
 	return Catalog.Format(msgs.locale, "civOpenFailed", nil)
+}
+
+// DynNetNoUsableLAN says "No usable LAN IPv4 address was found."
+// in the language the app shows.
+func DynNetNoUsableLAN() string { return In(i18n.Locale()).DynNetNoUsableLAN() }
+
+// DynNetNoUsableLAN says "No usable LAN IPv4 address was found."
+// in the language of msgs.
+func (msgs Messages) DynNetNoUsableLAN() string {
+	return Catalog.Format(msgs.locale, "dynNetNoUsableLAN", nil)
+}
+
+// DynNetConnectLAN says "Connect this Mac to the console LAN, then refresh readiness."
+// in the language the app shows.
+func DynNetConnectLAN() string { return In(i18n.Locale()).DynNetConnectLAN() }
+
+// DynNetConnectLAN says "Connect this Mac to the console LAN, then refresh readiness."
+// in the language of msgs.
+func (msgs Messages) DynNetConnectLAN() string {
+	return Catalog.Format(msgs.locale, "dynNetConnectLAN", nil)
+}
+
+// DynNetDiscoveryFailed says "LAN interface discovery could not be completed."
+// in the language the app shows.
+func DynNetDiscoveryFailed() string { return In(i18n.Locale()).DynNetDiscoveryFailed() }
+
+// DynNetDiscoveryFailed says "LAN interface discovery could not be completed."
+// in the language of msgs.
+func (msgs Messages) DynNetDiscoveryFailed() string {
+	return Catalog.Format(msgs.locale, "dynNetDiscoveryFailed", nil)
+}
+
+// DynNetCheckAccess says "Check network interface access, then refresh readiness."
+// in the language the app shows.
+func DynNetCheckAccess() string { return In(i18n.Locale()).DynNetCheckAccess() }
+
+// DynNetCheckAccess says "Check network interface access, then refresh readiness."
+// in the language of msgs.
+func (msgs Messages) DynNetCheckAccess() string {
+	return Catalog.Format(msgs.locale, "dynNetCheckAccess", nil)
+}
+
+// DynNetAssignedPrefix says "Assigned LAN IPv4 addresses: "
+// in the language the app shows.
+func DynNetAssignedPrefix() string { return In(i18n.Locale()).DynNetAssignedPrefix() }
+
+// DynNetAssignedPrefix says "Assigned LAN IPv4 addresses: "
+// in the language of msgs.
+func (msgs Messages) DynNetAssignedPrefix() string {
+	return Catalog.Format(msgs.locale, "dynNetAssignedPrefix", nil)
+}
+
+// DynNetNoSelection says " No unambiguous address is selected."
+// in the language the app shows.
+func DynNetNoSelection() string { return In(i18n.Locale()).DynNetNoSelection() }
+
+// DynNetNoSelection says " No unambiguous address is selected."
+// in the language of msgs.
+func (msgs Messages) DynNetNoSelection() string {
+	return Catalog.Format(msgs.locale, "dynNetNoSelection", nil)
+}
+
+// DynNetChooseAddress says "Choose an assigned LAN IPv4 address below, then refresh readiness."
+// in the language the app shows.
+func DynNetChooseAddress() string { return In(i18n.Locale()).DynNetChooseAddress() }
+
+// DynNetChooseAddress says "Choose an assigned LAN IPv4 address below, then refresh readiness."
+// in the language of msgs.
+func (msgs Messages) DynNetChooseAddress() string {
+	return Catalog.Format(msgs.locale, "dynNetChooseAddress", nil)
+}
+
+// DynNetRecommendedPrefix says " Recommended address: "
+// in the language the app shows.
+func DynNetRecommendedPrefix() string { return In(i18n.Locale()).DynNetRecommendedPrefix() }
+
+// DynNetRecommendedPrefix says " Recommended address: "
+// in the language of msgs.
+func (msgs Messages) DynNetRecommendedPrefix() string {
+	return Catalog.Format(msgs.locale, "dynNetRecommendedPrefix", nil)
+}
+
+// DynNetRecommendedSuffix says " (available but not verified for console connectivity)"
+// in the language the app shows.
+func DynNetRecommendedSuffix() string { return In(i18n.Locale()).DynNetRecommendedSuffix() }
+
+// DynNetRecommendedSuffix says " (available but not verified for console connectivity)"
+// in the language of msgs.
+func (msgs Messages) DynNetRecommendedSuffix() string {
+	return Catalog.Format(msgs.locale, "dynNetRecommendedSuffix", nil)
+}
+
+// DynNetSelectedPrefix says " Selected: "
+// in the language the app shows.
+func DynNetSelectedPrefix() string { return In(i18n.Locale()).DynNetSelectedPrefix() }
+
+// DynNetSelectedPrefix says " Selected: "
+// in the language of msgs.
+func (msgs Messages) DynNetSelectedPrefix() string {
+	return Catalog.Format(msgs.locale, "dynNetSelectedPrefix", nil)
+}
+
+// DynNetSelectedSuffix says ". Local assignment verified; console connectivity is not verified."
+// in the language the app shows.
+func DynNetSelectedSuffix() string { return In(i18n.Locale()).DynNetSelectedSuffix() }
+
+// DynNetSelectedSuffix says ". Local assignment verified; console connectivity is not verified."
+// in the language of msgs.
+func (msgs Messages) DynNetSelectedSuffix() string {
+	return Catalog.Format(msgs.locale, "dynNetSelectedSuffix", nil)
+}
+
+// DynNetConnectConsole says "Connect the console by Ethernet on the reachable LAN; host listening and console connection are checked during launch."
+// in the language the app shows.
+func DynNetConnectConsole() string { return In(i18n.Locale()).DynNetConnectConsole() }
+
+// DynNetConnectConsole says "Connect the console by Ethernet on the reachable LAN; host listening and console connection are checked during launch."
+// in the language of msgs.
+func (msgs Messages) DynNetConnectConsole() string {
+	return Catalog.Format(msgs.locale, "dynNetConnectConsole", nil)
+}
+
+// DynUsbUnsupported says "Built-in USB device-mode input is not supported by this platform adapter."
+// in the language the app shows.
+func DynUsbUnsupported() string { return In(i18n.Locale()).DynUsbUnsupported() }
+
+// DynUsbUnsupported says "Built-in USB device-mode input is not supported by this platform adapter."
+// in the language of msgs.
+func (msgs Messages) DynUsbUnsupported() string {
+	return Catalog.Format(msgs.locale, "dynUsbUnsupported", nil)
+}
+
+// DynUsbChooseManual says "Choose guided manual input. Ordinary USB-C ports do not establish USB device-mode support."
+// in the language the app shows.
+func DynUsbChooseManual() string { return In(i18n.Locale()).DynUsbChooseManual() }
+
+// DynUsbChooseManual says "Choose guided manual input. Ordinary USB-C ports do not establish USB device-mode support."
+// in the language of msgs.
+func (msgs Messages) DynUsbChooseManual() string {
+	return Catalog.Format(msgs.locale, "dynUsbChooseManual", nil)
+}
+
+// DynUsbKextAbsent says "The USB gadget kext bundle is absent."
+// in the language the app shows.
+func DynUsbKextAbsent() string { return In(i18n.Locale()).DynUsbKextAbsent() }
+
+// DynUsbKextAbsent says "The USB gadget kext bundle is absent."
+// in the language of msgs.
+func (msgs Messages) DynUsbKextAbsent() string {
+	return Catalog.Format(msgs.locale, "dynUsbKextAbsent", nil)
+}
+
+// DynUsbReviewDriver says "Review driver setup and macOS approval requirements, or choose guided manual input."
+// in the language the app shows.
+func DynUsbReviewDriver() string { return In(i18n.Locale()).DynUsbReviewDriver() }
+
+// DynUsbReviewDriver says "Review driver setup and macOS approval requirements, or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynUsbReviewDriver() string {
+	return Catalog.Format(msgs.locale, "dynUsbReviewDriver", nil)
+}
+
+// DynUsbKextNotInspected says "The USB gadget kext bundle could not be inspected."
+// in the language the app shows.
+func DynUsbKextNotInspected() string { return In(i18n.Locale()).DynUsbKextNotInspected() }
+
+// DynUsbKextNotInspected says "The USB gadget kext bundle could not be inspected."
+// in the language of msgs.
+func (msgs Messages) DynUsbKextNotInspected() string {
+	return Catalog.Format(msgs.locale, "dynUsbKextNotInspected", nil)
+}
+
+// DynUsbKextPresent says "The USB gadget kext bundle is present. Presence does not prove integrity or loading."
+// in the language the app shows.
+func DynUsbKextPresent() string { return In(i18n.Locale()).DynUsbKextPresent() }
+
+// DynUsbKextPresent says "The USB gadget kext bundle is present. Presence does not prove integrity or loading."
+// in the language of msgs.
+func (msgs Messages) DynUsbKextPresent() string {
+	return Catalog.Format(msgs.locale, "dynUsbKextPresent", nil)
+}
+
+// DynUsbNoRestartPending says "No driver installation restart is pending."
+// in the language the app shows.
+func DynUsbNoRestartPending() string { return In(i18n.Locale()).DynUsbNoRestartPending() }
+
+// DynUsbNoRestartPending says "No driver installation restart is pending."
+// in the language of msgs.
+func (msgs Messages) DynUsbNoRestartPending() string {
+	return Catalog.Format(msgs.locale, "dynUsbNoRestartPending", nil)
+}
+
+// DynUsbRestartUnknown says "Driver restart state could not be determined."
+// in the language the app shows.
+func DynUsbRestartUnknown() string { return In(i18n.Locale()).DynUsbRestartUnknown() }
+
+// DynUsbRestartUnknown says "Driver restart state could not be determined."
+// in the language of msgs.
+func (msgs Messages) DynUsbRestartUnknown() string {
+	return Catalog.Format(msgs.locale, "dynUsbRestartUnknown", nil)
+}
+
+// DynUsbCheckRestartMarker says "Check the driver restart marker and system boot time, then refresh readiness."
+// in the language the app shows.
+func DynUsbCheckRestartMarker() string { return In(i18n.Locale()).DynUsbCheckRestartMarker() }
+
+// DynUsbCheckRestartMarker says "Check the driver restart marker and system boot time, then refresh readiness."
+// in the language of msgs.
+func (msgs Messages) DynUsbCheckRestartMarker() string {
+	return Catalog.Format(msgs.locale, "dynUsbCheckRestartMarker", nil)
+}
+
+// DynUsbRestartRequired says "A driver installation requires a Mac restart."
+// in the language the app shows.
+func DynUsbRestartRequired() string { return In(i18n.Locale()).DynUsbRestartRequired() }
+
+// DynUsbRestartRequired says "A driver installation requires a Mac restart."
+// in the language of msgs.
+func (msgs Messages) DynUsbRestartRequired() string {
+	return Catalog.Format(msgs.locale, "dynUsbRestartRequired", nil)
+}
+
+// DynUsbRestartAction says "Restart this Mac, then refresh readiness before using USB input."
+// in the language the app shows.
+func DynUsbRestartAction() string { return In(i18n.Locale()).DynUsbRestartAction() }
+
+// DynUsbRestartAction says "Restart this Mac, then refresh readiness before using USB input."
+// in the language of msgs.
+func (msgs Messages) DynUsbRestartAction() string {
+	return Catalog.Format(msgs.locale, "dynUsbRestartAction", nil)
+}
+
+// DynUsbKextNotLoaded says "The USB gadget kext is not loaded."
+// in the language the app shows.
+func DynUsbKextNotLoaded() string { return In(i18n.Locale()).DynUsbKextNotLoaded() }
+
+// DynUsbKextNotLoaded says "The USB gadget kext is not loaded."
+// in the language of msgs.
+func (msgs Messages) DynUsbKextNotLoaded() string {
+	return Catalog.Format(msgs.locale, "dynUsbKextNotLoaded", nil)
+}
+
+// DynUsbCompleteApproval says "Complete macOS driver approval, restart if requested, then refresh readiness; or choose guided manual input."
+// in the language the app shows.
+func DynUsbCompleteApproval() string { return In(i18n.Locale()).DynUsbCompleteApproval() }
+
+// DynUsbCompleteApproval says "Complete macOS driver approval, restart if requested, then refresh readiness; or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynUsbCompleteApproval() string {
+	return Catalog.Format(msgs.locale, "dynUsbCompleteApproval", nil)
+}
+
+// DynUsbLoadedUnknown says "Loaded driver state could not be inspected."
+// in the language the app shows.
+func DynUsbLoadedUnknown() string { return In(i18n.Locale()).DynUsbLoadedUnknown() }
+
+// DynUsbLoadedUnknown says "Loaded driver state could not be inspected."
+// in the language of msgs.
+func (msgs Messages) DynUsbLoadedUnknown() string {
+	return Catalog.Format(msgs.locale, "dynUsbLoadedUnknown", nil)
+}
+
+// DynUsbCheckInspection says "Check driver inspection access, then refresh readiness; or choose guided manual input."
+// in the language the app shows.
+func DynUsbCheckInspection() string { return In(i18n.Locale()).DynUsbCheckInspection() }
+
+// DynUsbCheckInspection says "Check driver inspection access, then refresh readiness; or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynUsbCheckInspection() string {
+	return Catalog.Format(msgs.locale, "dynUsbCheckInspection", nil)
+}
+
+// DynUsbKextTreatedUnloaded says "The USB gadget kext is treated as not loaded until restart state is clear."
+// in the language the app shows.
+func DynUsbKextTreatedUnloaded() string { return In(i18n.Locale()).DynUsbKextTreatedUnloaded() }
+
+// DynUsbKextTreatedUnloaded says "The USB gadget kext is treated as not loaded until restart state is clear."
+// in the language of msgs.
+func (msgs Messages) DynUsbKextTreatedUnloaded() string {
+	return Catalog.Format(msgs.locale, "dynUsbKextTreatedUnloaded", nil)
+}
+
+// DynUsbKextLoaded says "The running kernel reports the USB gadget kext loaded. USB enumeration is not verified."
+// in the language the app shows.
+func DynUsbKextLoaded() string { return In(i18n.Locale()).DynUsbKextLoaded() }
+
+// DynUsbKextLoaded says "The running kernel reports the USB gadget kext loaded. USB enumeration is not verified."
+// in the language of msgs.
+func (msgs Messages) DynUsbKextLoaded() string {
+	return Catalog.Format(msgs.locale, "dynUsbKextLoaded", nil)
+}
+
+// DynUsbNoControllers says "No attached USB gadget controllers were discovered."
+// in the language the app shows.
+func DynUsbNoControllers() string { return In(i18n.Locale()).DynUsbNoControllers() }
+
+// DynUsbNoControllers says "No attached USB gadget controllers were discovered."
+// in the language of msgs.
+func (msgs Messages) DynUsbNoControllers() string {
+	return Catalog.Format(msgs.locale, "dynUsbNoControllers", nil)
+}
+
+// DynUsbCheckCableDirection says "Check driver loading and the USB-C data cable direction, then refresh readiness; or choose guided manual input."
+// in the language the app shows.
+func DynUsbCheckCableDirection() string { return In(i18n.Locale()).DynUsbCheckCableDirection() }
+
+// DynUsbCheckCableDirection says "Check driver loading and the USB-C data cable direction, then refresh readiness; or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynUsbCheckCableDirection() string {
+	return Catalog.Format(msgs.locale, "dynUsbCheckCableDirection", nil)
+}
+
+// DynUsbDiscoveryFailed says "USB controller discovery could not be completed."
+// in the language the app shows.
+func DynUsbDiscoveryFailed() string { return In(i18n.Locale()).DynUsbDiscoveryFailed() }
+
+// DynUsbDiscoveryFailed says "USB controller discovery could not be completed."
+// in the language of msgs.
+func (msgs Messages) DynUsbDiscoveryFailed() string {
+	return Catalog.Format(msgs.locale, "dynUsbDiscoveryFailed", nil)
+}
+
+// DynUsbCheckRegistry says "Check USB registry access and refresh readiness, or choose guided manual input."
+// in the language the app shows.
+func DynUsbCheckRegistry() string { return In(i18n.Locale()).DynUsbCheckRegistry() }
+
+// DynUsbCheckRegistry says "Check USB registry access and refresh readiness, or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynUsbCheckRegistry() string {
+	return Catalog.Format(msgs.locale, "dynUsbCheckRegistry", nil)
+}
+
+// DynUsbMultipleControllers says "Multiple attached USB gadget controllers were discovered; the connected controller is ambiguous."
+// in the language the app shows.
+func DynUsbMultipleControllers() string { return In(i18n.Locale()).DynUsbMultipleControllers() }
+
+// DynUsbMultipleControllers says "Multiple attached USB gadget controllers were discovered; the connected controller is ambiguous."
+// in the language of msgs.
+func (msgs Messages) DynUsbMultipleControllers() string {
+	return Catalog.Format(msgs.locale, "dynUsbMultipleControllers", nil)
+}
+
+// DynUsbVerifyController says "More than one controller was discovered. Verify the connected controller before using USB input, or choose guided man…"
+// in the language the app shows.
+func DynUsbVerifyController() string { return In(i18n.Locale()).DynUsbVerifyController() }
+
+// DynUsbVerifyController says "More than one controller was discovered. Verify the connected controller before using USB input, or choose guided man…"
+// in the language of msgs.
+func (msgs Messages) DynUsbVerifyController() string {
+	return Catalog.Format(msgs.locale, "dynUsbVerifyController", nil)
+}
+
+// DynUsbOneController says "One attached USB gadget controller was discovered. Keyboard enumeration and console input are not verified."
+// in the language the app shows.
+func DynUsbOneController() string { return In(i18n.Locale()).DynUsbOneController() }
+
+// DynUsbOneController says "One attached USB gadget controller was discovered. Keyboard enumeration and console input are not verified."
+// in the language of msgs.
+func (msgs Messages) DynUsbOneController() string {
+	return Catalog.Format(msgs.locale, "dynUsbOneController", nil)
+}
+
+// DynUsbVerifyEnumeration says "Verify keyboard enumeration on the connected console before using USB input, or choose guided manual input."
+// in the language the app shows.
+func DynUsbVerifyEnumeration() string { return In(i18n.Locale()).DynUsbVerifyEnumeration() }
+
+// DynUsbVerifyEnumeration says "Verify keyboard enumeration on the connected console before using USB input, or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynUsbVerifyEnumeration() string {
+	return Catalog.Format(msgs.locale, "dynUsbVerifyEnumeration", nil)
+}
+
+// DynUsbControllerSuffix says ": attached gadget controller, available but not verified."
+// in the language the app shows.
+func DynUsbControllerSuffix() string { return In(i18n.Locale()).DynUsbControllerSuffix() }
+
+// DynUsbControllerSuffix says ": attached gadget controller, available but not verified."
+// in the language of msgs.
+func (msgs Messages) DynUsbControllerSuffix() string {
+	return Catalog.Format(msgs.locale, "dynUsbControllerSuffix", nil)
+}
+
+// DynUsbConnectCable says "Connect a USB-C data cable so the Mac receives power from the console; verify keyboard enumeration before sending input."
+// in the language the app shows.
+func DynUsbConnectCable() string { return In(i18n.Locale()).DynUsbConnectCable() }
+
+// DynUsbConnectCable says "Connect a USB-C data cable so the Mac receives power from the console; verify keyboard enumeration before sending input."
+// in the language of msgs.
+func (msgs Messages) DynUsbConnectCable() string {
+	return Catalog.Format(msgs.locale, "dynUsbConnectCable", nil)
+}
+
+// DynRtNodeVerified says "Bundled Node runtime integrity verified."
+// in the language the app shows.
+func DynRtNodeVerified() string { return In(i18n.Locale()).DynRtNodeVerified() }
+
+// DynRtNodeVerified says "Bundled Node runtime integrity verified."
+// in the language of msgs.
+func (msgs Messages) DynRtNodeVerified() string {
+	return Catalog.Format(msgs.locale, "dynRtNodeVerified", nil)
+}
+
+// DynRtStagingFailed says "Runtime staging failed."
+// in the language the app shows.
+func DynRtStagingFailed() string { return In(i18n.Locale()).DynRtStagingFailed() }
+
+// DynRtStagingFailed says "Runtime staging failed."
+// in the language of msgs.
+func (msgs Messages) DynRtStagingFailed() string {
+	return Catalog.Format(msgs.locale, "dynRtStagingFailed", nil)
+}
+
+// DynRtInstallIntact says "Install an intact app bundle with its matching runtime resources."
+// in the language the app shows.
+func DynRtInstallIntact() string { return In(i18n.Locale()).DynRtInstallIntact() }
+
+// DynRtInstallIntact says "Install an intact app bundle with its matching runtime resources."
+// in the language of msgs.
+func (msgs Messages) DynRtInstallIntact() string {
+	return Catalog.Format(msgs.locale, "dynRtInstallIntact", nil)
+}
+
+// DynRtEnginePackaged says "This engine cannot launch from the packaged app."
+// in the language the app shows.
+func DynRtEnginePackaged() string { return In(i18n.Locale()).DynRtEnginePackaged() }
+
+// DynRtEnginePackaged says "This engine cannot launch from the packaged app."
+// in the language of msgs.
+func (msgs Messages) DynRtEnginePackaged() string {
+	return Catalog.Format(msgs.locale, "dynRtEnginePackaged", nil)
+}
+
+// DynRtDeveloperStaged says "Developer-staged engine, not redistributable."
+// in the language the app shows.
+func DynRtDeveloperStaged() string { return In(i18n.Locale()).DynRtDeveloperStaged() }
+
+// DynRtDeveloperStaged says "Developer-staged engine, not redistributable."
+// in the language of msgs.
+func (msgs Messages) DynRtDeveloperStaged() string {
+	return Catalog.Format(msgs.locale, "dynRtDeveloperStaged", nil)
+}
+
+// DynRtChooseVerifier says "Choose an ns2jb host with an implemented verifier."
+// in the language the app shows.
+func DynRtChooseVerifier() string { return In(i18n.Locale()).DynRtChooseVerifier() }
+
+// DynRtChooseVerifier says "Choose an ns2jb host with an implemented verifier."
+// in the language of msgs.
+func (msgs Messages) DynRtChooseVerifier() string {
+	return Catalog.Format(msgs.locale, "dynRtChooseVerifier", nil)
+}
+
+// DynRtHelpersUnavailable says "Verified USB helpers are not available."
+// in the language the app shows.
+func DynRtHelpersUnavailable() string { return In(i18n.Locale()).DynRtHelpersUnavailable() }
+
+// DynRtHelpersUnavailable says "Verified USB helpers are not available."
+// in the language of msgs.
+func (msgs Messages) DynRtHelpersUnavailable() string {
+	return Catalog.Format(msgs.locale, "dynRtHelpersUnavailable", nil)
+}
+
+// DynRtHelpersRequired says "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."
+// in the language the app shows.
+func DynRtHelpersRequired() string { return In(i18n.Locale()).DynRtHelpersRequired() }
+
+// DynRtHelpersRequired says "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."
+// in the language of msgs.
+func (msgs Messages) DynRtHelpersRequired() string {
+	return Catalog.Format(msgs.locale, "dynRtHelpersRequired", nil)
+}
+
+// DynRtHelpersVerified says "USB helper integrity verified; enumeration is not verified."
+// in the language the app shows.
+func DynRtHelpersVerified() string { return In(i18n.Locale()).DynRtHelpersVerified() }
+
+// DynRtHelpersVerified says "USB helper integrity verified; enumeration is not verified."
+// in the language of msgs.
+func (msgs Messages) DynRtHelpersVerified() string {
+	return Catalog.Format(msgs.locale, "dynRtHelpersVerified", nil)
+}
+
+// DynToolNotImplemented says "This read-only tool is not implemented in this build."
+// in the language the app shows.
+func DynToolNotImplemented() string { return In(i18n.Locale()).DynToolNotImplemented() }
+
+// DynToolNotImplemented says "This read-only tool is not implemented in this build."
+// in the language of msgs.
+func (msgs Messages) DynToolNotImplemented() string {
+	return Catalog.Format(msgs.locale, "dynToolNotImplemented", nil)
+}
+
+// DynToolHostUnavailable says "The bundled tool host is unavailable in this build."
+// in the language the app shows.
+func DynToolHostUnavailable() string { return In(i18n.Locale()).DynToolHostUnavailable() }
+
+// DynToolHostUnavailable says "The bundled tool host is unavailable in this build."
+// in the language of msgs.
+func (msgs Messages) DynToolHostUnavailable() string {
+	return Catalog.Format(msgs.locale, "dynToolHostUnavailable", nil)
+}
+
+// DynToolStageFailedSuffix says " A local developer stage was attempted and failed its integrity check."
+// in the language the app shows.
+func DynToolStageFailedSuffix() string { return In(i18n.Locale()).DynToolStageFailedSuffix() }
+
+// DynToolStageFailedSuffix says " A local developer stage was attempted and failed its integrity check."
+// in the language of msgs.
+func (msgs Messages) DynToolStageFailedSuffix() string {
+	return Catalog.Format(msgs.locale, "dynToolStageFailedSuffix", nil)
+}
+
+// DynToolNotInManifest says "This component is not recorded in the canonical manifest."
+// in the language the app shows.
+func DynToolNotInManifest() string { return In(i18n.Locale()).DynToolNotInManifest() }
+
+// DynToolNotInManifest says "This component is not recorded in the canonical manifest."
+// in the language of msgs.
+func (msgs Messages) DynToolNotInManifest() string {
+	return Catalog.Format(msgs.locale, "dynToolNotInManifest", nil)
+}
+
+// DynCivNotStaged says "CivSwitch components are not staged; this path is unavailable."
+// in the language the app shows.
+func DynCivNotStaged() string { return In(i18n.Locale()).DynCivNotStaged() }
+
+// DynCivNotStaged says "CivSwitch components are not staged; this path is unavailable."
+// in the language of msgs.
+func (msgs Messages) DynCivNotStaged() string {
+	return Catalog.Format(msgs.locale, "dynCivNotStaged", nil)
+}
+
+// DynCivManifestUnavailable says "CivSwitch manifest is unavailable"
+// in the language the app shows.
+func DynCivManifestUnavailable() string { return In(i18n.Locale()).DynCivManifestUnavailable() }
+
+// DynCivManifestUnavailable says "CivSwitch manifest is unavailable"
+// in the language of msgs.
+func (msgs Messages) DynCivManifestUnavailable() string {
+	return Catalog.Format(msgs.locale, "dynCivManifestUnavailable", nil)
+}
+
+// DynCivUnavailablePrefix says "CivSwitch unavailable: "
+// in the language the app shows.
+func DynCivUnavailablePrefix() string { return In(i18n.Locale()).DynCivUnavailablePrefix() }
+
+// DynCivUnavailablePrefix says "CivSwitch unavailable: "
+// in the language of msgs.
+func (msgs Messages) DynCivUnavailablePrefix() string {
+	return Catalog.Format(msgs.locale, "dynCivUnavailablePrefix", nil)
+}
+
+// DynCivStagingRequiredSuffix says " Developer staging is required; no payload or composite helper is bundled."
+// in the language the app shows.
+func DynCivStagingRequiredSuffix() string { return In(i18n.Locale()).DynCivStagingRequiredSuffix() }
+
+// DynCivStagingRequiredSuffix says " Developer staging is required; no payload or composite helper is bundled."
+// in the language of msgs.
+func (msgs Messages) DynCivStagingRequiredSuffix() string {
+	return Catalog.Format(msgs.locale, "dynCivStagingRequiredSuffix", nil)
+}
+
+// DynCivRootAbsolute says "CivSwitch developer root must be absolute"
+// in the language the app shows.
+func DynCivRootAbsolute() string { return In(i18n.Locale()).DynCivRootAbsolute() }
+
+// DynCivRootAbsolute says "CivSwitch developer root must be absolute"
+// in the language of msgs.
+func (msgs Messages) DynCivRootAbsolute() string {
+	return Catalog.Format(msgs.locale, "dynCivRootAbsolute", nil)
+}
+
+// DynCivRootNotDirectory says "CivSwitch developer root is not a real directory"
+// in the language the app shows.
+func DynCivRootNotDirectory() string { return In(i18n.Locale()).DynCivRootNotDirectory() }
+
+// DynCivRootNotDirectory says "CivSwitch developer root is not a real directory"
+// in the language of msgs.
+func (msgs Messages) DynCivRootNotDirectory() string {
+	return Catalog.Format(msgs.locale, "dynCivRootNotDirectory", nil)
+}
+
+// DynCivRequiresAppleSilicon says "CivSwitch composite HID requires Apple Silicon macOS"
+// in the language the app shows.
+func DynCivRequiresAppleSilicon() string { return In(i18n.Locale()).DynCivRequiresAppleSilicon() }
+
+// DynCivRequiresAppleSilicon says "CivSwitch composite HID requires Apple Silicon macOS"
+// in the language of msgs.
+func (msgs Messages) DynCivRequiresAppleSilicon() string {
+	return Catalog.Format(msgs.locale, "dynCivRequiresAppleSilicon", nil)
+}
+
+// DynDrvRootAbsolute says "driver source root must be absolute"
+// in the language the app shows.
+func DynDrvRootAbsolute() string { return In(i18n.Locale()).DynDrvRootAbsolute() }
+
+// DynDrvRootAbsolute says "driver source root must be absolute"
+// in the language of msgs.
+func (msgs Messages) DynDrvRootAbsolute() string {
+	return Catalog.Format(msgs.locale, "dynDrvRootAbsolute", nil)
+}
+
+// DynDrvRootNotDirectory says "driver source root is not a real directory"
+// in the language the app shows.
+func DynDrvRootNotDirectory() string { return In(i18n.Locale()).DynDrvRootNotDirectory() }
+
+// DynDrvRootNotDirectory says "driver source root is not a real directory"
+// in the language of msgs.
+func (msgs Messages) DynDrvRootNotDirectory() string {
+	return Catalog.Format(msgs.locale, "dynDrvRootNotDirectory", nil)
+}
+
+// DynDrvUnexpectedFile says "unexpected driver bundle file"
+// in the language the app shows.
+func DynDrvUnexpectedFile() string { return In(i18n.Locale()).DynDrvUnexpectedFile() }
+
+// DynDrvUnexpectedFile says "unexpected driver bundle file"
+// in the language of msgs.
+func (msgs Messages) DynDrvUnexpectedFile() string {
+	return Catalog.Format(msgs.locale, "dynDrvUnexpectedFile", nil)
+}
+
+// DynDrvInstallIncompletePrefix says "driver installation did not complete; refresh readiness before retrying: "
+// in the language the app shows.
+func DynDrvInstallIncompletePrefix() string { return In(i18n.Locale()).DynDrvInstallIncompletePrefix() }
+
+// DynDrvInstallIncompletePrefix says "driver installation did not complete; refresh readiness before retrying: "
+// in the language of msgs.
+func (msgs Messages) DynDrvInstallIncompletePrefix() string {
+	return Catalog.Format(msgs.locale, "dynDrvInstallIncompletePrefix", nil)
+}
+
+// DynDrvMissingManifest says "missing driver manifest"
+// in the language the app shows.
+func DynDrvMissingManifest() string { return In(i18n.Locale()).DynDrvMissingManifest() }
+
+// DynDrvMissingManifest says "missing driver manifest"
+// in the language of msgs.
+func (msgs Messages) DynDrvMissingManifest() string {
+	return Catalog.Format(msgs.locale, "dynDrvMissingManifest", nil)
+}
+
+// DynDrvRequiresAppleSilicon says "driver installation requires Apple Silicon macOS"
+// in the language the app shows.
+func DynDrvRequiresAppleSilicon() string { return In(i18n.Locale()).DynDrvRequiresAppleSilicon() }
+
+// DynDrvRequiresAppleSilicon says "driver installation requires Apple Silicon macOS"
+// in the language of msgs.
+func (msgs Messages) DynDrvRequiresAppleSilicon() string {
+	return Catalog.Format(msgs.locale, "dynDrvRequiresAppleSilicon", nil)
+}
+
+// DynDrvAdminFailed says "administrator authorization or driver installation failed"
+// in the language the app shows.
+func DynDrvAdminFailed() string { return In(i18n.Locale()).DynDrvAdminFailed() }
+
+// DynDrvAdminFailed says "administrator authorization or driver installation failed"
+// in the language of msgs.
+func (msgs Messages) DynDrvAdminFailed() string {
+	return Catalog.Format(msgs.locale, "dynDrvAdminFailed", nil)
+}
+
+// DynRecInvalidLease says "invalid session lease"
+// in the language the app shows.
+func DynRecInvalidLease() string { return In(i18n.Locale()).DynRecInvalidLease() }
+
+// DynRecInvalidLease says "invalid session lease"
+// in the language of msgs.
+func (msgs Messages) DynRecInvalidLease() string {
+	return Catalog.Format(msgs.locale, "dynRecInvalidLease", nil)
+}
+
+// DynRecOwnerUnproven says "session owner cannot be proven"
+// in the language the app shows.
+func DynRecOwnerUnproven() string { return In(i18n.Locale()).DynRecOwnerUnproven() }
+
+// DynRecOwnerUnproven says "session owner cannot be proven"
+// in the language of msgs.
+func (msgs Messages) DynRecOwnerUnproven() string {
+	return Catalog.Format(msgs.locale, "dynRecOwnerUnproven", nil)
+}
+
+// DynRecOwnerAlive says "session owner is still alive"
+// in the language the app shows.
+func DynRecOwnerAlive() string { return In(i18n.Locale()).DynRecOwnerAlive() }
+
+// DynRecOwnerAlive says "session owner is still alive"
+// in the language of msgs.
+func (msgs Messages) DynRecOwnerAlive() string {
+	return Catalog.Format(msgs.locale, "dynRecOwnerAlive", nil)
+}
+
+// DynFakeSimulatedReadiness says "Simulated readiness, not a real hardware check."
+// in the language the app shows.
+func DynFakeSimulatedReadiness() string { return In(i18n.Locale()).DynFakeSimulatedReadiness() }
+
+// DynFakeSimulatedReadiness says "Simulated readiness, not a real hardware check."
+// in the language of msgs.
+func (msgs Messages) DynFakeSimulatedReadiness() string {
+	return Catalog.Format(msgs.locale, "dynFakeSimulatedReadiness", nil)
+}
+
+// DynDistNs2jb says "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+// in the language the app shows.
+func DynDistNs2jb() string { return In(i18n.Locale()).DynDistNs2jb() }
+
+// DynDistNs2jb says "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+// in the language of msgs.
+func (msgs Messages) DynDistNs2jb() string {
+	return Catalog.Format(msgs.locale, "dynDistNs2jb", nil)
+}
+
+// DynDistMITSourceOnly says "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and depende…"
+// in the language the app shows.
+func DynDistMITSourceOnly() string { return In(i18n.Locale()).DynDistMITSourceOnly() }
+
+// DynDistMITSourceOnly says "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and depende…"
+// in the language of msgs.
+func (msgs Messages) DynDistMITSourceOnly() string {
+	return Catalog.Format(msgs.locale, "dynDistMITSourceOnly", nil)
+}
+
+// DynDistCivPayload says "CivSwitch payload distribution is blocked pending derived-payload and dependency notice review."
+// in the language the app shows.
+func DynDistCivPayload() string { return In(i18n.Locale()).DynDistCivPayload() }
+
+// DynDistCivPayload says "CivSwitch payload distribution is blocked pending derived-payload and dependency notice review."
+// in the language of msgs.
+func (msgs Messages) DynDistCivPayload() string {
+	return Catalog.Format(msgs.locale, "dynDistCivPayload", nil)
+}
+
+// DynDistMITLoader says "MIT permits redistribution with its copyright and permission notice. Source record only; it runs on the console throu…"
+// in the language the app shows.
+func DynDistMITLoader() string { return In(i18n.Locale()).DynDistMITLoader() }
+
+// DynDistMITLoader says "MIT permits redistribution with its copyright and permission notice. Source record only; it runs on the console throu…"
+// in the language of msgs.
+func (msgs Messages) DynDistMITLoader() string {
+	return Catalog.Format(msgs.locale, "dynDistMITLoader", nil)
+}
+
+// DynDistTriggerInstaller says "Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No i…"
+// in the language the app shows.
+func DynDistTriggerInstaller() string { return In(i18n.Locale()).DynDistTriggerInstaller() }
+
+// DynDistTriggerInstaller says "Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No i…"
+// in the language of msgs.
+func (msgs Messages) DynDistTriggerInstaller() string {
+	return Catalog.Format(msgs.locale, "dynDistTriggerInstaller", nil)
+}
+
+// DynDistControlCenter says "Control Center distribution is blocked pending review of the complete separately authored release inventory and its n…"
+// in the language the app shows.
+func DynDistControlCenter() string { return In(i18n.Locale()).DynDistControlCenter() }
+
+// DynDistControlCenter says "Control Center distribution is blocked pending review of the complete separately authored release inventory and its n…"
+// in the language of msgs.
+func (msgs Messages) DynDistControlCenter() string {
+	return Catalog.Format(msgs.locale, "dynDistControlCenter", nil)
+}
+
+// DynDistBrowserResearch says "Unavailable: the research probe set has no redistribution grant for any2jb. Permission reported for mac2jb does not a…"
+// in the language the app shows.
+func DynDistBrowserResearch() string { return In(i18n.Locale()).DynDistBrowserResearch() }
+
+// DynDistBrowserResearch says "Unavailable: the research probe set has no redistribution grant for any2jb. Permission reported for mac2jb does not a…"
+// in the language of msgs.
+func (msgs Messages) DynDistBrowserResearch() string {
+	return Catalog.Format(msgs.locale, "dynDistBrowserResearch", nil)
+}
+
+// DynDistMITTemplate says "MIT template asset; retain MyGo copyright and permission notice."
+// in the language the app shows.
+func DynDistMITTemplate() string { return In(i18n.Locale()).DynDistMITTemplate() }
+
+// DynDistMITTemplate says "MIT template asset; retain MyGo copyright and permission notice."
+// in the language of msgs.
+func (msgs Messages) DynDistMITTemplate() string {
+	return Catalog.Format(msgs.locale, "dynDistMITTemplate", nil)
+}
+
+// DynDistMygoNotice says "Required notice for the MyGo framework and placeholder icon."
+// in the language the app shows.
+func DynDistMygoNotice() string { return In(i18n.Locale()).DynDistMygoNotice() }
+
+// DynDistMygoNotice says "Required notice for the MyGo framework and placeholder icon."
+// in the language of msgs.
+func (msgs Messages) DynDistMygoNotice() string {
+	return Catalog.Format(msgs.locale, "dynDistMygoNotice", nil)
+}
+
+// DynDistNode says "Official Node binary and complete license notice; archive verified against release SHASUMS256.txt."
+// in the language the app shows.
+func DynDistNode() string { return In(i18n.Locale()).DynDistNode() }
+
+// DynDistNode says "Official Node binary and complete license notice; archive verified against release SHASUMS256.txt."
+// in the language of msgs.
+func (msgs Messages) DynDistNode() string {
+	return Catalog.Format(msgs.locale, "dynDistNode", nil)
+}
+
+// DynDistOriginal says "Original any2jb code; no upstream engine or GUI scripts."
+// in the language the app shows.
+func DynDistOriginal() string { return In(i18n.Locale()).DynDistOriginal() }
+
+// DynDistOriginal says "Original any2jb code; no upstream engine or GUI scripts."
+// in the language of msgs.
+func (msgs Messages) DynDistOriginal() string {
+	return Catalog.Format(msgs.locale, "dynDistOriginal", nil)
+}
+
+// DynDistOriginalTools says "Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path."
+// in the language the app shows.
+func DynDistOriginalTools() string { return In(i18n.Locale()).DynDistOriginalTools() }
+
+// DynDistOriginalTools says "Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path."
+// in the language of msgs.
+func (msgs Messages) DynDistOriginalTools() string {
+	return Catalog.Format(msgs.locale, "dynDistOriginalTools", nil)
+}
+
+// DynDistOunceCake says "Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are…"
+// in the language the app shows.
+func DynDistOunceCake() string { return In(i18n.Locale()).DynDistOunceCake() }
+
+// DynDistOunceCake says "Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are…"
+// in the language of msgs.
+func (msgs Messages) DynDistOunceCake() string {
+	return Catalog.Format(msgs.locale, "dynDistOunceCake", nil)
+}
+
+// DynDistSDBrowser says "Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A devel…"
+// in the language the app shows.
+func DynDistSDBrowser() string { return In(i18n.Locale()).DynDistSDBrowser() }
+
+// DynDistSDBrowser says "Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A devel…"
+// in the language of msgs.
+func (msgs Messages) DynDistSDBrowser() string {
+	return Catalog.Format(msgs.locale, "dynDistSDBrowser", nil)
+}
+
+// DynDistUSBDriver says "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligati…"
+// in the language the app shows.
+func DynDistUSBDriver() string { return In(i18n.Locale()).DynDistUSBDriver() }
+
+// DynDistUSBDriver says "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligati…"
+// in the language of msgs.
+func (msgs Messages) DynDistUSBDriver() string {
+	return Catalog.Format(msgs.locale, "dynDistUSBDriver", nil)
 }

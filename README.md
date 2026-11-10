@@ -53,10 +53,14 @@ prerequisites, native dry-runs and explicit skip reasons.
 
 ## UI strings and assets
 
-Add every app-visible string to `locales/en.json`, then run
-`go tool mygo generate`. Commit `locales/catalog_gen.go` so plain Go builds
-and tests work without generation. MyGo follows the system language among
-the shipped catalogs, currently English only.
+Add every app-visible string to `locales/en.json` and its translation to
+`locales/zh-CN.json`, then run `go tool mygo generate`. Commit
+`locales/catalog_gen.go` so plain Go builds and tests work without
+generation. MyGo follows the system language among the shipped catalogs
+(English and Simplified Chinese). See [localization](docs/localization.md)
+for the catalog rules and zh-CN term list, and
+[accessibility](docs/accessibility.md) for the view rules every screen
+follows.
 
 `resources/icon.png` is the generated MyGo default icon, retained as an
 explicit placeholder until any2jb artwork is ready.
