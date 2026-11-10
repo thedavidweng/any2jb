@@ -65,6 +65,9 @@ async function main() {
       return;
     }
     emit('running');
+    if (scenario === 'progress-flood') {
+      for (let i = 0; i < 64; i++) emit('progress');
+    }
     await stopped;
     if (scenario === 'hb-unproven') { emit('stopped'); return; }
     const digest = crypto.createHash('sha256').update(fs.readFileSync(marker)).digest('hex');

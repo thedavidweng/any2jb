@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
@@ -125,6 +126,33 @@ func TestUnprovenHomebrewCleanupBlocksReentry(t *testing.T) {
 	// Read-only status does not own homebrew state and still runs.
 	if err := m.Run(context.Background(), run, "rpc-status", func(session.Progress) {}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestHomebrewStopThenSwitch(t *testing.T) {
+	for _, scenario := range []string{"ok", "progress-flood"} {
+		t.Run(scenario, func(t *testing.T) {
+			runner, run, support := heldSession(t)
+			m := manager(t, support, runner, scenario, homebrewStaged...)
+			for _, tool := range []string{"mintbrew", "native-hblauncher"} {
+				if err := m.Run(context.Background(), run, tool, func(session.Progress) {}); err != nil {
+					t.Fatalf("launch %s after verified cleanup: %v", tool, err)
+				}
+				done := make(chan error, 1)
+				go func() { done <- m.Stop(context.Background(), run) }()
+				select {
+				case err := <-done:
+					if err != nil {
+						t.Fatalf("stop %s: %v", tool, err)
+					}
+				case <-time.After(3 * time.Second):
+					t.Fatalf("stop %s blocked behind progress events", tool)
+				}
+				if state := m.State(); state.CleanupBlocked || state.Tool != "" {
+					t.Fatalf("verified cleanup did not release %s: %+v", tool, state)
+				}
+			}
+		})
 	}
 }
 
