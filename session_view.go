@@ -24,7 +24,7 @@ func (a *app) command(s session.Snapshot, err error) {
 func (a *app) sessionView(c *ui.Context) {
 	s := a.controller.Snapshot()
 	pending := a.manifest != nil && (s.Profile.ID != a.preferences.Profile ||
-		s.Edition != a.preferences.Edition || s.LANIPv4 != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
+		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
 	if pending {
 		ui.Text(c, locales.ApplyBeforeLaunch())
 	}
@@ -41,6 +41,10 @@ func (a *app) sessionView(c *ui.Context) {
 		ui.Text(c, locales.SafeFailure())
 	}
 	for _, check := range s.Checks {
+		ui.Text(c.Key(check.ID+"-state"), checkStateTitle(check.State)).Bold()
+		if check.GatesTransport == "usb-hid" {
+			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
+		}
 		ui.Text(c.Key(check.ID+"-message"), check.Message)
 		if check.NextAction != "" {
 			ui.Text(c.Key(check.ID+"-action"), check.NextAction)
@@ -100,6 +104,25 @@ func (a *app) sessionView(c *ui.Context) {
 		if ui.Button(c.Key("finish"), locales.Finish()).Disabled(s.Busy).Clicked() {
 			a.command(a.controller.Finish())
 		}
+	}
+	if a.manifest != nil {
+		ui.Text(c, locales.ReferencePrerequisites()).Bold()
+		ui.Text(c, locales.ConsoleFirmware())
+		ui.Text(c, locales.SmilebasicPrerequisites())
+		ui.Text(c, locales.NetworkPrerequisites())
+		ui.Text(c, locales.CablePrerequisites())
+		ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
+	}
+}
+
+func checkStateTitle(state session.CheckState) string {
+	switch state {
+	case session.CheckVerified:
+		return locales.CheckVerified()
+	case session.Available:
+		return locales.CheckAvailable()
+	default:
+		return locales.CheckAttention()
 	}
 }
 

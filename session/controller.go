@@ -180,7 +180,9 @@ func (c *SessionController) Inspect() (Snapshot, error) {
 	if !c.eligible(Idle, Ready, NeedsSetup, Finished, Failed) {
 		return c.reject(InvalidState)
 	}
+	override := c.s.LANOverride
 	return c.begin(Inspecting, true, func(ctx context.Context, run Run) error {
+		run.LANIPv4 = override
 		checks, err := c.env.Platform.Inspect(ctx, run)
 		if err != nil {
 			return err
@@ -191,12 +193,16 @@ func (c *SessionController) Inspect() (Snapshot, error) {
 			return err
 		}
 		c.s.Checks = slices.Clone(checks)
+		c.s.LANIPv4 = override
 		stage := Ready
 		if len(checks) == 0 {
 			stage = NeedsSetup
 		}
 		for _, check := range checks {
-			if check.State != CheckVerified {
+			if check.ID == "network" && check.State == CheckVerified && check.LANIPv4 != "" {
+				c.s.LANIPv4 = check.LANIPv4
+			}
+			if check.Blocks(run.Transport) {
 				stage = NeedsSetup
 			}
 		}
@@ -294,6 +300,17 @@ func (c *SessionController) Start() (Snapshot, error) {
 		stage = CivSwitchFetching
 	}
 	return c.begin(stage, true, func(ctx context.Context, run Run) error {
+		// Re-observe the selected address before any host or console side effect.
+		checks, err := c.env.Platform.Inspect(ctx, run)
+		if err != nil {
+			return err
+		}
+		c.mu.Lock()
+		c.s.Checks = slices.Clone(checks)
+		c.mu.Unlock()
+		if len(checks) == 0 || slices.ContainsFunc(checks, func(check Check) bool { return check.Blocks(run.Transport) }) {
+			return errors.New("readiness changed before launch")
+		}
 		host, err := c.env.Host.Prepare(ctx, run, c.report)
 		if err != nil {
 			return err
@@ -467,7 +484,7 @@ func (c *SessionController) ConfigureTransport(transport Transport, lanIPv4 stri
 		(!transport.Capabilities.Manual && !transport.Capabilities.Keyboard) {
 		return c.reject(InvalidConfiguration)
 	}
-	c.s.Transport, c.s.LANIPv4 = transport, lanIPv4
+	c.s.Transport, c.s.LANIPv4, c.s.LANOverride = transport, lanIPv4, lanIPv4
 	c.s.Checks = nil
 	c.transition(Idle)
 	return c.snapshot(), nil
