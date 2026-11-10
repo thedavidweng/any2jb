@@ -3,8 +3,10 @@
 // Go owns policy, integrity, staging, process groups and verification. This
 // adapter joins the pinned read-only upstream tool APIs to JSON lines, and
 // supervises the pinned homebrew launchers against their staged sources. The
-// read-only tools never write console data: no save, mod or filesystem write
-// path exists here. The homebrew supervisors drive only the pinned launcher
+// read-only tools never write console data. The one write path is the
+// modloader, run as a session's final action from a layout-checked private
+// stage of the user's mod folder; no save or console filesystem write exists
+// here. The homebrew supervisors drive only the pinned launcher
 // contract (display, audio and the loopback RPC proxy) and must prove their
 // cleanup with the attempt-marker protocol before Go allows another launch.
 const fs = require('node:fs');
@@ -18,8 +20,8 @@ const {spawn} = require('node:child_process');
 const {EventEmitter} = require('node:events');
 
 const TOOLS = ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp', 'sd-browser',
-  'mintbrew', 'native-hblauncher', 'izlauncher'];
-const HOMEBREW = ['mintbrew', 'native-hblauncher', 'izlauncher'];
+  'mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew', 'modloader'];
+const HOMEBREW = ['mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew'];
 const ATTEMPT_MARKER = '.mac2jb-hblauncher-attempt.json';
 const RPC_COMMANDS = new Set(['status', 'call', 'verify-function', 'call-address', 'pair', 'read', 'write', 'query']);
 const NATIVE_TRUSTED_PROFILES = ['kurumuz', 'cellenseres', 'astral'];
@@ -662,19 +664,19 @@ const MINTBREW_OWNERS = [
 // The MintBrew descriptor: pinned manifest, frozen RPC client and the default
 // Stremio configuration (no add-ons; add-on URLs stay gated with Stremio's
 // unresolved provenance).
-async function mintbrewApp(toolRoot, workspace, proof, config) {
+async function mintbrewApp(toolRoot, workspace, proof, config, custom) {
   const vendorDir = path.join(toolRoot, 'mintbrew', 'vendor/MintBrew');
   const manifest = JSON.parse(await fsp.readFile(path.join(vendorDir, 'manifest.json'), 'utf8'));
   check(manifest.name === 'MintBrew' && typeof manifest.version === 'string' &&
     /^\d+\.\d+\.\d+$/.test(manifest.version), 'Invalid MintBrew manifest.');
   await checkHomebrewRuntime(config.homebrewRuntime);
-  const attempt = {application: 'mintbrew', source: 'MintBrew', format: 'mintbrew-v1',
-    started: new Date().toISOString()};
+  const attempt = {application: custom ? 'custom-homebrew' : 'mintbrew', source: 'MintBrew',
+    format: 'mintbrew-v1', started: new Date().toISOString()};
   check((await rpcRequest(proof.connection, {command: 'status'}))?.ready === true,
     'The existing native RPC connection is not ready.');
   await writeAttemptMarker(workspace, attempt);
-  return {
-    id: 'mintbrew', name: 'MintBrew', vendorDir, attempt, markerWritten: true,
+  const app = {
+    id: 'mintbrew', name: custom ? 'Custom homebrew' : 'MintBrew', vendorDir, attempt, markerWritten: true,
     frameReady: 'MintBrew continuous native frame loop running.',
     sharedClient: path.join(vendorDir, 'smilebasic/engine/shared/rpc.cjs'),
     env: homebrewEnvironment(config.homebrewRuntime, process.env,
@@ -684,6 +686,12 @@ async function mintbrewApp(toolRoot, workspace, proof, config) {
         {addonUrls: [], libraryItems: [], quality: '720p'}, true);
       await writePrivateJSON(path.join(sessionDir, 'mintbrew-host.json'),
         {runDirectory: workspace, sourceSession: proof.session}, true);
+      if (custom) {
+        const library = path.join(sessionDir, 'custom-apps');
+        fs.mkdirSync(library, {mode: 0o700});
+        copyRegularTree(custom.folder, path.join(library, custom.id));
+        app.env = {...app.env, HB_APPS_DIR: library};
+      }
     },
     launch: async ctx => {
       for (const [script, ...extra] of MINTBREW_STAGES) {
@@ -712,6 +720,7 @@ async function mintbrewApp(toolRoot, workspace, proof, config) {
       'MintBrew did not verify its graphics and audio shutdown.');
     }
   };
+  return app;
 }
 
 const IZ_STAGES = [
@@ -912,6 +921,161 @@ async function nativeHBLauncher(toolRoot, workspace, proof, config, run) {
     attemptMarkers: stoppedProof.attemptMarkers,
     message: 'Native HBLauncher stopped. Its display resources remain in this console session.'});
 }
+// ---------- modloader ----------
+// The modloader stages the pinned ns2jb-modloader code and the user's
+// Atmosphere-style mod tree into a private folder of this run, then runs its
+// installer as the session's final action. Everything up to the installer
+// spawn is retry-safe; after it the console state is unknown until the
+// installer proves its game handoff, and the overlay stays until reboot.
+const MODLOADER_PROFILES = ['kurumuz', 'cellenseres'];
+const MODLOADER_CODE = ['install.cjs', 'LICENSE', 'lib', 'native'];
+const MOD_ENTRIES = ['contents', 'exefs_patches'];
+const MAX_MOD_FILES = 20000;
+
+function ownedFolderSync(value, label) {
+  check(typeof value === 'string' && path.isAbsolute(value) && value.length <= 4096 &&
+    !/[\x00\r\n]/.test(value), 'Choose an absolute ' + label + '.');
+  const info = fs.lstatSync(value);
+  check(info.isDirectory() && !info.isSymbolicLink() && info.uid === process.getuid(),
+    'The ' + label + ' must be an owned directory without symlinks.');
+  return fs.realpathSync(value);
+}
+
+function regularTreeSync(source, count) {
+  for (const entry of fs.readdirSync(source)) {
+    const file = path.join(source, entry), info = fs.lstatSync(file);
+    check(!info.isSymbolicLink() && (info.isDirectory() || info.isFile()) && info.uid === process.getuid(),
+      'Folders may contain only owned regular files and directories: ' + file);
+    if (info.isDirectory()) regularTreeSync(file, count);
+    else check(++count.files <= MAX_MOD_FILES, 'The selected folder has too many files.');
+  }
+}
+
+function validateModsFolder(directory, collectMods) {
+  const absolute = ownedFolderSync(directory, 'mod folder');
+  const count = {files: 0};
+  for (const name of MOD_ENTRIES) {
+    const entry = path.join(absolute, name);
+    if (!fs.existsSync(entry)) continue;
+    const info = fs.lstatSync(entry);
+    check(info.isDirectory() && !info.isSymbolicLink(), name + ' must be a real directory.');
+    regularTreeSync(entry, count);
+  }
+  collectMods(absolute);
+  return absolute;
+}
+
+// Copies through file descriptors opened without following links and refuses
+// a file whose identity, size or time changed while it was copied.
+function copyRegularTree(source, destination) {
+  const info = fs.lstatSync(source);
+  check(!info.isSymbolicLink(), 'A selected file changed to a symlink: ' + source);
+  if (info.isDirectory()) {
+    fs.mkdirSync(destination, {mode: 0o700});
+    for (const entry of fs.readdirSync(source)) copyRegularTree(path.join(source, entry), path.join(destination, entry));
+    return;
+  }
+  check(info.isFile(), 'Only regular files can be staged: ' + source);
+  const input = fs.openSync(source, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  let output;
+  try {
+    const opened = fs.fstatSync(input);
+    check(opened.isFile() && opened.dev === info.dev && opened.ino === info.ino,
+      'A selected file changed during staging: ' + source);
+    output = fs.openSync(destination, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
+    const buffer = Buffer.allocUnsafe(1024 * 1024);
+    let copied = 0, size;
+    while ((size = fs.readSync(input, buffer, 0, buffer.length, null)) > 0) {
+      let written = 0;
+      while (written < size) written += fs.writeSync(output, buffer, written, size - written);
+      copied += size;
+    }
+    const final = fs.fstatSync(input);
+    check(copied === opened.size && final.size === opened.size && final.mtimeMs === opened.mtimeMs,
+      'A selected file changed during staging: ' + source);
+  } finally {
+    if (output !== undefined) fs.closeSync(output);
+    fs.closeSync(input);
+  }
+}
+
+const boundedLine = line => String(line).trim().replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 512);
+
+async function modloader(toolRoot, workspace, proof, config, run) {
+  const component = path.join(toolRoot, 'modloader', 'integrations/ns2jb-modloader');
+  let staging, child;
+  try {
+    check(MODLOADER_PROFILES.includes(config.profileID),
+      'The modloader requires a held Kurumuz or Cellenseres RPC session.');
+    const {collectMods} = require(path.join(component, 'lib/mods.cjs'));
+    const mods = validateModsFolder(config.modsFolder, collectMods);
+    staging = fs.mkdtempSync(path.join(workspace, '.any2jb-modloader-'));
+    fs.chmodSync(staging, 0o700);
+    for (const name of MODLOADER_CODE) copyRegularTree(path.join(component, name), path.join(staging, name));
+    for (const name of MOD_ENTRIES) {
+      if (fs.existsSync(path.join(mods, name))) copyRegularTree(path.join(mods, name), path.join(staging, name));
+    }
+    const staged = collectMods(staging);
+    check(staged.games.length + staged.patches.length > 0, 'No loadable mod files were staged.');
+    require(path.join(staging, 'lib/native/artifacts.cjs')).artifacts();
+    check(!run.stopping && liveCheck(proof), 'The modloader stopped before its transfer started.');
+    emit('started', {message: 'Staged ' + staged.games.length + ' game mod set(s) and ' +
+      staged.patches.length + ' global patch(es). Installing; this is the final action of the session.'});
+  } catch (error) {
+    if (staging) fs.rmSync(staging, {recursive: true, force: true});
+    throw error;
+  }
+  let ready = false, stoppedReason = '';
+  try {
+    child = spawn(process.execPath, [path.join(staging, 'install.cjs'), '--run-dir', workspace],
+      {cwd: staging, stdio: ['ignore', 'pipe', 'pipe']});
+    const observe = line => {
+      line = boundedLine(line);
+      if (line.startsWith('READY')) ready = true;
+      if (line.startsWith('INSTALL STOPPED: ')) stoppedReason = line.slice(17, 317);
+      if (line) emit('progress', {message: line});
+    };
+    readOutputLines(child.stdout, observe);
+    readOutputLines(child.stderr, observe);
+    run.stopped.then(() => child.kill('SIGTERM'));
+    const outcome = await new Promise(resolve => {
+      child.once('error', error => resolve({error}));
+      child.once('close', (code, signal) => resolve({code, signal}));
+    });
+    check(!outcome.error && outcome.code === 0 && !outcome.signal && ready,
+      (stoppedReason ? 'Modloader stopped: ' + stoppedReason.replace(/[.!?]+$/, '') + '. ' : '') +
+      'The game handoff was not verified.');
+    const lock = JSON.parse(fs.readFileSync(path.join(workspace, 'ns2jb-modloader-install.json'), 'utf8'));
+    const resident = JSON.parse(fs.readFileSync(
+      path.join(staging, 'state', path.basename(workspace), 'resident-install.json'), 'utf8'));
+    check(lock.status === 'ready' && resident.verified === true && resident.readyForGameHandoff === true &&
+      resident.handoff?.stockRoProtocolVerified === true,
+    'The modloader did not verify the final game handoff.');
+  } catch (error) {
+    error.cleanupBlocked = true;
+    error.message += ' Restart the console before trying again.';
+    throw error;
+  }
+  emit('ready', {message: 'Modloader installed. Finish this session, close SmileBASIC without restarting the console, then launch the game. The overlay stays until the console restarts.'});
+}
+
+// ---------- custom homebrew ----------
+// A built GPU app folder (app.json) runs inside the pinned MintBrew pipeline
+// from a fresh per-session library; the user's original folder is never
+// changed. Other custom formats are refused in Go before this point.
+function customHomebrewFolder(value) {
+  const folder = ownedFolderSync(value, 'built homebrew folder');
+  for (const marker of ['mac2jb-rpc-app.json', 'engine/oz-code/native.bin', 'module.json', 'manifest.json']) {
+    check(!fs.existsSync(path.join(folder, marker)), 'Only a built GPU app is supported as custom homebrew.');
+  }
+  const info = fs.lstatSync(path.join(folder, 'app.json'));
+  check(info.isFile() && info.size <= 1024 * 1024, 'Choose a built GPU homebrew folder that contains app.json.');
+  const app = JSON.parse(fs.readFileSync(path.join(folder, 'app.json'), 'utf8'));
+  check(/^[a-z0-9][a-z0-9-]{0,47}$/.test(app?.id || '') && typeof app.name === 'string' && app.name !== '',
+    'app.json must name a lowercase app id and a display name.');
+  regularTreeSync(folder, {files: 0});
+  return {folder, id: app.id};
+}
 async function main(args = process.argv.slice(2)) {
   if (args.length === 1 && args[0] === '--self-test') {
     process.stdout.write(JSON.stringify({type: 'self-test', tools: TOOLS}) + '\n');
@@ -923,7 +1087,8 @@ async function main(args = process.argv.slice(2)) {
   tool = selected;
   let config = {};
   if (configJSON !== undefined) {
-    check(HOMEBREW.includes(selected), 'Only a homebrew tool accepts a launch configuration.');
+    check(HOMEBREW.includes(selected) || selected === 'modloader',
+      'Only a homebrew tool or the modloader accepts a launch configuration.');
     config = JSON.parse(configJSON);
     check(config && typeof config === 'object' && !Array.isArray(config),
       'Invalid homebrew launch configuration.');
@@ -956,9 +1121,16 @@ async function main(args = process.argv.slice(2)) {
         check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
           'The homebrew launch configuration is missing the verified runtime root.');
         await superviseHomebrew(await izlauncherApp(toolRoot, owned, proof, config), owned, proof, run);
+      } else if (selected === 'custom-homebrew') {
+        check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
+          'The homebrew launch configuration is missing the verified runtime root.');
+        const custom = customHomebrewFolder(config.customHomebrewFolder);
+        await superviseHomebrew(await mintbrewApp(toolRoot, owned, proof, config, custom), owned, proof, run);
       } else {
         await nativeHBLauncher(toolRoot, owned, proof, config, run);
       }
+    } else if (selected === 'modloader') {
+      await modloader(path.join(stagedRoot, 'tools'), owned, proof, config, run);
     } else {
       check(net.isIPv4(consoleAddress), 'Enter the console IPv4 address.');
       const toolRoot = path.join(stagedRoot, 'tools', selected === 'sd-browser' ? 'sd-browser' : 'ouncecake');
@@ -981,4 +1153,4 @@ if (require.main === module) main().catch(error => {
 });
 module.exports = {main, heldProof, readOnlySD, TOOLS, HOMEBREW, ATTEMPT_MARKER,
   liveCheck, rpcProxy, homebrewEnvironment, releaseAttemptMarker, superviseHomebrew,
-  mintbrewApp, izlauncherApp, nativeHBLauncher};
+  mintbrewApp, izlauncherApp, nativeHBLauncher, validateModsFolder, modloader, customHomebrewFolder};

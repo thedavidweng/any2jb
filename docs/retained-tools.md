@@ -100,6 +100,44 @@ stages none of them; each gated launcher shows its recorded reason. The
 IZlauncher modules share one staged destination, and a developer stage
 additionally prepares the portable runtime (CPython, shader tools, font) and
 the IZlauncher runtime, each re-verified against its manifest before use.
+## Modloader and custom homebrew (experimental)
+
+Both start only from a verified lease and check the user's folder in Go
+(`session/folders.go`) before anything spawns; the tool host checks it again
+before any transfer. An invalid folder is refused with `invalid_configuration`
+and the session stays `retained_rpc`. Nothing game- or mod-related is bundled.
+
+- **Modloader** is offered only on profiles whose manifest declares
+  `supportsModloader` (Kurumuz and Cellenseres; not Astral) and the tool host
+  refuses other profiles. The folder is an owned, symlink-free tree of at most
+  20000 files: `contents/<16-digit Title ID>/` with `romfs/`, `exefs/` (files
+  only), `romfs.bin`, `exefs.nsp`, notes, and `exefs_patches/<set>/<Build
+  ID>.ips`. Runtime cheats or plugins are refused rather than partly
+  installed. The pinned `ns2jb-modloader` code and the mods are copied
+  through no-follow descriptors into a private folder of the run, then its
+  installer runs as the **final action**. Failures up to that point are
+  retry-safe. A verified handoff (`READY`, the install lock and the resident
+  proof) sets `ModloaderInstalled`: the overlay stays until the console
+  restarts, so every later tool launch is refused and the UI says to finish,
+  close SmileBASIC without restarting, launch the game, and restart before
+  any other tool. An unverified handoff blocks the modloader and homebrew and
+  advises a restart.
+- **Custom homebrew** sits under the Homebrew section, labelled experimental.
+  This build runs only a built GPU app folder (`app.json` with a lowercase id
+  and a name) inside the pinned MintBrew pipeline from a fresh per-session
+  copy, with the same attempt-marker protocol. RPC packages, IZlauncher
+  modules, native ABI 3 apps (use the native launcher's app folder) and
+  custom launchers are refused with their reason.
+
+`modloader` is recorded in the manifest with an embedded inventory of
+`integrations/ns2jb-modloader` and a `blocked` decision (GPL v2 obligations
+for its prebuilt native artifacts are unresolved); custom homebrew needs the
+blocked `mintbrew` and `homebrew-runtime` stages. Tests:
+`session/modloader_test.go` (capability gate, folder layouts, lease kept),
+`retained/modloader_test.go` (recorded reasons, completion lock, retry-safe
+and unverified failures), the modloader and custom homebrew fixtures in
+`retained/toolhost.test.cjs`, and `modloader_view_test.go`. No modloader or
+custom homebrew run against a console; hardware behavior is not verified.
 ## Distribution and local developer staging
 
 `resources/darwin-arm64/runtime/toolhost.cjs` is original any2jb code, recorded

@@ -101,9 +101,13 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		m.mu.Unlock()
 		return errors.New("the retained session was lost; restart the console before another attempt")
 	}
+	if m.state.ModloaderInstalled {
+		m.mu.Unlock()
+		return errors.New("the modloader overlay stays active until the console restarts; finish this session and restart the console before launching another tool")
+	}
 	// An unproven homebrew shutdown leaves console state unknown; only a
 	// console restart makes the workspace safe for another launcher.
-	if isHomebrew(request.Tool) && m.state.CleanupBlocked {
+	if (isHomebrew(request.Tool) || request.Tool == "modloader") && m.state.CleanupBlocked {
 		m.mu.Unlock()
 		return errors.New("the previous homebrew launcher did not prove a clean shutdown; restart the console before launching homebrew again")
 	}
@@ -124,7 +128,8 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	p := &toolProcess{tool: request.Tool, cmd: cmd, events: make(chan toolEvent, 16),
 		done: make(chan struct{}), selection: make(chan string, 1)}
 	m.active = p
-	m.state = State{Tool: request.Tool}
+	// Console-state blocks outlive the tool that caused them.
+	m.state = State{Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked}
 	m.mu.Unlock()
 	if err := m.start(ctx, p, report); err != nil {
 		m.mu.Lock()
@@ -133,7 +138,7 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		return errors.Join(err, m.Stop(context.WithoutCancel(ctx), run))
 	}
 	err = m.observe(ctx, p, request, report)
-	if err != nil || p.tool == "rpc-status" || p.tool == "system-code-dump" {
+	if err != nil || p.tool == "rpc-status" || p.tool == "system-code-dump" || p.tool == "modloader" {
 		return errors.Join(err, m.Stop(context.WithoutCancel(ctx), run))
 	}
 	return nil
@@ -197,6 +202,9 @@ func (p *toolProcess) read(output io.ReadCloser) {
 			valid = valid && state != "running" && (e.ReadOnly && e.Endpoint != "" || isHomebrew(p.tool))
 		case "complete":
 			valid = valid && e.Path != "" && e.Total > 0
+		case "ready":
+			// Only the modloader reports a verified game handoff.
+			valid = valid && p.tool == "modloader" && state != ""
 		case "stopped":
 			// A homebrew supervisor must state the cleanup proof shape the
 			// stop path verifies before it allows another launch.
@@ -273,6 +281,11 @@ func (m *Manager) observe(ctx context.Context, p *toolProcess, request session.T
 				m.mu.Unlock()
 				return nil
 			case "stopped":
+				return nil
+			case "ready":
+				m.mu.Lock()
+				m.state.ModloaderInstalled = true
+				m.mu.Unlock()
 				return nil
 			default:
 				m.mu.Lock()
