@@ -28,6 +28,11 @@ its archive, binary and notice digests live only in `manifest/profiles.json`.
 Neither a system Node nor Bun is used to build or run the native app.
 Xcode Command Line Tools provide `codesign`, `iconutil` and `hdiutil`.
 The local validation toolchain was Xcode **27.2**, build **27B52**.
+The full developer regression check also requires **Zig 0.15.2** for pepsipu's
+payload rebuild. It is not part of the shipped runtime and is not needed just
+to package the app. Use the official prebuilt compiler (verify its minisign
+signature), managed by the existing `mise` installation if available. Select it
+with `cmd/check -zig /absolute/path/to/zig`; no global activation is necessary.
 
 ```sh
 go test ./...
@@ -38,6 +43,8 @@ go tool mygo build -platform darwin/arm64 -sign - -skip-notarize
 build/darwin-arm64/any2jb.app/Contents/MacOS/any2jb --self-test
 codesign --verify --deep --strict build/darwin-arm64/any2jb.app
 codesign -d --entitlements - build/darwin-arm64/any2jb.app/Contents/Resources/runtime/node
+go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb \
+  -runtime-assets "$PWD/resources/darwin-arm64" -zig /absolute/path/to/zig-0.15.2
 ```
 
 The build runs `prepare-runtime` then `check-package`; do not bypass it with
@@ -149,6 +156,12 @@ On an arm64 Mac with the toolchain above:
 - MyGo i18n/vet and `go vet ./...` passed.
 - Bundled Node ran `engine/bridge.test.cjs` and `manifest/profiles.test.cjs`:
   3 tests passed.
+- The full `cmd/check` harness passed with Zig 0.15.2, including all six
+  source/bootstrap inventories, the real-engine loopback partial-reply test,
+  simulated controller tests, upstream pepsipu tests, payload rebuild and four
+  native helper offline checks. The rebuilt payload was 4757 bytes and matched
+  SHA-256 `d590cbfc5d9152c24d5a36f083f8470a2f3164be6b78130129d44132b939701a`.
+  The optional local OS inspection and physical hardware checks were skipped.
 - The explicit ad-hoc build above produced the app and DMG;
   `codesign --verify --deep --strict` passed. Node's preserved
   `com.apple.security.cs.allow-jit` entitlement was present.
