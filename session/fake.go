@@ -27,6 +27,12 @@ type FakeEnvironment struct {
 	CleanupError    error
 	ToolError       error
 	HostExitGate    <-chan struct{}
+
+	RetainedSessions []RetainedSession
+	AttachOutcome    Outcome
+	AttachError      error
+	DetachError      error
+	RetainedLostGate <-chan struct{}
 }
 
 func NewFakeEnvironment() *FakeEnvironment {
@@ -39,7 +45,8 @@ func NewFakeEnvironment() *FakeEnvironment {
 	}
 }
 func (f *FakeEnvironment) Environment() Environment {
-	return Environment{Host: fakeHost{f}, Input: fakeInput{f}, Platform: fakePlatform{f}, Tools: fakeTools{f}, Simulated: true}
+	return Environment{Host: fakeHost{f}, Retained: fakeRetained{f}, Input: fakeInput{f},
+		Platform: fakePlatform{f}, Tools: fakeTools{f}, Simulated: true}
 }
 func (f *FakeEnvironment) record(action string) {
 	f.mu.Lock()
@@ -137,6 +144,40 @@ func (fakeCredentials) Set(context.Context, string, []byte) error {
 	return errors.New("fake environment does not store secrets")
 }
 func (fakeCredentials) Delete(context.Context, string) error { return nil }
+
+type fakeRetained struct{ f *FakeEnvironment }
+
+func (r fakeRetained) Discover(context.Context) ([]RetainedSession, error) {
+	r.f.record("retained.discover")
+	return r.f.RetainedSessions, nil
+}
+func (r fakeRetained) Attach(_ context.Context, _ Run, id string) (Outcome, error) {
+	r.f.record("retained.attach")
+	for _, s := range r.f.RetainedSessions {
+		if s.ID != id {
+			continue
+		}
+		if r.f.AttachOutcome != (Outcome{}) {
+			return r.f.AttachOutcome, r.f.AttachError
+		}
+		return r.f.Outcome, r.f.AttachError
+	}
+	return Outcome{}, errors.New("no simulated session with that identity")
+}
+func (r fakeRetained) Detach(context.Context, Run) error {
+	r.f.record("retained.detach")
+	return r.f.DetachError
+}
+func (r fakeRetained) Watch(ctx context.Context, _ Run) error {
+	if err := gate(ctx, r.f.RetainedLostGate); err != nil {
+		return err
+	}
+	if r.f.RetainedLostGate == nil {
+		<-ctx.Done()
+		return ctx.Err()
+	}
+	return errors.New("simulated attachment lost")
+}
 
 type fakeTools struct{ f *FakeEnvironment }
 

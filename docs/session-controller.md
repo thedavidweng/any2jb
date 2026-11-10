@@ -52,6 +52,16 @@ input independent of driver/controller facts. See [readiness](readiness.md).
 - `ToolRunner` owns single-flight tool work. Only tools explicitly enabled in the
   verified profile may run. Tool-specific consent and backup gates belong to its
   adapter; a profile capability is not consent to write user data.
+  `ParameterizedToolRunner` additionally accepts a validated console address
+  through `RunToolWith`; `StopTool` ends the running tool without ending the
+  session. See [retained tools](retained-tools.md).
+- `RetainedAdapter` discovers and attaches to a verified held session this
+  machine still holds. `AttachRetained` reaches `retained_rpc` without
+  preparing a host or sending input and marks `Snapshot.Attached`;
+  `DetachRetained` releases only this app, and `Finish` is refused while
+  attached. The lease watcher is the adapter's `Watch` for an attachment and
+  `HostRunner.Wait` for an owned run; either loss cancels tool work and
+  requires a console restart, never a reconnection.
 
 All adapters must honor context cancellation and finish their writes before
 returning. Report `Progress.SideEffect` **before** publishing pairing details or

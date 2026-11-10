@@ -420,6 +420,21 @@ func (r *HostRunner) Wait(ctx context.Context, run session.Run) error {
 	}
 }
 
+// Workspace resolves the private workspace of a run this runner owns, only
+// after its retained lease was verified. Tools never receive another run's path.
+func (r *HostRunner) Workspace(run session.Run) (string, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	p, err := r.owned(run)
+	if err != nil {
+		return "", err
+	}
+	if !p.held {
+		return "", errors.New("this run has no verified retained lease")
+	}
+	return p.workspace, nil
+}
+
 func (r *HostRunner) Finish(ctx context.Context, run session.Run) (session.Outcome, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

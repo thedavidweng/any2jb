@@ -28,6 +28,8 @@ type app struct {
 	keyboard           keyboardPanel
 	usbConfirmation    usbPrompt
 	civSwitchPanel     civSwitchPanel
+	toolsPanel         toolsPanel
+	tools              toolAdapter
 	driverPanel        driverPanel
 	about              bool
 	controller         *session.SessionController
@@ -65,10 +67,17 @@ func (a *app) view(c *ui.Context) {
 				a.civSwitchView(c)
 				return
 			}
+			if a.controller != nil && a.toolsPanel.open {
+				a.advancedToolsView(c)
+				return
+			}
 			if a.controller != nil {
 				s := a.controller.Snapshot()
 				if ui.Button(c.Key("civ-open"), locales.CivTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
 					a.civSwitchPanel.open = true
+				}
+				if ui.Button(c.Key("tools-open"), locales.ToolsTitle()).Disabled(s.Busy || s.CivSwitch || s.Stage == session.Indeterminate).Clicked() {
+					a.toolsPanel.open = true
 				}
 			}
 			if a.manifest != nil {
@@ -184,6 +193,7 @@ func main() {
 					a.controller.MarkInterrupted()
 				}
 				a.startDiagnostics(win, store)
+				a.toolsPanel.update = win.Update
 				if recoveryErr != nil {
 					a.diagnostic.failed = true
 				}

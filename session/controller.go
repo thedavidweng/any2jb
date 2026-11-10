@@ -193,8 +193,12 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 func (c *SessionController) watchHost(run Run) {
 	ctx, cancel := context.WithCancel(context.Background())
 	c.monitorCancel = cancel
+	wait := c.env.Host.Wait
+	if c.s.Attached {
+		wait = c.env.Retained.Watch
+	}
 	go func() {
-		c.env.Host.Wait(ctx, run)
+		wait(ctx, run)
 		c.mu.Lock()
 		defer c.mu.Unlock()
 		if ctx.Err() != nil {
@@ -214,7 +218,7 @@ func (c *SessionController) watchHost(run Run) {
 }
 func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	c.mu.Lock()
-	civSwitch := c.s.CivSwitch
+	civSwitch, attached := c.s.CivSwitch, c.s.Attached
 	if c.monitorCancel != nil {
 		c.monitorCancel()
 		c.monitorCancel = nil
@@ -222,6 +226,9 @@ func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	c.mu.Unlock()
 	if civSwitch {
 		return c.releaseCivSwitch(ctx)
+	}
+	if attached {
+		return c.detach(ctx, run)
 	}
 	err := errors.Join(c.env.Input.Release(ctx, run), c.env.Tools.Stop(ctx, run), c.env.Host.Cleanup(ctx, run))
 	if err == nil {
@@ -470,6 +477,9 @@ func (c *SessionController) Finish() (Snapshot, error) {
 	if !c.eligible(Verified, RetainedRPC) {
 		return c.reject(InvalidState)
 	}
+	if c.s.Attached {
+		return c.configurationError(InvalidState, "Disconnect instead: only the app that launched this session can finish it.")
+	}
 	if c.monitorCancel != nil {
 		c.monitorCancel()
 		c.monitorCancel = nil
@@ -504,20 +514,7 @@ func (c *SessionController) Finish() (Snapshot, error) {
 	}), nil
 }
 func (c *SessionController) RunTool(tool string) (Snapshot, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if !c.eligible(RetainedRPC) {
-		return c.reject(InvalidState)
-	}
-	if !slices.Contains(c.s.Profile.Tools, tool) {
-		return c.reject(Unsupported)
-	}
-	return c.begin(RunningTool, false, func(ctx context.Context, run Run) error {
-		if err := c.env.Tools.Run(ctx, run, tool, c.report); err != nil {
-			return err
-		}
-		return c.stage(ctx, RetainedRPC, true)
-	}), nil
+	return c.RunToolWith(ToolRequest{Tool: tool})
 }
 func (c *SessionController) SelectProfile(profile Profile, edition string) (Snapshot, error) {
 	c.mu.Lock()

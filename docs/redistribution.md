@@ -37,6 +37,14 @@ Current inventory:
   identifies its `LICENSE-NOTICE.md`, which says no open-source license has
   been selected and public availability grants no redistribution/reuse.
   mac2jb's provenance reports permission for mac2jb, not for any2jb.
+- **OunceCake and the Super File Bros. SD browser:** blocked, not bundled.
+  Their pinned trees are recorded as tool sources (inventory digest, file count
+  and provenance/adapter artifacts) so a developer can stage and verify them
+  locally. OunceCake supplies GPL v2 text whose exact grant, corresponding
+  source, modifications and notices are unreviewed; the SD browser declares
+  GPL-2.0-only with unresolved inherited module rights.
+- **any2jb tool host:** may-ship, bundled. `runtime/toolhost.cjs` is original
+  any2jb code that only drives separately staged tool sources.
 - **MyGo placeholder icon and MIT notice:** may-ship, bundled. The complete
   framework copyright and permission notice is in
   [`resources/licenses/mygo.txt`](../resources/licenses/mygo.txt).
@@ -160,10 +168,12 @@ Do not modify staged resources after this check.
 Views and tool actions must consult `m.DistributionFor(componentID)`, not
 upstream host capability booleans. `Available()` is false for unknown,
 unbundled, blocked and excluded components (unknown IDs return an error).
-For the future browser-research UI entry, show the unavailable reason from
-`DistributionFor("browser-research")`; do not advertise an included probe set
-or enable execution/import as a way around this exclusion. The tools tickets
-wire that entry when the Advanced Tools view exists.
+The Advanced Tools view shows the unavailable reason from
+`DistributionFor("browser-research")` and gives it no control; it does not
+advertise an included probe set or allow execution/import as a way around this
+exclusion. Its OunceCake, SD-browser and system-code entries show the same kind
+of recorded reason unless their pinned sources were staged locally by a
+developer, as described in [retained tools](retained-tools.md).
 
 ## Alternate acquisition
 

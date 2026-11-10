@@ -13,6 +13,7 @@ import (
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/readiness"
+	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/transport"
 )
@@ -30,8 +31,8 @@ func productionEnvironmentWithInput(options engine.Options, inputOptions transpo
 	return productionEnvironmentWithCivSwitch(options, inputOptions, civswitch.Options{})
 }
 
-// All developer-aware adapters compose here. Retained tool staging should use
-// options.DeveloperSourceRoot here too, never read launch environment itself.
+// All developer-aware adapters compose here using the same explicit options,
+// never reading launch environment themselves.
 func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions transport.DarwinOptions, civOptions civswitch.Options) session.Environment {
 	root, stageErr := engine.Stage(options)
 	bootstrap := func(run session.Run) (string, error) {
@@ -58,13 +59,33 @@ func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions tra
 	inputs := transport.NewDispatcher(transport.NewManual(bootstrap), keyboard, platform.Inspect)
 	civOptions.Manifest, civOptions.Support = options.Manifest, options.Support
 	civOptions.DeveloperSourceRoot = options.DeveloperSourceRoot
+	host := engine.NewHostRunner(options)
+	tools := productionTools(root, stageErr, options, host)
 	return session.Environment{
 		CivSwitch: civswitch.New(civOptions),
-		Host:      engine.NewHostRunner(options),
+		Host:      host,
+		Retained:  tools,
 		Input:     inputs,
 		Platform:  platform,
-		Tools:     unavailableTools{},
+		Tools:     tools,
 	}
+}
+
+// productionTools composes the retained lease and read-only tool adapter. Tool
+// sources are only staged from an explicit developer source root; a packaged app
+// stages nothing and every entry keeps the manifest's unavailable reason.
+func productionTools(root string, stageError error, options engine.Options, host *engine.HostRunner) *retained.Manager {
+	toolRoot, staged, stageToolsError := retained.StageTools(retained.StageOptions{Support: options.Support,
+		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
+		Components: []string{"ouncecake", "sd-browser"}})
+	node, toolHost := "", ""
+	if stageError == nil {
+		node, toolHost = filepath.Join(root, "runtime/node"), filepath.Join(root, "runtime/toolhost.cjs")
+	}
+	return retained.New(retained.Options{Support: options.Support, Node: node, Host: toolHost,
+		ToolRoot: toolRoot, Staged: staged, StageError: stageToolsError,
+		EngineStaged: options.DeveloperSourceRoot != "" && options.DeveloperProfileID != "",
+		Manifest:     options.Manifest, Runs: host})
 }
 
 // Packaged startup leaves the explicit developer source empty.
@@ -147,13 +168,6 @@ func (p productionPlatform) ReleaseInterrupted(ctx context.Context) error {
 	return (diagnostics.Store{Support: p.options.Support}).ReleaseInterrupted(ctx)
 }
 func (productionPlatform) Credentials() session.CredentialStore { return unavailableCredentials{} }
-
-type unavailableTools struct{}
-
-func (unavailableTools) Run(context.Context, session.Run, string, session.Report) error {
-	return errors.New("tool adapter is not available")
-}
-func (unavailableTools) Stop(context.Context, session.Run) error { return nil }
 
 type unavailableCredentials struct{}
 

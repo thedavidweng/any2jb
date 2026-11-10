@@ -1,0 +1,255 @@
+// Package retained owns the lease of a verified held session and the read-only
+// tools that may use it. The lease belongs to one verified run at a time: a
+// tool runs only after a fresh live check, and only one tool owns the session.
+package retained
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/thedavidweng/any2jb/engine"
+	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/session"
+)
+
+// Workspaces resolves the private workspace of a run this app owns.
+type Workspaces interface {
+	Workspace(session.Run) (string, error)
+}
+
+type Options struct {
+	Support string
+	// Node and Host are the staged Node binary and the original any2jb tool
+	// host. Empty values leave every tool unavailable.
+	Node, Host string
+	// ToolRoot is the developer stage of the pinned tool sources, and Staged
+	// lists the component IDs verified in it. Packaged startup leaves both empty.
+	ToolRoot string
+	Staged   []string
+	// EngineStaged records a developer engine stage, which the system-code
+	// capture module is part of. It is never set by a packaged app.
+	EngineStaged bool
+	// StageError records a failed local developer stage so an unavailable tool
+	// can say that integrity checking failed instead of staying silent.
+	StageError error
+	Manifest   *manifest.Manifest
+	Runs       Workspaces
+}
+
+// Game is a console-reported title offered for a read-only export.
+type Game struct {
+	TitleID string `json:"titleId"`
+	Name    string `json:"name"`
+}
+
+// State is ephemeral tool-owned data for the UI. It is not session state.
+type State struct {
+	Tool           string
+	Endpoint       string
+	Export         string
+	Games          []Game
+	Lost           bool
+	CleanupBlocked bool
+}
+
+// CommandFactory is the explicit trusted-process test seam, mirroring the
+// engine's. Production composition uses New, never this seam.
+type CommandFactory func(session.Run, session.ToolRequest, string) *exec.Cmd
+
+type Manager struct {
+	options  Options
+	command  CommandFactory
+	mu       sync.Mutex
+	attached string
+	active   *toolProcess
+	state    State
+}
+
+func New(options Options) *Manager {
+	m := &Manager{options: options}
+	m.command = func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
+		return exec.Command(options.Node, options.Host, options.ToolRoot, request.Tool, workspace,
+			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool)))
+	}
+	return m
+}
+
+// NewProtocolManager supplies the tool process explicitly for fixtures. It does
+// not authorize upstream tool execution and is never used by the app entrypoint.
+func NewProtocolManager(options Options, command CommandFactory) *Manager {
+	return &Manager{options: options, command: command}
+}
+
+func dash(value string) string {
+	if value == "" {
+		return "-"
+	}
+	return value
+}
+
+func (m *Manager) exportPath(run session.Run, tool string) string {
+	if tool != "system-code-dump" {
+		return ""
+	}
+	return filepath.Join(m.options.Support, "verified-exports", "system-code-"+run.ID)
+}
+
+// State copies the current tool observations.
+func (m *Manager) State() State {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s := m.state
+	s.Games = append([]Game(nil), m.state.Games...)
+	return s
+}
+
+// Unavailable states why a tool cannot run, or "" when it can. Distribution
+// decisions come from the canonical manifest, never from host capabilities.
+func (m *Manager) Unavailable(tool, profileID string) string {
+	component, ok := map[string]string{
+		"rpc-status": "", "system-code-dump": "",
+		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",
+	}[tool]
+	if !ok {
+		return "This read-only tool is not implemented in this build."
+	}
+	if m.options.Node == "" || m.options.Host == "" {
+		return "The bundled tool host is unavailable in this build."
+	}
+	if tool == "system-code-dump" {
+		if m.options.EngineStaged {
+			return ""
+		}
+		return m.reason(profileID)
+	}
+	if component != "" {
+		for _, staged := range m.options.Staged {
+			if staged == component {
+				return ""
+			}
+		}
+		reason := m.reason(component)
+		if m.options.StageError != nil {
+			reason += " A local developer stage was attempted and failed its integrity check."
+		}
+		return reason
+	}
+	return ""
+}
+
+func (m *Manager) reason(id string) string {
+	if m.options.Manifest == nil {
+		return "This component is not recorded in the canonical manifest."
+	}
+	d, err := m.options.Manifest.DistributionFor(id)
+	if err != nil {
+		return "This component is not recorded in the canonical manifest."
+	}
+	return d.Reason
+}
+
+// Discover lists verified retained sessions this machine still holds. Listing
+// one is read-only: it claims no lease and adopts no stale artifact.
+func (m *Manager) Discover(ctx context.Context) ([]session.RetainedSession, error) {
+	entries, err := os.ReadDir(filepath.Join(m.options.Support, "runs"))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var found []session.RetainedSession
+	for _, entry := range entries {
+		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "run-") {
+			continue
+		}
+		outcome, err := engine.VerifyHeld(ctx, filepath.Join(m.options.Support, "runs", entry.Name()))
+		if err != nil || !outcome.Valid(true) {
+			continue
+		}
+		found = append(found, session.RetainedSession{ID: entry.Name(),
+			Description: "Verified retained session " + entry.Name()})
+	}
+	return found, nil
+}
+
+// Attach re-verifies the chosen session's private evidence and its live lease.
+// It never prepares a host, sends console input or claims the owner's lease.
+func (m *Manager) Attach(ctx context.Context, _ session.Run, id string) (session.Outcome, error) {
+	if id == "" || filepath.Base(id) != id || !strings.HasPrefix(id, "run-") {
+		return session.Outcome{}, errors.New("invalid retained session identity")
+	}
+	workspace := filepath.Join(m.options.Support, "runs", id)
+	outcome, err := engine.VerifyHeld(ctx, workspace)
+	if err != nil {
+		return session.Outcome{}, err
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.attached = workspace
+	m.state = State{}
+	return outcome, nil
+}
+
+// Detach releases this app's attachment and its own tool child only. The
+// original host keeps running; its owner alone can finish it.
+func (m *Manager) Detach(ctx context.Context, run session.Run) error {
+	err := m.Stop(ctx, run)
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.attached = ""
+	m.state = State{}
+	return err
+}
+
+// Watch reports the loss of an attached lease. It never reconnects.
+func (m *Manager) Watch(ctx context.Context, _ session.Run) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		m.mu.Lock()
+		workspace := m.attached
+		m.mu.Unlock()
+		if workspace == "" {
+			return errors.New("no attached retained session")
+		}
+		outcome, err := engine.VerifyHeld(ctx, workspace)
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if err != nil || !outcome.Valid(true) {
+			m.mu.Lock()
+			m.state.Lost = true
+			m.mu.Unlock()
+			return fmt.Errorf("the attached retained session was lost: %w", err)
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
+// workspace resolves the lease owner: an attachment, or this app's own run.
+func (m *Manager) workspace(run session.Run) (string, error) {
+	m.mu.Lock()
+	attached := m.attached
+	m.mu.Unlock()
+	if attached != "" {
+		return attached, nil
+	}
+	if m.options.Runs == nil {
+		return "", errors.New("no retained session is owned by this app")
+	}
+	return m.options.Runs.Workspace(run)
+}
+
+var _ session.RetainedAdapter = (*Manager)(nil)

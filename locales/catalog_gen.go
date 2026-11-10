@@ -906,6 +906,318 @@ func (msgs Messages) ChooseLANIPv4() string {
 	return Catalog.Format(msgs.locale, "chooseLANIPv4", nil)
 }
 
+// ToolsTitle says "Advanced Tools"
+// in the language the app shows.
+func ToolsTitle() string { return In(i18n.Locale()).ToolsTitle() }
+
+// ToolsTitle says "Advanced Tools"
+// in the language of msgs.
+func (msgs Messages) ToolsTitle() string {
+	return Catalog.Format(msgs.locale, "toolsTitle", nil)
+}
+
+// ToolsReadOnly says "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possib…"
+// in the language the app shows.
+func ToolsReadOnly() string { return In(i18n.Locale()).ToolsReadOnly() }
+
+// ToolsReadOnly says "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possib…"
+// in the language of msgs.
+func (msgs Messages) ToolsReadOnly() string {
+	return Catalog.Format(msgs.locale, "toolsReadOnly", nil)
+}
+
+// ToolsNeedLease says "Advanced Tools need a verified session with a live retained RPC lease, or a connection to an existing one."
+// in the language the app shows.
+func ToolsNeedLease() string { return In(i18n.Locale()).ToolsNeedLease() }
+
+// ToolsNeedLease says "Advanced Tools need a verified session with a live retained RPC lease, or a connection to an existing one."
+// in the language of msgs.
+func (msgs Messages) ToolsNeedLease() string {
+	return Catalog.Format(msgs.locale, "toolsNeedLease", nil)
+}
+
+// ToolsOwned says "This app owns the verified retained session."
+// in the language the app shows.
+func ToolsOwned() string { return In(i18n.Locale()).ToolsOwned() }
+
+// ToolsOwned says "This app owns the verified retained session."
+// in the language of msgs.
+func (msgs Messages) ToolsOwned() string {
+	return Catalog.Format(msgs.locale, "toolsOwned", nil)
+}
+
+// ToolsAttached says "Connected to a verified session another app owns. Only that app can finish it."
+// in the language the app shows.
+func ToolsAttached() string { return In(i18n.Locale()).ToolsAttached() }
+
+// ToolsAttached says "Connected to a verified session another app owns. Only that app can finish it."
+// in the language of msgs.
+func (msgs Messages) ToolsAttached() string {
+	return Catalog.Format(msgs.locale, "toolsAttached", nil)
+}
+
+// ToolsLost says "The retained session was lost. It is never reconnected automatically; restart the console before another attempt."
+// in the language the app shows.
+func ToolsLost() string { return In(i18n.Locale()).ToolsLost() }
+
+// ToolsLost says "The retained session was lost. It is never reconnected automatically; restart the console before another attempt."
+// in the language of msgs.
+func (msgs Messages) ToolsLost() string {
+	return Catalog.Format(msgs.locale, "toolsLost", nil)
+}
+
+// ToolsCleanupBlocked says "A tool could not prove native cleanup. Restart the console before closing this session."
+// in the language the app shows.
+func ToolsCleanupBlocked() string { return In(i18n.Locale()).ToolsCleanupBlocked() }
+
+// ToolsCleanupBlocked says "A tool could not prove native cleanup. Restart the console before closing this session."
+// in the language of msgs.
+func (msgs Messages) ToolsCleanupBlocked() string {
+	return Catalog.Format(msgs.locale, "toolsCleanupBlocked", nil)
+}
+
+// ToolsNotPermitted says "This host profile does not enable this tool."
+// in the language the app shows.
+func ToolsNotPermitted() string { return In(i18n.Locale()).ToolsNotPermitted() }
+
+// ToolsNotPermitted says "This host profile does not enable this tool."
+// in the language of msgs.
+func (msgs Messages) ToolsNotPermitted() string {
+	return Catalog.Format(msgs.locale, "toolsNotPermitted", nil)
+}
+
+// ToolsOwner says "{tool} owns the retained session. Stop it before starting another tool."
+// in the language the app shows.
+func ToolsOwner(tool string) string { return In(i18n.Locale()).ToolsOwner(tool) }
+
+// ToolsOwner says "{tool} owns the retained session. Stop it before starting another tool."
+// in the language of msgs.
+func (msgs Messages) ToolsOwner(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsOwner", map[string]any{"tool": tool})
+}
+
+// ToolsConsoleAddress says "Console IPv4 for read-only exports"
+// in the language the app shows.
+func ToolsConsoleAddress() string { return In(i18n.Locale()).ToolsConsoleAddress() }
+
+// ToolsConsoleAddress says "Console IPv4 for read-only exports"
+// in the language of msgs.
+func (msgs Messages) ToolsConsoleAddress() string {
+	return Catalog.Format(msgs.locale, "toolsConsoleAddress", nil)
+}
+
+// ToolsFind says "Find verified sessions on this Mac"
+// in the language the app shows.
+func ToolsFind() string { return In(i18n.Locale()).ToolsFind() }
+
+// ToolsFind says "Find verified sessions on this Mac"
+// in the language of msgs.
+func (msgs Messages) ToolsFind() string {
+	return Catalog.Format(msgs.locale, "toolsFind", nil)
+}
+
+// ToolsChoose says "Discovered session"
+// in the language the app shows.
+func ToolsChoose() string { return In(i18n.Locale()).ToolsChoose() }
+
+// ToolsChoose says "Discovered session"
+// in the language of msgs.
+func (msgs Messages) ToolsChoose() string {
+	return Catalog.Format(msgs.locale, "toolsChoose", nil)
+}
+
+// ToolsAttach says "Connect to the existing session"
+// in the language the app shows.
+func ToolsAttach() string { return In(i18n.Locale()).ToolsAttach() }
+
+// ToolsAttach says "Connect to the existing session"
+// in the language of msgs.
+func (msgs Messages) ToolsAttach() string {
+	return Catalog.Format(msgs.locale, "toolsAttach", nil)
+}
+
+// ToolsAttachNote says "Connecting attaches to a session that is already verified. It does not retype commands or rebuild the exploit."
+// in the language the app shows.
+func ToolsAttachNote() string { return In(i18n.Locale()).ToolsAttachNote() }
+
+// ToolsAttachNote says "Connecting attaches to a session that is already verified. It does not retype commands or rebuild the exploit."
+// in the language of msgs.
+func (msgs Messages) ToolsAttachNote() string {
+	return Catalog.Format(msgs.locale, "toolsAttachNote", nil)
+}
+
+// ToolsDetach says "Disconnect without stopping the host"
+// in the language the app shows.
+func ToolsDetach() string { return In(i18n.Locale()).ToolsDetach() }
+
+// ToolsDetach says "Disconnect without stopping the host"
+// in the language of msgs.
+func (msgs Messages) ToolsDetach() string {
+	return Catalog.Format(msgs.locale, "toolsDetach", nil)
+}
+
+// ToolsDetachNote says "Disconnecting releases this app's own resources. The original host keeps running on the console."
+// in the language the app shows.
+func ToolsDetachNote() string { return In(i18n.Locale()).ToolsDetachNote() }
+
+// ToolsDetachNote says "Disconnecting releases this app's own resources. The original host keeps running on the console."
+// in the language of msgs.
+func (msgs Messages) ToolsDetachNote() string {
+	return Catalog.Format(msgs.locale, "toolsDetachNote", nil)
+}
+
+// ToolsNoSessions says "No verified retained session was found on this Mac."
+// in the language the app shows.
+func ToolsNoSessions() string { return In(i18n.Locale()).ToolsNoSessions() }
+
+// ToolsNoSessions says "No verified retained session was found on this Mac."
+// in the language of msgs.
+func (msgs Messages) ToolsNoSessions() string {
+	return Catalog.Format(msgs.locale, "toolsNoSessions", nil)
+}
+
+// ToolsStatus says "Check live RPC status"
+// in the language the app shows.
+func ToolsStatus() string { return In(i18n.Locale()).ToolsStatus() }
+
+// ToolsStatus says "Check live RPC status"
+// in the language of msgs.
+func (msgs Messages) ToolsStatus() string {
+	return Catalog.Format(msgs.locale, "toolsStatus", nil)
+}
+
+// ToolsDump says "Dump system code"
+// in the language the app shows.
+func ToolsDump() string { return In(i18n.Locale()).ToolsDump() }
+
+// ToolsDump says "Dump system code"
+// in the language of msgs.
+func (msgs Messages) ToolsDump() string {
+	return Catalog.Format(msgs.locale, "toolsDump", nil)
+}
+
+// ToolsDumpSaved says "Verified capture kept outside the session folder at {path}"
+// in the language the app shows.
+func ToolsDumpSaved(path string) string { return In(i18n.Locale()).ToolsDumpSaved(path) }
+
+// ToolsDumpSaved says "Verified capture kept outside the session folder at {path}"
+// in the language of msgs.
+func (msgs Messages) ToolsDumpSaved(path string) string {
+	return Catalog.Format(msgs.locale, "toolsDumpSaved", map[string]any{"path": path})
+}
+
+// ToolsOpenExport says "Open capture folder"
+// in the language the app shows.
+func ToolsOpenExport() string { return In(i18n.Locale()).ToolsOpenExport() }
+
+// ToolsOpenExport says "Open capture folder"
+// in the language of msgs.
+func (msgs Messages) ToolsOpenExport() string {
+	return Catalog.Format(msgs.locale, "toolsOpenExport", nil)
+}
+
+// ToolsOunceWebdav says "Start read-only WebDAV export"
+// in the language the app shows.
+func ToolsOunceWebdav() string { return In(i18n.Locale()).ToolsOunceWebdav() }
+
+// ToolsOunceWebdav says "Start read-only WebDAV export"
+// in the language of msgs.
+func (msgs Messages) ToolsOunceWebdav() string {
+	return Catalog.Format(msgs.locale, "toolsOunceWebdav", nil)
+}
+
+// ToolsOunceFtp says "Start read-only FTP export on this Mac"
+// in the language the app shows.
+func ToolsOunceFtp() string { return In(i18n.Locale()).ToolsOunceFtp() }
+
+// ToolsOunceFtp says "Start read-only FTP export on this Mac"
+// in the language of msgs.
+func (msgs Messages) ToolsOunceFtp() string {
+	return Catalog.Format(msgs.locale, "toolsOunceFtp", nil)
+}
+
+// ToolsGame says "Game to export"
+// in the language the app shows.
+func ToolsGame() string { return In(i18n.Locale()).ToolsGame() }
+
+// ToolsGame says "Game to export"
+// in the language of msgs.
+func (msgs Messages) ToolsGame() string {
+	return Catalog.Format(msgs.locale, "toolsGame", nil)
+}
+
+// ToolsGameSelect says "Export the selected game"
+// in the language the app shows.
+func ToolsGameSelect() string { return In(i18n.Locale()).ToolsGameSelect() }
+
+// ToolsGameSelect says "Export the selected game"
+// in the language of msgs.
+func (msgs Messages) ToolsGameSelect() string {
+	return Catalog.Format(msgs.locale, "toolsGameSelect", nil)
+}
+
+// ToolsSDBrowser says "Start read-only SD export"
+// in the language the app shows.
+func ToolsSDBrowser() string { return In(i18n.Locale()).ToolsSDBrowser() }
+
+// ToolsSDBrowser says "Start read-only SD export"
+// in the language of msgs.
+func (msgs Messages) ToolsSDBrowser() string {
+	return Catalog.Format(msgs.locale, "toolsSDBrowser", nil)
+}
+
+// ToolsEndpoint says "Read-only endpoint: {endpoint}"
+// in the language the app shows.
+func ToolsEndpoint(endpoint string) string { return In(i18n.Locale()).ToolsEndpoint(endpoint) }
+
+// ToolsEndpoint says "Read-only endpoint: {endpoint}"
+// in the language of msgs.
+func (msgs Messages) ToolsEndpoint(endpoint string) string {
+	return Catalog.Format(msgs.locale, "toolsEndpoint", map[string]any{"endpoint": endpoint})
+}
+
+// ToolsStop says "Stop the running tool"
+// in the language the app shows.
+func ToolsStop() string { return In(i18n.Locale()).ToolsStop() }
+
+// ToolsStop says "Stop the running tool"
+// in the language of msgs.
+func (msgs Messages) ToolsStop() string {
+	return Catalog.Format(msgs.locale, "toolsStop", nil)
+}
+
+// ToolsExcluded says "{component}: {reason}"
+// in the language the app shows.
+func ToolsExcluded(component string, reason string) string {
+	return In(i18n.Locale()).ToolsExcluded(component, reason)
+}
+
+// ToolsExcluded says "{component}: {reason}"
+// in the language of msgs.
+func (msgs Messages) ToolsExcluded(component string, reason string) string {
+	return Catalog.Format(msgs.locale, "toolsExcluded", map[string]any{"component": component, "reason": reason})
+}
+
+// ToolsFailed says "The last Advanced Tools action could not be completed. Check diagnostics; nothing was retried."
+// in the language the app shows.
+func ToolsFailed() string { return In(i18n.Locale()).ToolsFailed() }
+
+// ToolsFailed says "The last Advanced Tools action could not be completed. Check diagnostics; nothing was retried."
+// in the language of msgs.
+func (msgs Messages) ToolsFailed() string {
+	return Catalog.Format(msgs.locale, "toolsFailed", nil)
+}
+
+// ToolsBack says "Back to the session"
+// in the language the app shows.
+func ToolsBack() string { return In(i18n.Locale()).ToolsBack() }
+
+// ToolsBack says "Back to the session"
+// in the language of msgs.
+func (msgs Messages) ToolsBack() string {
+	return Catalog.Format(msgs.locale, "toolsBack", nil)
+}
+
 // HeldRPC says "Retained RPC"
 // in the language the app shows.
 func HeldRPC() string { return In(i18n.Locale()).HeldRPC() }

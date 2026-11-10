@@ -71,8 +71,9 @@ or bootstrap transfer.
 
 For local development only, pass both `Options.DeveloperSourceRoot` (the pinned
 mac2jb clone) and `Options.DeveloperProfileID` to `Stage`. A developer entrypoint
-or test may obtain that explicit root from `ANY2JB_REFERENCE_ROOT`. `Stage`
-never reads the environment itself. Packaged startup must leave both options
+or test may obtain that explicit root from `ANY2JB_REFERENCE_ROOT`. The
+[developer launch option](developer-launch.md) supplies it explicitly in a
+running unpackaged app. `Stage` never reads the environment itself. Packaged startup must leave both options
 empty; the build hook does not set them and still rejects blocked engine files.
 
 The developer stage lives separately at
