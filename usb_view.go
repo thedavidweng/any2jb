@@ -18,7 +18,7 @@ type usbPreferences struct {
 
 type keyboardPanel struct {
 	input                                                        *transport.Darwin
-	open, initialized, available, invalid                        bool
+	open, initialized, available, invalid, checkOK               bool
 	controller, gap, hold, enter, enumeration, load, run, remove string
 	completion                                                   chan bool
 	forwarding, closing, focused, focusRequested                 bool
@@ -64,7 +64,7 @@ func (a *app) keyboardView(c *ui.Context) {
 	p.defaults(a.preferences.USB)
 	if p.completion != nil {
 		select {
-		case p.available = <-p.completion:
+		case p.checkOK = <-p.completion:
 			p.completion = nil
 		default:
 		}
@@ -100,11 +100,6 @@ func (a *app) keyboardView(c *ui.Context) {
 		}
 		return
 	}
-	if !p.available {
-		ui.Text(c, locales.UsbHelpersUnavailable())
-	} else {
-		ui.Text(c, locales.UsbDeveloperHelpers())
-	}
 	controllers := []string{}
 	prerequisites := true
 	for _, check := range s.Checks {
@@ -114,6 +109,15 @@ func (a *app) keyboardView(c *ui.Context) {
 		if transport.ValidateController(check.ID) == nil && check.State != session.RequiresAttention {
 			controllers = append(controllers, check.ID)
 		}
+	}
+	// Derived every frame: a controller list briefly emptied by re-inspection
+	// hides availability but never consumes the one-shot helper check.
+	p.available = p.checkOK && p.applied == p.values() && p.checkedProfile == s.Profile.ID &&
+		p.checkedEdition == s.Edition && slices.Contains(controllers, p.controller)
+	if !p.available {
+		ui.Text(c, locales.UsbHelpersUnavailable())
+	} else {
+		ui.Text(c, locales.UsbDeveloperHelpers())
 	}
 	busy := s.Busy || s.SideEffects || s.Stage == session.Indeterminate || p.completion != nil
 	ui.Text(c, locales.UsbController())
@@ -135,9 +139,6 @@ func (a *app) keyboardView(c *ui.Context) {
 	ui.TextInput(c.Key("usb-run-wait"), &p.run).Label(locales.UsbRunWait()).Disabled(busy)
 	ui.Text(c, locales.UsbRemoveWait())
 	ui.TextInput(c.Key("usb-remove-wait"), &p.remove).Label(locales.UsbRemoveWait()).Disabled(busy)
-	if p.applied != p.values() || p.checkedProfile != s.Profile.ID || p.checkedEdition != s.Edition || !slices.Contains(controllers, p.controller) {
-		p.available = false
-	}
 	if p.invalid {
 		ui.Text(c, locales.UsbInvalidSettings())
 	}
@@ -145,7 +146,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		if ui.Button(c.Key("usb-stock-defaults"), locales.UsbStockDefaults()).Disabled(busy).Clicked() {
 			p.initialized = false
 			p.defaults(nil)
-			p.available = false
+			p.checkOK = false
 			p.invalid = false
 		}
 		if ui.Button(c.Key("usb-apply"), locales.UsbApplySettings()).Disabled(busy).Clicked() {

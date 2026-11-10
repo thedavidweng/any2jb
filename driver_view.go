@@ -48,7 +48,7 @@ func (a *app) driverView(c *ui.Context) {
 	}
 	availability := p.gate.Availability()
 	if availability != nil {
-		ui.Text(c, availability.Error())
+		ui.Text(c, localize(availability.Error()))
 	}
 	if p.failed {
 		if p.result.Attempted {

@@ -30,7 +30,7 @@ func (a *app) civSwitchView(c *ui.Context) {
 	ui.Text(c, locales.CivProbe())
 	unavailable := a.controller.CivSwitchUnavailable()
 	if unavailable != "" {
-		ui.Text(c, unavailable)
+		ui.Text(c, localize(unavailable))
 	}
 	ui.TextInput(c.Key("civ-address"), &p.prerequisites.ConsoleIPv4).Label(locales.CivAddress()).Disabled(s.Busy)
 	ui.Checkbox(c.Key("civ-cartridge"), &p.prerequisites.PhysicalSwitch1Cartridge100, locales.CivCartridge()).Disabled(s.Busy)

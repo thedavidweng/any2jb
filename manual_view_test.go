@@ -78,6 +78,7 @@ func saveManualBootstrap(t *testing.T, a *app, tt *ui.Tester) {
 		clickManual(t, tt, "I completed this console step")
 	}
 	waitManualUI(t, a, tt, func(s session.Snapshot, _ transport.Prompt) bool { return s.BootstrapPrepared && !s.Busy })
+	clickManual(t, tt, "I authorize replacing this saved program if it already exists")
 	clickManual(t, tt, "Submit SAVE")
 	waitManualUI(t, a, tt, func(_ session.Snapshot, p transport.Prompt) bool { return p.Kind == "save" })
 	clickManual(t, tt, "I completed this console step")
