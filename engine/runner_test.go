@@ -34,6 +34,18 @@ func testRun() session.Run {
 		Profile: session.Profile{ID: "fixture", StartPort: 39380, StartArgumentCount: 5}}
 }
 
+func TestCancelDuringAuthorizationDoesNotLaunch(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	runner := engine.NewProtocolRunner(t.TempDir(), func(session.Run, string) *exec.Cmd {
+		cancel()
+		return exec.Command("must-not-launch")
+	})
+	if _, err := runner.Prepare(ctx, testRun(), func(session.Progress) {}); !errors.Is(err, context.Canceled) {
+		t.Fatal("cancelled authorization still attempted process launch")
+	}
+}
+
 func TestProtocolRunnerVerified(t *testing.T) {
 	runner, run := protocolRunner(t, "verified"), testRun()
 	defer runner.Cleanup(context.Background(), run)

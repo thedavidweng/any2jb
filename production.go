@@ -88,7 +88,7 @@ type unavailableInput struct {
 }
 
 func (i unavailableInput) Send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) error {
-	if !run.Transport.Capabilities.Manual {
+	if !run.Transport.Capabilities.Manual && !run.Transport.Capabilities.ExternalPico {
 		if err := engine.VerifyUSB(i.root, i.options.Manifest); err != nil {
 			return err
 		}

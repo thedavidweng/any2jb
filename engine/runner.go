@@ -165,6 +165,9 @@ func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report sessio
 	if err != nil {
 		return session.PreparedHost{}, err
 	}
+	if err := ctx.Err(); err != nil {
+		return session.PreparedHost{}, err
+	}
 	if cmd == nil {
 		return session.PreparedHost{}, errors.New("missing engine command")
 	}
