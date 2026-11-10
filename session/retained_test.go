@@ -74,7 +74,6 @@ func TestAttachIsDistinctFromLaunchAndDetachLeavesTheHostRunning(t *testing.T) {
 	}
 }
 
-
 func TestSaveKitWriteRequestsAreRejectedBeforeAnyToolRuns(t *testing.T) {
 	f := session.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}

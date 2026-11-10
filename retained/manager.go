@@ -81,9 +81,9 @@ type State struct {
 type CommandFactory func(session.Run, session.ToolRequest, string) *exec.Cmd
 
 type Manager struct {
-	options  Options
-	command  CommandFactory
-	mu       sync.Mutex
+	options       Options
+	command       CommandFactory
+	mu            sync.Mutex
 	attached      string
 	active        *toolProcess
 	savekitOwner  bool
