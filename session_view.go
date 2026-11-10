@@ -17,11 +17,19 @@ func (a *app) command(s session.Snapshot, err error) {
 			a.commandInstruction = locales.UnsupportedEdition()
 		case session.BootstrapMismatch, session.BootstrapUnconfirmed:
 			a.commandInstruction = locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName)
+		case session.KeyboardUnavailable:
+			a.commandInstruction = locales.UsbKeyboardUnavailable()
 		}
 	}
 }
 
 func (a *app) sessionView(c *ui.Context) {
+	if a.keyboard.open {
+		a.keyboardView(c)
+		if a.keyboard.forwarding || a.keyboard.completion != nil {
+			return
+		}
+	}
 	s := a.controller.Snapshot()
 	pending := a.manifest != nil && (s.Profile.ID != a.preferences.Profile ||
 		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
@@ -65,6 +73,9 @@ func (a *app) sessionView(c *ui.Context) {
 				break
 			}
 		}
+	}
+	if ui.Button(c.Key("usb-keyboard"), locales.UsbKeyboardTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+		a.keyboard.open = true
 	}
 	if a.commandRejected {
 		message := a.commandInstruction

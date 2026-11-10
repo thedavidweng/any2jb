@@ -92,21 +92,13 @@ func TestParityLedger(t *testing.T) {
 			if !ok {
 				return true
 			}
-			fun := call.Fun
-			if indexed, ok := fun.(*ast.IndexExpr); ok {
-				fun = indexed.X
-			}
-			sel, ok := fun.(*ast.SelectorExpr)
-			if !ok {
-				return true
-			}
-			pkg, ok := sel.X.(*ast.Ident)
-			if !ok || pkg.Name != uiName || !isParityControl(sel.Sel.Name) {
+			control, label := parityControl(call, uiName)
+			if control == nil {
 				return true
 			}
 			key := ""
-			if len(call.Args) > 0 {
-				if context, ok := call.Args[0].(*ast.CallExpr); ok {
+			if len(control.Args) > 0 {
+				if context, ok := control.Args[0].(*ast.CallExpr); ok {
 					if method, ok := context.Fun.(*ast.SelectorExpr); ok && method.Sel.Name == "Key" && len(context.Args) == 1 {
 						if literal, ok := context.Args[0].(*ast.BasicLit); ok && literal.Kind == token.STRING {
 							key, _ = strconv.Unquote(literal.Value)
@@ -115,7 +107,7 @@ func TestParityLedger(t *testing.T) {
 				}
 			}
 			if key == "" || !keys[key] {
-				t.Errorf("%s: %s needs a literal c.Key(\"action-id\") and matching ledger UI key (got %q)", fset.Position(call.Pos()), sel.Sel.Name, key)
+				t.Errorf("%s: %s needs a literal c.Key(\"action-id\") and matching ledger UI key (got %q)", fset.Position(call.Pos()), label, key)
 			}
 			return true
 		})
@@ -124,6 +116,39 @@ func TestParityLedger(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func parityControl(call *ast.CallExpr, uiName string) (*ast.CallExpr, string) {
+	fun := call.Fun
+	if indexed, ok := fun.(*ast.IndexExpr); ok {
+		fun = indexed.X
+	}
+	sel, ok := fun.(*ast.SelectorExpr)
+	if !ok {
+		return nil, ""
+	}
+	if pkg, ok := sel.X.(*ast.Ident); ok && pkg.Name == uiName && isParityControl(sel.Sel.Name) {
+		return call, sel.Sel.Name
+	}
+	if sel.Sel.Name != "HandleInput" {
+		return nil, ""
+	}
+	receiver := sel.X
+	for {
+		constructor, ok := receiver.(*ast.CallExpr)
+		if !ok {
+			break
+		}
+		method, ok := constructor.Fun.(*ast.SelectorExpr)
+		if !ok {
+			break
+		}
+		if pkg, ok := method.X.(*ast.Ident); ok && pkg.Name == uiName {
+			return constructor, "HandleInput"
+		}
+		receiver = method.X
+	}
+	return call, "HandleInput"
 }
 
 func isParityControl(name string) bool {
@@ -139,5 +164,16 @@ func TestParityControlIncludesPrimaryButton(t *testing.T) {
 		if !isParityControl(name) {
 			t.Errorf("%s must require a ledger UI key", name)
 		}
+	}
+}
+
+func TestParityControlIncludesRawInputCapture(t *testing.T) {
+	expr, err := parser.ParseExpr(`ui.Text(c.Key("capture"), "Type here").Focusable().HandleInput(handler)`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	constructor, label := parityControl(expr.(*ast.CallExpr), "ui")
+	if constructor == nil || label != "HandleInput" || constructor.Fun.(*ast.SelectorExpr).Sel.Name != "Text" {
+		t.Fatal("raw input capture bypassed the ledger")
 	}
 }

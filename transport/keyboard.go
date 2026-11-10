@@ -14,7 +14,7 @@ import (
 type Keyboard struct{ p *helperProcess }
 
 func (d *Darwin) OpenKeyboard(ctx context.Context, run session.Run, report session.Report) (*Keyboard, error) {
-	p, err := d.start(ctx, run, "keyboard")
+	p, err := d.start(ctx, run)
 	if err != nil {
 		return nil, err
 	}
@@ -24,34 +24,25 @@ func (d *Darwin) OpenKeyboard(ctx context.Context, run session.Run, report sessi
 		defer cancel()
 		return nil, errors.Join(errors.New("USB keyboard did not enumerate"), err, p.close(cleanup))
 	}
-	report(session.Progress{Processes: []session.Process{{PID: p.cmd.Process.Pid, Name: "keyboard"}}})
+	controller, _ := d.settings()
+	d.mu.Lock()
+	d.enumerated = controller
+	d.mu.Unlock()
+	report(session.Progress{KeyboardController: controller, Processes: []session.Process{{PID: p.cmd.Process.Pid, Name: "keyboard"}}})
 	return &Keyboard{p}, nil
 }
 
-func validReport(report [8]byte) bool {
-	if report[1] != 0 {
-		return false
-	}
-	empty := false
-	for i, key := range report[2:] {
-		if key == 0 {
-			empty = true
-			continue
-		}
-		if empty || key < 4 || key > 0x73 {
-			return false
-		}
-		for _, previous := range report[2 : 2+i] {
-			if previous == key {
-				return false
-			}
-		}
-	}
-	return true
+func (d *Darwin) OpenKeyboardSession(ctx context.Context, run session.Run, report session.Report) (session.Keyboard, error) {
+	return d.OpenKeyboard(ctx, run, report)
+}
+
+func (d *Darwin) SelectedKeyboardController() string {
+	controller, _ := d.settings()
+	return controller
 }
 
 func (p *helperProcess) write(ctx context.Context, report [8]byte) error {
-	if !validReport(report) {
+	if !session.ValidKeyboardReport(report) {
 		return errors.New("invalid packed 8-byte keyboard report")
 	}
 	if err := ctx.Err(); err != nil {

@@ -11,14 +11,16 @@ import (
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/transport"
 )
 
 // Only non-sensitive choices belong here. Readiness and pairing never survive a restart.
 type preferences struct {
-	Profile   string `json:"profile"`
-	Edition   string `json:"edition"`
-	LANIPv4   string `json:"lanIPv4,omitempty"`
-	Transport string `json:"transport"`
+	USB       *usbPreferences `json:"usb,omitempty"`
+	Profile   string          `json:"profile"`
+	Edition   string          `json:"edition"`
+	LANIPv4   string          `json:"lanIPv4,omitempty"`
+	Transport string          `json:"transport"`
 }
 
 func loadApp(path string) (*app, error) {
@@ -45,6 +47,11 @@ func loadApp(path string) (*app, error) {
 }
 
 func (a *app) validatePreferences() error {
+	if a.preferences.USB != nil {
+		if a.preferences.USB.Timing.Validate() != nil || transport.ValidateController(a.preferences.USB.Controller) != nil {
+			return errors.New(locales.UsbInvalidSettings())
+		}
+	}
 	p, err := a.manifest.Profile(a.preferences.Profile)
 	if err != nil {
 		return errors.New(locales.ChooseKnownHost())
@@ -79,9 +86,16 @@ func (a *app) applyPreferences() error {
 				return err
 			}
 		}
-		if _, err := a.controller.ConfigureTransport(preferredTransport(a.preferences.Transport), a.preferences.LANIPv4); err != nil {
+		if _, err := a.controller.ConfigureTransport(a.preferredTransport(), a.preferences.LANIPv4); err != nil {
 			return err
 		}
+	}
+	return a.savePreferences()
+}
+
+func (a *app) savePreferences() error {
+	if err := a.validatePreferences(); err != nil {
+		return err
 	}
 	data, err := json.MarshalIndent(a.preferences, "", "  ")
 	if err != nil {
@@ -116,11 +130,19 @@ func (a *app) initializeSession(env session.Environment) error {
 	if _, err := c.SelectProfile(p.SessionProfile(), a.preferences.Edition); err != nil {
 		return err
 	}
-	if _, err := c.ConfigureTransport(preferredTransport(a.preferences.Transport), a.preferences.LANIPv4); err != nil {
+	if _, err := c.ConfigureTransport(a.preferredTransport(), a.preferences.LANIPv4); err != nil {
 		return err
 	}
 	a.controller = c
 	return nil
+}
+
+func (a *app) preferredTransport() session.Transport {
+	t := preferredTransport(a.preferences.Transport)
+	if a.preferences.USB != nil && t.Capabilities.Keyboard && !t.Capabilities.Gamepad && !t.Capabilities.ExternalPico {
+		t.Controller = a.preferences.USB.Controller
+	}
+	return t
 }
 
 func preferredTransport(mode string) session.Transport {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,9 +12,12 @@ import (
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/transport"
 )
 
 type app struct {
+	keyboard           keyboardPanel
+	usbConfirmation    usbPrompt
 	driverPanel        driverPanel
 	about              bool
 	controller         *session.SessionController
@@ -29,6 +33,7 @@ type app struct {
 func (a *app) view(c *ui.Context) {
 	ui.Scroll(c).Fill().Children(func() {
 		ui.Column(c).FillWidth().Gap(16).Padding(24).Children(func() {
+			a.usbConfirmation.view(c)
 			ui.Text(c, locales.AppName()).FontSize(28).Bold()
 			ui.Text(c, locales.AppDescription()).TextColor(c.Theme().TextMuted)
 			if a.driverPanel.open {
@@ -71,6 +76,7 @@ func main() {
 		log.Fatal(err)
 	}
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
+	a.keyboard.input = transport.NewDarwin(transport.DarwinOptions{Runtime: options, Timing: transport.DefaultTiming(), Confirm: a.usbConfirmation.Wait})
 	a.driverPanel.gate = productionDriverGate(options)
 	mygo.App.WhenReady(func() {
 		win := mygo.NewWindow(mygo.WindowOptions{
@@ -85,12 +91,27 @@ func main() {
 		mygo.App.OnLocaleChanged(func(string) {
 			win.SetTitle(locales.AppName())
 		})
+		win.OnBlur(a.stopKeyboard)
+		watch, stopWatch := context.WithCancel(context.Background())
+		win.OnClosed(func() { a.stopKeyboard(); stopWatch() })
 		go func() {
 			env := productionEnvironment(options)
 			win.Update(func() {
 				if err := a.initializeSession(env); err != nil {
 					a.commandRejected = true
+					return
 				}
+				changes := a.controller.Changes()
+				go func() {
+					for {
+						select {
+						case <-watch.Done():
+							return
+						case <-changes:
+							win.Invalidate()
+						}
+					}
+				}()
 			})
 		}()
 	})

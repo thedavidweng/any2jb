@@ -59,6 +59,7 @@ const (
 	EditionUnsupported     Reason = "edition_unsupported"
 	BootstrapMismatch      Reason = "bootstrap_mismatch"
 	BootstrapUnconfirmed   Reason = "bootstrap_unconfirmed"
+	KeyboardUnavailable    Reason = "keyboard_unavailable"
 )
 
 // Profile is the subset needed by orchestration, not a second source manifest.
@@ -92,6 +93,7 @@ func (c Capabilities) supports(r Capabilities) bool {
 type Transport struct {
 	Mode         string
 	Capabilities Capabilities
+	Controller   string
 }
 type CheckState string
 
@@ -108,12 +110,17 @@ type Check struct {
 	NextAction string
 	// Empty gates every transport; usb-hid gates built-in USB input only.
 	GatesTransport string
+	// Controller-specific checks do not gate an unselected USB controller.
+	Controller string
 	// LANIPv4 records an observed local assignment, not console reachability.
 	LANIPv4 string
 }
 
 func (c Check) Blocks(transport Transport) bool {
 	if c.GatesTransport == "usb-hid" && (transport.Capabilities.Manual || transport.Capabilities.ExternalPico) {
+		return false
+	}
+	if c.Controller != "" && c.Controller != transport.Controller {
 		return false
 	}
 	return c.State != CheckVerified
@@ -158,6 +165,7 @@ type Snapshot struct {
 	Total             int
 	Remaining         time.Duration
 	HasEstimate       bool
+	KeyboardOpen      bool
 	Outcome           Outcome
 	Processes         []Process
 	Simulated         bool
@@ -209,6 +217,8 @@ type BootstrapRecord struct {
 // Observations never transition the state machine. SideEffect must be reported
 // before publishing pairing details, sending keys or otherwise touching console state.
 type Progress struct {
+	// KeyboardController is emitted only after a real helper READY event.
+	KeyboardController string
 	// Remaining is helper-measured duration, meaningful only with HasEstimate.
 	Remaining   time.Duration
 	HasEstimate bool

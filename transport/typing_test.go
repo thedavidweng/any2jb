@@ -4,14 +4,11 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"reflect"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -26,7 +23,7 @@ func TestLaunchWaitsForObservedLoadPromptAndPreservesCommandOrder(t *testing.T) 
 	options := transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}
 	options.Timing.GapMS = 1
 	options.Timing.LoadMS = 0
-	options.Confirm = func(_ context.Context, _ session.Run, _ string) error {
+	options.Confirm = func(_ context.Context, _ session.Run, _ transport.ConsoleStep) error {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
@@ -64,21 +61,19 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 	sum := sha256.Sum256([]byte(text))
 	capture := filepath.Join(t.TempDir(), "released")
 	options := transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming(),
-		Bootstrap: func(session.Run) (string, error) { return text, nil }}
+		Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
+	baseFactory := helperFactory(t, capture)
 	factory := func(name string, args ...string) *exec.Cmd {
-		if name != "sender" {
+		if name != "keyboard" {
 			t.Fatalf("unexpected helper %s", name)
 		}
-		data, err := os.ReadFile(args[0])
-		if err != nil || string(data) != text {
-			t.Fatalf("wrong bootstrap %q, %v", data, err)
-		}
-		cmd := exec.Command(os.Args[0], "-test.run=^TestSenderHelperProcess$")
-		cmd.Env = append(os.Environ(), "ANY2JB_SENDER_FIXTURE=1", "ANY2JB_CAPTURE="+capture)
+		cmd := baseFactory(name, args...)
+		cmd.Env = append(cmd.Env, "ANY2JB_ACK_LIMIT=16")
 		return cmd
 	}
 	d := transport.NewHelperDarwin(options, factory)
 	f := session.NewFakeEnvironment()
+	f.Checks = append(f.Checks, session.Check{ID: "usb-drd0", Controller: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"})
 	env := f.Environment()
 	env.Input = d
 	c := session.New(env, session.Profile{ID: "fixture", Revision: "pinned", BootstrapSHA256: hex.EncodeToString(sum[:]), RequiredTransport: session.Capabilities{Keyboard: true}})
@@ -88,9 +83,9 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 			awaitTransportStage(t, c, session.Indeterminate)
 		}
 	})
-	c.ConfigureTransport(session.Transport{Mode: "usb-hid", Capabilities: session.Capabilities{Keyboard: true}}, "192.0.2.1")
+	c.ConfigureTransport(session.Transport{Mode: "usb-hid", Capabilities: session.Capabilities{Keyboard: true}, Controller: "usb-drd0"}, "192.0.2.1")
 	c.Inspect()
-	awaitTransportStage(t, c, session.Ready)
+	awaitTransportStage(t, c, session.NeedsSetup)
 	if _, err := c.PrepareBootstrap(); err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +99,7 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 	if _, err := c.PrepareBootstrap(); err == nil {
 		t.Fatal("duplicate transfer started")
 	}
-	if s := c.Snapshot(); !s.HasEstimate || s.Remaining != 1250*time.Millisecond {
+	if s := c.Snapshot(); !s.HasEstimate || s.Remaining < 0 {
 		t.Fatalf("helper-measured estimate was lost: %+v", s)
 	}
 	if _, err := c.Stop(); err != nil {
@@ -112,7 +107,7 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 	}
 	awaitTransportStage(t, c, session.Indeterminate)
 	data, err := os.ReadFile(capture)
-	if err != nil || !reflect.DeepEqual(data, make([]byte, 8)) {
+	if err != nil || len(data) < 8 || !reflect.DeepEqual(data[len(data)-8:], make([]byte, 8)) {
 		t.Fatalf("Stop reported before neutral release: %v, %v", data, err)
 	}
 	if _, err := c.PrepareBootstrap(); err == nil {
@@ -120,17 +115,42 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 	}
 }
 
-func TestSenderHelperProcess(t *testing.T) {
-	if os.Getenv("ANY2JB_SENDER_FIXTURE") != "1" {
-		return
+func TestBootstrapUsesAcknowledgedKeyboardReportsAndInheritedIndent(t *testing.T) {
+	const text = "  A\n B\nC\n"
+	sum := sha256.Sum256([]byte(text))
+	path := filepath.Join(t.TempDir(), "reports")
+	options := transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming(), Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
+	options.Timing.GapMS = 1
+	d := transport.NewHelperDarwin(options, helperFactory(t, path))
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	var lines []int
+	run := session.Run{ID: "bootstrap-keyboard", Edition: "full", Profile: session.Profile{BootstrapSHA256: hex.EncodeToString(sum[:])}}
+	if err := d.Send(ctx, run, session.Bootstrap, session.PreparedHost{}, func(p session.Progress) {
+		if p.Total > 0 {
+			lines = append(lines, p.Current)
+			if p.Current > 0 && (!p.HasEstimate || p.Remaining < 0) {
+				t.Error("no measured acknowledgement-based estimate")
+			}
+		}
+	}); err != nil {
+		t.Fatal(err)
 	}
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
-	fmt.Println(`MAC2JB_GUI {"type":"line-start","line":1,"completed":0,"total":2}`)
-	fmt.Println(`MAC2JB_GUI {"type":"line-complete","line":1,"completed":1,"total":2,"remainingMs":1250}`)
-	<-signals
-	if err := os.WriteFile(os.Getenv("ANY2JB_CAPTURE"), make([]byte, 8), 0600); err != nil {
-		os.Exit(2)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var keys []byte
+	for i := 0; i < len(data); i += 8 {
+		if data[i+2] != 0 {
+			keys = append(keys, data[i+2])
+		}
+	}
+	if want := []byte{44, 44, 4, 40, 42, 5, 40, 42, 6, 40}; !reflect.DeepEqual(keys, want) {
+		t.Fatalf("strokes %v, want %v", keys, want)
+	}
+	if !reflect.DeepEqual(lines, []int{0, 1, 2, 3}) {
+		t.Fatalf("acknowledged line progress %v", lines)
 	}
 }
 

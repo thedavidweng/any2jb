@@ -18,7 +18,8 @@ func (d *Darwin) claim(run session.Run) (string, error) {
 	if !filepath.IsAbs(support) {
 		return "", errors.New("USB input requires an absolute app-support path")
 	}
-	name := filepath.Join(support, "usb-hid-"+d.options.Controller+".lock")
+	controller, _ := d.settings()
+	name := filepath.Join(support, "usb-hid-"+controller+".lock")
 	f, err := os.OpenFile(name, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {
 		return "", errors.New("USB controller lease unavailable; close its owner or inspect the stale lease before retrying")

@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"syscall"
 	"testing"
 	"time"
@@ -120,7 +121,8 @@ func TestKeyboardHelperProcess(t *testing.T) {
 		os.Exit(2)
 	}
 	defer f.Close()
-	if os.Getenv("ANY2JB_NO_ACK") == "1" {
+	limit, _ := strconv.Atoi(os.Getenv("ANY2JB_ACK_LIMIT"))
+	if os.Getenv("ANY2JB_NO_ACK") == "1" || limit > 0 {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals, syscall.SIGTERM)
 		go func() {
@@ -138,6 +140,9 @@ func TestKeyboardHelperProcess(t *testing.T) {
 		var report [8]byte
 		_, err := io.ReadFull(os.Stdin, report[:])
 		if err == io.EOF {
+			if path := os.Getenv("ANY2JB_EOF_RELEASED"); path != "" {
+				os.WriteFile(path, make([]byte, 8), 0600)
+			}
 			fmt.Fprintln(out, "MAC2JB_KEYBOARD_RELEASED")
 			out.Flush()
 			return
@@ -146,7 +151,7 @@ func TestKeyboardHelperProcess(t *testing.T) {
 			os.Exit(2)
 		}
 		f.Write(report[:])
-		if os.Getenv("ANY2JB_NO_ACK") == "1" {
+		if os.Getenv("ANY2JB_NO_ACK") == "1" || limit > 0 && count > limit {
 			continue
 		}
 		fmt.Fprintf(out, "MAC2JB_KEYBOARD_SENT %d\n", count)

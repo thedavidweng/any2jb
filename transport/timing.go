@@ -29,18 +29,24 @@ func (t Timing) Validate() error {
 }
 
 func (d *Darwin) environment() ([]string, error) {
-	if err := d.options.Timing.Validate(); err != nil {
+	c, t := d.settings()
+	if err := t.Validate(); err != nil {
 		return nil, err
 	}
-	var n int
-	c := d.options.Controller
-	if _, err := fmt.Sscanf(c, "usb-drd%d", &n); err != nil || n < 0 || n > 15 || c != "usb-drd"+strconv.Itoa(n) {
-		return nil, errors.New("select an observed usb-drd0..15 controller")
+	if err := ValidateController(c); err != nil {
+		return nil, err
 	}
-	t := d.options.Timing
 	return []string{"MAC2JB_CONTROLLER=" + c, "MAC2JB_AUTO_WORKER=1",
 		"MAC2JB_KEY_HOLD_MS=" + strconv.Itoa(t.HoldMS),
 		"MAC2JB_ENTER_SETTLE_MS=" + strconv.Itoa(t.EnterMS),
 		"MAC2JB_POLL_INTERVAL=" + strconv.Itoa(t.Interval),
 		"MAC2JB_ENUMERATION_TIMEOUT_SECONDS=" + strconv.Itoa(t.EnumerationSeconds)}, nil
+}
+
+func ValidateController(c string) error {
+	var n int
+	if _, err := fmt.Sscanf(c, "usb-drd%d", &n); err != nil || n < 0 || n > 15 || c != "usb-drd"+strconv.Itoa(n) {
+		return errors.New("select an observed usb-drd0..15 controller")
+	}
+	return nil
 }

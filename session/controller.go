@@ -19,12 +19,14 @@ type SessionController struct {
 	cancel        context.CancelFunc
 	requested     Stage
 	monitorCancel context.CancelFunc
+	keyboard      chan [8]byte
+	changed       chan struct{}
 }
 
 func New(env Environment, profile Profile) *SessionController {
 	profile.Tools = slices.Clone(profile.Tools)
 	profile.Editions = slices.Clone(profile.Editions)
-	return &SessionController{env: env, s: Snapshot{Stage: Idle, Profile: profile,
+	return &SessionController{env: env, changed: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
 		Edition:   "full",
 		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
 		Simulated: env.Simulated}}
@@ -53,6 +55,11 @@ func (c *SessionController) Events(sequence uint64) []Event {
 	}
 	return slices.Clone(c.events[i:])
 }
+
+// Changes coalesces redraw notifications for one UI observer. Events retains the
+// complete ordered history; this channel is never the progress source.
+func (c *SessionController) Changes() <-chan struct{} { return c.changed }
+
 func (c *SessionController) emit(severity Severity, reason Reason, message string) {
 	elapsed := time.Duration(0)
 	if !c.started.IsZero() {
@@ -62,6 +69,10 @@ func (c *SessionController) emit(severity Severity, reason Reason, message strin
 	c.events = append(c.events, Event{RunID: c.s.RunID, Sequence: uint64(len(c.events) + 1),
 		Stage: c.s.Stage, Elapsed: elapsed, Severity: severity, Recovery: c.s.Recovery,
 		Reason: reason, Message: message})
+	select {
+	case c.changed <- struct{}{}:
+	default:
+	}
 }
 func (c *SessionController) reject(reason Reason) (Snapshot, error) {
 	err := &Rejection{Reason: reason, Stage: c.s.Stage}
@@ -85,6 +96,9 @@ func (c *SessionController) report(p Progress) {
 	c.s.SideEffects = c.s.SideEffects || p.SideEffect
 	c.s.Current, c.s.Total = p.Current, p.Total
 	c.s.Remaining, c.s.HasEstimate = p.Remaining, p.HasEstimate
+	if p.KeyboardController != "" {
+		c.s.Checks = ObserveKeyboardEnumeration(c.s.Checks, c.s.Transport.Controller, p.KeyboardController)
+	}
 	if p.Processes != nil {
 		c.s.Processes = slices.Clone(p.Processes)
 	}
@@ -117,9 +131,6 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 	ctx, cancel := context.WithCancel(context.Background())
 	c.cancel, c.requested = cancel, ""
 	c.s.Busy = true
-	if stage == BootstrapSetup {
-		c.s.SideEffects = true
-	}
 	c.s.Recovery = NoRecovery
 	c.transition(stage)
 	run := c.run()
@@ -269,9 +280,17 @@ func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 	c.s.BootstrapPrepared, c.s.BootstrapSaved = false, false
 	c.s.SaveSubmitted = false
 	return c.begin(BootstrapSetup, true, func(ctx context.Context, run Run) error {
-		// Conservative boundary: an input adapter may write immediately.
-		if err := c.stage(ctx, BootstrapSetup, true); err != nil {
+		if err := c.stage(ctx, BootstrapSetup, false); err != nil {
 			return err
+		}
+		if run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Manual && !run.Transport.Capabilities.ExternalPico {
+			input, ok := c.env.Input.(KeyboardTransport)
+			if !ok {
+				return errors.New("USB bootstrap adapter is unavailable")
+			}
+			if err := c.inspectKeyboard(ctx, run, input); err != nil {
+				return err
+			}
 		}
 		if err := c.env.Input.Send(ctx, run, Bootstrap, PreparedHost{}, c.report); err != nil {
 			return err
@@ -403,7 +422,7 @@ func (c *SessionController) Cancel() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.s.Busy || c.s.SideEffects || c.requested != "" ||
-		!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput}, c.s.Stage) {
+		!slices.Contains([]Stage{Inspecting, PreparingHost, CivSwitchFetching, WaitingForInput, BootstrapSetup}, c.s.Stage) {
 		return c.reject(InvalidState)
 	}
 	c.requested = Ready

@@ -20,22 +20,38 @@ type DarwinOptions struct {
 	Bootstrap  func(session.Run) (string, error)
 	Controller string
 	Timing     Timing
-	Confirm    func(context.Context, session.Run, string) error
+	Confirm    func(context.Context, session.Run, ConsoleStep) error
 }
+
+type ConsoleStep string
+
+const (
+	EditorFocus   ConsoleStep = "editor-focus"
+	LoadCommand   ConsoleStep = "load"
+	LoadPrompt    ConsoleStep = "load-prompt"
+	RunCommand    ConsoleStep = "run"
+	RemoveCommand ConsoleStep = "remove"
+	StartCommand  ConsoleStep = "start"
+	SaveCommand   ConsoleStep = "save"
+)
 
 // HelperCommand is a trusted-process fixture seam, not production authorization.
 type HelperCommand func(string, ...string) *exec.Cmd
 
 type Darwin struct {
-	options DarwinOptions
-	command HelperCommand
-	mu      sync.Mutex
-	active  *helperProcess
-	trusted bool
+	options    DarwinOptions
+	command    HelperCommand
+	mu         sync.Mutex
+	active     *helperProcess
+	trusted    bool
+	configMu   sync.RWMutex
+	controller string
+	timing     Timing
+	enumerated string
 }
 
 func NewDarwin(options DarwinOptions) *Darwin {
-	d := &Darwin{options: options}
+	d := &Darwin{options: options, controller: options.Controller, timing: options.Timing}
 	d.command = func(name string, args ...string) *exec.Cmd {
 		// Authorization is checked again in start before constructing a command.
 		return exec.Command(d.options.Helpers.path(name), args...)
@@ -46,7 +62,36 @@ func NewDarwin(options DarwinOptions) *Darwin {
 // NewHelperDarwin bypasses binary authorization for trusted process fixtures only.
 // The application must use NewDarwin.
 func NewHelperDarwin(options DarwinOptions, command HelperCommand) *Darwin {
-	return &Darwin{options: options, command: command, trusted: true}
+	return &Darwin{options: options, command: command, trusted: true, controller: options.Controller, timing: options.Timing}
+}
+
+func (d *Darwin) Configure(controller string, timing Timing) error {
+	if err := timing.Validate(); err != nil {
+		return err
+	}
+	if err := ValidateController(controller); err != nil {
+		return err
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.active != nil {
+		return errors.New("release the active USB writer before changing settings")
+	}
+	d.configMu.Lock()
+	defer d.configMu.Unlock()
+	if d.controller != controller {
+		d.enumerated = ""
+	}
+	d.controller, d.timing = controller, timing
+	return nil
+}
+
+func (d *Darwin) EnumeratedController() string { d.mu.Lock(); defer d.mu.Unlock(); return d.enumerated }
+
+func (d *Darwin) settings() (string, Timing) {
+	d.configMu.RLock()
+	defer d.configMu.RUnlock()
+	return d.controller, d.timing
 }
 
 func (d *Darwin) Send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) error {

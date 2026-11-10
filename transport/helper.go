@@ -26,12 +26,11 @@ type helperProcess struct {
 	count    int
 	closed   bool
 	closeErr error
-	keyboard bool
 	released bool
 	lease    string
 }
 
-func (d *Darwin) start(ctx context.Context, run session.Run, name string, args ...string) (*helperProcess, error) {
+func (d *Darwin) start(ctx context.Context, run session.Run) (*helperProcess, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	if d.active != nil {
@@ -50,7 +49,7 @@ func (d *Darwin) start(ctx context.Context, run session.Run, name string, args .
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
-	cmd := d.command(name, args...)
+	cmd := d.command("keyboard")
 	if cmd == nil {
 		return nil, errors.New("missing helper command")
 	}
@@ -85,7 +84,7 @@ func (d *Darwin) start(ctx context.Context, run session.Run, name string, args .
 		return nil, err
 	}
 	cmd.Stderr = io.Discard // never expose text/pairing material
-	p := &helperProcess{owner: d, run: run, cmd: cmd, input: input, lines: make(chan string, 32), done: make(chan struct{}), keyboard: name == "keyboard", lease: lease}
+	p := &helperProcess{owner: d, run: run, cmd: cmd, input: input, lines: make(chan string, 32), done: make(chan struct{}), lease: lease}
 	if err := cmd.Start(); err != nil {
 		input.Close()
 		output.Close()
@@ -165,16 +164,12 @@ func (p *helperProcess) close(ctx context.Context) error {
 	}
 	p.closed = true
 	var err error
-	if p.keyboard {
-		// Acknowledge the neutral report before closing stdin. EOF makes the
-		// helper attempt release again even if the explicit write fails.
-		if !p.released {
-			err = p.write(ctx, [8]byte{})
-		}
-		p.input.Close()
-	} else {
-		terminateHelper(p.cmd, false)
+	// Acknowledge the neutral report before closing stdin. EOF makes the
+	// helper attempt release again even if the explicit write fails.
+	if !p.released {
+		err = p.write(ctx, [8]byte{})
 	}
+	p.input.Close()
 	waiting := true
 	for waiting {
 		select {
@@ -197,14 +192,14 @@ func (p *helperProcess) close(ctx context.Context) error {
 		}
 	}
 	<-p.done
-	if p.keyboard && p.err != nil {
+	if p.err != nil {
 		err = errors.Join(err, errors.New("keyboard helper exited with an error"))
 	}
 	// The leader may have exited with children still in its owned group.
 	terminateHelper(p.cmd, true)
 	err = errors.Join(err, p.releaseLease())
 	p.clear()
-	if p.keyboard && !p.released {
+	if !p.released {
 		err = errors.Join(err, errors.New("neutral release unconfirmed; reconnect the USB cable if a key repeats"))
 	}
 	p.closeErr = err

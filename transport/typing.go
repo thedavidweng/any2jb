@@ -4,11 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
-	"io"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,12 +12,12 @@ import (
 	"github.com/thedavidweng/any2jb/session"
 )
 
-func (d *Darwin) send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) error {
+func (d *Darwin) send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) (err error) {
+	if d.options.Confirm == nil {
+		return errors.New("USB input requires explicit console acknowledgement")
+	}
 	if action == session.Bootstrap {
 		return d.bootstrap(ctx, run, report)
-	}
-	if d.options.Confirm == nil {
-		return errors.New("USB commands require explicit console acknowledgement")
 	}
 	var commands []string
 	switch action {
@@ -63,14 +59,14 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 	defer func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		k.Close(cleanup)
+		err = errors.Join(err, k.Close(cleanup))
 	}()
 	for i, text := range commands {
-		label := "SAVE"
+		step := SaveCommand
 		if action == session.Launch {
-			label = []string{"LOAD", "RUN", "REMOVE", "START"}[i]
+			step = []ConsoleStep{LoadCommand, RunCommand, RemoveCommand, StartCommand}[i]
 		}
-		if err := d.options.Confirm(ctx, run, "Observe the console in Direct mode before "+label); err != nil {
+		if err := d.options.Confirm(ctx, run, step); err != nil {
 			return err
 		}
 		report(session.Progress{Current: i, Total: len(commands), SideEffect: true})
@@ -80,7 +76,7 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 		if action == session.Launch && i == 0 {
 			// Upstream commands.c:241-246 auto-confirms after a fixed wait.
 			// Keep the same key sequence, but require an observed prompt first.
-			if err := d.options.Confirm(ctx, run, "Observe the LOAD YES / LOADV OK prompt before confirming"); err != nil {
+			if err := d.options.Confirm(ctx, run, LoadPrompt); err != nil {
 				return err
 			}
 			if err := d.typeText(ctx, k, "\n"); err != nil {
@@ -89,13 +85,14 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 		}
 		report(session.Progress{Current: i + 1, Total: len(commands), SideEffect: true})
 		if action == session.Launch && i < 3 {
-			wait := []int{d.options.Timing.LoadMS, d.options.Timing.RunMS, d.options.Timing.RemoveMS}[i]
+			_, timing := d.settings()
+			wait := []int{timing.LoadMS, timing.RunMS, timing.RemoveMS}[i]
 			if err := pause(ctx, wait); err != nil {
 				return err
 			}
 		}
 	}
-	return k.Close(ctx)
+	return nil
 }
 
 func programName(s string) bool {
@@ -122,82 +119,73 @@ func (d *Darwin) bootstrap(ctx context.Context, run session.Run, report session.
 	if hex.EncodeToString(sum[:]) != run.Profile.BootstrapSHA256 {
 		return errors.New("profile/edition bootstrap digest mismatch")
 	}
-	if _, err := encodeText(text); err != nil {
-		return err
-	}
-	f, err := os.CreateTemp("", "any2jb-bootstrap-")
+	plan, total, err := bootstrapPlan(text)
 	if err != nil {
 		return err
 	}
-	defer os.Remove(f.Name())
-	if _, err := f.WriteString(text); err != nil {
-		f.Close()
+	if err := d.options.Confirm(ctx, run, EditorFocus); err != nil {
 		return err
 	}
-	if err := f.Close(); err != nil {
-		return err
-	}
-	p, err := d.start(ctx, run, "sender", f.Name(), "--delay-ms", strconv.Itoa(d.options.Timing.GapMS))
+	k, err := d.OpenKeyboard(ctx, run, report)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		cleanup, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		err = errors.Join(err, p.close(cleanup))
+		err = errors.Join(err, k.Close(cleanup))
 	}()
-	report(session.Progress{Processes: []session.Process{{PID: p.cmd.Process.Pid, Name: "sender"}}})
-	completed, total := 0, 0
-	for {
-		line, err := p.next(ctx)
-		if err == io.EOF {
-			if total == 0 || completed != total {
-				return errors.New("bootstrap ended without complete line evidence")
+	report(session.Progress{Total: len(plan), SideEffect: true})
+	started, sent := time.Now(), 0
+	for i, line := range plan {
+		for _, stroke := range line {
+			if err := d.stroke(ctx, k, stroke); err != nil {
+				return err
 			}
-			return nil
+			sent++
 		}
-		if err != nil {
-			return err
+		left := time.Duration(0)
+		if sent > 0 {
+			left = time.Since(started) / time.Duration(sent) * time.Duration(total-sent)
 		}
-		if !strings.HasPrefix(line, "MAC2JB_GUI ") {
-			continue
-		}
-		var event struct {
-			Type        string `json:"type"`
-			Line        int    `json:"line"`
-			Completed   int    `json:"completed"`
-			Total       int    `json:"total"`
-			RemainingMS *int   `json:"remainingMs"`
-		}
-		if err := json.Unmarshal([]byte(strings.TrimPrefix(line, "MAC2JB_GUI ")), &event); err != nil {
-			return errors.New("invalid bootstrap progress")
-		}
-		if event.Total < 1 || total != 0 && total != event.Total || event.Line != completed+1 ||
-			event.RemainingMS != nil && *event.RemainingMS < 0 {
-			return errors.New("invalid bootstrap progress order")
-		}
-		total = event.Total
-		switch event.Type {
-		case "line-start":
-			if event.Completed != completed {
-				return errors.New("invalid line start")
-			}
-		case "line-complete":
-			if event.Completed != completed+1 || event.Completed > total {
-				return errors.New("invalid line completion")
-			}
-			completed = event.Completed
-		default:
-			return errors.New("unknown bootstrap progress")
-		}
-		report(session.Progress{Current: completed, Total: total, SideEffect: true, Remaining: remaining(event.RemainingMS), HasEstimate: event.RemainingMS != nil})
+		report(session.Progress{Current: i + 1, Total: len(plan), SideEffect: true,
+			Remaining: left, HasEstimate: sent > 0})
 	}
+	return nil
 }
-func remaining(ms *int) time.Duration {
-	if ms == nil {
-		return -1
+
+// Match sender.c's inherited-space editor correction. Keyboard SENT events
+// acknowledge every down/up report, so line progress never advances on a timer.
+func bootstrapPlan(text string) ([][][8]byte, int, error) {
+	if text == "" {
+		return nil, 0, errors.New("bootstrap is empty")
 	}
-	return time.Duration(*ms) * time.Millisecond
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	lines := strings.SplitAfter(text, "\n")
+	if lines[len(lines)-1] == "" {
+		lines = lines[:len(lines)-1]
+	}
+	plan, total, inherited := make([][][8]byte, 0, len(lines)), 0, 0
+	for _, line := range lines {
+		desired := len(line) - len(strings.TrimLeft(line, " "))
+		var strokes [][8]byte
+		for inherited > desired {
+			strokes = append(strokes, [8]byte{0, 0, 42})
+			inherited--
+		}
+		for inherited < desired {
+			strokes = append(strokes, [8]byte{0, 0, 44})
+			inherited++
+		}
+		body, err := encodeText(line[desired:])
+		if err != nil {
+			return nil, 0, err
+		}
+		strokes = append(strokes, body...)
+		total += len(strokes)
+		plan = append(plan, strokes)
+	}
+	return plan, total, nil
 }
 
 func pause(ctx context.Context, ms int) error {
@@ -220,23 +208,29 @@ func (d *Darwin) typeText(ctx context.Context, k *Keyboard, text string) error {
 		return err
 	}
 	for _, report := range reports {
-		if err := k.Send(ctx, report); err != nil {
+		if err := d.stroke(ctx, k, report); err != nil {
 			return err
 		}
-		if err := pause(ctx, d.options.Timing.HoldMS); err != nil {
-			return err
-		}
-		if err := k.Send(ctx, [8]byte{}); err != nil {
-			return err
-		}
-		if err := pause(ctx, d.options.Timing.GapMS); err != nil {
-			return err
-		}
-		if report[2] == 40 {
-			if err := pause(ctx, d.options.Timing.EnterMS); err != nil {
-				return err
-			}
-		}
+	}
+	return nil
+}
+
+func (d *Darwin) stroke(ctx context.Context, k *Keyboard, report [8]byte) error {
+	_, timing := d.settings()
+	if err := k.Send(ctx, report); err != nil {
+		return err
+	}
+	if err := pause(ctx, timing.HoldMS); err != nil {
+		return err
+	}
+	if err := k.Send(ctx, [8]byte{}); err != nil {
+		return err
+	}
+	if err := pause(ctx, timing.GapMS); err != nil {
+		return err
+	}
+	if report[2] == 40 {
+		return pause(ctx, timing.EnterMS)
 	}
 	return nil
 }

@@ -20,6 +20,7 @@ func (a *app) profileView(c *ui.Context) {
 		s := a.controller.Snapshot()
 		disabled = s.Busy || s.SideEffects || s.Stage == session.Indeterminate
 	}
+	disabled = disabled || a.keyboard.forwarding || a.keyboard.completion != nil
 	ui.Text(c, locales.LanOverride())
 	ui.TextInput(c.Key("lan-override"), &a.preferences.LANIPv4).Label(locales.LanOverride()).Placeholder(locales.AutomaticLAN()).Disabled(disabled)
 	if ui.Button(c.Key("apply-preferences"), locales.ApplyPreferences()).Disabled(disabled).Clicked() {
