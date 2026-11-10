@@ -347,7 +347,7 @@
       "id": "engine-bridge",
       "path": "runtime/bridge.cjs",
       "resourcePlatform": "darwin-arm64",
-      "sha256": "e97054c2d11f9ca35e7508e67a619d161ef70e4464811ef032bddb4fdb434231",
+      "sha256": "8d7b6301ead0567ec72fe2f038a37d163e59f9bdef4532a686f216b618d9c433",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb bridge.",

@@ -238,6 +238,9 @@ const (
 type HostRunner interface {
 	Prepare(context.Context, Run, Report) (PreparedHost, error)
 	Run(context.Context, Run, PreparedHost, Report) (Outcome, error)
+	// Wait observes the owned host after held verification. Any exit before
+	// Finish is unexpected; cancellation disarms the watcher.
+	Wait(context.Context, Run) error
 	Finish(context.Context, Run) (Outcome, error)
 	Cleanup(context.Context, Run) error
 }
