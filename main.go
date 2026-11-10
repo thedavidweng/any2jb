@@ -6,17 +6,24 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
+	"github.com/thedavidweng/any2jb/session"
 )
 
 type app struct {
-	about bool
+	about           bool
+	controller      *session.SessionController
+	commandRejected bool
 }
 
 func (a *app) view(c *ui.Context) {
 	ui.Column(c).Fill().Center().Gap(16).Padding(24).Children(func() {
 		ui.Text(c, locales.AppName()).FontSize(28).Bold()
 		ui.Text(c, locales.AppDescription()).TextColor(c.Theme().TextMuted)
-		ui.Text(c, locales.NoSession())
+		if a.controller == nil {
+			ui.Text(c, locales.NoSession())
+		} else {
+			a.sessionView(c)
+		}
 		if a.about {
 			ui.Text(c, locales.BuildLimitations())
 		}
