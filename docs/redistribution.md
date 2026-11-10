@@ -160,9 +160,17 @@ An immutable, already staged **resource** tree can be checked separately:
 go run ./cmd/check-package /absolute/path/to/staged/resources
 ```
 
-This is not a verifier for a complete `.app`: MyGo generates icons, metadata
-and executable files outside this input inventory. Signing, generated output,
-embedded Go dependencies and final release inspection remain packaging gates.
+The assembled resource root of a built app is checked after packaging, where
+MyGo has merged the platform directories and written its own icon, asset
+catalog and language files:
+
+```sh
+go run ./cmd/check-package -merged build/darwin-arm64/any2jb.app/Contents/Resources
+```
+
+This is not a verifier for a complete `.app`: MyGo generates metadata and the
+executable outside the resource inventory. Signing, generated output, embedded
+Go dependencies and final release inspection remain packaging gates.
 Do not modify staged resources after this check.
 
 Views and tool actions must consult `m.DistributionFor(componentID)`, not

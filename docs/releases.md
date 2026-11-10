@@ -41,15 +41,23 @@ go tool mygo i18n check
 go tool mygo vet .
 go vet ./...
 go tool mygo build -platform darwin/arm64 -sign - -skip-notarize
+go run ./cmd/check-package -merged build/darwin-arm64/any2jb.app/Contents/Resources
 build/darwin-arm64/any2jb.app/Contents/MacOS/any2jb --self-test
 codesign --verify --deep --strict build/darwin-arm64/any2jb.app
 codesign -d --entitlements - build/darwin-arm64/any2jb.app/Contents/Resources/runtime/node
 go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb \
-  -runtime-assets "$PWD/resources/darwin-arm64" -zig /absolute/path/to/zig-0.15.2
+  -runtime-assets "$PWD/resources/darwin-arm64"
 ```
 
 The build runs `prepare-runtime` then `check-package`; do not bypass it with
-`-skip-build-command`. A first build requires HTTPS access to the pinned Node
+`-skip-build-command`. That gate runs before MyGo assembles the bundle, so the
+release steps also run it over the merged `Contents/Resources` of the app. The
+merged gate resolves each component at its packaged path instead of its source
+platform directory, accepts the icon, asset catalog and language files MyGo
+writes into the bundle itself, and rejects a blocked or excluded component, a
+blocked host, an unrecorded resource, a changed digest, and a bundled component
+without its recorded third-party notice or with a notice file that is not
+bundled. A first build requires HTTPS access to the pinned Node
 archive. The verified archive cache and generated Node binary are ignored by
 Git. Reproducible here means pinned inputs and repeatable checks, not
 byte-identical code signatures, timestamps or DMG filesystem metadata.

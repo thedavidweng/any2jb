@@ -11,9 +11,6 @@ import (
 
 func TestBuildHookAndResources(t *testing.T) {
 	t.Chdir("../..")
-	old := os.Args
-	os.Args = []string{"check-package"}
-	t.Cleanup(func() { os.Args = old })
 	data, err := os.ReadFile("mygo.json")
 	if err != nil {
 		t.Fatal(err)
@@ -27,7 +24,7 @@ func TestBuildHookAndResources(t *testing.T) {
 	if config.BuildCommand != "go run ./cmd/prepare-runtime && go run ./cmd/check-package" {
 		t.Fatalf("build must run the package gate: %q", config.BuildCommand)
 	}
-	if err := check(); err != nil && !(errors.Is(err, os.ErrNotExist) && strings.Contains(err.Error(), "node-darwin-arm64")) {
+	if err := check(nil); err != nil && !(errors.Is(err, os.ErrNotExist) && strings.Contains(err.Error(), "node-darwin-arm64")) {
 		t.Fatal(err)
 	}
 }
@@ -39,15 +36,21 @@ func TestBuildCannotAddUncheckedResourceRoutes(t *testing.T) {
 		t.Run(config, func(t *testing.T) {
 			root := t.TempDir()
 			t.Chdir(root)
-			old := os.Args
-			os.Args = []string{"check-package"}
-			t.Cleanup(func() { os.Args = old })
 			if err := os.WriteFile(filepath.Join(root, "mygo.json"), []byte(config), 0o600); err != nil {
 				t.Fatal(err)
 			}
-			if err := check(); err == nil || !strings.Contains(err.Error(), "extra resources") {
+			if err := check(nil); err == nil || !strings.Contains(err.Error(), "extra resources") {
 				t.Fatalf("unchecked resource route not rejected at config boundary: %v", err)
 			}
 		})
+	}
+}
+
+func TestMergedCheckNeedsAnAssembledRoot(t *testing.T) {
+	root := t.TempDir()
+	t.Chdir(root)
+	err := check([]string{"-merged"})
+	if err == nil || !strings.Contains(err.Error(), "Contents/Resources") {
+		t.Fatalf("merged check without a root: %v", err)
 	}
 }

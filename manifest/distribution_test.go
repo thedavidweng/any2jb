@@ -27,7 +27,7 @@ func TestPackageRejectsWrongArchitectureEvenWithMatchingDigest(t *testing.T) {
 			Runtime: manifest.Runtime{Platform: "darwin-arm64", Node: "node"},
 			Components: []manifest.Component{{ID: "node", Path: "node",
 				SHA256:       hex.EncodeToString(digest[:]),
-				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true}}},
+				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture NOTICE"}}},
 		}
 		err := m.CheckPackage(root)
 		if (err == nil) != (cpu == 0x100000c) {
@@ -54,7 +54,7 @@ func TestPackageGate(t *testing.T) {
 			m := &manifest.Manifest{Components: []manifest.Component{{
 				ID: "helper", Path: "helper",
 				SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
-				Distribution: manifest.Distribution{Decision: decision, Bundled: true, Reason: "fixture"},
+				Distribution: manifest.Distribution{Decision: decision, Bundled: true, Reason: "fixture", Notice: "fixture"},
 			}}}
 			err := m.CheckPackage(root)
 			if (err == nil) != (decision == "may-ship") {
@@ -81,7 +81,7 @@ func TestPlatformOverlayPreservesHostDistributionGate(t *testing.T) {
 		Profiles: []manifest.Profile{{ID: "blocked", SourceDirectory: "vendor/blocked", Distribution: manifest.Distribution{Decision: "blocked"}}},
 		Components: []manifest.Component{{ID: "misclassified-host", Path: "vendor/blocked/run.cjs", ResourcePlatform: "darwin-arm64",
 			SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
-			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true}}},
+			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"}}},
 	}
 	if err := m.CheckPackage(root); err == nil {
 		t.Fatal("overlay bypassed blocked host decision")
@@ -184,12 +184,66 @@ func TestCanonicalResourcesPassDistributionGate(t *testing.T) {
 }
 
 func TestPackageRequiresBundledNotices(t *testing.T) {
+	const hello = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "helper"), []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	m := &manifest.Manifest{Components: []manifest.Component{{
-		ID: "notice", Path: "LICENSE",
-		SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
-		Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true},
+		ID: "helper", Path: "helper", SHA256: hello,
+		Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Reason: "fixture"},
 	}}}
-	if err := m.CheckPackage(t.TempDir()); err == nil || !strings.Contains(err.Error(), "notice") {
-		t.Fatalf("missing bundled notice accepted or unidentified: %v", err)
+	err := m.CheckPackage(root)
+	want := "bundled component helper has no third-party notice"
+	if err == nil || err.Error() != want {
+		t.Fatalf("bundled component without a notice: %v, want %q", err, want)
+	}
+	m.Components[0].Distribution.Notice = "Original fixture; no upstream code copied."
+	if err := m.CheckPackage(root); err != nil {
+		t.Fatal(err)
+	}
+	// A notice that names a packaged file must ship that file.
+	m.Components[0].Distribution.Notice = "licenses/helper.txt"
+	m.Components = append(m.Components, manifest.Component{
+		ID: "helper-notice", Path: "licenses/helper.txt", SHA256: hello,
+		Distribution: manifest.Distribution{Decision: "may-ship", Notice: "licenses/helper.txt"},
+	})
+	err = m.CheckPackage(root)
+	want = "bundled component helper names notice file licenses/helper.txt, which is not bundled"
+	if err == nil || err.Error() != want {
+		t.Fatalf("missing bundled notice file: %v, want %q", err, want)
+	}
+}
+
+func TestMergedPackageResolvesPackagedPathsAndRejectsExcluded(t *testing.T) {
+	const hello = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+	root := t.TempDir()
+	for _, name := range []string{"runtime/helper.cjs", "AppIcon.icns", "en.lproj/InfoPlist.strings"} {
+		if err := os.MkdirAll(filepath.Join(root, filepath.Dir(name)), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, name), []byte("hello"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	m := &manifest.Manifest{Components: []manifest.Component{{
+		ID: "helper", Path: "runtime/helper.cjs", ResourcePlatform: "darwin-arm64", SHA256: hello,
+		Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"},
+	}}}
+	if err := m.CheckPackageMerged(root); err != nil {
+		t.Fatalf("assembled resources rejected: %v", err)
+	}
+	if err := m.CheckPackage(root); err == nil {
+		t.Fatal("the source gate accepted a merged layout")
+	}
+	if err := os.WriteFile(filepath.Join(root, "runtime", "blocked.cjs"), []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m.Components = append(m.Components, manifest.Component{ID: "blocked", Path: "runtime/blocked.cjs",
+		ResourcePlatform: "darwin-arm64", SHA256: hello,
+		Distribution: manifest.Distribution{Decision: "excluded", Reason: "fixture"}})
+	err := m.CheckPackageMerged(root)
+	if err == nil || !strings.Contains(err.Error(), "package contains blocked: excluded") {
+		t.Fatalf("excluded component in the assembled app: %v", err)
 	}
 }

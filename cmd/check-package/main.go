@@ -1,8 +1,10 @@
-// check-package is the MyGo pre-build resource redistribution gate.
+// check-package is the MyGo resource redistribution gate. The build runs it
+// over the source resources tree; -merged checks an assembled app instead.
 package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 
@@ -10,20 +12,28 @@ import (
 )
 
 func main() {
-	if err := check(); err != nil {
+	if err := check(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func check() error {
+func check(args []string) error {
+	flags := flag.NewFlagSet("check-package", flag.ContinueOnError)
+	merged := flags.Bool("merged", false, "check an assembled app's Contents/Resources instead of the source resources tree")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
 	root := "resources"
-	if len(os.Args) == 2 {
+	switch {
+	case flags.NArg() == 1:
 		// An explicit root checks staged resources without consulting build config.
-		root = os.Args[1]
-	} else if len(os.Args) != 1 {
-		return fmt.Errorf("usage: check-package [staged-resource-root]")
-	} else {
+		root = flags.Arg(0)
+	case flags.NArg() > 1:
+		return fmt.Errorf("usage: check-package [-merged] [resource-root]")
+	case *merged:
+		return fmt.Errorf("check-package -merged needs the assembled Contents/Resources path")
+	default:
 		data, err := os.ReadFile("mygo.json")
 		if err != nil {
 			return err
@@ -43,6 +53,9 @@ func check() error {
 	m, err := manifest.Load()
 	if err != nil {
 		return err
+	}
+	if *merged {
+		return m.CheckPackageMerged(root)
 	}
 	return m.CheckPackage(root)
 }
