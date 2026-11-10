@@ -1495,3 +1495,213 @@ func CivDisconnectNote() string { return In(i18n.Locale()).CivDisconnectNote() }
 func (msgs Messages) CivDisconnectNote() string {
 	return Catalog.Format(msgs.locale, "civDisconnectNote", nil)
 }
+
+// CivPersistence says "Persistence, Control Center and code actions"
+// in the language the app shows.
+func CivPersistence() string { return In(i18n.Locale()).CivPersistence() }
+
+// CivPersistence says "Persistence, Control Center and code actions"
+// in the language of msgs.
+func (msgs Messages) CivPersistence() string {
+	return Catalog.Format(msgs.locale, "civPersistence", nil)
+}
+
+// CivDependentNote says "Each action below rechecks the loader on TCP 9026 first. A loader verified earlier is not proof that it still answers."
+// in the language the app shows.
+func CivDependentNote() string { return In(i18n.Locale()).CivDependentNote() }
+
+// CivDependentNote says "Each action below rechecks the loader on TCP 9026 first. A loader verified earlier is not proof that it still answers."
+// in the language of msgs.
+func (msgs Messages) CivDependentNote() string {
+	return Catalog.Format(msgs.locale, "civDependentNote", nil)
+}
+
+// CivTriggerWarning says "Installing the boot trigger replaces the game's single-player save files in save:/saves/Single. The current saves are…"
+// in the language the app shows.
+func CivTriggerWarning() string { return In(i18n.Locale()).CivTriggerWarning() }
+
+// CivTriggerWarning says "Installing the boot trigger replaces the game's single-player save files in save:/saves/Single. The current saves are…"
+// in the language of msgs.
+func (msgs Messages) CivTriggerWarning() string {
+	return Catalog.Format(msgs.locale, "civTriggerWarning", nil)
+}
+
+// CivTriggerConsent says "I understand that this replaces the Civilization VII single-player save files"
+// in the language the app shows.
+func CivTriggerConsent() string { return In(i18n.Locale()).CivTriggerConsent() }
+
+// CivTriggerConsent says "I understand that this replaces the Civilization VII single-player save files"
+// in the language of msgs.
+func (msgs Messages) CivTriggerConsent() string {
+	return Catalog.Format(msgs.locale, "civTriggerConsent", nil)
+}
+
+// CivTrigger says "Install persistent boot trigger"
+// in the language the app shows.
+func CivTrigger() string { return In(i18n.Locale()).CivTrigger() }
+
+// CivTrigger says "Install persistent boot trigger"
+// in the language of msgs.
+func (msgs Messages) CivTrigger() string {
+	return Catalog.Format(msgs.locale, "civTrigger", nil)
+}
+
+// CivTriggerInstalled says "The boot trigger is installed. Reboot the game and choose Load Game to reopen the loader."
+// in the language the app shows.
+func CivTriggerInstalled() string { return In(i18n.Locale()).CivTriggerInstalled() }
+
+// CivTriggerInstalled says "The boot trigger is installed. Reboot the game and choose Load Game to reopen the loader."
+// in the language of msgs.
+func (msgs Messages) CivTriggerInstalled() string {
+	return Catalog.Format(msgs.locale, "civTriggerInstalled", nil)
+}
+
+// CivBackupSaved says "Verified save backup: {path}"
+// in the language the app shows.
+func CivBackupSaved(path string) string { return In(i18n.Locale()).CivBackupSaved(path) }
+
+// CivBackupSaved says "Verified save backup: {path}"
+// in the language of msgs.
+func (msgs Messages) CivBackupSaved(path string) string {
+	return Catalog.Format(msgs.locale, "civBackupSaved", map[string]any{"path": path})
+}
+
+// CivBackupOpen says "Open save backup folder"
+// in the language the app shows.
+func CivBackupOpen() string { return In(i18n.Locale()).CivBackupOpen() }
+
+// CivBackupOpen says "Open save backup folder"
+// in the language of msgs.
+func (msgs Messages) CivBackupOpen() string {
+	return Catalog.Format(msgs.locale, "civBackupOpen", nil)
+}
+
+// CivCodeWarning says "Sending or staging a JavaScript file executes arbitrary code in the loader context. Payload Mode does not restrict it…"
+// in the language the app shows.
+func CivCodeWarning() string { return In(i18n.Locale()).CivCodeWarning() }
+
+// CivCodeWarning says "Sending or staging a JavaScript file executes arbitrary code in the loader context. Payload Mode does not restrict it…"
+// in the language of msgs.
+func (msgs Messages) CivCodeWarning() string {
+	return Catalog.Format(msgs.locale, "civCodeWarning", nil)
+}
+
+// CivCodeConsent says "I reviewed this file and accept arbitrary code execution on the console"
+// in the language the app shows.
+func CivCodeConsent() string { return In(i18n.Locale()).CivCodeConsent() }
+
+// CivCodeConsent says "I reviewed this file and accept arbitrary code execution on the console"
+// in the language of msgs.
+func (msgs Messages) CivCodeConsent() string {
+	return Catalog.Format(msgs.locale, "civCodeConsent", nil)
+}
+
+// CivJSFile says "JavaScript file to run (absolute .js path)"
+// in the language the app shows.
+func CivJSFile() string { return In(i18n.Locale()).CivJSFile() }
+
+// CivJSFile says "JavaScript file to run (absolute .js path)"
+// in the language of msgs.
+func (msgs Messages) CivJSFile() string {
+	return Catalog.Format(msgs.locale, "civJSFile", nil)
+}
+
+// CivJSSend says "Send JavaScript to the loader"
+// in the language the app shows.
+func CivJSSend() string { return In(i18n.Locale()).CivJSSend() }
+
+// CivJSSend says "Send JavaScript to the loader"
+// in the language of msgs.
+func (msgs Messages) CivJSSend() string {
+	return Catalog.Format(msgs.locale, "civJSSend", nil)
+}
+
+// CivControlStageNote says "Open Payload Mode on the console first. After the transfer, press A on the console to start the payload or B to retur…"
+// in the language the app shows.
+func CivControlStageNote() string { return In(i18n.Locale()).CivControlStageNote() }
+
+// CivControlStageNote says "Open Payload Mode on the console first. After the transfer, press A on the console to start the payload or B to retur…"
+// in the language of msgs.
+func (msgs Messages) CivControlStageNote() string {
+	return Catalog.Format(msgs.locale, "civControlStageNote", nil)
+}
+
+// CivControlStage says "Stage payload in Control Center Payload Mode"
+// in the language the app shows.
+func CivControlStage() string { return In(i18n.Locale()).CivControlStage() }
+
+// CivControlStage says "Stage payload in Control Center Payload Mode"
+// in the language of msgs.
+func (msgs Messages) CivControlStage() string {
+	return Catalog.Format(msgs.locale, "civControlStage", nil)
+}
+
+// CivControlNote says "Control Center is read-only: save and content inventories, the controller input monitor, and a verified save export. …"
+// in the language the app shows.
+func CivControlNote() string { return In(i18n.Locale()).CivControlNote() }
+
+// CivControlNote says "Control Center is read-only: save and content inventories, the controller input monitor, and a verified save export. …"
+// in the language of msgs.
+func (msgs Messages) CivControlNote() string {
+	return Catalog.Format(msgs.locale, "civControlNote", nil)
+}
+
+// CivControlStart says "Open Control Center (read-only)"
+// in the language the app shows.
+func CivControlStart() string { return In(i18n.Locale()).CivControlStart() }
+
+// CivControlStart says "Open Control Center (read-only)"
+// in the language of msgs.
+func (msgs Messages) CivControlStart() string {
+	return Catalog.Format(msgs.locale, "civControlStart", nil)
+}
+
+// CivControlLive says "Control Center is connected. Drive its tools with the controller, and keep the game and network connected."
+// in the language the app shows.
+func CivControlLive() string { return In(i18n.Locale()).CivControlLive() }
+
+// CivControlLive says "Control Center is connected. Drive its tools with the controller, and keep the game and network connected."
+// in the language of msgs.
+func (msgs Messages) CivControlLive() string {
+	return Catalog.Format(msgs.locale, "civControlLive", nil)
+}
+
+// CivControlStop says "Stop the Control Center connection"
+// in the language the app shows.
+func CivControlStop() string { return In(i18n.Locale()).CivControlStop() }
+
+// CivControlStop says "Stop the Control Center connection"
+// in the language of msgs.
+func (msgs Messages) CivControlStop() string {
+	return Catalog.Format(msgs.locale, "civControlStop", nil)
+}
+
+// CivExportSaved says "Verified read-only save export: {path}"
+// in the language the app shows.
+func CivExportSaved(path string) string { return In(i18n.Locale()).CivExportSaved(path) }
+
+// CivExportSaved says "Verified read-only save export: {path}"
+// in the language of msgs.
+func (msgs Messages) CivExportSaved(path string) string {
+	return Catalog.Format(msgs.locale, "civExportSaved", map[string]any{"path": path})
+}
+
+// CivExportOpen says "Open save export folder"
+// in the language the app shows.
+func CivExportOpen() string { return In(i18n.Locale()).CivExportOpen() }
+
+// CivExportOpen says "Open save export folder"
+// in the language of msgs.
+func (msgs Messages) CivExportOpen() string {
+	return Catalog.Format(msgs.locale, "civExportOpen", nil)
+}
+
+// CivOpenFailed says "The folder could not be opened. Its path is shown above."
+// in the language the app shows.
+func CivOpenFailed() string { return In(i18n.Locale()).CivOpenFailed() }
+
+// CivOpenFailed says "The folder could not be opened. Its path is shown above."
+// in the language of msgs.
+func (msgs Messages) CivOpenFailed() string {
+	return Catalog.Format(msgs.locale, "civOpenFailed", nil)
+}

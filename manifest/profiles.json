@@ -287,6 +287,47 @@
       }
     },
     {
+      "id": "civswitch-backup-payload",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "integrations/civswitch/backup-single.js",
+      "sha256": "4fc3aa6d5484b6487185481f30e388e6cc3a2d1b6b378bf58adc6436785406ad",
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Original mac2jb console-side save reader.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": false,
+        "notice": "cpypwn/mac2jb LICENSE (MIT)",
+        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; it runs on the console through a developer-staged loader."
+      }
+    },
+    {
+      "id": "civswitch-installer",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "vendor/CivSwitch/installer-creator/install.py",
+      "sha256": "fa4241b5cc8e4d98b5c85ae51d87d920c03fe3712bcef48b31aaef3c021815ca",
+      "licenseStatus": "Gezine/CivSwitch MIT; identical bytes in the pinned Gezine clone. Its save template, compressor and vendored JavaScript dependencies need their own records.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "Gezine/CivSwitch LICENSE; cpypwn/mac2jb LICENSE.",
+        "reason": "Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No installer, Python interpreter or save template is bundled."
+      }
+    },
+    {
+      "id": "civswitch-control-center",
+      "upstream": "https://github.com/MatthewKuKanich/CivSwitch-ControlCenter",
+      "revision": "259cbe5e66f2e649a79a16f06db4cdb012017daa",
+      "path": "vendor/CivSwitch-ControlCenter/control_center.js",
+      "sha256": "504b908517274a8e17e37efc5771e8ad65055e52b1f0e4ec63374e89f3e41ba8",
+      "licenseStatus": "MIT release 1.0.0 (Gezine; Matthew KuKanich). Records the console payload only, not the release's Python host tools.",
+      "distribution": {
+        "decision": "blocked",
+        "bundled": false,
+        "notice": "CivSwitch-ControlCenter LICENSE (MIT); Gezine/CivSwitch LICENSE.",
+        "reason": "Control Center distribution is blocked pending review of the complete separately authored release inventory and its notices."
+      }
+    },    {
       "id": "browser-research",
       "upstream": "https://github.com/Jmesmykil/switch2-captive-portal-research",
       "revision": "07cd867af2f1dc8f7b6ce59d964c3827cc3997b3",

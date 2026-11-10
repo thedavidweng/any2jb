@@ -6,5 +6,8 @@
 - Bundle pinned Node 24.22.1 and the integrity-checked any2jb engine bridge.
 - Keep engines, bootstraps, USB helpers and drivers out of distribution until
   their release gates are cleared.
+- Gate the CivSwitch boot trigger, JavaScript send, Payload Mode staging and
+  Control Center behind a rechecked loader, explicit per-action confirmation and
+  a disk-verified save backup, with read-only exports retained outside sessions.
 - Application updates remain disabled until a production public key and
   reviewed release channel are configured.

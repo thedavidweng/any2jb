@@ -146,6 +146,7 @@ type Process struct {
 }
 type Snapshot struct {
 	CivSwitch         bool
+	CivSwitchActions  CivSwitchState
 	LoaderVerified    bool
 	ConsoleIPv4       string
 	EstimatedDuration time.Duration
