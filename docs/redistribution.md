@@ -30,6 +30,9 @@ Current inventory:
   source, may-ship with copyright and permission notice, but not bundled.
   These are source identities, not authorization for compiled USB helpers,
   libusbd, the driver, or everything in mac2jb's vendor tree.
+- **usbgadget driver and installer** (`usbgadget-binary`, `usbgadget-info`,
+  `usbgadget-checksums`, `driver-installer`): blocked, not bundled. See
+  [driver security](driver-security.md).
 - **Browser research probe set:** excluded, not bundled. The recorded digest
   identifies its `LICENSE-NOTICE.md`, which says no open-source license has
   been selected and public availability grants no redistribution/reuse.
