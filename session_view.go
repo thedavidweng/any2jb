@@ -32,6 +32,15 @@ func (a *app) sessionView(c *ui.Context) {
 		ui.Text(c, locales.SimulatedEnvironment()).TextColor(c.Theme().TextMuted)
 	}
 	ui.Text(c, stageTitle(s.Stage)).FontSize(20).Bold()
+	a.manualView(c, s)
+	if s.CleanupConfirmed {
+		ui.Text(c, locales.ResourcesReleased())
+	}
+	if s.Stage == session.Verified {
+		ui.Text(c, locales.VerificationEvidence())
+	} else if s.Stage == session.RetainedRPC {
+		ui.Text(c, locales.HeldVerificationEvidence())
+	}
 	if s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
 		ui.Text(c, locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName))
 	}
@@ -76,7 +85,7 @@ func (a *app) sessionView(c *ui.Context) {
 			a.command(a.controller.Inspect())
 		}
 		label := locales.StartJailbreak()
-		if s.Transport.Capabilities.Manual {
+		if s.Transport.Capabilities.Manual || (a.manual != nil && !s.CanStart()) {
 			label = locales.GuidedManualLaunch()
 		}
 		if ui.PrimaryButton(c.Key("start"), label).Disabled(pending || !s.CanStart()).Clicked() {

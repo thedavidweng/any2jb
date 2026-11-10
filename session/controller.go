@@ -19,12 +19,13 @@ type SessionController struct {
 	cancel        context.CancelFunc
 	requested     Stage
 	monitorCancel context.CancelFunc
+	changes       chan struct{}
 }
 
 func New(env Environment, profile Profile) *SessionController {
 	profile.Tools = slices.Clone(profile.Tools)
 	profile.Editions = slices.Clone(profile.Editions)
-	return &SessionController{env: env, s: Snapshot{Stage: Idle, Profile: profile,
+	return &SessionController{env: env, changes: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
 		Edition:   "full",
 		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
 		Simulated: env.Simulated}}
@@ -42,6 +43,10 @@ func (c *SessionController) Snapshot() Snapshot {
 	defer c.mu.Unlock()
 	return c.snapshot()
 }
+
+// Changes wakes the single window consumer. Read Snapshot after each wake;
+// coalescing never loses state or the ordered Events history.
+func (c *SessionController) Changes() <-chan struct{} { return c.changes }
 
 // Events returns all observations after sequence, without dropping slow UI updates.
 func (c *SessionController) Events(sequence uint64) []Event {
@@ -62,6 +67,10 @@ func (c *SessionController) emit(severity Severity, reason Reason, message strin
 	c.events = append(c.events, Event{RunID: c.s.RunID, Sequence: uint64(len(c.events) + 1),
 		Stage: c.s.Stage, Elapsed: elapsed, Severity: severity, Recovery: c.s.Recovery,
 		Reason: reason, Message: message})
+	select {
+	case c.changes <- struct{}{}:
+	default:
+	}
 }
 func (c *SessionController) reject(reason Reason) (Snapshot, error) {
 	err := &Rejection{Reason: reason, Stage: c.s.Stage}
@@ -110,6 +119,7 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		c.started = time.Now()
 		c.s.SideEffects = false
 		c.s.Outcome = Outcome{}
+		c.s.CleanupConfirmed = false
 		c.s.Current, c.s.Total = 0, 0
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -209,6 +219,7 @@ func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	if err == nil {
 		c.mu.Lock()
 		c.s.Processes = nil
+		c.s.CleanupConfirmed = true
 		c.mu.Unlock()
 	}
 	return err

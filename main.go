@@ -11,12 +11,14 @@ import (
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/transport"
 )
 
 type app struct {
 	driverPanel        driverPanel
 	about              bool
 	controller         *session.SessionController
+	manual             *transport.Manual
 	commandRejected    bool
 	commandInstruction string
 	manifest           *manifest.Manifest
@@ -85,12 +87,17 @@ func main() {
 		mygo.App.OnLocaleChanged(func(string) {
 			win.SetTitle(locales.AppName())
 		})
+		closed := make(chan struct{})
+		win.OnClosed(func() { close(closed) })
 		go func() {
 			env := productionEnvironment(options)
 			win.Update(func() {
 				if err := a.initializeSession(env); err != nil {
 					a.commandRejected = true
+					return
 				}
+				controller, manual := a.controller, a.manual
+				go refreshSession(closed, controller.Changes(), manual.Changes(), func() { win.Update(func() {}) })
 			})
 		}()
 	})

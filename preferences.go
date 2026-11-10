@@ -11,6 +11,7 @@ import (
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/transport"
 )
 
 // Only non-sensitive choices belong here. Readiness and pairing never survive a restart.
@@ -120,6 +121,7 @@ func (a *app) initializeSession(env session.Environment) error {
 		return err
 	}
 	a.controller = c
+	a.manual, _ = env.Input.(*transport.Manual)
 	return nil
 }
 

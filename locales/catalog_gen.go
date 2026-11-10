@@ -893,3 +893,195 @@ func DriverVerifyError() string { return In(i18n.Locale()).DriverVerifyError() }
 func (msgs Messages) DriverVerifyError() string {
 	return Catalog.Format(msgs.locale, "driverVerifyError", nil)
 }
+
+// AutomatedInputUnavailable says "Automated console input is not available."
+// in the language the app shows.
+func AutomatedInputUnavailable() string { return In(i18n.Locale()).AutomatedInputUnavailable() }
+
+// AutomatedInputUnavailable says "Automated console input is not available."
+// in the language of msgs.
+func (msgs Messages) AutomatedInputUnavailable() string {
+	return Catalog.Format(msgs.locale, "automatedInputUnavailable", nil)
+}
+
+// SelectGuidedManual says "Select manual input to use Guided manual launch without a USB driver."
+// in the language the app shows.
+func SelectGuidedManual() string { return In(i18n.Locale()).SelectGuidedManual() }
+
+// SelectGuidedManual says "Select manual input to use Guided manual launch without a USB driver."
+// in the language of msgs.
+func (msgs Messages) SelectGuidedManual() string {
+	return Catalog.Format(msgs.locale, "selectGuidedManual", nil)
+}
+
+// ManualInputAvailable says "Guided manual input is available. You enter and acknowledge each console step."
+// in the language the app shows.
+func ManualInputAvailable() string { return In(i18n.Locale()).ManualInputAvailable() }
+
+// ManualInputAvailable says "Guided manual input is available. You enter and acknowledge each console step."
+// in the language of msgs.
+func (msgs Messages) ManualInputAvailable() string {
+	return Catalog.Format(msgs.locale, "manualInputAvailable", nil)
+}
+
+// ManualProfile says "Manual console input: {profile} ({edition})"
+// in the language the app shows.
+func ManualProfile(profile string, edition string) string {
+	return In(i18n.Locale()).ManualProfile(profile, edition)
+}
+
+// ManualProfile says "Manual console input: {profile} ({edition})"
+// in the language of msgs.
+func (msgs Messages) ManualProfile(profile string, edition string) string {
+	return Catalog.Format(msgs.locale, "manualProfile", map[string]any{"profile": profile, "edition": edition})
+}
+
+// ManualSlot says "Open an empty Slot 0 editor on the console. Confirm the slot is empty before continuing."
+// in the language the app shows.
+func ManualSlot() string { return In(i18n.Locale()).ManualSlot() }
+
+// ManualSlot says "Open an empty Slot 0 editor on the console. Confirm the slot is empty before continuing."
+// in the language of msgs.
+func (msgs Messages) ManualSlot() string {
+	return Catalog.Format(msgs.locale, "manualSlot", nil)
+}
+
+// ManualBootstrap says "Enter this complete matching bootstrap.bas in Slot 0. Continue only after checking every line."
+// in the language the app shows.
+func ManualBootstrap() string { return In(i18n.Locale()).ManualBootstrap() }
+
+// ManualBootstrap says "Enter this complete matching bootstrap.bas in Slot 0. Continue only after checking every line."
+// in the language of msgs.
+func (msgs Messages) ManualBootstrap() string {
+	return Catalog.Format(msgs.locale, "manualBootstrap", nil)
+}
+
+// ManualDirect says "Return to Direct mode with an empty prompt, keeping the complete bootstrap in Slot 0."
+// in the language the app shows.
+func ManualDirect() string { return In(i18n.Locale()).ManualDirect() }
+
+// ManualDirect says "Return to Direct mode with an empty prompt, keeping the complete bootstrap in Slot 0."
+// in the language of msgs.
+func (msgs Messages) ManualDirect() string {
+	return Catalog.Format(msgs.locale, "manualDirect", nil)
+}
+
+// ManualSave says "Enter this command and press Enter once. Handle any save or overwrite prompt on the console deliberately. Confirm the…"
+// in the language the app shows.
+func ManualSave() string { return In(i18n.Locale()).ManualSave() }
+
+// ManualSave says "Enter this command and press Enter once. Handle any save or overwrite prompt on the console deliberately. Confirm the…"
+// in the language of msgs.
+func (msgs Messages) ManualSave() string {
+	return Catalog.Format(msgs.locale, "manualSave", nil)
+}
+
+// ManualLoad says "Enter this command in Direct mode and press Enter once."
+// in the language the app shows.
+func ManualLoad() string { return In(i18n.Locale()).ManualLoad() }
+
+// ManualLoad says "Enter this command in Direct mode and press Enter once."
+// in the language of msgs.
+func (msgs Messages) ManualLoad() string {
+	return Catalog.Format(msgs.locale, "manualLoad", nil)
+}
+
+// ManualLoadConfirm says "Accept the console's YES (full) or OK (demo) load prompt with Enter. Wait at least one second after it finishes befor…"
+// in the language the app shows.
+func ManualLoadConfirm() string { return In(i18n.Locale()).ManualLoadConfirm() }
+
+// ManualLoadConfirm says "Accept the console's YES (full) or OK (demo) load prompt with Enter. Wait at least one second after it finishes befor…"
+// in the language of msgs.
+func (msgs Messages) ManualLoadConfirm() string {
+	return Catalog.Format(msgs.locale, "manualLoadConfirm", nil)
+}
+
+// ManualRun says "Enter RUN and press Enter. Continue when the console returns to its prompt."
+// in the language the app shows.
+func ManualRun() string { return In(i18n.Locale()).ManualRun() }
+
+// ManualRun says "Enter RUN and press Enter. Continue when the console returns to its prompt."
+// in the language of msgs.
+func (msgs Messages) ManualRun() string {
+	return Catalog.Format(msgs.locale, "manualRun", nil)
+}
+
+// ManualRemove says "Enter REMOVE once and press Enter. The expected result is Out of memory. Never repeat REMOVE in the same game session…"
+// in the language the app shows.
+func ManualRemove() string { return In(i18n.Locale()).ManualRemove() }
+
+// ManualRemove says "Enter REMOVE once and press Enter. The expected result is Out of memory. Never repeat REMOVE in the same game session…"
+// in the language of msgs.
+func (msgs Messages) ManualRemove() string {
+	return Catalog.Format(msgs.locale, "manualRemove", nil)
+}
+
+// ManualStart says "After the expected Out of memory, enter this session-bound START command and press Enter. Acknowledging input is not …"
+// in the language the app shows.
+func ManualStart() string { return In(i18n.Locale()).ManualStart() }
+
+// ManualStart says "After the expected Out of memory, enter this session-bound START command and press Enter. Acknowledging input is not …"
+// in the language of msgs.
+func (msgs Messages) ManualStart() string {
+	return Catalog.Format(msgs.locale, "manualStart", nil)
+}
+
+// ManualAcknowledge says "I completed this console step"
+// in the language the app shows.
+func ManualAcknowledge() string { return In(i18n.Locale()).ManualAcknowledge() }
+
+// ManualAcknowledge says "I completed this console step"
+// in the language of msgs.
+func (msgs Messages) ManualAcknowledge() string {
+	return Catalog.Format(msgs.locale, "manualAcknowledge", nil)
+}
+
+// CopyConsoleText says "Copy console text"
+// in the language the app shows.
+func CopyConsoleText() string { return In(i18n.Locale()).CopyConsoleText() }
+
+// CopyConsoleText says "Copy console text"
+// in the language of msgs.
+func (msgs Messages) CopyConsoleText() string {
+	return Catalog.Format(msgs.locale, "copyConsoleText", nil)
+}
+
+// ConsoleText says "Exact console text"
+// in the language the app shows.
+func ConsoleText() string { return In(i18n.Locale()).ConsoleText() }
+
+// ConsoleText says "Exact console text"
+// in the language of msgs.
+func (msgs Messages) ConsoleText() string {
+	return Catalog.Format(msgs.locale, "consoleText", nil)
+}
+
+// ResourcesReleased says "Cleanup confirmed: input released, tools stopped and owned host processes closed."
+// in the language the app shows.
+func ResourcesReleased() string { return In(i18n.Locale()).ResourcesReleased() }
+
+// ResourcesReleased says "Cleanup confirmed: input released, tools stopped and owned host processes closed."
+// in the language of msgs.
+func (msgs Messages) ResourcesReleased() string {
+	return Catalog.Format(msgs.locale, "resourcesReleased", nil)
+}
+
+// VerificationEvidence says "4/4 verified: exploit and filesystem verified, filesystem restored, cleanup confirmed."
+// in the language the app shows.
+func VerificationEvidence() string { return In(i18n.Locale()).VerificationEvidence() }
+
+// VerificationEvidence says "4/4 verified: exploit and filesystem verified, filesystem restored, cleanup confirmed."
+// in the language of msgs.
+func (msgs Messages) VerificationEvidence() string {
+	return Catalog.Format(msgs.locale, "verificationEvidence", nil)
+}
+
+// HeldVerificationEvidence says "Verified retained session: filesystem verified and restored, donor cleaned up, deferred cleanup and live RPC confirmed."
+// in the language the app shows.
+func HeldVerificationEvidence() string { return In(i18n.Locale()).HeldVerificationEvidence() }
+
+// HeldVerificationEvidence says "Verified retained session: filesystem verified and restored, donor cleaned up, deferred cleanup and live RPC confirmed."
+// in the language of msgs.
+func (msgs Messages) HeldVerificationEvidence() string {
+	return Catalog.Format(msgs.locale, "heldVerificationEvidence", nil)
+}
