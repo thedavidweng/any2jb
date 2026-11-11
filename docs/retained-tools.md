@@ -136,6 +136,13 @@ stricter than the read-only tools.
 - **One owner at a time.** Launching a second homebrew while one runs is
   refused naming the owner; switching means stopping the active app and
   waiting for its proven cleanup. Switching is experimental and the UI says so.
+- **The controller stage returns to `retained_rpc` once the app is running.**
+  A running homebrew app, like a read-only endpoint, is a long-lived child the
+  manager owns; the `running_tool` stage covers only the launch job. The
+  single-active rule is enforced by the manager's owner check and the UI's
+  owner text, not by the stage. Finish and Disconnect stop the owned app (and
+  check its cleanup proof) before they release the session, so offering them
+  while an app runs cannot leave it orphaned.
 - **Cleanup is proven, not assumed.** The tool host writes an exclusive
   attempt marker in the session workspace before any launch and verifies it
   again at stop: the owner children must confirm their own shutdown
