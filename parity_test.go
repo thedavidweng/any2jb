@@ -170,18 +170,37 @@ func parityControl(call *ast.CallExpr, uiName string) (*ast.CallExpr, string) {
 	return call, "HandleInput"
 }
 
+// isParityControl treats every ui constructor as an interactive control except
+// static text, scrolling and layout containers, so a control this file has
+// never heard of still has to name a ledger key.
 func isParityControl(name string) bool {
 	switch strings.TrimSuffix(name, "Base") {
-	case "Button", "PrimaryButton", "Checkbox", "CheckboxState", "Combobox", "MenuButton", "Radio", "Segmented", "Select", "SelectBaseOpen", "Slider", "Switch", "TextArea", "TextAreaBuffer", "TextInput", "TextInputBuffer", "Toggle":
-		return true
+	case "Text", "Scroll", "Row", "Column", "View":
+		return false
 	}
-	return false
+	return true
 }
 
 func TestParityControlIncludesPrimaryButton(t *testing.T) {
 	for _, name := range []string{"PrimaryButton", "PrimaryButtonBase"} {
 		if !isParityControl(name) {
 			t.Errorf("%s must require a ledger UI key", name)
+		}
+	}
+}
+
+// TestParityControlCoversUnlistedConstructors keeps the rule closed: anything
+// that is neither static text, scrolling nor a layout container is a control,
+// including constructors this file has never heard of.
+func TestParityControlCoversUnlistedConstructors(t *testing.T) {
+	for _, name := range []string{"PopoverMenuButton", "Autocomplete", "NumberInput", "RadioGroup", "CheckboxGroup", "DateInput"} {
+		if !isParityControl(name) {
+			t.Errorf("%s is an interactive control and must require a ledger UI key", name)
+		}
+	}
+	for _, name := range []string{"Text", "Scroll", "Row", "Column", "View"} {
+		if isParityControl(name) {
+			t.Errorf("%s draws no control and must not require a ledger UI key", name)
 		}
 	}
 }
