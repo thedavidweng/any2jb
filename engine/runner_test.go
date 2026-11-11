@@ -12,6 +12,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func protocolRunner(t *testing.T, scenario string) *engine.HostRunner {
@@ -120,7 +121,7 @@ func TestProtocolRunnerCancelAndStopThroughController(t *testing.T) {
 				scenario = "ready-wait"
 			}
 			runner := protocolRunner(t, scenario)
-			f := session.NewFakeEnvironment()
+			f := sessiontest.NewFakeEnvironment()
 			f.InputGate = make(chan struct{})
 			env := f.Environment()
 			env.Host = runner

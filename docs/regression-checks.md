@@ -11,6 +11,8 @@ all six canonical host profile checksum/source/bootstrap checks, pepsipu's
 existing upstream tests and its reproducible payload check. The explicit
 reference root must contain the revision and files pinned in
 `manifest/profiles.json`. No clone or dependency installation is automatic.
+The command finds the prepared Zig 0.15.2 compiler itself, so a run on a
+machine with the pinned toolchain needs no extra argument.
 
 The real-engine TCP test requires the pinned Node assets. First prepare them
 with `go run ./cmd/prepare-runtime`, or pass an existing prepared resource
@@ -57,8 +59,12 @@ or security-setting change is performed. The reference checkout is not changed.
 ## Payload prerequisites and skipped suites
 
 `engine/build-payload.cjs --check` really compiles with **Zig 0.15.2** and
-compares shipped bytes. Select an existing local executable using
-`-zig /absolute/path/to/zig`. If it is unavailable, explicitly record why:
+compares shipped bytes. The check resolves that compiler itself: `-zig
+/absolute/path/to/zig` wins, otherwise the mise-managed install
+(`mise where zig@0.15.2`), otherwise `zig` on PATH. Every candidate must
+report exactly 0.15.2; a wrong release or a mise shim without a selected
+version fails the suite with the candidate, its output and the required
+version. If no Zig is available, explicitly record why:
 
 ```sh
 go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb \

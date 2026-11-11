@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -54,10 +55,39 @@ func (m *Manifest) CheckPackage(root string) error {
 			c.Path = c.ResourcePlatform + "/" + c.Path
 		}
 	}
-	return source.checkPackage(root)
+	return source.checkPackage(root, func(string) bool { return false })
 }
 
-func (m *Manifest) checkPackage(root string) error {
+// CheckPackageMerged checks an assembled app's Contents/Resources, where MyGo
+// has already merged platform directories and added its own bundle files.
+func (m *Manifest) CheckPackageMerged(root string) error {
+	return m.checkPackage(root, func(name string) bool {
+		dir, base := path.Split(name)
+		return name == "AppIcon.icns" || base == "InfoPlist.strings" &&
+			strings.Count(dir, "/") == 1 && strings.HasSuffix(dir, ".lproj/")
+	})
+}
+
+func (m *Manifest) checkPackage(root string, generated func(string) bool) error {
+	// A bundled component must record its notice, and a notice that names a
+	// packaged file must ship it. The reference is the packaged path, which no
+	// platform prefix changes.
+	for _, c := range m.Components {
+		if !c.Distribution.Bundled {
+			continue
+		}
+		notice := strings.TrimSpace(c.Distribution.Notice)
+		if notice == "" {
+			return fmt.Errorf("bundled component %s has no third-party notice", c.ID)
+		}
+		for _, name := range strings.Fields(notice) {
+			for _, n := range m.Components {
+				if n.Path == name && !n.Distribution.Bundled {
+					return fmt.Errorf("bundled component %s names notice file %s, which is not bundled", c.ID, name)
+				}
+			}
+		}
+	}
 	for _, c := range m.Components {
 		if c.Distribution.Bundled {
 			if !c.Distribution.Available() {
@@ -112,6 +142,9 @@ func (m *Manifest) checkPackage(root string) error {
 			}
 			_, err := verifyFile(root, c.ID, name, c.SHA256)
 			return err
+		}
+		if generated(name) {
+			return nil
 		}
 		return fmt.Errorf("package contains unrecorded resource %q", name)
 	})

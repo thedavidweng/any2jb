@@ -3,13 +3,16 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/launcher"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
-	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 // launcherPreview is a prepared package preview the fake adapter returns.
@@ -24,12 +27,18 @@ func launcherPreview() *savekit.Preview {
 // written on the thread that builds the view.
 func launcherApp(t *testing.T, adapter *fakeToolAdapter) (*app, *ui.Tester, <-chan func()) {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	a, tt, published, _ := launcherAppWithEnv(t, adapter)
+	return a, tt, published
+}
+
+func launcherAppWithEnv(t *testing.T, adapter *fakeToolAdapter) (*app, *ui.Tester, <-chan func(), *sessiontest.FakeEnvironment) {
+	t.Helper()
+	f := sessiontest.NewFakeEnvironment()
 	a := saveKitApp(t, f, adapter)
 	published := make(chan func(), 4)
 	a.launcherPanel.update = func(apply func()) { published <- apply }
 	tt := ui.NewTester(a.saveKitView, 820, 4200)
-	return a, tt, published
+	return a, tt, published, f
 }
 
 // previewPackage clicks Preview, applies the prepared result on this
@@ -85,7 +94,7 @@ func TestLauncherInstallNeedsPreviewConfirmationAndAccount(t *testing.T) {
 	adapter := &fakeToolAdapter{preview: launcherPreview(),
 		state: retained.State{SaveKit: &retained.SaveKitState{Users: []string{
 			"11111111111111111111111111111111", "22222222222222222222222222222222"}}}}
-	a, tt, published := launcherApp(t, adapter)
+	a, tt, published, f := launcherAppWithEnv(t, adapter)
 	saveKitLease(t, a, tt)
 	install, ok := tt.AccessByRole(ui.RoleButton, "Back up and install launcher")
 	if !ok || !install.Disabled {
@@ -98,7 +107,7 @@ func TestLauncherInstallNeedsPreviewConfirmationAndAccount(t *testing.T) {
 	if install, _ := tt.AccessByRole(ui.RoleButton, "Back up and install launcher"); !install.Disabled {
 		t.Fatal("install is usable without a confirmation")
 	}
-	if err := tt.Click("I confirm installing this launcher save to the selected game and account"); err != nil {
+	if err := tt.Click(locales.LauncherConfirm()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -112,12 +121,19 @@ func TestLauncherInstallNeedsPreviewConfirmationAndAccount(t *testing.T) {
 		t.Fatal("a changed account kept its preview or confirmation")
 	}
 	previewPackage(t, tt, published)
-	if err := tt.Click("I confirm installing this launcher save to the selected game and account"); err != nil {
+	if err := tt.Click(locales.LauncherConfirm()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
 	if install, _ := tt.AccessByRole(ui.RoleButton, "Back up and install launcher"); install.Disabled {
 		t.Fatalf("a previewed and confirmed install for a selected account stayed disabled: %q", tt.Texts())
+	}
+	if err := tt.Click("Back up and install launcher"); err != nil {
+		t.Fatal(err)
+	}
+	// The gate prepares the package again; no preview folder is kept or sent.
+	if request := awaitToolRequest(t, f); request.SaveKit == nil || request.SaveKit.SourceFolder != "" || request.Launcher == nil {
+		t.Fatalf("launcher install request: %+v", request)
 	}
 }
 
@@ -129,7 +145,7 @@ func TestLauncherPreviewResetsWhenTheTargetChanges(t *testing.T) {
 	a, tt, published := launcherApp(t, adapter)
 	saveKitLease(t, a, tt)
 	previewPackage(t, tt, published)
-	if err := tt.Click("I confirm installing this launcher save to the selected game and account"); err != nil {
+	if err := tt.Click(locales.LauncherConfirm()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -171,5 +187,84 @@ func TestLauncherControlsAreAccessible(t *testing.T) {
 	}
 	if !status {
 		t.Fatalf("the refusal is not a status region: %+v", tt.AccessAll())
+	}
+}
+
+// A preview that finishes after the selection changed belongs to another
+// package and is discarded.
+func TestLauncherStalePreviewIsDiscarded(t *testing.T) {
+	adapter := &fakeToolAdapter{preview: launcherPreview(),
+		state: retained.State{SaveKit: &retained.SaveKitState{
+			Users: []string{"11111111111111111111111111111111"}}}}
+	a, tt, published := launcherApp(t, adapter)
+	saveKitLease(t, a, tt)
+	if err := tt.Click("Preview launcher install"); err != nil {
+		t.Fatal(err)
+	}
+	a.launcherPanel.pkg = "Gravity Circuit (RCE v1.1)"
+	tt.Frame()
+	(<-published)()
+	tt.Frame()
+	if a.launcherPanel.preview != nil {
+		t.Fatal("a preview for the previous package was shown for the new one")
+	}
+	if _, ok := tt.AccessByRole(ui.RoleCheckBox, locales.LauncherConfirm()); ok {
+		t.Fatal("a stale preview offered its confirmation")
+	}
+}
+
+func TestLauncherInstallIsDisabledAfterModloaderHandoff(t *testing.T) {
+	adapter := &fakeToolAdapter{preview: launcherPreview(),
+		state: retained.State{SaveKit: &retained.SaveKitState{
+			Users: []string{"11111111111111111111111111111111"}}}}
+	a, tt, published := launcherApp(t, adapter)
+	saveKitLease(t, a, tt)
+	previewPackage(t, tt, published)
+	if err := tt.Click(locales.LauncherConfirm()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	adapter.state.ModloaderInstalled = true
+	tt.Frame()
+	if install, _ := tt.AccessByRole(ui.RoleButton, "Back up and install launcher"); !install.Disabled {
+		t.Fatal("a launcher install stayed usable after the modloader handoff")
+	}
+}
+
+func TestLauncherAccountClearsWhenTheListDisappears(t *testing.T) {
+	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
+		Users: []string{"11111111111111111111111111111111"}}}}
+	a, tt, _ := launcherApp(t, adapter)
+	saveKitLease(t, a, tt)
+	if a.launcherPanel.account == "" {
+		t.Fatal("the only account was not selected")
+	}
+	adapter.state.SaveKit = nil
+	tt.Frame()
+	if a.launcherPanel.account != "" {
+		t.Fatalf("a hidden account choice still targets the install: %q", a.launcherPanel.account)
+	}
+}
+
+func TestLauncherLabelsHaveNoDefault(t *testing.T) {
+	if label, ok := launcherLabel("launcher-unrecorded"); ok || label != "" {
+		t.Fatalf("an unrecorded launcher got a label: %q", label)
+	}
+	m := testManifest(t)
+	for _, id := range launcher.IDs(m) {
+		if _, ok := launcherLabel(id); !ok {
+			t.Fatalf("manifest launcher %s has no label", id)
+		}
+	}
+}
+
+func TestLauncherConfirmationWarnsThatMatchingFilesAreReplaced(t *testing.T) {
+	for locale, phrase := range map[string]string{
+		"en":    "Existing files with the same names will be replaced.",
+		"zh-CN": "同名的现有文件将被替换。",
+	} {
+		if confirmation := locales.In(locale).LauncherConfirm(); !strings.Contains(confirmation, phrase) {
+			t.Errorf("%s launcher confirmation omits the replacement warning: %q", locale, confirmation)
+		}
 	}
 }

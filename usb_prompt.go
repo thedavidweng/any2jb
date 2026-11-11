@@ -54,7 +54,7 @@ func (p *usbPrompt) Wait(ctx context.Context, run session.Run, step transport.Co
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-done:
-		return ctx.Err()
+		return nil
 	}
 }
 

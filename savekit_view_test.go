@@ -7,15 +7,18 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
-func saveKitApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeToolAdapter) *app {
+func saveKitApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolAdapter) *app {
 	t.Helper()
 	m, err := manifest.Load()
 	if err != nil {
@@ -26,6 +29,35 @@ func saveKitApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeToolAdapt
 			RetainsRPC: true, Tools: []string{"savekit-read", "savekit"}})}
 	a.saveKit.open = true
 	return a
+}
+
+// previewPublisher stands in for Window.Update: the previewing goroutine only
+// hands its closure over, and the test applies it on its own goroutine.
+func previewPublisher(a *app) chan func() {
+	published := make(chan func(), 8)
+	a.saveKit.update = func(apply func()) { published <- apply }
+	return published
+}
+
+// applyPublished runs the preview's published result on this goroutine.
+func applyPublished(t *testing.T, published chan func()) {
+	t.Helper()
+	select {
+	case apply := <-published:
+		apply()
+	case <-time.After(time.Minute):
+		t.Fatal("the preview was never published")
+	}
+}
+
+// preview clicks a preview control and applies the published result.
+func preview(t *testing.T, tt *ui.Tester, published chan func(), label string) {
+	t.Helper()
+	if err := tt.Click(label); err != nil {
+		t.Fatal(err)
+	}
+	applyPublished(t, published)
+	tt.Frame()
 }
 
 func saveKitLease(t *testing.T, a *app, tt *ui.Tester) {
@@ -41,7 +73,7 @@ func saveKitLease(t *testing.T, a *app, tt *ui.Tester) {
 }
 
 func TestSaveKitControlsNeedAHeldLease(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
 	a := saveKitApp(t, f, adapter)
 	tt := ui.NewTester(a.saveKitView, 720, 1400)
@@ -68,7 +100,7 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{reasons: map[string]string{"savekit-read": d.Reason, "savekit": d.Reason}}
 	a := saveKitApp(t, f, adapter)
 	tt := ui.NewTester(a.saveKitView, 720, 1400)
@@ -83,10 +115,16 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 			t.Fatalf("an unstaged SaveKit action is usable: %+v", control)
 		}
 	}
+	// The refusal follows the app language like every other adapter reason.
+	withLocale(t, "zh-CN")
+	tt.Frame()
+	if !tt.HasText(locales.DynDistSaveKit()) || tt.HasText(d.Reason) {
+		t.Fatalf("the refusal is not localized: %q", tt.Texts())
+	}
 }
 
 func TestSaveKitListsSelectArchiveAndExport(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 		Users:  []string{"11111111111111111111111111111111", "22222222222222222222222222222222"},
 		Titles: []string{"010012900d38a000"},
@@ -141,7 +179,7 @@ func TestSaveKitListsSelectArchiveAndExport(t *testing.T) {
 }
 
 func TestSaveKitManualTitleEntry(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 		Users: []string{"11111111111111111111111111111111"},
 	}}}
@@ -174,9 +212,9 @@ func TestSaveKitManualTitleEntry(t *testing.T) {
 
 // leasedSaveKit enters the panel with a lease, a manual target and a source
 // folder ready for the gated write flow.
-func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapter, *ui.Tester, *session.FakeEnvironment) {
+func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapter, *ui.Tester, *sessiontest.FakeEnvironment) {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 		Users: []string{"11111111111111111111111111111111"},
 	}}}
@@ -198,9 +236,8 @@ func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapte
 
 func TestSaveKitConfirmationCannotMoveToAnotherTarget(t *testing.T) {
 	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
-	if err := tt.Click("Preview save write"); err != nil {
-		t.Fatal(err)
-	}
+	published := previewPublisher(a)
+	preview(t, tt, published, "Preview save write")
 	if err := tt.Click("I confirm this exact target and file preview"); err != nil {
 		t.Fatal(err)
 	}
@@ -231,9 +268,7 @@ func TestSaveKitWriteEditsNeedNewConsent(t *testing.T) {
 	for _, change := range []string{"source", "replace"} {
 		t.Run(change, func(t *testing.T) {
 			a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
-			if err := tt.Click("Preview save write"); err != nil {
-				t.Fatal(err)
-			}
+			preview(t, tt, previewPublisher(a), "Preview save write")
 			if err := tt.Click("I confirm this exact target and file preview"); err != nil {
 				t.Fatal(err)
 			}
@@ -251,6 +286,32 @@ func TestSaveKitWriteEditsNeedNewConsent(t *testing.T) {
 	}
 }
 
+func TestSaveKitPreviewRunsOffTheRenderPassAndDropsStaleResults(t *testing.T) {
+	a, _, tt, _ := leasedSaveKit(t, map[string]string{"save.bin": "save\n"})
+	published := previewPublisher(a)
+	if err := tt.Click("Preview save write"); err != nil {
+		t.Fatal(err)
+	}
+	// The click only starts the work: the result arrives through the window's
+	// update, and both preview controls stay disabled until it does.
+	tt.Frame()
+	previewWrite, ok := tt.AccessByRole(ui.RoleButton, "Preview save write")
+	if !ok || !previewWrite.Disabled {
+		t.Fatalf("a preview control is usable while the preview runs: %+v", previewWrite)
+	}
+	// The folder changed while the preview was running, so its result is
+	// dropped instead of describing files the user no longer chose.
+	a.saveKit.sourceFolder = t.TempDir()
+	applyPublished(t, published)
+	tt.Frame()
+	if a.saveKit.writePreview != nil {
+		t.Fatal("a stale preview was applied")
+	}
+	if write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save"); !ok || !write.Disabled {
+		t.Fatalf("a stale preview enabled the write: %+v", write)
+	}
+}
+
 func TestSaveKitRestoreListsFilesBeforeConsent(t *testing.T) {
 	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
 	dir := t.TempDir()
@@ -263,10 +324,7 @@ func TestSaveKitRestoreListsFilesBeforeConsent(t *testing.T) {
 	}
 	a.saveKit.restoreFolder = dir
 	tt.Frame()
-	if err := tt.Click("Preview restore"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
+	preview(t, tt, previewPublisher(a), "Preview restore")
 	if !tt.HasText("/save.bin  4") {
 		t.Fatalf("restore hides the affected file: %v", tt.Texts())
 	}
@@ -290,10 +348,7 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	if !ok || !write.Disabled {
 		t.Fatalf("an unpreviewed write is usable: %+v", write)
 	}
-	if err := tt.Click("Preview save write"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
+	preview(t, tt, previewPublisher(a), "Preview save write")
 	if !tt.HasText("1 file(s), 6 bytes") {
 		t.Fatal(tt.Texts())
 	}
@@ -332,12 +387,12 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	}
 	// A verified outcome states the counts and keeps the backup accessible.
 	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "write", Verified: true,
-		Files: 1, Backup: "/support/savekit-exports/010012900d38a000-a"}
+		Files: 1, Replaced: 2, Backup: "/support/savekit-exports/010012900d38a000-a"}
 	tt.Frame()
-	if !tt.HasText("Write verified: 1 file(s) written, 0 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a") {
+	if !tt.HasText("Write verified: 1 file(s) written, 2 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a") {
 		t.Fatal(tt.Texts())
 	}
-	if _, ok := tt.AccessByRole(ui.RoleStatus, "Write verified: 1 file(s) written, 0 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a"); !ok {
+	if _, ok := tt.AccessByRole(ui.RoleStatus, "Write verified: 1 file(s) written, 2 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a"); !ok {
 		t.Fatal("the write outcome is not an accessible status")
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Open backup folder"); !ok {
@@ -347,6 +402,9 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 
 func TestSaveKitFailedOperationBlocksAndExplains(t *testing.T) {
 	a, adapter, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
+	// The manager latches a failed mutation in SaveKitBlocked, independently of
+	// the outcome it displays, until the lease is reset.
+	adapter.state.SaveKitBlocked = "post-write verification failed"
 	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "write",
 		Failure: "post-write verification failed", Backup: "/support/savekit-exports/010012900d38a000-b"}
 	tt.Frame()
@@ -358,6 +416,16 @@ func TestSaveKitFailedOperationBlocksAndExplains(t *testing.T) {
 		if !ok || !control.Disabled {
 			t.Fatalf("%s ran after a failed save operation: %+v", label, control)
 		}
+	}
+	// Starting another tool can clear the detailed SaveKit observation, but
+	// the console-restart latch must remain visible and keep mutations blocked.
+	adapter.state.SaveKit = nil
+	tt.Frame()
+	if !tt.HasText(locales.SaveKitWriteBlocked()) {
+		t.Fatalf("the persistent write block disappeared with its outcome: %q", tt.Texts())
+	}
+	if write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save"); !ok || !write.Disabled {
+		t.Fatalf("a write became available after its detailed outcome disappeared: %+v", write)
 	}
 	// Read-only inspection still works after a failed operation.
 	if control, ok := tt.AccessByRole(ui.RoleButton, "Inspect save files"); !ok || control.Disabled {

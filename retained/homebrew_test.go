@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
@@ -52,6 +53,28 @@ func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 	}
 	if reason := partial.Unavailable("izlauncher", "kurumuz"); reason != d.Reason {
 		t.Fatalf("a missing IZlauncher module must name its component, got %q", reason)
+	}
+}
+
+func TestHomebrewLaunchReportsUnknownProfileBeforeStartingChild(t *testing.T) {
+	runner, run, support := heldSession(t)
+	mf, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	host, err := filepath.Abs("testdata/fake-tool.cjs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := retained.New(retained.Options{Support: support, Runs: runner, Manifest: mf,
+		Node: nodePath(t), Host: host, Staged: homebrewStaged})
+	defer m.Stop(context.Background(), run)
+	run.Profile.ID = "missing-profile"
+	err = m.Run(context.Background(), run, "mintbrew", func(session.Progress) {
+		t.Error("a child started despite an invalid profile")
+	})
+	if err == nil || !strings.Contains(err.Error(), "missing-profile") {
+		t.Fatalf("manifest profile failure was hidden: %v", err)
 	}
 }
 
@@ -103,6 +126,50 @@ func TestUnprovenHomebrewCleanupBlocksReentry(t *testing.T) {
 	// Read-only status does not own homebrew state and still runs.
 	if err := m.Run(context.Background(), run, "rpc-status", func(session.Progress) {}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestHomebrewStopThenSwitch(t *testing.T) {
+	for _, scenario := range []string{"ok", "progress-flood"} {
+		t.Run(scenario, func(t *testing.T) {
+			runner, run, support := heldSession(t)
+			m := manager(t, support, runner, scenario, homebrewStaged...)
+			for _, tool := range []string{"mintbrew", "native-hblauncher"} {
+				if err := m.Run(context.Background(), run, tool, func(session.Progress) {}); err != nil {
+					t.Fatalf("launch %s after verified cleanup: %v", tool, err)
+				}
+				done := make(chan error, 1)
+				go func() { done <- m.Stop(context.Background(), run) }()
+				select {
+				case err := <-done:
+					if err != nil {
+						t.Fatalf("stop %s: %v", tool, err)
+					}
+				case <-time.After(3 * time.Second):
+					t.Fatalf("stop %s blocked behind progress events", tool)
+				}
+				if state := m.State(); state.CleanupBlocked || state.Tool != "" {
+					t.Fatalf("verified cleanup did not release %s: %+v", tool, state)
+				}
+			}
+		})
+	}
+}
+
+func TestHomebrewFailureAfterRunningBlocksReentry(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := manager(t, support, runner, "hb-late-failure", homebrewStaged...)
+	if err := m.Run(context.Background(), run, "mintbrew", func(session.Progress) {}); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Stop(context.Background(), run); err == nil {
+		t.Fatal("a failed shutdown reported success")
+	}
+	if !m.State().CleanupBlocked {
+		t.Fatal("the reported shutdown failure was lost after running")
+	}
+	if err := m.Run(context.Background(), run, "native-hblauncher", func(session.Progress) {}); err == nil {
+		t.Fatal("another homebrew launched after an unproven shutdown")
 	}
 }
 

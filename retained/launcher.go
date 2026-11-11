@@ -11,6 +11,18 @@ import (
 	"github.com/thedavidweng/any2jb/savekit"
 )
 
+// PreviewLauncher keeps only the file record, not a patched copy of user saves.
+func (m *Manager) PreviewLauncher(ctx context.Context, r launcher.Request, target savekit.Request) (savekit.Preview, error) {
+	folder, preview, err := m.PrepareLauncher(ctx, r, target)
+	if err != nil {
+		return savekit.Preview{}, err
+	}
+	if err := os.RemoveAll(filepath.Dir(folder)); err != nil {
+		return savekit.Preview{}, err
+	}
+	return preview, nil
+}
+
 // PrepareLauncher is local-only and must run off the UI thread. The write gate
 // prepares the package again, so editing a preview never authorizes other data.
 func (m *Manager) PrepareLauncher(ctx context.Context, r launcher.Request, target savekit.Request) (string, savekit.Preview, error) {

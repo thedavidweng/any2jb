@@ -57,13 +57,50 @@ func command(ctx context.Context, out io.Writer, dir, name string, args ...strin
 	return cmd.Run()
 }
 
+// zigVersion is the only compiler release the pinned payload rebuild accepts.
+const zigVersion = "0.15.2"
+
+// zigExecutable resolves the Zig 0.15.2 compiler named by -zig: the explicit
+// path, otherwise the mise-managed install, otherwise PATH. Each candidate must
+// report exactly zigVersion, so a mise shim without a selected version and a
+// different compiler both fail with the candidate, its output and the version.
+func zigExecutable(ctx context.Context, explicit string) (string, error) {
+	var candidates []string
+	if explicit != "" {
+		candidates = append(candidates, explicit)
+	} else {
+		if prefix, err := exec.CommandContext(ctx, "mise", "where", "zig@"+zigVersion).Output(); err == nil {
+			candidates = append(candidates, filepath.Join(strings.TrimSpace(string(prefix)), "bin", "zig"))
+		}
+		candidates = append(candidates, "zig")
+	}
+	var rejected []string
+	for _, candidate := range candidates {
+		output, err := exec.CommandContext(ctx, candidate, "version").CombinedOutput()
+		text := strings.TrimSpace(string(output))
+		if err != nil {
+			if text == "" {
+				text = err.Error()
+			}
+			rejected = append(rejected, fmt.Sprintf("%s: %s", candidate, text))
+			continue
+		}
+		if text != zigVersion {
+			rejected = append(rejected, fmt.Sprintf("%s reports Zig %s", candidate, text))
+			continue
+		}
+		return candidate, nil
+	}
+	return "", fmt.Errorf("the payload rebuild requires Zig %s; pass -zig or install it (tried %s)", zigVersion, strings.Join(rejected, "; "))
+}
+
 func run(ctx context.Context, args []string, out io.Writer) error {
 	flags := flag.NewFlagSet("check", flag.ContinueOnError)
 	flags.SetOutput(out)
 	reference := flags.String("reference-root", "", "explicit pinned mac2jb checkout (read-only)")
 	assets := flags.String("runtime-assets", "resources/darwin-arm64", "merged runtime assets containing the verified pinned Node")
 	skipPayload := flags.String("skip-payload-reason", "", "record why Zig 0.15.2 payload rebuild cannot run")
-	zig := flags.String("zig", "zig", "Zig 0.15.2 executable")
+	zig := flags.String("zig", "", "Zig 0.15.2 executable (default: the mise-managed install, then PATH)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -129,7 +166,11 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 			s.skip("pepsipu payload rebuild --check", *skipPayload)
 		} else {
 			s.check("pepsipu payload rebuild --check", func() error {
-				return command(ctx, out, engineRoot, "node", "engine/build-payload.cjs", "--check", "--zig", *zig)
+				compiler, err := zigExecutable(ctx, *zig)
+				if err != nil {
+					return err
+				}
+				return command(ctx, out, engineRoot, "node", "engine/build-payload.cjs", "--check", "--zig", compiler)
 			})
 		}
 	}

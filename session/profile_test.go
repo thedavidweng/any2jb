@@ -8,13 +8,14 @@ import (
 
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestProfileEditionAndSavedBootstrap(t *testing.T) {
 	m, _ := manifest.Load()
 	for _, p := range m.Profiles {
 		t.Run(p.ID, func(t *testing.T) {
-			c := session.New(session.NewFakeEnvironment().Environment(), p.SessionProfile())
+			c := session.New(sessiontest.NewFakeEnvironment().Environment(), p.SessionProfile())
 			if _, err := c.Inspect(); err != nil {
 				t.Fatal(err)
 			}

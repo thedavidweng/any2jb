@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
-func retainedModloader(t *testing.T, tools ...string) (*session.SessionController, *session.FakeEnvironment) {
+func retainedModloader(t *testing.T, tools ...string) (*session.SessionController, *sessiontest.FakeEnvironment) {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned", RetainsRPC: true, Tools: tools})
 	if _, err := c.AttachRetained("session-1"); err != nil {

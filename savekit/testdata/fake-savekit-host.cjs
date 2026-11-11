@@ -92,6 +92,12 @@ async function main() {
   let input = '';
   for await (const chunk of process.stdin) input += chunk;
   const request = JSON.parse(input.trim());
+  if (scenario === 'protocol-hang') {
+    sequence = 5;
+    emit('result', {action: request.action, users: [UID1]});
+    setInterval(() => emit('progress'), 1);
+    return;
+  }
   if (scenario === 'slow') await new Promise(resolve => setTimeout(resolve, 400));
   if (scenario === 'bad-sequence') {
     sequence = 5;

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/diagnostics"
+	"github.com/thedavidweng/any2jb/internal/procgroup"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -189,7 +190,7 @@ func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report sessio
 		return session.PreparedHost{}, errors.New("missing engine command")
 	}
 	cmd.Dir = workspace
-	if err := configureGroup(cmd); err != nil {
+	if err := procgroup.Configure(cmd); err != nil {
 		return session.PreparedHost{}, err
 	}
 	p.cmd = cmd
@@ -293,20 +294,20 @@ func (p *hostProcess) read(output io.ReadCloser) {
 		}
 		if !valid {
 			p.err = ErrProtocol
-			signalGroup(p.cmd, true)
+			procgroup.Signal(p.cmd, true)
 			break
 		}
 		sequence, state = e.Sequence, e.Type
 		log, err := os.OpenFile(filepath.Join(p.workspace, "host.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
 			p.err = err
-			signalGroup(p.cmd, true)
+			procgroup.Signal(p.cmd, true)
 			break
 		}
 		_, writeErr := fmt.Fprintf(log, "%s stage=%d\n", e.Type, e.Stage)
 		p.err = errors.Join(writeErr, log.Close())
 		if p.err != nil {
-			signalGroup(p.cmd, true)
+			procgroup.Signal(p.cmd, true)
 			break
 		}
 		if e.Type == "ready" {
@@ -316,7 +317,7 @@ func (p *hostProcess) read(output io.ReadCloser) {
 	}
 	if err := scanner.Err(); err != nil {
 		p.err = ErrProtocol
-		signalGroup(p.cmd, true)
+		procgroup.Signal(p.cmd, true)
 	}
 	p.err = errors.Join(p.err, p.cmd.Wait())
 	if p.err == nil && state != "result" {
@@ -478,7 +479,7 @@ func (r *HostRunner) Cleanup(ctx context.Context, run session.Run) error {
 		if p.run.Profile.RetainsRPC {
 			grace = 300 * time.Second
 		}
-		if err := signalGroup(p.cmd, false); err != nil {
+		if err := procgroup.Signal(p.cmd, false); err != nil {
 			return err
 		}
 		timer := time.NewTimer(grace)
@@ -486,19 +487,19 @@ func (r *HostRunner) Cleanup(ctx context.Context, run session.Run) error {
 		select {
 		case <-p.done:
 		case <-ctx.Done():
-			if err := signalGroup(p.cmd, true); err != nil {
+			if err := procgroup.Signal(p.cmd, true); err != nil {
 				return err
 			}
 			<-p.done
 		case <-timer.C:
-			if err := signalGroup(p.cmd, true); err != nil {
+			if err := procgroup.Signal(p.cmd, true); err != nil {
 				return err
 			}
 			<-p.done
 		}
 		// The leader may exit before its children. Kill remaining group members
 		// before deleting the workspace or releasing the lease.
-		if err := signalGroup(p.cmd, true); err != nil {
+		if err := procgroup.Signal(p.cmd, true); err != nil {
 			return err
 		}
 	}

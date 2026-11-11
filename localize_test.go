@@ -8,6 +8,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func withLocale(t *testing.T, locale string) {
@@ -30,6 +31,18 @@ func TestDynamicSegmentsMatchSourceCatalog(t *testing.T) {
 	for _, segment := range dynamicSegments {
 		if got := segment.text(); got != segment.source {
 			t.Errorf("catalog source %q does not match table source %q", got, segment.source)
+		}
+	}
+}
+
+// TestDynamicSegmentsApplyLongestFirst holds the order the table's comment
+// promises: a composed sentence must match its longest source, not a shorter
+// one that happens to sit earlier.
+func TestDynamicSegmentsApplyLongestFirst(t *testing.T) {
+	for i := 1; i < len(dynamicSegments); i++ {
+		if len(dynamicSegments[i-1].source) < len(dynamicSegments[i].source) {
+			t.Errorf("segment %d (%q) is shorter than the one after it, so longest-first does not hold",
+				i, dynamicSegments[i-1].source)
 		}
 	}
 }
@@ -65,7 +78,7 @@ func TestLocalizeKeepsUnknownText(t *testing.T) {
 func TestReadinessMessagesDisplayChinese(t *testing.T) {
 	withLocale(t, "zh-CN")
 	a := newTestApp(t)
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "usb-runtime", State: session.RequiresAttention,
 		Message:    "Verified USB helpers are not available.",
 		NextAction: "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."}}

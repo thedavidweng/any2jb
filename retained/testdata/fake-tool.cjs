@@ -27,6 +27,12 @@ async function main() {
   if (!fs.existsSync(path.join(workspace, 'result.json'))) throw Error('fixture requires a held run');
   if (tool === 'rpc-status') { emit('status', {ready: true}); return; }
   emit('started');
+  if (scenario === 'pre-result-flood') {
+    for (let i = 0; i < 64; i++) emit('progress');
+    await stopped;
+    emit('stopped');
+    return;
+  }
   if (scenario === 'dirty') { process.exitCode = 1; return; }
   if (tool === 'system-code-dump') {
     fs.mkdirSync(destination, {recursive: true, mode: 0o700});
@@ -65,7 +71,15 @@ async function main() {
       return;
     }
     emit('running');
+    if (scenario === 'progress-flood') {
+      for (let i = 0; i < 64; i++) emit('progress');
+    }
     await stopped;
+    if (scenario === 'hb-late-failure') {
+      emit('failed', {cleanupBlocked: true, message: 'fixture shutdown failure'});
+      process.exitCode = 1;
+      return;
+    }
     if (scenario === 'hb-unproven') { emit('stopped'); return; }
     const digest = crypto.createHash('sha256').update(fs.readFileSync(marker)).digest('hex');
     fs.unlinkSync(marker);
@@ -73,6 +87,9 @@ async function main() {
       attemptMarkers: ['.mac2jb-hblauncher-attempt.json']});
     return;
   } else throw Error('unknown fixture tool');
+  if (scenario === 'progress-flood') {
+    for (let i = 0; i < 64; i++) emit('progress');
+  }
   await stopped;
   emit('stopped');
 }

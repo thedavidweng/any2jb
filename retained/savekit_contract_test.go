@@ -1,13 +1,70 @@
 package retained_test
 
 import (
+	"context"
 	"encoding/json"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
+	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/savekit"
 )
+
+func TestHeldProofContractAcrossGoAndBothHosts(t *testing.T) {
+	runner, run, _ := heldSession(t)
+	workspace := mustWorkspace(t, runner, run)
+	resultPath := filepath.Join(workspace, "result.json")
+	original, err := os.ReadFile(resultPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	toolHost, _ := filepath.Abs("../resources/darwin-arm64/runtime/toolhost.cjs")
+	saveHost, _ := filepath.Abs("savekit-host.cjs")
+	for _, tc := range []struct {
+		name   string
+		change func(map[string]any)
+		valid  bool
+	}{
+		{"held", func(map[string]any) {}, true},
+		{"unverified", func(r map[string]any) { r["verified"] = false }, false},
+		{"completed", func(r map[string]any) { r["completed"] = "fixture" }, false},
+		{"cleanup errors", func(r map[string]any) { r["cleanupErrors"] = []string{"fixture"} }, false},
+		{"already cleaned", func(r map[string]any) { r["fs"].(map[string]any)["cleanup"].(map[string]any)["cleanedUp"] = true }, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var result map[string]any
+			if err := json.Unmarshal(original, &result); err != nil {
+				t.Fatal(err)
+			}
+			tc.change(result)
+			body, err := json.Marshal(result)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(resultPath, body, 0600); err != nil {
+				t.Fatal(err)
+			}
+			outcome, err := engine.VerifyHeld(context.Background(), workspace)
+			if got := err == nil && outcome.Valid(true); got != tc.valid {
+				t.Errorf("Go held proof = %t, want %t: %v", got, tc.valid, err)
+			}
+			script := `Promise.all([process.argv[1],process.argv[2]].map(async file=>{try{await require(file).heldProof(process.argv[3]);return true;}catch{return false;}})).then(value=>console.log(JSON.stringify(value)));`
+			output, err := exec.Command(nodePath(t), "-e", script, toolHost, saveHost, workspace).CombinedOutput()
+			if err != nil {
+				t.Fatalf("host proof probe: %v %s", err, output)
+			}
+			var results []bool
+			if err := json.Unmarshal(output, &results); err != nil {
+				t.Fatal(err)
+			}
+			if len(results) != 2 || results[0] != tc.valid || results[1] != tc.valid {
+				t.Errorf("JS held proofs = %v, want both %t", results, tc.valid)
+			}
+		})
+	}
+}
 
 // The structured fixture cannot catch drift between the Go request and the
 // real host's schema, so this drives the real host module's validator and

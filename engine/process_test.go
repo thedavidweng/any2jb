@@ -15,6 +15,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestCleanupKillsGrandchildThatIgnoresTermination(t *testing.T) {
@@ -54,7 +55,7 @@ func TestCleanupKillsGrandchildThatIgnoresTermination(t *testing.T) {
 
 func TestRetainedProcessCrashInvalidatesController(t *testing.T) {
 	runner := protocolRunner(t, "held-verified")
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	env := f.Environment()
 	env.Host = runner
 	profile := testRun().Profile

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/thedavidweng/any2jb/civswitch"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/transport"
@@ -15,10 +16,9 @@ func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	env := productionEnvironment(engine.Options{Assets: t.TempDir(), Support: t.TempDir(), Version: "fixture", Manifest: a.manifest})
-	if env.Simulated {
-		t.Fatal("production injected a simulated environment")
-	}
+	env := productionEnvironmentWithCivSwitch(
+		engine.Options{Assets: t.TempDir(), Support: t.TempDir(), Version: "fixture", Manifest: a.manifest},
+		transport.DarwinOptions{Timing: transport.DefaultTiming()}, civswitch.Options{})
 	if _, ok := env.Host.(*engine.HostRunner); !ok {
 		t.Fatal("production did not use the real host runner")
 	}

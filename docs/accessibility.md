@@ -1,7 +1,8 @@
 # Accessibility rules
 
 Every view follows these rules; `accessibility_test.go` enforces them on the
-main session flow, and new views extend that coverage.
+main session flow and, screen by screen, on Advanced Tools, SaveKit,
+Diagnostics, Driver and CivSwitch. New views extend that table.
 
 ## Names and roles
 

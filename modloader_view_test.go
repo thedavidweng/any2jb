@@ -9,6 +9,7 @@ import (
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 )
 
 func TestModloaderNeedsTheHostCapability(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	_, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{"mintbrew"})
 	if !tt.HasText("Installing mods is the final action of this session. The mod overlay stays active until the console restarts, and no other tool can launch in the same boot. Only Kurumuz and Cellenseres hosts support it. No game files or mods are included; choose your own folder.") {
 		t.Fatal(tt.Texts())
@@ -38,7 +39,7 @@ func TestModloaderShowsItsRecordedReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	_, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{reasons: map[string]string{"modloader": d.Reason}}, []string{"modloader"})
 	if !tt.HasText(d.Reason) {
 		t.Fatal(tt.Texts())
@@ -46,7 +47,7 @@ func TestModloaderShowsItsRecordedReason(t *testing.T) {
 }
 
 func TestModsFolderReachesTheToolRequest(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	a, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{"modloader"})
 	mods := t.TempDir()
 	file := filepath.Join(mods, "contents", "0100000000010000", "romfs", "data.bin")
@@ -67,7 +68,7 @@ func TestModsFolderReachesTheToolRequest(t *testing.T) {
 }
 
 func TestInvalidCustomHomebrewFolderKeepsTheLease(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	a, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{"custom-homebrew"})
 	if !tt.HasText("Custom homebrew (experimental)") {
 		t.Fatal(tt.Texts())
@@ -86,7 +87,7 @@ func TestInvalidCustomHomebrewFolderKeepsTheLease(t *testing.T) {
 }
 
 func TestInstalledModloaderLocksEveryTool(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{ModloaderInstalled: true}}
 	_, tt := leasedHomebrewApp(t, f, adapter, []string{"rpc-status", "mintbrew", "custom-homebrew", "modloader"})
 	if !tt.HasText(modsInstalled) {

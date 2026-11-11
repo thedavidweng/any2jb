@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/engine"
+	"github.com/thedavidweng/any2jb/internal/procgroup"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -45,20 +47,10 @@ const attemptMarkerName = ".mac2jb-hblauncher-attempt.json"
 // verifiedCleanup accepts only the homebrew supervisor's stated proof shape: a
 // verified cleanup, the recorded attempt marker, and its SHA-256 digest.
 func verifiedCleanup(e toolEvent) bool {
+	_, err := hex.DecodeString(e.AttemptMarkerSHA256)
 	return e.CleanupVerified && len(e.AttemptMarkers) == 1 &&
-		e.AttemptMarkers[0] == attemptMarkerName && hexSHA256(e.AttemptMarkerSHA256)
-}
-
-func hexSHA256(value string) bool {
-	if len(value) != 64 {
-		return false
-	}
-	for _, c := range value {
-		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
-			return false
-		}
-	}
-	return true
+		e.AttemptMarkers[0] == attemptMarkerName && len(e.AttemptMarkerSHA256) == 64 &&
+		e.AttemptMarkerSHA256 == strings.ToLower(e.AttemptMarkerSHA256) && err == nil
 }
 
 type toolProcess struct {
@@ -70,6 +62,7 @@ type toolProcess struct {
 	err             error
 	selection       chan string
 	reportedFailure bool
+	cleanupBlocked  bool
 }
 
 // Run satisfies the session adapter for tools that need no user parameter.
@@ -93,12 +86,6 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	if err != nil || !outcome.Valid(true) {
 		return errors.Join(errors.New("the retained session no longer holds a live verified lease"), err)
 	}
-	if request.Tool == "savekit-read" {
-		return m.runSaveKit(ctx, run, request, workspace, report)
-	}
-	if request.Tool == "savekit" {
-		return m.runSaveKitWrite(ctx, run, request, workspace, report)
-	}
 	m.mu.Lock()
 	if m.state.Lost {
 		m.mu.Unlock()
@@ -110,9 +97,16 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	}
 	// An unproven homebrew shutdown leaves console state unknown; only a
 	// console restart makes the workspace safe for another launcher.
-	if (isHomebrew(request.Tool) || request.Tool == "modloader") && m.state.CleanupBlocked {
+	if (isHomebrew(request.Tool) || request.Tool == "modloader" || request.Tool == "savekit" || request.Tool == "savekit-read") && m.state.CleanupBlocked {
 		m.mu.Unlock()
 		return errors.New("the previous homebrew launcher did not prove a clean shutdown; restart the console before launching homebrew again")
+	}
+	if request.Tool == "savekit-read" || request.Tool == "savekit" {
+		m.mu.Unlock()
+		if request.Tool == "savekit-read" {
+			return m.runSaveKit(ctx, run, request, workspace, report)
+		}
+		return m.runSaveKitWrite(ctx, run, request, workspace, report)
 	}
 	if m.active != nil {
 		owner := m.active.tool
@@ -124,7 +118,11 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		m.mu.Unlock()
 		return errors.New(owner + " already owns the retained session; wait for it to finish")
 	}
-	cmd := m.command(run, request, workspace)
+	cmd, err := m.command(run, request, workspace)
+	if err != nil {
+		m.mu.Unlock()
+		return err
+	}
 	if cmd == nil {
 		m.mu.Unlock()
 		return errors.New("missing read-only tool command")
@@ -133,7 +131,8 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		done: make(chan struct{}), selection: make(chan string, 1)}
 	m.active = p
 	// Console-state blocks outlive the tool that caused them.
-	m.state = State{Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked}
+	m.state = State{Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked,
+		SaveKitBlocked: m.state.SaveKitBlocked}
 	m.mu.Unlock()
 	if err := m.start(ctx, p, report); err != nil {
 		m.mu.Lock()
@@ -152,7 +151,7 @@ func (m *Manager) start(ctx context.Context, p *toolProcess, report session.Repo
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := configureGroup(p.cmd); err != nil {
+	if err := procgroup.Configure(p.cmd); err != nil {
 		return err
 	}
 	output, err := p.cmd.StdoutPipe()
@@ -184,6 +183,7 @@ func (p *toolProcess) read(output io.ReadCloser) {
 	scanner.Buffer(make([]byte, 4096), 65536)
 	var sequence uint64
 	state := ""
+	delivered := false
 	for scanner.Scan() {
 		var e toolEvent
 		decoder := json.NewDecoder(bytes.NewReader(scanner.Bytes()))
@@ -194,8 +194,10 @@ func (p *toolProcess) read(output io.ReadCloser) {
 		}
 		valid := err == nil && e.Tool == p.tool && e.Sequence == sequence+1
 		switch e.Type {
-		case "started", "progress":
+		case "started":
 			valid = valid && state != "running" && state != "catalog"
+		case "progress":
+			valid = valid && state != "catalog"
 		case "status":
 			valid = valid && state == "" && e.Ready
 		case "catalog":
@@ -215,20 +217,33 @@ func (p *toolProcess) read(output io.ReadCloser) {
 			valid = valid && state != "" && (!isHomebrew(p.tool) || verifiedCleanup(e))
 		case "failed":
 			p.reportedFailure = true
+			p.cleanupBlocked = e.CleanupBlocked
+			p.err = errors.New("the read-only tool reported a failure; see redacted diagnostics")
 		default:
 			valid = false
 		}
 		if !valid {
 			p.err = errProtocol
-			signalGroup(p.cmd, true)
+			procgroup.Signal(p.cmd, true)
 			break
 		}
-		sequence, state = e.Sequence, e.Type
-		p.events <- e
+		sequence = e.Sequence
+		if e.Type != "progress" {
+			state = e.Type
+		}
+		// observe returns after its result; keep scanning and reaping without
+		// leaving an unconsumed event queue between the child and Stop.
+		if !delivered {
+			p.events <- e
+			switch e.Type {
+			case "running", "ready", "stopped", "status", "complete":
+				delivered = true
+			}
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		p.err = errProtocol
-		signalGroup(p.cmd, true)
+		procgroup.Signal(p.cmd, true)
 	}
 	p.err = errors.Join(p.err, p.cmd.Wait())
 }
@@ -370,6 +385,12 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	if p == nil || p.cmd.Process == nil {
 		return nil
 	}
+	// Cancellation can also leave observe before its first result. Drain while
+	// waiting for shutdown so a full startup queue cannot prevent reaping.
+	go func() {
+		for range p.events {
+		}
+	}()
 	if p.input != nil {
 		io.WriteString(p.input, "{\"type\":\"stop\"}\n")
 	}
@@ -384,25 +405,25 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	select {
 	case <-p.done:
 	case <-ctx.Done():
-		if err := signalGroup(p.cmd, true); err != nil {
+		if err := procgroup.Signal(p.cmd, true); err != nil {
 			return err
 		}
 		<-p.done
 	case <-timer.C:
-		if err := signalGroup(p.cmd, false); err != nil {
+		if err := procgroup.Signal(p.cmd, false); err != nil {
 			return err
 		}
 		select {
 		case <-p.done:
 		case <-time.After(2 * time.Second):
-			if err := signalGroup(p.cmd, true); err != nil {
+			if err := procgroup.Signal(p.cmd, true); err != nil {
 				return err
 			}
 			<-p.done
 		}
 	}
 	// Remaining group members must not outlive the owning tool.
-	if err := signalGroup(p.cmd, true); err != nil {
+	if err := procgroup.Signal(p.cmd, true); err != nil {
 		return err
 	}
 	if p.input != nil {
@@ -414,7 +435,7 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	if p.err != nil {
 		// A homebrew supervisor that exits without a protocol-reported failure
 		// (protocol violation, kill, crash) left its cleanup unproven.
-		if isHomebrew(p.tool) && !p.reportedFailure {
+		if p.cleanupBlocked || isHomebrew(p.tool) && !p.reportedFailure {
 			m.mu.Lock()
 			m.state.CleanupBlocked = true
 			m.mu.Unlock()

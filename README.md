@@ -50,7 +50,8 @@ See [packaging and updates](docs/releases.md) for reproducible arm64 builds,
 the hardware-free packaged `--self-test`, signing status and update release gates.
 
 Run Go tests and the hardware-free upstream regression harness together with
-`go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb`.
+`go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb`; it finds
+the prepared Zig 0.15.2 install and verifies its version on its own.
 See [regression checks](docs/regression-checks.md) for runtime assets, Zig
 prerequisites, native dry-runs and explicit skip reasons.
 

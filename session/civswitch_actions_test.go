@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 // civWriter is the gated persistence surface of the route adapter.
@@ -57,7 +58,7 @@ func (w *civWriter) ControlCenter(ctx context.Context, address string, observe s
 
 func verifiedCivSwitch(t *testing.T, w *civWriter) *session.SessionController {
 	t.Helper()
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	env := f.Environment()
 	env.CivSwitch = w
 	c := session.New(env, session.Profile{ID: "test", Revision: "pinned"})
@@ -73,7 +74,7 @@ func verifiedCivSwitch(t *testing.T, w *civWriter) *session.SessionController {
 func TestCivSwitchActionsNeedAVerifiedLoaderAndStagedWriter(t *testing.T) {
 	w := &civWriter{}
 	c := session.New(func() session.Environment {
-		env := session.NewFakeEnvironment().Environment()
+		env := sessiontest.NewFakeEnvironment().Environment()
 		env.CivSwitch = w
 		return env
 	}(), session.Profile{ID: "test", Revision: "pinned"})
@@ -92,7 +93,7 @@ func TestCivSwitchActionsNeedAVerifiedLoaderAndStagedWriter(t *testing.T) {
 	}
 	// A route adapter without the gated surface offers no dependent action.
 	plain := &civAdapter{}
-	env := session.NewFakeEnvironment().Environment()
+	env := sessiontest.NewFakeEnvironment().Environment()
 	env.CivSwitch = plain
 	bare := session.New(env, session.Profile{ID: "test", Revision: "pinned"})
 	if _, err := bare.ConnectCivSwitch("192.0.2.2"); err != nil {

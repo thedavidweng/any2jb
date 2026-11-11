@@ -31,15 +31,19 @@ func (a *app) sessionView(c *ui.Context) {
 		}
 	}
 	s := a.controller.Snapshot()
-	pending := a.manifest != nil && (s.Profile.ID != a.preferences.Profile ||
-		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
+	pending := s.Profile.ID != a.preferences.Profile ||
+		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport
 	if pending {
 		ui.Text(c, locales.ApplyBeforeLaunch())
 	}
-	if s.Simulated {
-		ui.Text(c, locales.SimulatedEnvironment()).TextColor(c.Theme().TextMuted)
-	}
 	ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).FontSize(20).Bold().Role(ui.RoleStatus)
+	// A long-lived tool child keeps the retained_rpc stage, so its ownership
+	// is stated next to the stage.
+	if a.tools != nil {
+		if owner := a.tools.State().Tool; owner != "" {
+			ui.Text(c.Key("session-tool-owner"), locales.ToolRunning(owner)).Role(ui.RoleStatus)
+		}
+	}
 	a.manualView(c, s)
 	a.usbConfirmation.view(c)
 	if s.CleanupConfirmed {
@@ -100,14 +104,13 @@ func (a *app) sessionView(c *ui.Context) {
 			ui.Text(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000))).TextColor(c.Theme().TextMuted)
 		}
 	}
-	if a.manifest != nil {
-		for _, check := range s.Checks {
-			if check.ID == "driver-present" || check.ID == "driver-loaded" || check.ID == "driver-restart" {
-				if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
-					a.driverPanel.open = true
-				}
-				break
+	for _, check := range s.Checks {
+		if check.ID == "driver-present" || check.ID == "driver-loaded" || check.ID == "driver-restart" {
+			if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+				a.stopKeyboard()
+				a.driverPanel.open = true
 			}
+			break
 		}
 	}
 	if ui.Button(c.Key("usb-keyboard"), locales.UsbKeyboardTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
@@ -126,7 +129,9 @@ func (a *app) sessionView(c *ui.Context) {
 			a.command(a.controller.Inspect())
 		}
 		label := locales.StartJailbreak()
-		if s.Transport.Capabilities.Manual || (a.manual != nil && !s.CanStart()) {
+		// The label names the selected transport, never the outcome: a blocked
+		// automatic launch stays "Start" and its blocking checks say why.
+		if s.Transport.Capabilities.Manual {
 			label = locales.GuidedManualLaunch()
 		}
 		if ui.PrimaryButton(c.Key("start"), label).Disabled(pending || !s.CanStart()).Clicked() {
@@ -167,14 +172,12 @@ func (a *app) sessionView(c *ui.Context) {
 			a.command(a.controller.Finish())
 		}
 	}
-	if a.manifest != nil {
-		ui.Text(c, locales.ReferencePrerequisites()).Bold()
-		ui.Text(c, locales.ConsoleFirmware())
-		ui.Text(c, locales.SmilebasicPrerequisites())
-		ui.Text(c, locales.NetworkPrerequisites())
-		ui.Text(c, locales.CablePrerequisites())
-		ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
-	}
+	ui.Text(c, locales.ReferencePrerequisites()).Bold()
+	ui.Text(c, locales.ConsoleFirmware())
+	ui.Text(c, locales.SmilebasicPrerequisites())
+	ui.Text(c, locales.NetworkPrerequisites())
+	ui.Text(c, locales.CablePrerequisites())
+	ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
 }
 
 func checkStateTitle(state session.CheckState) string {

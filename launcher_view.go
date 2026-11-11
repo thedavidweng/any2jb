@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/launcher"
 	"github.com/thedavidweng/any2jb/locales"
-	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
@@ -23,7 +23,6 @@ type launcherPanel struct {
 	version      string
 	physical     bool
 	exportFolder string
-	source       string
 	preview      *savekit.Preview
 	previewed    string
 	busy         bool
@@ -34,28 +33,30 @@ type launcherPanel struct {
 
 // launcherLabel names one pinned package. The ids come from the canonical
 // manifest, so an unrecorded id has no label and no control.
-func launcherLabel(id string) string {
+func launcherLabel(id string) (string, bool) {
 	switch id {
 	case "launcher-seedsow-demo":
-		return locales.LauncherSeedsowDemo()
+		return locales.LauncherSeedsowDemo(), true
 	case "launcher-seedsow-full":
-		return locales.LauncherSeedsowFull()
+		return locales.LauncherSeedsowFull(), true
 	case "launcher-nora2-demo":
-		return locales.LauncherNora2Demo()
+		return locales.LauncherNora2Demo(), true
 	case "launcher-nora1-demo":
-		return locales.LauncherNora1Demo()
+		return locales.LauncherNora1Demo(), true
 	case "launcher-hamidashi-demo":
-		return locales.LauncherHamidashiDemo()
+		return locales.LauncherHamidashiDemo(), true
 	case "launcher-lua-editor":
-		return locales.LauncherLuaEditor()
+		return locales.LauncherLuaEditor(), true
 	case "launcher-lua-editor-pro":
-		return locales.LauncherLuaEditorPro()
+		return locales.LauncherLuaEditorPro(), true
 	case "launcher-balatro":
-		return locales.LauncherBalatro()
+		return locales.LauncherBalatro(), true
 	case "launcher-balatro-showcase":
-		return locales.LauncherBalatroShowcase()
+		return locales.LauncherBalatroShowcase(), true
+	case "launcher-gravity-circuit":
+		return locales.LauncherGravityCircuit(), true
 	default:
-		return locales.LauncherGravityCircuit()
+		return "", false
 	}
 }
 
@@ -71,12 +72,18 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 	ui.Text(c, locales.LauncherSideEffects())
 	ui.Text(c, locales.LauncherExistingUntouched()).TextColor(c.Theme().TextMuted)
 
-	labels := make([]string, 0, len(launcher.IDs))
+	labels := make([]string, 0, len(launcher.IDs(a.manifest)))
 	ids := map[string]string{}
-	for _, id := range launcher.IDs {
-		label := launcherLabel(id)
+	for _, id := range launcher.IDs(a.manifest) {
+		label, ok := launcherLabel(id)
+		if !ok {
+			continue
+		}
 		labels = append(labels, label)
 		ids[label] = id
+	}
+	if len(labels) == 0 {
+		return
 	}
 	if p.pkg == "" {
 		p.pkg = labels[0]
@@ -111,6 +118,9 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 
 	ui.Text(c, locales.LauncherAccountHint()).TextColor(c.Theme().TextMuted)
 	accounts := launcherAccounts(state)
+	if !slices.Contains(accounts, p.account) {
+		p.account = ""
+	}
 	if len(accounts) == 1 {
 		// One console account owns every save, so there is nothing to choose.
 		p.account = accounts[0]
@@ -126,7 +136,7 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 	// the prepared preview and the confirmation it was made for.
 	selection := fmt.Sprintf("%s:%s:%s:%t:%s", id, p.account, p.version, p.physical, request.BackupFolder)
 	if p.previewed != selection {
-		p.preview, p.source, p.confirm, p.previewed = nil, "", false, selection
+		p.preview, p.confirm, p.previewed = nil, false, selection
 	}
 	usable := ready && reason == "" && !p.busy && a.tools != nil && p.update != nil &&
 		launcher.Validate(request, component, target) == nil
@@ -134,7 +144,7 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 		usable = false
 	}
 	if ui.Button(c.Key("launcher-preview"), locales.LauncherPreview()).Disabled(!usable).Clicked() {
-		a.previewLauncher(request, target)
+		a.previewLauncher(request, target, selection)
 	}
 	if p.failed {
 		ui.Text(c.Key("launcher-failed"), locales.LauncherPreviewFailed()).Role(ui.RoleStatus)
@@ -149,12 +159,12 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 		ui.Checkbox(c.Key("launcher-confirm"), &p.confirm, locales.LauncherConfirm())
 	}
 	write := savekit.Request{Action: "write", TitleID: target.TitleID, UID: target.UID,
-		SourceFolder: p.source, AllowReplace: true, Confirm: p.confirm}
+		AllowReplace: true, Confirm: p.confirm}
 	if p.preview != nil {
 		write.PreviewDigest = p.preview.Digest
 	}
 	if ui.Button(c.Key("launcher-install"), locales.LauncherInstall()).
-		Disabled(!usable || write.Validate() != nil).Clicked() {
+		Disabled(!usable || write.ValidateLauncherWrite() != nil).Clicked() {
 		a.installLauncher(write, request)
 	}
 }
@@ -169,19 +179,23 @@ func launcherAccounts(state retained.State) []string {
 
 // previewLauncher prepares the pinned package off the UI thread: it verifies
 // recorded digests, unpacks into a private folder and hashes every file.
-func (a *app) previewLauncher(request launcher.Request, target savekit.Request) {
+func (a *app) previewLauncher(request launcher.Request, target savekit.Request, selection string) {
 	p := &a.launcherPanel
 	if p.busy || p.update == nil || a.tools == nil {
 		return
 	}
-	p.busy, p.failed, p.preview, p.source, p.confirm = true, false, nil, "", false
+	p.busy, p.failed, p.preview, p.confirm = true, false, nil, false
 	tools, update := a.tools, p.update
 	go func() {
-		source, preview, err := tools.PrepareLauncher(context.Background(), request, target)
+		preview, err := tools.PreviewLauncher(context.Background(), request, target)
 		update(func() {
-			p.busy, p.failed = false, err != nil
+			p.busy = false
+			if p.previewed != selection {
+				return
+			}
+			p.failed = err != nil
 			if err == nil {
-				p.preview, p.source = &preview, source
+				p.preview = &preview
 			}
 		})
 	}()
@@ -194,7 +208,5 @@ func (a *app) installLauncher(write savekit.Request, request launcher.Request) {
 		SaveKit: &write, Launcher: &request}))
 	p := &a.launcherPanel
 	p.failed = a.commandRejected
-	p.confirm, p.preview, p.source = false, nil, ""
+	p.confirm, p.preview = false, nil
 }
-
-var _ = manifest.Component{}

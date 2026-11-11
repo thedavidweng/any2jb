@@ -18,19 +18,11 @@ import (
 	"github.com/thedavidweng/any2jb/transport"
 )
 
-// productionEnvironment is the single production adapter composition point.
-// Call off the UI thread: Stage performs file integrity checks and disk I/O.
-// Packaged startup never supplies DeveloperSourceRoot or DeveloperProfileID.
-func productionEnvironment(options engine.Options) session.Environment {
-	return productionEnvironmentWithInput(options, transport.DarwinOptions{Timing: transport.DefaultTiming()})
-}
-
-// Developer callers may explicitly supply a successful local helper build.
-// Packaged startup leaves Helpers empty; this never changes distribution policy.
-func productionEnvironmentWithInput(options engine.Options, inputOptions transport.DarwinOptions) session.Environment {
-	return productionEnvironmentWithCivSwitch(options, inputOptions, civswitch.Options{})
-}
-
+// productionEnvironmentWithCivSwitch is the single production adapter
+// composition point. Call off the UI thread: Stage performs file integrity
+// checks and disk I/O. Packaged startup leaves Helpers empty and never supplies
+// DeveloperSourceRoot or DeveloperProfileID; developer callers supply them
+// explicitly, which never changes distribution policy.
 // All developer-aware adapters compose here using the same explicit options,
 // never reading launch environment themselves.
 func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions transport.DarwinOptions, civOptions civswitch.Options) session.Environment {
@@ -188,19 +180,6 @@ func (p productionPlatform) ExportDiagnostics(ctx context.Context, snapshot sess
 }
 func (p productionPlatform) ReleaseInterrupted(ctx context.Context) error {
 	return (diagnostics.Store{Support: p.options.Support}).ReleaseInterrupted(ctx)
-}
-func (productionPlatform) Credentials() session.CredentialStore { return unavailableCredentials{} }
-
-type unavailableCredentials struct{}
-
-func (unavailableCredentials) Get(context.Context, string) ([]byte, error) {
-	return nil, errors.New("credential storage is not available")
-}
-func (unavailableCredentials) Set(context.Context, string, []byte) error {
-	return errors.New("credential storage is not available")
-}
-func (unavailableCredentials) Delete(context.Context, string) error {
-	return errors.New("credential storage is not available")
 }
 
 var _ session.PlatformServices = productionPlatform{}

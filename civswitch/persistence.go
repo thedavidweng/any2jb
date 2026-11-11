@@ -18,6 +18,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/thedavidweng/any2jb/internal/procgroup"
 	"github.com/thedavidweng/any2jb/session"
 )
 
@@ -135,6 +136,10 @@ func (a *Adapter) runInstaller(ctx context.Context, address string) error {
 	}
 	confirmation := &markerWriter{marker: installConfirmation}
 	cmd := exec.CommandContext(ctx, a.options.DeveloperInstallerPython, script, address)
+	if err := procgroup.Configure(cmd); err != nil {
+		return err
+	}
+	cmd.Cancel = func() error { return procgroup.Signal(cmd, true) }
 	cmd.Dir = filepath.Dir(script)
 	cmd.Stdout, cmd.Stderr = confirmation, confirmation
 	cmd.Env = append(os.Environ(), "PYTHONUNBUFFERED=1")
@@ -205,7 +210,6 @@ type backupReceiver struct {
 	size, written    int
 	digest           hash.Hash
 	checksum         hash.Hash32
-	final            string
 }
 
 func (r *backupReceiver) accept(line string) error {
@@ -360,7 +364,7 @@ func (r *backupReceiver) commit() (string, error) {
 	if err := os.Rename(r.temp, final); err != nil {
 		return "", err
 	}
-	r.final, r.temp = final, ""
+	r.temp = ""
 	return final, nil
 }
 

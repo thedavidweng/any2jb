@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -19,7 +20,7 @@ type toolAdapter interface {
 	Unavailable(tool, profileID string) string
 	State() retained.State
 	Select(titleID string) error
-	PrepareLauncher(context.Context, launcher.Request, savekit.Request) (string, savekit.Preview, error)
+	PreviewLauncher(context.Context, launcher.Request, savekit.Request) (savekit.Preview, error)
 }
 
 type toolsPanel struct {
@@ -59,7 +60,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	if a.tools != nil {
 		state = a.tools.State()
 	}
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.ToolsTitle()).FontSize(20).Bold()
 	ui.Text(c, locales.ToolsReadOnly()).TextColor(c.Theme().TextMuted)
 	switch {
@@ -113,7 +114,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		ui.Text(c, locales.ToolsGame())
 		ui.Select(c.Key("ouncecake-game"), &p.game, ids).Label(locales.ToolsGame())
 		if ui.Button(c.Key("ouncecake-select"), locales.ToolsGameSelect()).Disabled(p.game == "").Clicked() {
-			title, _, _ := cutTitle(p.game)
+			title, _, _ := strings.Cut(p.game, " ")
 			p.failed = a.tools.Select(title) != nil
 		}
 	}
@@ -134,10 +135,8 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	// A gated or excluded component states the recorded reason instead of an
 	// action; host capability booleans never decide this.
-	if a.manifest != nil {
-		if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
-			ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
-		}
+	if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
+		ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
 	}
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())
@@ -157,7 +156,7 @@ func (a *app) toolGate(s session.Snapshot, state retained.State, tool string) (b
 			reason = a.tools.Unavailable(tool, s.Profile.ID)
 		}
 	}
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	owned := state.Tool != "" && state.Tool != tool
 	return s.Busy || !leased || state.Lost || state.ModloaderInstalled || reason != "" || owned, reason
 }
@@ -178,7 +177,7 @@ func (a *app) runTool(tool, consoleIPv4 string) {
 
 func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	p := &a.toolsPanel
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.ToolsAttachNote())
 	if leased {
 		if s.Attached {
@@ -204,13 +203,4 @@ func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	if ui.Button(c.Key("rpc-attach"), locales.ToolsAttach()).Disabled(s.Busy || p.chosen == "").Clicked() {
 		a.command(a.controller.AttachRetained(p.chosen))
 	}
-}
-
-func cutTitle(label string) (string, string, bool) {
-	for i := range label {
-		if label[i] == ' ' {
-			return label[:i], label[i+1:], true
-		}
-	}
-	return label, "", false
 }

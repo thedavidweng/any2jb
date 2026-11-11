@@ -115,6 +115,7 @@ type State struct {
 	SaveKit        *SaveKitState
 	Lost           bool
 	CleanupBlocked bool
+	SaveKitBlocked string
 	// ModloaderInstalled records a verified modloader handoff. Its overlay
 	// stays resident until the console restarts, so no further tool may run
 	// in this boot.
@@ -127,7 +128,7 @@ type CommandFactory func(session.Run, session.ToolRequest, string) *exec.Cmd
 
 type Manager struct {
 	options       Options
-	command       CommandFactory
+	command       func(session.Run, session.ToolRequest, string) (*exec.Cmd, error)
 	mu            sync.Mutex
 	attached      string
 	active        *toolProcess
@@ -138,13 +139,17 @@ type Manager struct {
 
 func New(options Options) *Manager {
 	m := &Manager{options: options}
-	m.command = func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
+	m.command = func(run session.Run, request session.ToolRequest, workspace string) (*exec.Cmd, error) {
 		args := []string{options.Host, options.ToolRoot, request.Tool, workspace,
 			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool))}
 		if isHomebrew(request.Tool) || request.Tool == "modloader" {
-			args = append(args, m.homebrewConfig(run, request))
+			config, err := m.homebrewConfig(run, request)
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, config)
 		}
-		return exec.Command(options.Node, args...)
+		return exec.Command(options.Node, args...), nil
 	}
 	return m
 }
@@ -152,7 +157,7 @@ func New(options Options) *Manager {
 // homebrewConfig carries the validated launch configuration to the tool host
 // as one JSON argument. The host re-validates it against staged, digest-pinned
 // sources; this JSON is never trusted on its own.
-func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) string {
+func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) (string, error) {
 	config := map[string]any{
 		"profileID":       run.Profile.ID,
 		"engineSourceDir": m.options.EngineRoot,
@@ -160,9 +165,11 @@ func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) s
 		"supportDir":      m.options.Support,
 	}
 	if m.options.Manifest != nil {
-		if profile, err := m.options.Manifest.Profile(run.Profile.ID); err == nil {
-			config["sourceDirectory"] = profile.SourceDirectory
+		profile, err := m.options.Manifest.Profile(run.Profile.ID)
+		if err != nil {
+			return "", err
 		}
+		config["sourceDirectory"] = profile.SourceDirectory
 	}
 	if len(request.Modules) > 0 {
 		config["modules"] = request.Modules
@@ -180,16 +187,15 @@ func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) s
 		config["customHomebrewFolder"] = request.CustomHomebrewFolder
 	}
 	data, err := json.Marshal(config)
-	if err != nil {
-		return "{}"
-	}
-	return string(data)
+	return string(data), err
 }
 
 // NewProtocolManager supplies the tool process explicitly for fixtures. It does
 // not authorize upstream tool execution and is never used by the app entrypoint.
 func NewProtocolManager(options Options, command CommandFactory) *Manager {
-	return &Manager{options: options, command: command}
+	return &Manager{options: options, command: func(run session.Run, request session.ToolRequest, workspace string) (*exec.Cmd, error) {
+		return command(run, request, workspace), nil
+	}}
 }
 
 func dash(value string) string {
@@ -229,7 +235,7 @@ func (m *Manager) State() State {
 // Unavailable states why a tool cannot run, or "" when it can. Distribution
 // decisions come from the canonical manifest, never from host capabilities.
 func (m *Manager) Unavailable(tool, profileID string) string {
-	if slices.Contains(launcher.IDs, tool) {
+	if m.options.Manifest != nil && slices.Contains(launcher.IDs(m.options.Manifest), tool) {
 		if !slices.Contains(m.options.Staged, tool) {
 			return m.stagedReason(tool)
 		}
@@ -362,11 +368,11 @@ func (m *Manager) Watch(ctx context.Context, _ session.Run) error {
 		if workspace == "" {
 			return errors.New("no attached retained session")
 		}
-		outcome, err := engine.VerifyHeld(ctx, workspace)
+		_, err := engine.VerifyHeld(ctx, workspace)
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		if err != nil || !outcome.Valid(true) {
+		if err != nil {
 			m.mu.Lock()
 			m.state.Lost = true
 			m.mu.Unlock()

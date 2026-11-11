@@ -10,10 +10,11 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestCivSwitchPanelStatesUnavailableReasonWithoutSmileBASICControls(t *testing.T) {
-	a := &app{controller: session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"})}
+	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 900, 1800)
 	if err := tt.Click("CivSwitch"); err != nil {
 		t.Fatal(err)
@@ -87,9 +88,9 @@ func (a *civPanelAdapter) ControlCenter(ctx context.Context, address string, obs
 
 func verifiedCivSwitchPanel(t *testing.T, w *civPanelAdapter) (*app, *ui.Tester) {
 	t.Helper()
-	env := session.NewFakeEnvironment().Environment()
+	env := sessiontest.NewFakeEnvironment().Environment()
 	env.CivSwitch = w
-	a := &app{controller: session.New(env, session.Profile{ID: "test", Revision: "pinned"})}
+	a := testApp(t, session.New(env, session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 1000, 3200)
 	if err := tt.Click("CivSwitch"); err != nil {
 		t.Fatal(err)

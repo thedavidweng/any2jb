@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
@@ -18,7 +19,7 @@ func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "driver-loaded", State: session.RequiresAttention, GatesTransport: "usb-hid", NextAction: "Review driver approval."}}
 	if err := a.initializeSession(f.Environment()); err != nil {
 		t.Fatal(err)
@@ -89,9 +90,11 @@ func TestDriverPanelRequiresSecondConfirmationBeforeAdministrator(t *testing.T) 
 	}
 	called := make(chan string, 1)
 	release := make(chan struct{})
+	installed := make(chan func(), 1)
 	a.driverPanel = driverPanel{open: true, gate: driver.New(driver.Options{Manifest: a.manifest, DeveloperSourceRoot: root,
 		Administrator: func(_ context.Context, installer string) error { called <- installer; <-release; return nil },
 	})}
+	a.driverPanel.update = func(apply func()) { installed <- apply }
 	tt := ui.NewTester(a.view, 900, 2200)
 	if err := tt.Click("Approve driver installation"); err != nil {
 		t.Fatal(err)
@@ -118,11 +121,12 @@ func TestDriverPanelRequiresSecondConfirmationBeforeAdministrator(t *testing.T) 
 	case <-time.After(time.Minute):
 		t.Fatal("fake administrator was not reached")
 	}
-	// Receive the worker's result deterministically, then let the view consume it.
+	// Receive the worker's result deterministically, then apply it on this
+	// goroutine, as Window.Update does on the UI thread.
 	close(release)
 	select {
-	case done := <-a.driverPanel.completion:
-		a.driverPanel.completion <- done
+	case apply := <-installed:
+		apply()
 	case <-time.After(time.Minute):
 		t.Fatal("fake installation did not complete")
 	}

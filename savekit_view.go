@@ -41,6 +41,10 @@ type saveKitPanel struct {
 	writePreviewSource   string
 	restorePreviewSource string
 	confirmedReplace     bool
+	// A preview hashes a whole folder, so it runs off the UI thread and
+	// publishes through update; busy disables the controls until it lands.
+	busy   bool
+	update func(func())
 }
 
 // archiveLabel identifies one inventory archive in the archive selector.
@@ -57,7 +61,7 @@ func (a *app) saveKitView(c *ui.Context) {
 		state = a.tools.State()
 	}
 	observed := state.SaveKit
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.SaveKitTitle()).FontSize(20).Bold()
 	ui.Text(c, locales.SaveKitIntro()).TextColor(c.Theme().TextMuted)
 	switch {
@@ -73,13 +77,13 @@ func (a *app) saveKitView(c *ui.Context) {
 		reason = a.tools.Unavailable("savekit-read", s.Profile.ID)
 	}
 	if reason != "" {
-		ui.Text(c.Key("savekit-reason"), reason).TextColor(c.Theme().TextMuted)
+		ui.Text(c.Key("savekit-reason"), localize(reason)).TextColor(c.Theme().TextMuted)
 	}
 	owned := state.Tool != "" && state.Tool != "savekit-read" && state.Tool != "savekit"
 	if owned {
 		ui.Text(c.Key("savekit-owner"), locales.ToolsOwner(state.Tool)).TextColor(c.Theme().TextMuted)
 	}
-	ready := leased && !s.Busy && !state.Lost && reason == "" && !owned
+	ready := leased && !s.Busy && !state.Lost && !state.ModloaderInstalled && !state.CleanupBlocked && reason == "" && !owned
 
 	ui.Text(c, locales.SaveKitManual()).TextColor(c.Theme().TextMuted)
 	if ui.Button(c.Key("savekit-accounts"), locales.SaveKitAccounts()).Disabled(!ready).Clicked() {
@@ -170,10 +174,13 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 		writeReason = a.tools.Unavailable("savekit", s.Profile.ID)
 	}
 	if writeReason != "" {
-		ui.Text(c.Key("savekit-write-reason"), writeReason).TextColor(c.Theme().TextMuted)
+		ui.Text(c.Key("savekit-write-reason"), localize(writeReason)).TextColor(c.Theme().TextMuted)
 	}
-	blocked := observed != nil && observed.Write != nil && observed.Write.Failure != ""
+	blocked := state.SaveKitBlocked != ""
 	writeReady := ready && writeReason == "" && !blocked
+	if blocked && (observed == nil || observed.Write == nil || observed.Write.Failure == "") {
+		ui.Text(c.Key("savekit-write-blocked"), locales.SaveKitWriteBlocked()).Role(ui.RoleStatus)
+	}
 	ui.Text(c, locales.SaveKitWriteHint()).TextColor(c.Theme().TextMuted)
 
 	archive := savekit.Archive{Space: 1, Type: 1}
@@ -198,14 +205,8 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 		p.writePreviewSource = p.sourceFolder
 	}
 	if ui.Button(c.Key("savekit-preview-write"), locales.SaveKitPreviewWrite()).
-		Disabled(!writeReady || !defaultTarget || strings.TrimSpace(p.sourceFolder) == "").Clicked() {
-		preview, err := savekit.PreviewWrite(strings.TrimSpace(p.sourceFolder))
-		p.previewInvalid = err != nil
-		p.writePreview = nil
-		if err == nil {
-			p.writePreview = &preview
-		}
-		p.confirmWrite = false
+		Disabled(!writeReady || p.busy || !defaultTarget || strings.TrimSpace(p.sourceFolder) == "").Clicked() {
+		a.previewSaveKitWrite(strings.TrimSpace(p.sourceFolder))
 	}
 	if p.writePreview != nil {
 		ui.Text(c, locales.SaveKitPreviewFiles(fmt.Sprint(len(p.writePreview.Files)),
@@ -246,14 +247,8 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 		p.restorePreviewSource = p.restoreFolder
 	}
 	if ui.Button(c.Key("savekit-preview-restore"), locales.SaveKitPreviewRestore()).
-		Disabled(!writeReady || strings.TrimSpace(p.restoreFolder) == "").Clicked() {
-		preview, err := savekit.PreviewRestore(strings.TrimSpace(p.restoreFolder))
-		p.previewInvalid = err != nil
-		p.restorePreview = nil
-		if err == nil {
-			p.restorePreview = &preview
-		}
-		p.confirmRestore = false
+		Disabled(!writeReady || p.busy || strings.TrimSpace(p.restoreFolder) == "").Clicked() {
+		a.previewSaveKitRestore(strings.TrimSpace(p.restoreFolder))
 	}
 	ui.Text(c, locales.SaveKitRestoreHint()).TextColor(c.Theme().TextMuted)
 	if p.restorePreview != nil {
@@ -304,6 +299,11 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	remove.Action = "delete"
 	remove.FileName = p.deleteName
 	remove.Confirm = p.confirmDelete
+	// Delete has no separate preview step on purpose: what the user confirms is
+	// the exact file name above, and savekit.PreviewDelete derives the digest
+	// from that name alone. Unlike the write and restore previews it reads no
+	// filesystem, so computing it here reports nothing and cannot disagree with
+	// what the section shows.
 	remove.PreviewDigest = savekit.PreviewDelete(p.deleteName).Digest
 	if ui.Button(c.Key("savekit-delete"), locales.SaveKitDelete()).
 		Disabled(!writeReady || !defaultTarget || remove.Validate() != nil).Clicked() {
@@ -362,6 +362,55 @@ func (p *saveKitPanel) target(selected *savekit.Entry) savekit.Request {
 	}
 	return savekit.Request{TitleID: strings.ToLower(strings.TrimSpace(p.titleID)),
 		UID: p.account, All: p.all}
+}
+
+// previewSaveKitWrite hashes the chosen folder off the UI thread. The result
+// applies only if the panel still points at that folder, so a folder edited
+// during the scan never publishes someone else's preview.
+func (a *app) previewSaveKitWrite(folder string) {
+	p := &a.saveKit
+	if p.busy || p.update == nil {
+		return
+	}
+	p.busy, p.previewInvalid, p.writePreview, p.confirmWrite = true, false, nil, false
+	update := p.update
+	go func() {
+		preview, err := savekit.PreviewWrite(folder)
+		update(func() {
+			p.busy = false
+			if p.sourceFolder != folder {
+				return
+			}
+			p.previewInvalid = err != nil
+			if err == nil {
+				p.writePreview = &preview
+			}
+		})
+	}()
+}
+
+// previewSaveKitRestore verifies the chosen backup and hashes it off the UI
+// thread, with the same stale-result guard as a write preview.
+func (a *app) previewSaveKitRestore(folder string) {
+	p := &a.saveKit
+	if p.busy || p.update == nil {
+		return
+	}
+	p.busy, p.previewInvalid, p.restorePreview, p.confirmRestore = true, false, nil, false
+	update := p.update
+	go func() {
+		preview, err := savekit.PreviewRestore(folder)
+		update(func() {
+			p.busy = false
+			if p.restoreFolder != folder {
+				return
+			}
+			p.previewInvalid = err != nil
+			if err == nil {
+				p.restorePreview = &preview
+			}
+		})
+	}()
 }
 
 func (a *app) runSaveKit(request savekit.Request) {

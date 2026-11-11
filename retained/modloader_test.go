@@ -29,7 +29,7 @@ func TestModloaderAndCustomHomebrewStateTheirRecordedReason(t *testing.T) {
 
 func TestModloaderCompletionLocksToolsUntilReboot(t *testing.T) {
 	runner, run, support := heldSession(t)
-	m := manager(t, support, runner, "ok", append([]string{"modloader"}, homebrewStaged...)...)
+	m := savekitManager(t, support, runner, "ok", append([]string{"modloader", "savekit"}, homebrewStaged...)...)
 	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir()}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
@@ -37,7 +37,7 @@ func TestModloaderCompletionLocksToolsUntilReboot(t *testing.T) {
 	if state := m.State(); !state.ModloaderInstalled || state.Tool != "" {
 		t.Fatalf("a verified modloader handoff was not recorded: %+v", state)
 	}
-	for _, tool := range []string{"rpc-status", "mintbrew", "modloader"} {
+	for _, tool := range []string{"rpc-status", "mintbrew", "modloader", "savekit", "savekit-read"} {
 		err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: tool}, func(session.Progress) {})
 		if err == nil || !strings.Contains(err.Error(), "restart") {
 			t.Fatalf("%s ran while the modloader overlay is active: %v", tool, err)

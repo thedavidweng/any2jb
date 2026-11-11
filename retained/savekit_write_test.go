@@ -138,6 +138,33 @@ func TestSaveKitWriteRunsTheFullGate(t *testing.T) {
 	}
 }
 
+func TestSaveKitFailureBlockSurvivesOtherOperations(t *testing.T) {
+	for _, next := range []string{"verify", "rpc-status"} {
+		t.Run(next, func(t *testing.T) {
+			runner, run, support := heldSession(t)
+			m := savekitManager(t, support, runner, "write-unverified", "savekit")
+			source, preview := writeSourceFolder(t, map[string]string{"extra.bin": "extra\n"})
+			request := writeRequest(t, source, preview, false)
+			if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err == nil {
+				t.Fatal("fixture mutation did not fail")
+			}
+			other := session.ToolRequest{Tool: next}
+			if next == "verify" {
+				other = session.ToolRequest{Tool: "savekit", SaveKit: &savekit.Request{
+					Action: "verify", TitleID: writeTitle, UID: writeUID,
+					ExpectedFolder: exportFolder(t, map[string]string{"savegame.bin": "save data\n"})}}
+			}
+			if err := m.RunWith(context.Background(), run, other, func(session.Progress) {}); err != nil {
+				t.Fatal(err)
+			}
+			err := m.RunWith(context.Background(), run, request, func(session.Progress) {})
+			if err == nil || !strings.Contains(err.Error(), "restart the console before another save operation") {
+				t.Fatalf("failure latch was cleared by %s: %v", next, err)
+			}
+		})
+	}
+}
+
 func TestSaveKitWriteAbortsWhenTheBackupFails(t *testing.T) {
 	log := fixtureLog(t)
 	runner, run, support := heldSession(t)
@@ -205,6 +232,33 @@ func TestSaveKitWriteRefusesAnUnpreviewedSource(t *testing.T) {
 	}
 	if ops := loggedOps(t, log); len(ops) != 0 {
 		t.Fatalf("a host call ran before preview validation: %v", ops)
+	}
+}
+
+func TestSaveKitWritesConfirmedSnapshotWhenSourceChangesDuringBackup(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := savekitManager(t, support, runner, "ok", "savekit")
+	source, preview := writeSourceFolder(t, map[string]string{"extra.bin": "confirmed\n"})
+	changed := false
+	err := m.RunWith(context.Background(), run, writeRequest(t, source, preview, false), func(p session.Progress) {
+		if p.SideEffect && !changed {
+			changed = true
+			if err := os.WriteFile(filepath.Join(source, "extra.bin"), []byte("unconfirmed\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
+	if err != nil {
+		t.Fatalf("the confirmed source was not isolated before backup: %v", err)
+	}
+	if !changed || !m.State().SaveKit.Write.Verified {
+		t.Fatal("fixture did not change the external source during the verified write")
+	}
+	expected := exportFolder(t, map[string]string{"savegame.bin": "save data\n", "extra.bin": "confirmed\n"})
+	err = m.RunWith(context.Background(), run, session.ToolRequest{Tool: "savekit", SaveKit: &savekit.Request{
+		Action: "verify", TitleID: writeTitle, UID: writeUID, ExpectedFolder: expected}}, func(session.Progress) {})
+	if err != nil {
+		t.Fatalf("unconfirmed bytes reached the live save: %v", err)
 	}
 }
 

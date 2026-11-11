@@ -103,7 +103,7 @@ func verifyResult(ctx context.Context, workspace string, held bool) (session.Out
 		}
 		return o, nil
 	}
-	if result.Completed != "" || !o.RetainedReady || !o.CleanupDeferred || !o.DonorCleanedUp ||
+	if result.Completed != "" || o.CleanedUp || !o.RetainedReady || !o.CleanupDeferred || !o.DonorCleanedUp ||
 		!o.RPCListening || result.FS.RetainedEndpoint.Session != filepath.Base(workspace) {
 		return session.Outcome{}, errors.New("held engine verification incomplete")
 	}

@@ -1,13 +1,16 @@
-package session
+package session_test
 
 import (
 	"context"
 	"errors"
 	"testing"
+
+	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type recoveryPlatform struct {
-	PlatformServices
+	session.PlatformServices
 	releaseError error
 	calls        int
 }
@@ -19,10 +22,10 @@ func (p *recoveryPlatform) ReleaseInterrupted(context.Context) error {
 
 func TestConsoleRestartRequiresConfirmationAndLeaseRelease(t *testing.T) {
 	for _, releaseError := range []error{nil, errors.New("session owner is still alive")} {
-		env := NewFakeEnvironment().Environment()
+		env := sessiontest.NewFakeEnvironment().Environment()
 		platform := &recoveryPlatform{PlatformServices: env.Platform, releaseError: releaseError}
 		env.Platform = platform
-		c := New(env, Profile{ID: "pinned"})
+		c := session.New(env, session.Profile{ID: "pinned"})
 		c.MarkInterrupted()
 		if _, err := c.ConfirmConsoleRestart(context.Background(), false); err == nil || platform.calls != 0 {
 			t.Fatal("recovery without explicit console restart confirmation")
@@ -32,10 +35,10 @@ func TestConsoleRestartRequiresConfirmationAndLeaseRelease(t *testing.T) {
 			t.Fatal("stale lease release was skipped")
 		}
 		if releaseError != nil {
-			if !errors.Is(err, releaseError) || s.Stage != Indeterminate || s.Recovery != RestartConsole {
+			if !errors.Is(err, releaseError) || s.Stage != session.Indeterminate || s.Recovery != session.RestartConsole {
 				t.Fatalf("unsafe recovery: %+v %v", s, err)
 			}
-		} else if err != nil || s.Stage != Idle || s.SideEffects || s.Recovery != NoRecovery ||
+		} else if err != nil || s.Stage != session.Idle || s.SideEffects || s.Recovery != session.NoRecovery ||
 			s.Outcome.Verified || len(s.Checks) != 0 || s.CanStart() {
 			t.Fatalf("recovery reused stale readiness or verification: %+v %v", s, err)
 		}
@@ -43,12 +46,12 @@ func TestConsoleRestartRequiresConfirmationAndLeaseRelease(t *testing.T) {
 }
 
 func TestRelaunchNeverAdoptsStaleVerification(t *testing.T) {
-	c := New(NewFakeEnvironment().Environment(), Profile{ID: "pinned"})
+	c := session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "pinned"})
 	s, err := c.MarkInterrupted()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if s.Stage != Indeterminate || s.Recovery != RestartConsole || s.Outcome.Verified || s.CanStart() {
+	if s.Stage != session.Indeterminate || s.Recovery != session.RestartConsole || s.Outcome.Verified || s.CanStart() {
 		t.Fatal(s)
 	}
 	if _, err := c.Start(); err == nil {

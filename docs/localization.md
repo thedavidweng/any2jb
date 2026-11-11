@@ -18,7 +18,14 @@ detection, no app code needed.
   manifest adapters is mapped segment-wise in `localize.go`
   (`dynamicSegments`). Add one entry per adapter sentence, keeping `source`
   byte-identical to the adapter's English literal;
-  `TestDynamicSegmentsMatchSourceCatalog` fails on drift.
+  `TestDynamicSegmentsMatchSourceCatalog` fails on drift. Entries are sorted
+  longest-first at init, so a sentence matches its longest source.
+- `TestAdapterMessagesAreLocalized` reads the adapters' own literals — every
+  `Check` message and next action, and the errors `Availability`,
+  `Unavailable` and `CivSwitchUnavailable` return — and requires each to be a
+  segment or to be built from segments around its format verbs. Adapter text
+  that the views pass through `localize` therefore cannot fall through in
+  English.
 
 ## zh-CN term list
 

@@ -21,7 +21,7 @@ type homebrewPanel struct {
 // or an unstaged component states its reason, and one owner runs at a time.
 func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.State) {
 	p := &a.homebrewPanel
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.HbTitle()).FontSize(16).Bold()
 	ui.Text(c, locales.HbNote()).TextColor(c.Theme().TextMuted)
 	mintbrew, mintbrewReason := a.toolGate(s, state, "mintbrew")
@@ -59,7 +59,7 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 // handoff locks every tool until the console restarts, and the view says so.
 func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.State) {
 	p := &a.homebrewPanel
-	leased := s.Stage == session.RetainedRPC || s.Stage == session.RunningTool
+	leased := s.Leased()
 	ui.Text(c, locales.ModTitle()).FontSize(16).Bold()
 	ui.Text(c, locales.ModNote()).TextColor(c.Theme().TextMuted)
 	if state.ModloaderInstalled {

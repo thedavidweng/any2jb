@@ -13,6 +13,7 @@ import (
 	"github.com/thedavidweng/any2jb/civswitch"
 	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/engine"
+	"github.com/thedavidweng/any2jb/internal/devlaunch"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
@@ -22,6 +23,7 @@ import (
 type app struct {
 	bootstrapMu        sync.Mutex
 	developerStaged    bool
+	startupError       string
 	bootstrapReuse     bool
 	bootstrapError     bool
 	allowOverwrite     bool
@@ -52,15 +54,15 @@ func (a *app) view(c *ui.Context) {
 	if a.controller != nil {
 		a.keyboard.observe(a.controller.Snapshot())
 	}
-	if a.keyboard.forwarding && (!a.keyboard.open || a.driverPanel.open || a.civSwitchPanel.open) {
-		a.stopKeyboard()
-	}
 	ui.Scroll(c).Fill().Children(func() {
 		ui.Column(c).FillWidth().Gap(16).Padding(24).Children(func() {
 			ui.Text(c, locales.AppName()).FontSize(28).Bold()
 			ui.Text(c, locales.AppDescription()).TextColor(c.Theme().TextMuted)
 			if a.developerStaged {
 				ui.Text(c, locales.DeveloperStaged()).Bold()
+			}
+			if a.startupError != "" {
+				ui.Text(c.Key("startup-error"), a.startupError).Role(ui.RoleStatus).Bold()
 			}
 			if a.driverPanel.open {
 				a.driverView(c)
@@ -81,15 +83,14 @@ func (a *app) view(c *ui.Context) {
 			if a.controller != nil {
 				s := a.controller.Snapshot()
 				if ui.Button(c.Key("civ-open"), locales.CivTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+					a.stopKeyboard()
 					a.civSwitchPanel.open = true
 				}
 				if ui.Button(c.Key("tools-open"), locales.ToolsTitle()).Disabled(s.Busy || s.CivSwitch || s.Stage == session.Indeterminate).Clicked() {
 					a.toolsPanel.open = true
 				}
 			}
-			if a.manifest != nil {
-				a.profileView(c)
-			}
+			a.profileView(c)
 			if a.controller == nil {
 				ui.Text(c, locales.NoSession())
 			} else {
@@ -130,14 +131,11 @@ func main() {
 		log.Fatal(err)
 	}
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
-	// This is the only developer launch input. Production builds and packaged
-	// development bundles do not even read the environment variable.
-	var developer developerLaunch
-	if mygo.IsDev() && !mygo.App.IsPackaged() {
-		developer, err = loadDeveloperLaunch(os.Getenv("ANY2JB_DEVELOPER_CONFIG"), true)
-		if err != nil {
-			log.Fatal("developer launch configuration: ", err)
-		}
+	// This is the only developer launch input; it is read only when the build
+	// may use it.
+	developer, err := devlaunch.Load(os.Getenv("ANY2JB_DEVELOPER_CONFIG"))
+	if err != nil {
+		log.Fatal("developer launch configuration: ", err)
 	}
 	if developer.SourceRoot != "" {
 		options.Assets = developer.Assets
@@ -175,16 +173,15 @@ func main() {
 		go func() {
 			civOptions := civswitch.Options{DeveloperInstallerPython: developer.InstallerPython}
 			if developer.SourceRoot != "" {
-				var err error
-				built, buildErr := transport.BuildDeveloperHelpers(context.Background(), developer.SourceRoot, support, a.manifest, io.Discard)
-				err = buildErr
+				built, err := transport.BuildDeveloperHelpers(context.Background(), developer.SourceRoot, support, a.manifest, io.Discard)
 				if err != nil {
-					log.Fatal("developer USB helper staging: ", err)
+					win.Update(func() { a.startupError = locales.DeveloperStagingFailed(err.Error()) })
+					return
 				}
 				inputOptions.Helpers = built
-				civOptions.DeveloperHelperPath, civOptions.DeveloperHelperSHA256, err = built.CompositeHelper()
-				if err != nil {
-					log.Fatal("developer composite helper staging: ", err)
+				if civOptions.DeveloperHelperPath, civOptions.DeveloperHelperSHA256, err = built.CompositeHelper(); err != nil {
+					win.Update(func() { a.startupError = locales.DeveloperStagingFailed(err.Error()) })
+					return
 				}
 			}
 			env := productionEnvironmentWithCivSwitch(options, inputOptions, civOptions)
@@ -202,6 +199,9 @@ func main() {
 				a.startDiagnostics(win, store)
 				a.toolsPanel.update = win.Update
 				a.launcherPanel.update = win.Update
+				a.saveKit.update = win.Update
+				a.driverPanel.update = win.Update
+				a.restart.update = win.Update
 				if recoveryErr != nil {
 					a.diagnostic.failed = true
 				}

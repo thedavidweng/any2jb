@@ -1,22 +1,26 @@
-package session
+// Package sessiontest provides the deterministic session test double. It is
+// linked only into test binaries; production builds never import it.
+package sessiontest
 
 import (
 	"context"
 	"errors"
 	"sync"
+
+	"github.com/thedavidweng/any2jb/session"
 )
 
-// FakeEnvironment is only injected explicitly by tests/developer previews.
+// FakeEnvironment is only injected explicitly by tests.
 // Configure outcomes before constructing the controller; do not mutate while running.
 type FakeEnvironment struct {
 	mu              sync.Mutex
 	trace           []string
-	Prepared        PreparedHost
-	PrepareProgress Progress
+	Prepared        session.PreparedHost
+	PrepareProgress session.Progress
 	InspectGate     <-chan struct{}
-	Checks          []Check
-	Outcome         Outcome
-	FinishOutcome   Outcome
+	Checks          []session.Check
+	Outcome         session.Outcome
+	FinishOutcome   session.Outcome
 	PrepareGate     <-chan struct{}
 	InputGate       <-chan struct{}
 	ToolGate        <-chan struct{}
@@ -28,26 +32,26 @@ type FakeEnvironment struct {
 	ToolError       error
 	HostExitGate    <-chan struct{}
 
-	RetainedSessions []RetainedSession
-	AttachOutcome    Outcome
+	RetainedSessions []session.RetainedSession
+	AttachOutcome    session.Outcome
 	AttachError      error
 	DetachError      error
 	RetainedLostGate <-chan struct{}
-	ToolRequest      ToolRequest
+	ToolRequest      session.ToolRequest
 }
 
 func NewFakeEnvironment() *FakeEnvironment {
 	return &FakeEnvironment{
-		Prepared: PreparedHost{Listening: true, PairingValid: true},
-		Checks:   []Check{{ID: "simulated", State: CheckVerified, Message: "Simulated readiness, not a real hardware check."}},
-		Outcome: Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true,
+		Prepared: session.PreparedHost{Listening: true, PairingValid: true},
+		Checks:   []session.Check{{ID: "simulated", State: session.CheckVerified, Message: "Simulated readiness, not a real hardware check."}},
+		Outcome: session.Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true,
 			RetainedReady: true, CleanupDeferred: true, DonorCleanedUp: true, RPCListening: true},
-		FinishOutcome: Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true},
+		FinishOutcome: session.Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true},
 	}
 }
-func (f *FakeEnvironment) Environment() Environment {
-	return Environment{Host: fakeHost{f}, Retained: fakeRetained{f}, Input: fakeInput{f},
-		Platform: fakePlatform{f}, Tools: fakeTools{f}, Simulated: true}
+func (f *FakeEnvironment) Environment() session.Environment {
+	return session.Environment{Host: fakeHost{f}, Retained: fakeRetained{f}, Input: fakeInput{f},
+		Platform: fakePlatform{f}, Tools: fakeTools{f}}
 }
 func (f *FakeEnvironment) record(action string) {
 	f.mu.Lock()
@@ -73,20 +77,20 @@ func gate(ctx context.Context, ch <-chan struct{}) error {
 
 type fakeHost struct{ f *FakeEnvironment }
 
-func (h fakeHost) Prepare(ctx context.Context, _ Run, report Report) (PreparedHost, error) {
+func (h fakeHost) Prepare(ctx context.Context, _ session.Run, report session.Report) (session.PreparedHost, error) {
 	h.f.record("host.prepare")
 	report(h.f.PrepareProgress)
 	if err := gate(ctx, h.f.PrepareGate); err != nil {
-		return PreparedHost{}, err
+		return session.PreparedHost{}, err
 	}
 	h.f.record("host.prepared")
 	return h.f.Prepared, h.f.PrepareError
 }
-func (h fakeHost) Run(context.Context, Run, PreparedHost, Report) (Outcome, error) {
+func (h fakeHost) Run(context.Context, session.Run, session.PreparedHost, session.Report) (session.Outcome, error) {
 	h.f.record("host.run")
 	return h.f.Outcome, h.f.RunError
 }
-func (h fakeHost) Wait(ctx context.Context, _ Run) error {
+func (h fakeHost) Wait(ctx context.Context, _ session.Run) error {
 	if err := gate(ctx, h.f.HostExitGate); err != nil {
 		return err
 	}
@@ -97,79 +101,68 @@ func (h fakeHost) Wait(ctx context.Context, _ Run) error {
 	}
 	return errors.New("simulated host exited")
 }
-func (h fakeHost) Finish(context.Context, Run) (Outcome, error) {
+func (h fakeHost) Finish(context.Context, session.Run) (session.Outcome, error) {
 	h.f.record("host.finish")
 	return h.f.FinishOutcome, nil
 }
-func (h fakeHost) Cleanup(context.Context, Run) error {
+func (h fakeHost) Cleanup(context.Context, session.Run) error {
 	h.f.record("host.cleanup")
 	return h.f.CleanupError
 }
 
 type fakeInput struct{ f *FakeEnvironment }
 
-func (i fakeInput) Send(ctx context.Context, _ Run, action InputAction, _ PreparedHost, report Report) error {
+func (i fakeInput) Send(ctx context.Context, _ session.Run, action session.InputAction, _ session.PreparedHost, report session.Report) error {
 	i.f.record("input." + string(action))
-	report(Progress{SideEffect: true})
+	report(session.Progress{SideEffect: true})
 	if err := gate(ctx, i.f.InputGate); err != nil {
 		return err
 	}
 	return i.f.InputError
 }
-func (i fakeInput) Release(context.Context, Run) error {
+func (i fakeInput) Release(context.Context, session.Run) error {
 	i.f.record("input.release")
 	return i.f.CleanupError
 }
 
 type fakePlatform struct{ f *FakeEnvironment }
 
-func (p fakePlatform) Inspect(ctx context.Context, _ Run) ([]Check, error) {
+func (p fakePlatform) Inspect(ctx context.Context, _ session.Run) ([]session.Check, error) {
 	p.f.record("platform.inspect")
 	if err := gate(ctx, p.f.InspectGate); err != nil {
 		return nil, err
 	}
 	return p.f.Checks, p.f.InspectError
 }
-func (p fakePlatform) ExportDiagnostics(context.Context, Snapshot) (string, error) {
+func (p fakePlatform) ExportDiagnostics(context.Context, session.Snapshot) (string, error) {
 	return "simulated diagnostics; no real check performed", nil
 }
-func (p fakePlatform) Credentials() CredentialStore             { return fakeCredentials{} }
 func (p fakePlatform) ReleaseInterrupted(context.Context) error { return nil }
-
-type fakeCredentials struct{}
-
-func (fakeCredentials) Get(context.Context, string) ([]byte, error) {
-	return nil, errors.New("no simulated credential")
-}
-func (fakeCredentials) Set(context.Context, string, []byte) error {
-	return errors.New("fake environment does not store secrets")
-}
-func (fakeCredentials) Delete(context.Context, string) error { return nil }
 
 type fakeRetained struct{ f *FakeEnvironment }
 
-func (r fakeRetained) Discover(context.Context) ([]RetainedSession, error) {
+func (r fakeRetained) Discover(context.Context) ([]session.RetainedSession, error) {
 	r.f.record("retained.discover")
 	return r.f.RetainedSessions, nil
 }
-func (r fakeRetained) Attach(_ context.Context, _ Run, id string) (Outcome, error) {
+func (r fakeRetained) Attach(_ context.Context, _ session.Run, id string) (session.Outcome, error) {
 	r.f.record("retained.attach")
 	for _, s := range r.f.RetainedSessions {
 		if s.ID != id {
 			continue
 		}
-		if r.f.AttachOutcome != (Outcome{}) {
+		if r.f.AttachOutcome != (session.Outcome{}) {
 			return r.f.AttachOutcome, r.f.AttachError
 		}
 		return r.f.Outcome, r.f.AttachError
 	}
-	return Outcome{}, errors.New("no simulated session with that identity")
+	return session.Outcome{}, errors.New("no simulated session with that identity")
 }
-func (r fakeRetained) Detach(context.Context, Run) error {
+func (r fakeRetained) Detach(context.Context, session.Run) error {
 	r.f.record("retained.detach")
 	return r.f.DetachError
 }
-func (r fakeRetained) Watch(ctx context.Context, _ Run) error {
+func (r fakeRetained) Watch(ctx context.Context, _ session.Run) error {
 	if err := gate(ctx, r.f.RetainedLostGate); err != nil {
 		return err
 	}
@@ -182,17 +175,17 @@ func (r fakeRetained) Watch(ctx context.Context, _ Run) error {
 
 type fakeTools struct{ f *FakeEnvironment }
 
-func (t fakeTools) Run(ctx context.Context, _ Run, _ string, _ Report) error {
+func (t fakeTools) Run(ctx context.Context, _ session.Run, _ string, _ session.Report) error {
 	if err := gate(ctx, t.f.ToolGate); err != nil {
 		return err
 	}
 	return t.f.ToolError
 }
-func (t fakeTools) RunWith(ctx context.Context, run Run, request ToolRequest, report Report) error {
+func (t fakeTools) RunWith(ctx context.Context, run session.Run, request session.ToolRequest, report session.Report) error {
 	t.f.mu.Lock()
 	t.f.trace = append(t.f.trace, "tool.run-with "+request.Tool)
 	t.f.ToolRequest = request
 	t.f.mu.Unlock()
 	return t.Run(ctx, run, request.Tool, report)
 }
-func (t fakeTools) Stop(context.Context, Run) error { return t.f.CleanupError }
+func (t fakeTools) Stop(context.Context, session.Run) error { return t.f.CleanupError }

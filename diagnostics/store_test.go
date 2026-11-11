@@ -68,6 +68,17 @@ func TestMultilineAndMalformedJSONFailClosed(t *testing.T) {
 	}
 }
 
+func TestRedactNetworkAddressesAndSerials(t *testing.T) {
+	for _, value := range []string{"192.0.2.50", "02:00:5e:10:00:00", "02-00-5E-10-00-00", "TEST12345678"} {
+		for _, raw := range []string{"connected to " + value, `{"message":"connected to ` + value + `"}`} {
+			got := Redact(raw)
+			if strings.Contains(got, value) || !strings.Contains(got, "[redacted]") {
+				t.Fatalf("identifier leaked: %q", got)
+			}
+		}
+	}
+}
+
 func TestCaptureRefusesSymlinkToPrivateData(t *testing.T) {
 	s := Store{Support: t.TempDir()}
 	workspace := t.TempDir()

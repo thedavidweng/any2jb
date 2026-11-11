@@ -3,6 +3,7 @@ package transport_test
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -82,35 +83,6 @@ func TestControllerLeaseExcludesAnotherTransportUntilRelease(t *testing.T) {
 	}
 	if err := other.Close(ctx); err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestLivePasteMatchesSmileBASICCaseAndDoesNotSubmit(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "reports")
-	d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()}, helperFactory(t, path))
-	k, err := d.OpenKeyboard(context.Background(), session.Run{ID: "paste"}, func(session.Progress) {})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := k.Paste(context.Background(), "Aa0)"); err != nil {
-		t.Fatal(err)
-	}
-	if err := k.Close(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	got, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []byte{
-		0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		2, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		2, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-	}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("reports %v, want %v", got, want)
 	}
 }
 
@@ -279,5 +251,20 @@ func TestLateAcknowledgementOfCancelledSendIsNotNeutralReleaseEvidence(t *testin
 	}
 	if err := d.Release(context.Background(), run); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestUnconfirmedNeutralReleaseIsTyped(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "reports")
+	d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming()},
+		fixtureEnv(helperFactory(t, path), "ANY2JB_NO_ACK=1"))
+	k, err := d.OpenKeyboard(context.Background(), session.Run{ID: "unconfirmed"}, func(session.Progress) {})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+	if err := k.Close(ctx); !errors.Is(err, session.ErrReleaseUnconfirmed) {
+		t.Fatalf("release error was not typed: %v", err)
 	}
 }

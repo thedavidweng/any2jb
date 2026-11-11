@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -24,7 +25,7 @@ func TestPreferencesReload(t *testing.T) {
 	if err != nil || b.preferences != a.preferences {
 		t.Fatalf("reload: %+v %v", b, err)
 	}
-	if err := b.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := b.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	s := b.controller.Snapshot()

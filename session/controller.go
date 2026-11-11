@@ -29,8 +29,7 @@ func New(env Environment, profile Profile) *SessionController {
 	profile.Editions = slices.Clone(profile.Editions)
 	return &SessionController{env: env, changes: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
 		Edition:   "full",
-		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
-		Simulated: env.Simulated}}
+		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}}}}
 }
 func (c *SessionController) snapshot() Snapshot {
 	s := c.s
@@ -126,6 +125,7 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		c.started = time.Now()
 		c.s.SideEffects = false
 		c.s.Outcome = Outcome{}
+		c.s.ReleaseUnconfirmed = false
 		c.s.CleanupConfirmed = false
 		c.s.Current, c.s.Total = 0, 0
 		c.s.Remaining, c.s.HasEstimate = 0, false
@@ -164,6 +164,8 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 			requested = c.requested
 			if c.s.SideEffects || cleanupErr != nil || requested == Indeterminate {
 				c.s.Recovery = RestartConsole
+				// A required console restart invalidates the old run's verification.
+				c.s.Outcome = Outcome{}
 				c.transition(Indeterminate)
 			} else if requested == Ready {
 				c.s.Recovery = RetrySafe
@@ -177,6 +179,12 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 			}
 			if cleanupErr != nil {
 				c.emit(Error, AdapterFailure, "Resource cleanup could not be confirmed.")
+			}
+			// A key may be stuck down on the console. The instruction is
+			// emitted on cancel/stop paths too, after the redacted messages.
+			if errors.Is(err, ErrReleaseUnconfirmed) || errors.Is(cleanupErr, ErrReleaseUnconfirmed) {
+				c.s.ReleaseUnconfirmed = true
+				c.emit(Error, AdapterFailure, ReleaseUnconfirmedWarning)
 			}
 			c.mu.Unlock()
 		}
@@ -385,14 +393,23 @@ func (c *SessionController) Start() (Snapshot, error) {
 	if !c.s.CanStart() {
 		return c.reject(InvalidConfiguration)
 	}
+	override := c.s.LANOverride
 	return c.begin(PreparingHost, true, func(ctx context.Context, run Run) error {
 		// Re-observe the selected address before any host or console side effect.
+		run.LANIPv4 = override
 		checks, err := c.env.Platform.Inspect(ctx, run)
 		if err != nil {
 			return err
 		}
 		c.mu.Lock()
 		c.s.Checks = slices.Clone(checks)
+		c.s.LANIPv4 = override
+		for _, check := range checks {
+			if check.ID == "network" && check.State == CheckVerified && check.LANIPv4 != "" {
+				c.s.LANIPv4 = check.LANIPv4
+			}
+		}
+		run.LANIPv4 = c.s.LANIPv4
 		c.mu.Unlock()
 		if len(checks) == 0 || slices.ContainsFunc(checks, func(check Check) bool { return check.Blocks(run.Transport) }) {
 			return errors.New("readiness changed before launch")

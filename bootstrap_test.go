@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestReloadedBootstrapStartsWithoutRepeatingSetupAfterFreshReadiness(t *testing.T) {
@@ -16,12 +17,12 @@ func TestReloadedBootstrapStartsWithoutRepeatingSetupAfterFreshReadiness(t *test
 	if err := a.savePreferences(); err != nil {
 		t.Fatal(err)
 	}
-	a.initializeSession(session.NewFakeEnvironment().Environment())
+	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
 	if err := a.confirmExistingBootstrap(); err != nil {
 		t.Fatal(err)
 	}
 	b, _ := loadApp(path)
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	if err := b.initializeSession(f.Environment()); err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +57,7 @@ func TestConfirmedBootstrapSurvivesReloadWithoutRestoringReadiness(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := a.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	if err := a.confirmExistingBootstrap(); err != nil {
@@ -70,7 +71,7 @@ func TestConfirmedBootstrapSurvivesReloadWithoutRestoringReadiness(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := b.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := b.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	if s := b.controller.Snapshot(); !s.BootstrapSaved || s.CanStart() || len(s.Checks) != 0 {
@@ -87,7 +88,7 @@ func TestConfirmedBootstrapSurvivesReloadWithoutRestoringReadiness(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := c.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := c.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	if c.controller.Snapshot().BootstrapSaved {
@@ -100,7 +101,7 @@ func TestOnlyCompletedSaveProducesBootstrapRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := a.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	c := a.controller
@@ -123,7 +124,7 @@ func TestOnlyCompletedSaveProducesBootstrapRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	b, _ := loadApp(a.preferencesPath)
-	if err := b.initializeSession(session.NewFakeEnvironment().Environment()); err != nil {
+	if err := b.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
 	if !b.controller.Snapshot().BootstrapSaved {

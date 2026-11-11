@@ -22,7 +22,7 @@ type Store struct{ Support string }
 type Logs struct{ Host, USB, Pipeline, Acquisition string }
 
 var sensitive = regexp.MustCompile(`(?i)token|pairing|secret|password|authorization|cookie|account|user.?id|private.?key|access.?key|api.?key|credential|save.?data|\bkey\b|START\s*\(`)
-var identifiers = regexp.MustCompile(`(?i)\b(?:0x)?[0-9a-f]{16,}\b|\b[0-9]{8,}\b|(?:/Users/|/home/)[^\s"'<>]+`)
+var identifiers = regexp.MustCompile(`(?i)\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b|\b(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\b|\b[A-Z]{2,4}[0-9]{8,}\b|\b(?:0x)?[0-9a-f]{16,}\b|\b[0-9]{8,}\b|(?:/Users/|/home/)[^\s"'<>]+`)
 
 // Redact omits unknown JSON fields, whole sensitive lines and opaque identifiers.
 // Raw binary/private save artifacts are never read.

@@ -988,6 +988,16 @@ func (msgs Messages) ToolsNotPermitted() string {
 	return Catalog.Format(msgs.locale, "toolsNotPermitted", nil)
 }
 
+// ToolRunning says "{tool} is running and owns the console. Stop it before starting another tool."
+// in the language the app shows.
+func ToolRunning(tool string) string { return In(i18n.Locale()).ToolRunning(tool) }
+
+// ToolRunning says "{tool} is running and owns the console. Stop it before starting another tool."
+// in the language of msgs.
+func (msgs Messages) ToolRunning(tool string) string {
+	return Catalog.Format(msgs.locale, "toolRunning", map[string]any{"tool": tool})
+}
+
 // ToolsOwner says "{tool} owns the retained session. Stop it before starting another tool."
 // in the language the app shows.
 func ToolsOwner(tool string) string { return In(i18n.Locale()).ToolsOwner(tool) }
@@ -1800,6 +1810,16 @@ func (msgs Messages) SaveKitWriteVerified(action string, files string, replaced 
 	return Catalog.Format(msgs.locale, "saveKitWriteVerified", map[string]any{"action": action, "files": files, "replaced": replaced, "path": path})
 }
 
+// SaveKitWriteBlocked says "A save operation failed. Further save writes, restores and deletes are blocked until the console restarts."
+// in the language the app shows.
+func SaveKitWriteBlocked() string { return In(i18n.Locale()).SaveKitWriteBlocked() }
+
+// SaveKitWriteBlocked says "A save operation failed. Further save writes, restores and deletes are blocked until the console restarts."
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteBlocked() string {
+	return Catalog.Format(msgs.locale, "saveKitWriteBlocked", nil)
+}
+
 // SaveKitWriteFailed says "The save operation failed. The verified backup is kept at {path}. Finish this session and restart the console before …"
 // in the language the app shows.
 func SaveKitWriteFailed(path string) string { return In(i18n.Locale()).SaveKitWriteFailed(path) }
@@ -1970,16 +1990,6 @@ func AboutBuild() string { return In(i18n.Locale()).AboutBuild() }
 // Toggle the development build limitations.
 func (msgs Messages) AboutBuild() string {
 	return Catalog.Format(msgs.locale, "aboutBuild", nil)
-}
-
-// SimulatedEnvironment says "Simulated environment. No real hardware checks."
-// in the language the app shows.
-func SimulatedEnvironment() string { return In(i18n.Locale()).SimulatedEnvironment() }
-
-// SimulatedEnvironment says "Simulated environment. No real hardware checks."
-// in the language of msgs.
-func (msgs Messages) SimulatedEnvironment() string {
-	return Catalog.Format(msgs.locale, "simulatedEnvironment", nil)
 }
 
 // Home says "Home"
@@ -3748,6 +3758,16 @@ func (msgs Messages) DynRecOwnerAlive() string {
 	return Catalog.Format(msgs.locale, "dynRecOwnerAlive", nil)
 }
 
+// DynReleaseUnconfirmed says "Neutral release unconfirmed; reconnect the USB cable if a key repeats."
+// in the language the app shows.
+func DynReleaseUnconfirmed() string { return In(i18n.Locale()).DynReleaseUnconfirmed() }
+
+// DynReleaseUnconfirmed says "Neutral release unconfirmed; reconnect the USB cable if a key repeats."
+// in the language of msgs.
+func (msgs Messages) DynReleaseUnconfirmed() string {
+	return Catalog.Format(msgs.locale, "dynReleaseUnconfirmed", nil)
+}
+
 // DynFakeSimulatedReadiness says "Simulated readiness, not a real hardware check."
 // in the language the app shows.
 func DynFakeSimulatedReadiness() string { return In(i18n.Locale()).DynFakeSimulatedReadiness() }
@@ -4188,11 +4208,11 @@ func (msgs Messages) LauncherPreview() string {
 	return Catalog.Format(msgs.locale, "launcherPreview", nil)
 }
 
-// LauncherConfirm says "I confirm installing this launcher save to the selected game and account"
+// LauncherConfirm says "I confirm installing this launcher save to the selected game and account. Existing files with the same names will be …"
 // in the language the app shows.
 func LauncherConfirm() string { return In(i18n.Locale()).LauncherConfirm() }
 
-// LauncherConfirm says "I confirm installing this launcher save to the selected game and account"
+// LauncherConfirm says "I confirm installing this launcher save to the selected game and account. Existing files with the same names will be …"
 // in the language of msgs.
 func (msgs Messages) LauncherConfirm() string {
 	return Catalog.Format(msgs.locale, "launcherConfirm", nil)
@@ -4356,4 +4376,26 @@ func DynDistLauncherArchive() string { return In(i18n.Locale()).DynDistLauncherA
 // in the language of msgs.
 func (msgs Messages) DynDistLauncherArchive() string {
 	return Catalog.Format(msgs.locale, "dynDistLauncherArchive", nil)
+}
+
+// DynDistSaveKit says "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, whi…"
+// in the language the app shows.
+func DynDistSaveKit() string { return In(i18n.Locale()).DynDistSaveKit() }
+
+// DynDistSaveKit says "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, whi…"
+// in the language of msgs.
+func (msgs Messages) DynDistSaveKit() string {
+	return Catalog.Format(msgs.locale, "dynDistSaveKit", nil)
+}
+
+// DeveloperStagingFailed says "Developer staging failed, so the app continued without the staged helpers: {reason}"
+// in the language the app shows.
+func DeveloperStagingFailed(reason string) string {
+	return In(i18n.Locale()).DeveloperStagingFailed(reason)
+}
+
+// DeveloperStagingFailed says "Developer staging failed, so the app continued without the staged helpers: {reason}"
+// in the language of msgs.
+func (msgs Messages) DeveloperStagingFailed(reason string) string {
+	return Catalog.Format(msgs.locale, "developerStagingFailed", map[string]any{"reason": reason})
 }

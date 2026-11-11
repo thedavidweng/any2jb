@@ -94,6 +94,7 @@
   "toolsLost": "The retained session was lost. It is never reconnected automatically; restart the console before another attempt.",
   "toolsCleanupBlocked": "A tool could not prove native cleanup. Restart the console before closing this session.",
   "toolsNotPermitted": "This host profile does not enable this tool.",
+  "toolRunning": "{tool} is running and owns the console. Stop it before starting another tool.",
   "toolsOwner": "{tool} owns the retained session. Stop it before starting another tool.",
   "toolsConsoleAddress": "Console IPv4 for read-only exports",
   "toolsFind": "Find verified sessions on this Mac",
@@ -174,6 +175,7 @@
   "saveKitActionRestore": "Restore",
   "saveKitActionDelete": "Delete",
   "saveKitWriteVerified": "{action} verified: {files} file(s) written, {replaced} replaced. The pre-operation backup is kept at {path}",
+  "saveKitWriteBlocked": "A save operation failed. Further save writes, restores and deletes are blocked until the console restarts.",
   "saveKitWriteFailed": "The save operation failed. The verified backup is kept at {path}. Finish this session and restart the console before any further save operation; on a new session you can restore the backup from this panel.",
   "saveKitWriteFailedNoBackup": "The save operation failed before the console save changed. Finish this session and restart the console before another save operation.",
   "saveKitOpenBackup": "Open backup folder",
@@ -202,7 +204,6 @@
   "@aboutBuild": {
     "description": "Toggle the development build limitations."
   },
-  "simulatedEnvironment": "Simulated environment. No real hardware checks.",
   "home": "Home",
   "checkingReadiness": "Checking readiness",
   "setupNeedsAttention": "Setup needs attention",
@@ -382,6 +383,7 @@
   "dynRecInvalidLease": "invalid session lease",
   "dynRecOwnerUnproven": "session owner cannot be proven",
   "dynRecOwnerAlive": "session owner is still alive",
+  "dynReleaseUnconfirmed": "Neutral release unconfirmed; reconnect the USB cable if a key repeats.",
   "dynFakeSimulatedReadiness": "Simulated readiness, not a real hardware check.",
   "dynDistNs2jb": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled.",
   "dynDistMITSourceOnly": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records.",
@@ -426,7 +428,7 @@
   "launcherFullGameExport": "Verified full-game save export folder (absolute path)",
   "launcherFullGameHint": "The full-game option patches your own verified full-game autosave, so export that save with Export verified backup first. The demo package is never installed to the full game.",
   "launcherPreview": "Preview launcher install",
-  "launcherConfirm": "I confirm installing this launcher save to the selected game and account",
+  "launcherConfirm": "I confirm installing this launcher save to the selected game and account. Existing files with the same names will be replaced.",
   "launcherInstall": "Back up and install launcher",
   "launcherSideEffects": "Persistent side effects: the installed save replaces this game's startup code until you restore the backup, and the launcher opens network services on your LAN whenever the game runs (Artemis HTTP on port 8080, or a Lua service on port 9026 with FTP on ports 5000 and 5001). That runtime is separate from the held RPC session and keeps running after Finish.",
   "launcherPreviewFailed": "The launcher package could not be prepared from its pinned, digest-verified source. No save was changed.",
@@ -442,5 +444,7 @@
   "launcherBalatroShowcase": "Balatro (RCE showcase variant)",
   "launcherGravityCircuit": "Gravity Circuit (RCE v1.1)",
   "dynDistLauncherArtemis": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
-  "dynDistLauncherArchive": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled."
+  "dynDistLauncherArchive": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+  "dynDistSaveKit": "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned sources locally; no package includes them.",
+  "developerStagingFailed": "Developer staging failed, so the app continued without the staged helpers: {reason}"
 }

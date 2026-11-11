@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/thedavidweng/any2jb/savekit"
 )
@@ -56,6 +57,20 @@ func TestClientListsAccountsTitlesAndInventory(t *testing.T) {
 	}
 	if !strings.Contains(inspect.Output, "/savegame.bin") {
 		t.Fatalf("inspect output: %q", inspect.Output)
+	}
+}
+
+func TestClientProtocolErrorStopsAndReapsChild(t *testing.T) {
+	c := client(t, "protocol-hang")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	started := time.Now()
+	_, err := c.Run(ctx, t.TempDir(), "", savekit.Request{Action: "accounts"})
+	if err == nil || !strings.Contains(err.Error(), "protocol") {
+		t.Fatalf("protocol error not reported: %v", err)
+	}
+	if time.Since(started) > 2*time.Second {
+		t.Fatal("protocol failure waited for context cancellation instead of stopping the child")
 	}
 }
 

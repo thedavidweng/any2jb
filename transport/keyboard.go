@@ -99,11 +99,3 @@ func (k *Keyboard) Send(ctx context.Context, report [8]byte) error {
 }
 func (k *Keyboard) FocusLost(ctx context.Context) error { return k.Close(ctx) }
 func (k *Keyboard) Close(ctx context.Context) error     { return k.p.close(ctx) }
-
-// Paste sends bounded SmileBASIC text without adding a trailing Enter.
-func (k *Keyboard) Paste(ctx context.Context, text string) error {
-	if len(text) == 0 || len(text) > 16*1024 {
-		return errors.New("paste requires 1..16384 bytes")
-	}
-	return k.p.owner.typeText(ctx, k, text)
-}

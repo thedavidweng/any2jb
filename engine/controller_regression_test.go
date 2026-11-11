@@ -14,6 +14,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 // These are simulated engine process tests, not upstream exploit evidence.
@@ -37,7 +38,7 @@ func TestSimulatedEngineControllerVerifiedFinish(t *testing.T) {
 			if pairing.RunID != s.RunID || pairing.Command != "V=START(39380,192,0,2,1)" {
 				t.Fatalf("input did not receive the fresh pairing: %+v", pairing)
 			}
-			if !s.Simulated || s.Current != 4 || s.Total != 4 ||
+			if s.Current != 4 || s.Total != 4 ||
 				!s.Outcome.Verified || !s.Outcome.FSVerified || !s.Outcome.Restored {
 				t.Fatalf("incomplete simulated verification: %+v", s)
 			}
@@ -105,7 +106,7 @@ func TestSimulatedEngineControllerIndeterminateCleanup(t *testing.T) {
 
 type pairingInput struct {
 	session.InputTransport
-	environment *session.FakeEnvironment
+	environment *sessiontest.FakeEnvironment
 	pairings    chan engine.PairingDetails
 }
 
@@ -138,7 +139,7 @@ func simulatedController(t *testing.T, scenario string, held bool) (*session.Ses
 	runner := engine.NewProtocolRunner(support, func(run session.Run, workspace string) *exec.Cmd {
 		return exec.Command(node, fixture, scenario, run.ID, workspace)
 	})
-	fake := session.NewFakeEnvironment()
+	fake := sessiontest.NewFakeEnvironment()
 	env := fake.Environment()
 	input := &pairingInput{InputTransport: env.Input, environment: fake, pairings: make(chan engine.PairingDetails, 1)}
 	env.Host, env.Input = runner, input

@@ -44,6 +44,14 @@ func (m *Manager) acquireSaveKit(ctx context.Context, tool string) (context.Cont
 		m.mu.Unlock()
 		return nil, nil, errors.New("the retained session was lost; restart the console before another attempt")
 	}
+	if m.state.ModloaderInstalled {
+		m.mu.Unlock()
+		return nil, nil, errors.New("the modloader overlay stays active until the console restarts; finish this session and restart the console before launching another tool")
+	}
+	if m.state.CleanupBlocked {
+		m.mu.Unlock()
+		return nil, nil, errors.New("the previous homebrew launcher did not prove a clean shutdown; restart the console before launching homebrew again")
+	}
 	if m.active != nil {
 		owner := m.active.tool
 		m.mu.Unlock()

@@ -12,6 +12,7 @@ import (
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 type fakeToolAdapter struct {
@@ -26,15 +27,15 @@ func (f *fakeToolAdapter) Unavailable(tool, _ string) string { return f.reasons[
 func (f *fakeToolAdapter) State() retained.State             { return f.state }
 func (f *fakeToolAdapter) Select(titleID string) error       { f.selected = titleID; return nil }
 
-func (f *fakeToolAdapter) PrepareLauncher(_ context.Context, request launcher.Request, _ savekit.Request) (string, savekit.Preview, error) {
+func (f *fakeToolAdapter) PreviewLauncher(_ context.Context, request launcher.Request, _ savekit.Request) (savekit.Preview, error) {
 	f.prepared = request
 	if f.preview == nil {
-		return "", savekit.Preview{}, errors.New("no prepared launcher package")
+		return savekit.Preview{}, errors.New("no prepared launcher package")
 	}
-	return "/tmp/any2jb-launcher-preview/save", *f.preview, nil
+	return *f.preview, nil
 }
 
-func retainedApp(t *testing.T, f *session.FakeEnvironment, adapter *fakeToolAdapter, tools []string) *app {
+func retainedApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolAdapter, tools []string) *app {
 	t.Helper()
 	m, err := manifest.Load()
 	if err != nil {
@@ -62,7 +63,7 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	}
 	adapter := &fakeToolAdapter{reasons: map[string]string{
 		"ouncecake-webdav": ounce.Reason, "ouncecake-ftp": ounce.Reason}}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	a := retainedApp(t, f, adapter, []string{"rpc-status", "ouncecake-webdav", "ouncecake-ftp", "sd-browser"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
 	if !tt.HasText("These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possible here.") {
@@ -87,7 +88,7 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 }
 
 func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
 	a := retainedApp(t, f, adapter, []string{"rpc-status", "system-code-dump", "sd-browser"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
@@ -132,7 +133,7 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 }
 
 func TestConnectingToAnExistingSessionIsNotALaunch(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "run-abc", Description: "Verified retained session run-abc"}}
 	a := retainedApp(t, f, &fakeToolAdapter{}, []string{"rpc-status"})
 	a.toolsPanel.sessions = f.RetainedSessions
@@ -165,7 +166,7 @@ func TestConnectingToAnExistingSessionIsNotALaunch(t *testing.T) {
 }
 
 func TestDiscoveryRunsOffTheUIThread(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "run-abc"}}
 	a := retainedApp(t, f, &fakeToolAdapter{}, []string{"rpc-status"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)

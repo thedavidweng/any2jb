@@ -23,7 +23,8 @@ Capture reads regular files under an `os.Root`; a log symlink is refused.
 The view removes pairing/START commands, tokens, keys, account/user identifiers,
 credentials and save-data fields. JSON admits only diagnostic fields; unknown
 fields and malformed JSON fragments are omitted. Long hex/numeric identifiers
-and home-directory paths are masked. This is not a promise that arbitrary
+and home-directory paths, IPv4 and MAC addresses, and serial-shaped identifiers
+are masked. This is not a promise that arbitrary
 upstream prose is safe to publish. Private workspaces and their raw logs must
 not be shared.
 

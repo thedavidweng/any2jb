@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestChangesWakeWindowAfterBackgroundCompletion(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	gate := make(chan struct{})
 	f.InspectGate = gate
 	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})

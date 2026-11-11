@@ -63,9 +63,38 @@ func launcherManager(t *testing.T, support string, runner retained.Workspaces, n
 	if err != nil {
 		t.Fatal(err)
 	}
-	return retained.New(retained.Options{Support: support, Node: nodePath(t), Host: "fixture", Runs: runner, Manifest: m,
-		ToolRoot: filepath.Dir(filepath.Dir(root)), Staged: []string{"savekit", "launcher-nora2-demo"},
+	host, err := filepath.Abs("testdata/fake-tool.cjs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return retained.New(retained.Options{Support: support, Node: nodePath(t), Host: host, Runs: runner, Manifest: m,
+		ToolRoot: filepath.Dir(filepath.Dir(root)), Staged: []string{"savekit", "launcher-nora2-demo", "modloader"},
 		SaveKitModule: module, SaveKitScenario: "ok"})
+}
+
+func TestLauncherInstallRefusedAfterModloaderHandoff(t *testing.T) {
+	log := fixtureLog(t)
+	runner, run, support := heldSession(t)
+	m := launcherManager(t, support, runner, "core.lua")
+	r := launcher.Request{ID: "launcher-nora2-demo"}
+	folder, preview, err := m.PrepareLauncher(context.Background(), r, savekit.Request{TitleID: writeTitle, UID: writeUID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(filepath.Dir(folder))
+	if err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "modloader"}, func(session.Progress) {}); err != nil {
+		t.Fatal(err)
+	}
+	req := writeRequest(t, folder, preview, true)
+	req.SaveKit.SourceFolder = ""
+	req.Launcher = &r
+	err = m.RunWith(context.Background(), run, req, func(session.Progress) {})
+	if err == nil || !strings.Contains(err.Error(), "restart") {
+		t.Fatalf("launcher ran after modloader handoff: %v", err)
+	}
+	if ops := loggedOps(t, log); len(ops) != 0 {
+		t.Fatalf("launcher touched the save after handoff: %v", ops)
+	}
 }
 
 func TestLauncherInstallUsesTheSaveKitGate(t *testing.T) {
@@ -79,6 +108,7 @@ func TestLauncherInstallUsesTheSaveKitGate(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := writeRequest(t, folder, preview, true)
+	req.SaveKit.SourceFolder = ""
 	req.Launcher = &r
 	if err := m.RunWith(context.Background(), run, req, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
@@ -88,6 +118,23 @@ func TestLauncherInstallUsesTheSaveKitGate(t *testing.T) {
 	}
 	if out := m.State().SaveKit.Write; out == nil || !out.Verified || out.Backup == "" {
 		t.Fatalf("%+v", out)
+	}
+}
+
+func TestLauncherPreviewRemovesPreparedSave(t *testing.T) {
+	support := t.TempDir()
+	m := launcherManager(t, support, nil, "core.lua")
+	preview, err := m.PreviewLauncher(context.Background(), launcher.Request{ID: "launcher-nora2-demo"},
+		savekit.Request{TitleID: writeTitle, UID: writeUID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(preview.Files) != 1 || preview.Files[0].Path != "/core.lua" {
+		t.Fatalf("preview lost its file record: %+v", preview)
+	}
+	entries, err := os.ReadDir(filepath.Join(support, "launcher-previews"))
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("preview retained a prepared save: %v %v", entries, err)
 	}
 }
 
@@ -101,6 +148,7 @@ func TestLauncherUnknownCoreNeverWrites(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := writeRequest(t, folder, preview, true)
+	req.SaveKit.SourceFolder = ""
 	req.Launcher = &r
 	err = m.RunWith(context.Background(), run, req, func(session.Progress) {})
 	if err == nil || !strings.Contains(err.Error(), "unrecognised") ||
@@ -123,7 +171,7 @@ func TestPackagedLauncherEntriesAreGated(t *testing.T) {
 		t.Fatal(err)
 	}
 	manager := retained.New(retained.Options{Manifest: m})
-	for _, id := range launcher.IDs {
+	for _, id := range launcher.IDs(m) {
 		d, _ := m.DistributionFor(id)
 		if got := manager.Unavailable(id, "kurumuz"); got != d.Reason {
 			t.Fatalf("%s: %q", id, got)

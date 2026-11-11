@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
 func TestDashboardReadinessEvidenceAndPrerequisites(t *testing.T) {
@@ -15,7 +16,7 @@ func TestDashboardReadinessEvidenceAndPrerequisites(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{
 		{ID: "network", State: session.CheckVerified, Message: "Assigned locally."},
 		{ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid", Message: "Not enumerated."},
