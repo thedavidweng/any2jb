@@ -6,6 +6,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/session/sessiontest"
 	"github.com/thedavidweng/any2jb/transport"
 )
 
@@ -13,7 +14,7 @@ import (
 // selected transport. A blocked automatic launch must not be relabelled as a
 // guided manual launch it would not perform.
 func TestBlockedStartKeepsItsTransportLabel(t *testing.T) {
-	f := session.NewFakeEnvironment()
+	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "usb-runtime", State: session.RequiresAttention,
 		Message:    "Verified USB helpers are not available.",
 		NextAction: "Permit the helper build before launching."}}

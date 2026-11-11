@@ -75,8 +75,8 @@ func TestConsoleRestartPanelShowsTheUnconfirmedReleaseInstruction(t *testing.T) 
 	f.InputGate = make(chan struct{})
 	env := f.Environment()
 	env.Input = unconfirmedInput{env.Input}
-	a := &app{controller: session.New(env, session.Profile{ID: "fixture", Revision: "pinned"})}
-	tt := ui.NewTester(a.view, 640, 720)
+	a := testApp(t, session.New(env, session.Profile{ID: "fixture", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 640, 1200)
 	clickManual(t, tt, locales.CheckReadiness())
 	uiStage(t, a, tt, session.Ready)
 	clickManual(t, tt, locales.GuidedManualLaunch())

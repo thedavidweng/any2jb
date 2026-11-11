@@ -125,7 +125,7 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 		{"Advanced Tools", func(t *testing.T) func(*ui.Context) {
 			adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
 				Users: []string{"11111111111111111111111111111111"}}}}
-			a := retainedApp(t, session.NewFakeEnvironment(), adapter, []string{"rpc-status", "savekit"})
+			a := retainedApp(t, sessiontest.NewFakeEnvironment(), adapter, []string{"rpc-status", "savekit"})
 			tt := ui.NewTester(a.advancedToolsView, 900, 2600)
 			if _, err := a.controller.Inspect(); err != nil {
 				t.Fatal(err)
@@ -142,7 +142,7 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 			return a.saveKitView
 		}},
 		{"Diagnostics", func(t *testing.T) func(*ui.Context) {
-			a := &app{manifest: testManifest(t), controller: session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "test"}),
+			a := &app{manifest: testManifest(t), controller: session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test"}),
 				diagnostic: diagnosticUI{ready: true, logs: diagnostics.Logs{Host: "host failure"}}}
 			return a.diagnosticsView
 		}},
@@ -153,7 +153,7 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 			return a.view
 		}},
 		{"CivSwitch", func(t *testing.T) func(*ui.Context) {
-			a := &app{manifest: testManifest(t), controller: session.New(session.NewFakeEnvironment().Environment(),
+			a := &app{manifest: testManifest(t), controller: session.New(sessiontest.NewFakeEnvironment().Environment(),
 				session.Profile{ID: "test", Revision: "pinned"})}
 			a.civSwitchPanel.open = true
 			return a.civSwitchView
