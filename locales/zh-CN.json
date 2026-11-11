@@ -88,6 +88,7 @@
   "toolsLost": "保留 RPC 会话已丢失。应用绝不会自动重连；再次尝试前请重启游戏机。",
   "toolsCleanupBlocked": "工具未能证明原生清理已完成。关闭此会话前，请重启游戏机。",
   "toolsNotPermitted": "此主机配置未启用该工具。",
+  "toolRunning": "{tool} 正在运行并占用游戏机。请先停止它，再启动其他工具。",
   "toolsOwner": "{tool} 正在占用保留 RPC 会话。请先停止它，再启动其他工具。",
   "toolsConsoleAddress": "只读导出使用的游戏机 IPv4",
   "toolsFind": "查找此 Mac 上的已验证会话",

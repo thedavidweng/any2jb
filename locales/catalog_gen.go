@@ -988,6 +988,16 @@ func (msgs Messages) ToolsNotPermitted() string {
 	return Catalog.Format(msgs.locale, "toolsNotPermitted", nil)
 }
 
+// ToolRunning says "{tool} is running and owns the console. Stop it before starting another tool."
+// in the language the app shows.
+func ToolRunning(tool string) string { return In(i18n.Locale()).ToolRunning(tool) }
+
+// ToolRunning says "{tool} is running and owns the console. Stop it before starting another tool."
+// in the language of msgs.
+func (msgs Messages) ToolRunning(tool string) string {
+	return Catalog.Format(msgs.locale, "toolRunning", map[string]any{"tool": tool})
+}
+
 // ToolsOwner says "{tool} owns the retained session. Stop it before starting another tool."
 // in the language the app shows.
 func ToolsOwner(tool string) string { return In(i18n.Locale()).ToolsOwner(tool) }

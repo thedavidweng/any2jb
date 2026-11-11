@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/session"
@@ -140,5 +141,24 @@ func TestNativeLauncherRejectsAnInvalidSDFolder(t *testing.T) {
 	}
 	if f.ToolRequest.Tool != "" {
 		t.Fatalf("an invalid launch reached the tool adapter: %+v", f.ToolRequest)
+	}
+}
+
+func TestHomeShowsTheRunningToolOwner(t *testing.T) {
+	withLocale(t, "zh-CN")
+	f := sessiontest.NewFakeEnvironment()
+	adapter := &fakeToolAdapter{state: retained.State{Tool: "mintbrew"}}
+	a, _ := leasedHomebrewApp(t, f, adapter, []string{"mintbrew"})
+	home := ui.NewTester(a.sessionView, 720, 1600)
+	if a.controller.Snapshot().Stage != session.RetainedRPC {
+		t.Fatal("fixture left the retained stage")
+	}
+	if _, ok := home.AccessByRole(ui.RoleStatus, locales.ToolRunning("mintbrew")); !ok {
+		t.Fatalf("the home status does not show the running owner: %q", home.Texts())
+	}
+	adapter.state.Tool = ""
+	home.Frame()
+	if home.HasText(locales.ToolRunning("mintbrew")) {
+		t.Fatal("a stopped tool is still shown as running")
 	}
 }

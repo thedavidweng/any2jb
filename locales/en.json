@@ -94,6 +94,7 @@
   "toolsLost": "The retained session was lost. It is never reconnected automatically; restart the console before another attempt.",
   "toolsCleanupBlocked": "A tool could not prove native cleanup. Restart the console before closing this session.",
   "toolsNotPermitted": "This host profile does not enable this tool.",
+  "toolRunning": "{tool} is running and owns the console. Stop it before starting another tool.",
   "toolsOwner": "{tool} owns the retained session. Stop it before starting another tool.",
   "toolsConsoleAddress": "Console IPv4 for read-only exports",
   "toolsFind": "Find verified sessions on this Mac",

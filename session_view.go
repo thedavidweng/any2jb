@@ -37,6 +37,13 @@ func (a *app) sessionView(c *ui.Context) {
 		ui.Text(c, locales.ApplyBeforeLaunch())
 	}
 	ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).FontSize(20).Bold().Role(ui.RoleStatus)
+	// A long-lived tool child keeps the retained_rpc stage, so its ownership
+	// is stated next to the stage.
+	if a.tools != nil {
+		if owner := a.tools.State().Tool; owner != "" {
+			ui.Text(c.Key("session-tool-owner"), locales.ToolRunning(owner)).Role(ui.RoleStatus)
+		}
+	}
 	a.manualView(c, s)
 	a.usbConfirmation.view(c)
 	if s.CleanupConfirmed {
