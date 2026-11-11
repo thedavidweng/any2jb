@@ -31,8 +31,8 @@ func (a *app) sessionView(c *ui.Context) {
 		}
 	}
 	s := a.controller.Snapshot()
-	pending := a.manifest != nil && (s.Profile.ID != a.preferences.Profile ||
-		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport)
+	pending := s.Profile.ID != a.preferences.Profile ||
+		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport
 	if pending {
 		ui.Text(c, locales.ApplyBeforeLaunch())
 	}
@@ -104,15 +104,13 @@ func (a *app) sessionView(c *ui.Context) {
 			ui.Text(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000))).TextColor(c.Theme().TextMuted)
 		}
 	}
-	if a.manifest != nil {
-		for _, check := range s.Checks {
-			if check.ID == "driver-present" || check.ID == "driver-loaded" || check.ID == "driver-restart" {
-				if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
-					a.stopKeyboard()
-					a.driverPanel.open = true
-				}
-				break
+	for _, check := range s.Checks {
+		if check.ID == "driver-present" || check.ID == "driver-loaded" || check.ID == "driver-restart" {
+			if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+				a.stopKeyboard()
+				a.driverPanel.open = true
 			}
+			break
 		}
 	}
 	if ui.Button(c.Key("usb-keyboard"), locales.UsbKeyboardTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
@@ -174,14 +172,12 @@ func (a *app) sessionView(c *ui.Context) {
 			a.command(a.controller.Finish())
 		}
 	}
-	if a.manifest != nil {
-		ui.Text(c, locales.ReferencePrerequisites()).Bold()
-		ui.Text(c, locales.ConsoleFirmware())
-		ui.Text(c, locales.SmilebasicPrerequisites())
-		ui.Text(c, locales.NetworkPrerequisites())
-		ui.Text(c, locales.CablePrerequisites())
-		ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
-	}
+	ui.Text(c, locales.ReferencePrerequisites()).Bold()
+	ui.Text(c, locales.ConsoleFirmware())
+	ui.Text(c, locales.SmilebasicPrerequisites())
+	ui.Text(c, locales.NetworkPrerequisites())
+	ui.Text(c, locales.CablePrerequisites())
+	ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
 }
 
 func checkStateTitle(state session.CheckState) string {

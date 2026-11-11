@@ -40,7 +40,8 @@ func manualApp(t *testing.T, scenario string) (*app, *ui.Tester) {
 		env.Host.Cleanup(context.Background(), session.Run{ID: s.RunID})
 	})
 	c.ConfigureTransport(preferredTransport("manual"), "192.0.2.1")
-	a := &app{controller: c, manual: manual}
+	a := testApp(t, c)
+	a.manual = manual
 	return a, ui.NewTester(a.view, 640, 900)
 }
 

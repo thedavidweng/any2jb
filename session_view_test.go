@@ -22,7 +22,8 @@ func TestBlockedStartKeepsItsTransportLabel(t *testing.T) {
 		Capabilities: session.Capabilities{Keyboard: true}}, "192.0.2.1"); err != nil {
 		t.Fatal(err)
 	}
-	a := &app{controller: c, manual: transport.NewManual(func(session.Run) (string, error) { return "", nil })}
+	a := testApp(t, c)
+	a.manual = transport.NewManual(func(session.Run) (string, error) { return "", nil })
 	tt := ui.NewTester(a.view, 700, 1000)
 	if err := tt.Click(locales.CheckReadiness()); err != nil {
 		t.Fatal(err)

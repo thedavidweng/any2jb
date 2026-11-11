@@ -142,7 +142,7 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 			return a.saveKitView
 		}},
 		{"Diagnostics", func(t *testing.T) func(*ui.Context) {
-			a := &app{controller: session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "test"}),
+			a := &app{manifest: testManifest(t), controller: session.New(session.NewFakeEnvironment().Environment(), session.Profile{ID: "test"}),
 				diagnostic: diagnosticUI{ready: true, logs: diagnostics.Logs{Host: "host failure"}}}
 			return a.diagnosticsView
 		}},
@@ -153,7 +153,7 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 			return a.view
 		}},
 		{"CivSwitch", func(t *testing.T) func(*ui.Context) {
-			a := &app{controller: session.New(session.NewFakeEnvironment().Environment(),
+			a := &app{manifest: testManifest(t), controller: session.New(session.NewFakeEnvironment().Environment(),
 				session.Profile{ID: "test", Revision: "pinned"})}
 			a.civSwitchPanel.open = true
 			return a.civSwitchView

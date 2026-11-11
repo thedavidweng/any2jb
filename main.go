@@ -90,9 +90,7 @@ func (a *app) view(c *ui.Context) {
 					a.toolsPanel.open = true
 				}
 			}
-			if a.manifest != nil {
-				a.profileView(c)
-			}
+			a.profileView(c)
 			if a.controller == nil {
 				ui.Text(c, locales.NoSession())
 			} else {

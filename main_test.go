@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
@@ -13,8 +15,8 @@ import (
 func TestSessionFailureHasSafeRecovery(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	f.PrepareError = errors.New("simulated failure")
-	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
-	tt := ui.NewTester(a.view, 640, 520)
+	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 640, 900)
 	if err := tt.Click("Check readiness"); err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +31,7 @@ func TestSessionFailureHasSafeRecovery(t *testing.T) {
 }
 
 func TestShell(t *testing.T) {
-	a := &app{}
+	a := testApp(t, nil)
 	tt := ui.NewTester(a.view, 640, 400)
 	for _, text := range []string{"any2jb", "No console session is running."} {
 		if !tt.HasText(text) {
@@ -45,11 +47,40 @@ func TestShell(t *testing.T) {
 }
 
 func TestStartupFailureIsReportedInTheWindow(t *testing.T) {
-	a := &app{startupError: "developer USB helper staging: fixture"}
+	a := testApp(t, nil)
+	a.startupError = "developer USB helper staging: fixture"
 	tt := ui.NewTester(a.view, 640, 400)
 	if _, ok := tt.AccessByRole(ui.RoleStatus, a.startupError); !ok {
 		t.Fatalf("the startup failure is not an accessible status: %q", tt.Texts())
 	}
+}
+
+// testManifest loads the bundled manifest every production app shell has, so a
+// view test can build the same app main builds.
+func testManifest(t *testing.T) *manifest.Manifest {
+	t.Helper()
+	m, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return m
+}
+
+// testApp builds the shell main builds: the bundled manifest, a preferences
+// file of its own, and preferences that already match the controller, so the
+// view does not wait for a preference change. A nil controller is the
+// pre-session shell.
+func testApp(t *testing.T, c *session.SessionController) *app {
+	t.Helper()
+	m := testManifest(t)
+	prefs := preferences{Profile: m.Default, Edition: "full", Transport: "manual"}
+	if c != nil {
+		s := c.Snapshot()
+		prefs = preferences{Profile: s.Profile.ID, Edition: s.Edition,
+			Transport: s.Transport.Mode, LANIPv4: s.LANOverride}
+	}
+	return &app{manifest: m, controller: c,
+		preferencesPath: filepath.Join(t.TempDir(), "preferences.json"), preferences: prefs}
 }
 
 func uiStage(t *testing.T, a *app, tt *ui.Tester, stage session.Stage) {
@@ -72,8 +103,8 @@ func uiStage(t *testing.T, a *app, tt *ui.Tester, stage session.Stage) {
 func TestSessionDashboardAndRecovery(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	f.InputGate = make(chan struct{})
-	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
-	tt := ui.NewTester(a.view, 640, 520)
+	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 640, 900)
 	if !tt.HasText("Home") {
 		t.Fatal(tt.Texts())
 	}
@@ -115,8 +146,8 @@ func TestSessionDashboardAndRecovery(t *testing.T) {
 func TestFailingReadinessIsActionable(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{{ID: "network", State: session.RequiresAttention, Message: "No reachable LAN address.", NextAction: "Connect the host to the console LAN."}}
-	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
-	tt := ui.NewTester(a.view, 640, 520)
+	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 640, 900)
 	if err := tt.Click("Check readiness"); err != nil {
 		t.Fatal(err)
 	}
@@ -136,8 +167,8 @@ func TestDashboardCancelAndFinish(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	gate := make(chan struct{})
 	f.PrepareGate = gate
-	a := &app{controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"})}
-	tt := ui.NewTester(a.view, 640, 520)
+	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 640, 900)
 	if err := tt.Click("Check readiness"); err != nil {
 		t.Fatal(err)
 	}

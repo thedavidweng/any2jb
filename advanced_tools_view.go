@@ -135,10 +135,8 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	// A gated or excluded component states the recorded reason instead of an
 	// action; host capability booleans never decide this.
-	if a.manifest != nil {
-		if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
-			ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
-		}
+	if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
+		ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
 	}
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())

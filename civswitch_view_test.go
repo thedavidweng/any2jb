@@ -14,7 +14,7 @@ import (
 )
 
 func TestCivSwitchPanelStatesUnavailableReasonWithoutSmileBASICControls(t *testing.T) {
-	a := &app{controller: session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"})}
+	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 900, 1800)
 	if err := tt.Click("CivSwitch"); err != nil {
 		t.Fatal(err)
@@ -90,7 +90,7 @@ func verifiedCivSwitchPanel(t *testing.T, w *civPanelAdapter) (*app, *ui.Tester)
 	t.Helper()
 	env := sessiontest.NewFakeEnvironment().Environment()
 	env.CivSwitch = w
-	a := &app{controller: session.New(env, session.Profile{ID: "test", Revision: "pinned"})}
+	a := testApp(t, session.New(env, session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 1000, 3200)
 	if err := tt.Click("CivSwitch"); err != nil {
 		t.Fatal(err)

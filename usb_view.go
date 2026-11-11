@@ -190,11 +190,9 @@ func (a *app) applyUSBSettings(c *ui.Context, controllers []string, s session.Sn
 		return
 	}
 	a.preferences.USB = &usbPreferences{Controller: p.controller, Timing: t}
-	if a.manifest != nil {
-		if err := a.savePreferences(); err != nil {
-			p.invalid = true
-			return
-		}
+	if err := a.savePreferences(); err != nil {
+		p.invalid = true
+		return
 	}
 	p.applied = p.values()
 	p.checkedProfile = s.Profile.ID

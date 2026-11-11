@@ -21,8 +21,7 @@ import (
 )
 
 func TestUSBConsoleGateWaitsForExplicitAcknowledgement(t *testing.T) {
-	a := &app{}
-	a.controller = session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "fixture", Revision: "pinned"})
+	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "fixture", Revision: "pinned"}))
 	done := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -71,10 +70,17 @@ func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
 			f.Checks = []session.Check{{ID: "driver-loaded", State: session.CheckVerified, GatesTransport: "usb-hid"}, {ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"}}
 			env := f.Environment()
 			env.Input = d
-			c := session.New(env, session.Profile{ID: "fixture", Revision: "pinned"})
+			// The panel persists preferences, so the session runs on the
+			// bundled profile the manifest can validate.
+			m := testManifest(t)
+			p, err := m.Profile(m.Default)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c := session.New(env, p.SessionProfile())
 			c.ConfigureTransport(session.Transport{Mode: "keyboard", Capabilities: session.Capabilities{Keyboard: true}}, "192.0.2.1")
 			c.Inspect()
-			a := &app{controller: c}
+			a := testApp(t, c)
 			a.keyboard.input = d
 			a.keyboard.open = true
 			a.keyboard.controller = "usb-drd0"
@@ -173,7 +179,7 @@ func TestNativeKeyboardUIFixture(t *testing.T) {
 }
 
 func TestUSBPanelDoesNotOfferForwardingWithoutVerifiedHelpers(t *testing.T) {
-	a := &app{}
+	a := &app{manifest: testManifest(t)}
 	a.keyboard.open = true
 	a.keyboard.defaults(nil)
 	tt := ui.NewTester(a.keyboardView, 640, 720)
@@ -197,10 +203,15 @@ func TestKeyboardAvailabilitySurvivesReInspectionAfterControllerChange(t *testin
 	f.Checks = []session.Check{{ID: "driver-loaded", State: session.CheckVerified, GatesTransport: "usb-hid"}, {ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"}}
 	env := f.Environment()
 	env.Input = d
-	c := session.New(env, session.Profile{ID: "fixture", Revision: "pinned"})
+	m := testManifest(t)
+	p, err := m.Profile(m.Default)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := session.New(env, p.SessionProfile())
 	c.ConfigureTransport(session.Transport{Mode: "keyboard", Capabilities: session.Capabilities{Keyboard: true}}, "192.0.2.1")
 	c.Inspect()
-	a := &app{controller: c}
+	a := testApp(t, c)
 	a.keyboard.input = d
 	a.keyboard.open = true
 	a.keyboard.controller = "usb-drd0"
