@@ -125,6 +125,7 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 		c.started = time.Now()
 		c.s.SideEffects = false
 		c.s.Outcome = Outcome{}
+		c.s.ReleaseUnconfirmed = false
 		c.s.CleanupConfirmed = false
 		c.s.Current, c.s.Total = 0, 0
 		c.s.Remaining, c.s.HasEstimate = 0, false
@@ -178,6 +179,12 @@ func (c *SessionController) begin(stage Stage, fresh bool, fn func(context.Conte
 			}
 			if cleanupErr != nil {
 				c.emit(Error, AdapterFailure, "Resource cleanup could not be confirmed.")
+			}
+			// A key may be stuck down on the console. The instruction is
+			// emitted on cancel/stop paths too, after the redacted messages.
+			if errors.Is(err, ErrReleaseUnconfirmed) || errors.Is(cleanupErr, ErrReleaseUnconfirmed) {
+				c.s.ReleaseUnconfirmed = true
+				c.emit(Error, AdapterFailure, ReleaseUnconfirmedWarning)
 			}
 			c.mu.Unlock()
 		}

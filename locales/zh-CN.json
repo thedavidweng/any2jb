@@ -360,6 +360,7 @@
   "dynRecInvalidLease": "会话租约无效",
   "dynRecOwnerUnproven": "无法证明会话所有者身份",
   "dynRecOwnerAlive": "会话所有者仍在运行",
+  "dynReleaseUnconfirmed": "无法确认按键已释放；如果游戏机上出现按键重复，请重新插拔 USB 线。",
   "dynFakeSimulatedReadiness": "模拟的就绪状态，不是真实硬件检查。",
   "dynDistNs2jb": "继承的 ns2jb 再分发许可尚未解决。未捆绑任何主机或引导程序。",
   "dynDistMITSourceOnly": "MIT 许可允许在保留版权与许可声明的前提下再分发。此处仅为源码记录；编译后的辅助程序及依赖需要各自的记录。",

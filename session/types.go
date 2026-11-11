@@ -4,6 +4,7 @@ package session
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"time"
 )
@@ -147,6 +148,14 @@ func (o Outcome) valid(held bool) bool {
 	return o.CleanedUp
 }
 
+// ErrReleaseUnconfirmed reports that a neutral key release was not
+// acknowledged, so a console key may still be held down.
+var ErrReleaseUnconfirmed = errors.New("neutral key release was not confirmed")
+
+// ReleaseUnconfirmedWarning is the fixed instruction for an unconfirmed
+// neutral release. The UI localizes it by this exact text.
+const ReleaseUnconfirmedWarning = "Neutral release unconfirmed; reconnect the USB cable if a key repeats."
+
 type Process struct {
 	PID  int
 	Name string
@@ -172,16 +181,18 @@ type Snapshot struct {
 	HasEstimate       bool
 	KeyboardOpen      bool
 	Outcome           Outcome
-	Processes         []Process
-	CleanupConfirmed  bool
-	Attached          bool
-	Busy              bool
-	SideEffects       bool
-	BootstrapPrepared bool
-	SaveSubmitted     bool
-	BootstrapSaved    bool
-	SavedBootstrap    BootstrapRecord
-	LastMessage       string
+	// ReleaseUnconfirmed reports an unacknowledged neutral key release.
+	ReleaseUnconfirmed bool
+	Processes          []Process
+	CleanupConfirmed   bool
+	Attached           bool
+	Busy               bool
+	SideEffects        bool
+	BootstrapPrepared  bool
+	SaveSubmitted      bool
+	BootstrapSaved     bool
+	SavedBootstrap     BootstrapRecord
+	LastMessage        string
 }
 
 // CanStart is derived from the same copied state used by the controller.

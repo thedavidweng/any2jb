@@ -77,6 +77,7 @@ func (c *SessionController) ConfirmConsoleRestart(ctx context.Context, confirmed
 	c.s.Current, c.s.Total, c.s.EstimatedDuration = 0, 0, 0
 	c.s.Remaining, c.s.HasEstimate, c.s.KeyboardOpen = 0, false, false
 	c.s.Outcome, c.s.Checks, c.s.Processes = Outcome{}, nil, nil
+	c.s.ReleaseUnconfirmed = false
 	c.s.Recovery = NoRecovery
 	c.started = time.Time{}
 	c.transition(Idle)

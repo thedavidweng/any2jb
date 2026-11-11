@@ -214,7 +214,9 @@ func (p *helperProcess) close(ctx context.Context) error {
 	err = errors.Join(err, p.releaseLease())
 	p.clear()
 	if !p.released {
-		err = errors.Join(err, errors.New("neutral release unconfirmed; reconnect the USB cable if a key repeats"))
+		// Typed so the controller can show the reconnect instruction to the
+		// user instead of a generic redacted message.
+		err = errors.Join(err, session.ErrReleaseUnconfirmed)
 	}
 	p.closeErr = err
 	return err

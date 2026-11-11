@@ -340,3 +340,38 @@ func TestReadinessAndRejectedStart(t *testing.T) {
 		}
 	}
 }
+
+type unconfirmedRelease struct{ session.InputTransport }
+
+func (unconfirmedRelease) Release(context.Context, session.Run) error {
+	return session.ErrReleaseUnconfirmed
+}
+
+func TestUnconfirmedNeutralReleaseReachesTheUserOnStop(t *testing.T) {
+	f := sessiontest.NewFakeEnvironment()
+	f.InputGate = make(chan struct{})
+	env := f.Environment()
+	env.Input = unconfirmedRelease{env.Input}
+	c := session.New(env, session.Profile{ID: "test", Revision: "pinned"})
+	if _, err := c.Inspect(); err != nil {
+		t.Fatal(err)
+	}
+	await(t, c, session.Ready)
+	if _, err := c.Start(); err != nil {
+		t.Fatal(err)
+	}
+	active(t, c, session.WaitingForConsole)
+	if _, err := c.Stop(); err != nil {
+		t.Fatal(err)
+	}
+	s := await(t, c, session.Indeterminate)
+	if !s.ReleaseUnconfirmed || s.LastMessage != session.ReleaseUnconfirmedWarning {
+		t.Fatalf("release instruction was not reported: %+v", s)
+	}
+	for _, event := range c.Events(0) {
+		if event.Severity == session.Error && event.Message == session.ReleaseUnconfirmedWarning {
+			return
+		}
+	}
+	t.Fatalf("release instruction was not emitted: %+v", c.Events(0))
+}

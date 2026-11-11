@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/thedavidweng/any2jb/locales"
+	"github.com/thedavidweng/any2jb/session"
 )
 
 // dynamicSegments maps user-facing sentences produced by the readiness,
@@ -84,6 +85,7 @@ var dynamicSegments = []struct {
 	{"CivSwitch developer root is not a real directory", locales.DynCivRootNotDirectory},
 	{"driver installation requires Apple Silicon macOS", locales.DynDrvRequiresAppleSilicon},
 	{"LAN interface discovery could not be completed.", locales.DynNetDiscoveryFailed},
+	{session.ReleaseUnconfirmedWarning, locales.DynReleaseUnconfirmed},
 	{"Simulated readiness, not a real hardware check.", locales.DynFakeSimulatedReadiness},
 	{"Driver restart state could not be determined.", locales.DynUsbRestartUnknown},
 	{"A driver installation requires a Mac restart.", locales.DynUsbRestartRequired},

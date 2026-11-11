@@ -381,6 +381,7 @@
   "dynRecInvalidLease": "invalid session lease",
   "dynRecOwnerUnproven": "session owner cannot be proven",
   "dynRecOwnerAlive": "session owner is still alive",
+  "dynReleaseUnconfirmed": "Neutral release unconfirmed; reconnect the USB cable if a key repeats.",
   "dynFakeSimulatedReadiness": "Simulated readiness, not a real hardware check.",
   "dynDistNs2jb": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled.",
   "dynDistMITSourceOnly": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records.",

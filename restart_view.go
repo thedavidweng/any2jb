@@ -33,6 +33,9 @@ func (a *app) restartView(c *ui.Context, s session.Snapshot) {
 		return
 	}
 	ui.Text(c, locales.RestartConsole()).Bold()
+	if s.ReleaseUnconfirmed {
+		ui.Text(c, localize(session.ReleaseUnconfirmedWarning))
+	}
 	if p.errorText != "" {
 		ui.Text(c, localize(p.errorText))
 	}

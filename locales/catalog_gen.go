@@ -3738,6 +3738,16 @@ func (msgs Messages) DynRecOwnerAlive() string {
 	return Catalog.Format(msgs.locale, "dynRecOwnerAlive", nil)
 }
 
+// DynReleaseUnconfirmed says "Neutral release unconfirmed; reconnect the USB cable if a key repeats."
+// in the language the app shows.
+func DynReleaseUnconfirmed() string { return In(i18n.Locale()).DynReleaseUnconfirmed() }
+
+// DynReleaseUnconfirmed says "Neutral release unconfirmed; reconnect the USB cable if a key repeats."
+// in the language of msgs.
+func (msgs Messages) DynReleaseUnconfirmed() string {
+	return Catalog.Format(msgs.locale, "dynReleaseUnconfirmed", nil)
+}
+
 // DynFakeSimulatedReadiness says "Simulated readiness, not a real hardware check."
 // in the language the app shows.
 func DynFakeSimulatedReadiness() string { return In(i18n.Locale()).DynFakeSimulatedReadiness() }
