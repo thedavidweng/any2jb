@@ -131,7 +131,9 @@ func (a *app) sessionView(c *ui.Context) {
 			a.command(a.controller.Inspect())
 		}
 		label := locales.StartJailbreak()
-		if s.Transport.Capabilities.Manual || (a.manual != nil && !s.CanStart()) {
+		// The label names the selected transport, never the outcome: a blocked
+		// automatic launch stays "Start" and its blocking checks say why.
+		if s.Transport.Capabilities.Manual {
 			label = locales.GuidedManualLaunch()
 		}
 		if ui.PrimaryButton(c.Key("start"), label).Disabled(pending || !s.CanStart()).Clicked() {
