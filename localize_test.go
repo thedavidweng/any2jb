@@ -35,6 +35,18 @@ func TestDynamicSegmentsMatchSourceCatalog(t *testing.T) {
 	}
 }
 
+// TestDynamicSegmentsApplyLongestFirst holds the order the table's comment
+// promises: a composed sentence must match its longest source, not a shorter
+// one that happens to sit earlier.
+func TestDynamicSegmentsApplyLongestFirst(t *testing.T) {
+	for i := 1; i < len(dynamicSegments); i++ {
+		if len(dynamicSegments[i-1].source) < len(dynamicSegments[i].source) {
+			t.Errorf("segment %d (%q) is shorter than the one after it, so longest-first does not hold",
+				i, dynamicSegments[i-1].source)
+		}
+	}
+}
+
 func TestLocalizeCoversEveryDynamicSegment(t *testing.T) {
 	withLocale(t, "zh-CN")
 	for _, segment := range dynamicSegments {

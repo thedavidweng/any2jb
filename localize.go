@@ -1,21 +1,25 @@
 package main
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
 )
 
+type dynamicSegment struct {
+	source string
+	text   func() string
+}
+
 // dynamicSegments maps user-facing sentences produced by the readiness,
 // session, driver, retained, diagnostics and manifest adapters onto catalog
 // messages, so model text follows the app language. Entries apply
 // longest-first because adapters compose sentences with live data; unknown
 // text passes through unchanged.
-var dynamicSegments = []struct {
-	source string
-	text   func() string
-}{
+var dynamicSegments = []dynamicSegment{
+
 	{"Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistSaveKit},
 	{"Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistOunceCake},
 	{"Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistSDBrowser},
@@ -115,11 +119,17 @@ var dynamicSegments = []struct {
 	{" Selected: ", locales.DynNetSelectedPrefix},
 }
 
+// The table is kept longest-first so a composed sentence matches its own
+// source instead of a shorter one that contains part of it.
+func init() {
+	slices.SortStableFunc(dynamicSegments, func(a, b dynamicSegment) int {
+		return len(b.source) - len(a.source)
+	})
+}
+
 func localize(text string) string {
 	for _, segment := range dynamicSegments {
-		if strings.Contains(text, segment.source) {
-			text = strings.ReplaceAll(text, segment.source, segment.text())
-		}
+		text = strings.ReplaceAll(text, segment.source, segment.text())
 	}
 	return text
 }
