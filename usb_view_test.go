@@ -98,7 +98,9 @@ func TestNativeKeyboardCaptureReleasesOnFocusLossAndWindowClose(t *testing.T) {
 			tt.CodeDown(ui.Shift, ui.CodeKeyA)
 			waitKeyboardUI(t, tt, func() bool { return c.Snapshot().Current >= 2 })
 			if stop == "panel-hidden" {
-				a.keyboard.open = false
+				// Hiding the panel goes through its own handler, which
+				// releases live forwarding before the capture disappears.
+				a.closeKeyboardPanel()
 				tt.Frame()
 			} else if stop == "focus" {
 				tt.SetFocused(false)

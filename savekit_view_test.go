@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
@@ -27,6 +29,35 @@ func saveKitApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolA
 			RetainsRPC: true, Tools: []string{"savekit-read", "savekit"}})}
 	a.saveKit.open = true
 	return a
+}
+
+// previewPublisher stands in for Window.Update: the previewing goroutine only
+// hands its closure over, and the test applies it on its own goroutine.
+func previewPublisher(a *app) chan func() {
+	published := make(chan func(), 8)
+	a.saveKit.update = func(apply func()) { published <- apply }
+	return published
+}
+
+// applyPublished runs the preview's published result on this goroutine.
+func applyPublished(t *testing.T, published chan func()) {
+	t.Helper()
+	select {
+	case apply := <-published:
+		apply()
+	case <-time.After(time.Minute):
+		t.Fatal("the preview was never published")
+	}
+}
+
+// preview clicks a preview control and applies the published result.
+func preview(t *testing.T, tt *ui.Tester, published chan func(), label string) {
+	t.Helper()
+	if err := tt.Click(label); err != nil {
+		t.Fatal(err)
+	}
+	applyPublished(t, published)
+	tt.Frame()
 }
 
 func saveKitLease(t *testing.T, a *app, tt *ui.Tester) {
@@ -83,6 +114,12 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 		if !ok || !control.Disabled {
 			t.Fatalf("an unstaged SaveKit action is usable: %+v", control)
 		}
+	}
+	// The refusal follows the app language like every other adapter reason.
+	withLocale(t, "zh-CN")
+	tt.Frame()
+	if !tt.HasText(locales.DynDistSaveKit()) || tt.HasText(d.Reason) {
+		t.Fatalf("the refusal is not localized: %q", tt.Texts())
 	}
 }
 
@@ -199,9 +236,8 @@ func leasedSaveKit(t *testing.T, files map[string]string) (*app, *fakeToolAdapte
 
 func TestSaveKitConfirmationCannotMoveToAnotherTarget(t *testing.T) {
 	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
-	if err := tt.Click("Preview save write"); err != nil {
-		t.Fatal(err)
-	}
+	published := previewPublisher(a)
+	preview(t, tt, published, "Preview save write")
 	if err := tt.Click("I confirm this exact target and file preview"); err != nil {
 		t.Fatal(err)
 	}
@@ -232,9 +268,7 @@ func TestSaveKitWriteEditsNeedNewConsent(t *testing.T) {
 	for _, change := range []string{"source", "replace"} {
 		t.Run(change, func(t *testing.T) {
 			a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
-			if err := tt.Click("Preview save write"); err != nil {
-				t.Fatal(err)
-			}
+			preview(t, tt, previewPublisher(a), "Preview save write")
 			if err := tt.Click("I confirm this exact target and file preview"); err != nil {
 				t.Fatal(err)
 			}
@@ -264,10 +298,7 @@ func TestSaveKitRestoreListsFilesBeforeConsent(t *testing.T) {
 	}
 	a.saveKit.restoreFolder = dir
 	tt.Frame()
-	if err := tt.Click("Preview restore"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
+	preview(t, tt, previewPublisher(a), "Preview restore")
 	if !tt.HasText("/save.bin  4") {
 		t.Fatalf("restore hides the affected file: %v", tt.Texts())
 	}
@@ -291,10 +322,7 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	if !ok || !write.Disabled {
 		t.Fatalf("an unpreviewed write is usable: %+v", write)
 	}
-	if err := tt.Click("Preview save write"); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
+	preview(t, tt, previewPublisher(a), "Preview save write")
 	if !tt.HasText("1 file(s), 6 bytes") {
 		t.Fatal(tt.Texts())
 	}

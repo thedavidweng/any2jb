@@ -108,6 +108,7 @@ func (a *app) sessionView(c *ui.Context) {
 		for _, check := range s.Checks {
 			if check.ID == "driver-present" || check.ID == "driver-loaded" || check.ID == "driver-restart" {
 				if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
+					a.stopKeyboard()
 					a.driverPanel.open = true
 				}
 				break

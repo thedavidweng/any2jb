@@ -26,10 +26,17 @@ func TestConsoleRestartUIKeepsLiveLeaseBlockedAndShowsError(t *testing.T) {
 		env.Platform = restartPlatform{PlatformServices: env.Platform, releaseError: releaseError}
 		a := &app{controller: session.New(env, session.Profile{ID: "fixture", Revision: "pinned"})}
 		a.controller.MarkInterrupted()
+		published := make(chan func(), 4)
+		a.restart.update = func(apply func()) { published <- apply }
 		tt := ui.NewTester(a.view, 640, 720)
 		clickManual(t, tt, "I restarted the console, prepare a new attempt")
 		timer := time.NewTimer(time.Minute)
 		for {
+			select {
+			case apply := <-published:
+				apply()
+			default:
+			}
 			tt.Frame()
 			if releaseError == nil && a.controller.Snapshot().Stage == session.Idle {
 				break

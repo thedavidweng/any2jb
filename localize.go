@@ -16,6 +16,7 @@ var dynamicSegments = []struct {
 	source string
 	text   func() string
 }{
+	{"Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistSaveKit},
 	{"Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistOunceCake},
 	{"Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistSDBrowser},
 	{"Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolved. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistMintbrew},

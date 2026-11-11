@@ -428,5 +428,7 @@
   "launcherBalatroShowcase": "Balatro（RCE 展示变体）",
   "launcherGravityCircuit": "Gravity Circuit（RCE v1.1）",
   "dynDistLauncherArtemis": "不可用：Artemis 在固定修订版本上没有上游许可证。未捆绑任何启动器存档。",
-  "dynDistLauncherArchive": "不可用：启动器存档的再分发以及捆绑的第三方数据审查尚未完成。未捆绑任何启动器存档。"
+  "dynDistLauncherArchive": "不可用：启动器存档的再分发以及捆绑的第三方数据审查尚未完成。未捆绑任何启动器存档。",
+  "dynDistSaveKit": "不可用：SaveKit 的 MIT 授权不涵盖其依赖的修补引擎权利及完整子目录声明，这些对 any2jb 而言尚未审查。开发者可在本地暂存这些固定版本的源码；任何发布包都不包含它们。",
+  "developerStagingFailed": "开发者暂存失败，应用在未使用暂存辅助程序的情况下继续运行：{reason}"
 }

@@ -167,7 +167,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		}
 	}
 	if ui.Button(c.Key("usb-close-panel"), locales.UsbClosePanel()).Disabled(p.completion != nil).Clicked() {
-		p.open = false
+		a.closeKeyboardPanel()
 	}
 }
 
@@ -231,6 +231,13 @@ func (a *app) stopKeyboard() {
 		p.closing = true
 		a.command(a.controller.CloseKeyboard())
 	}
+}
+
+// closeKeyboardPanel releases live forwarding before hiding the panel, so a
+// hidden capture never leaves a key held down on the console.
+func (a *app) closeKeyboardPanel() {
+	a.stopKeyboard()
+	a.keyboard.open = false
 }
 
 func (a *app) keyboardEvent(ev ui.InputEvent) bool {

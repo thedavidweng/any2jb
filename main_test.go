@@ -44,6 +44,14 @@ func TestShell(t *testing.T) {
 	}
 }
 
+func TestStartupFailureIsReportedInTheWindow(t *testing.T) {
+	a := &app{startupError: "developer USB helper staging: fixture"}
+	tt := ui.NewTester(a.view, 640, 400)
+	if _, ok := tt.AccessByRole(ui.RoleStatus, a.startupError); !ok {
+		t.Fatalf("the startup failure is not an accessible status: %q", tt.Texts())
+	}
+}
+
 func uiStage(t *testing.T, a *app, tt *ui.Tester, stage session.Stage) {
 	t.Helper()
 	deadline := time.After(time.Second)

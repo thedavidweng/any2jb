@@ -4367,3 +4367,25 @@ func DynDistLauncherArchive() string { return In(i18n.Locale()).DynDistLauncherA
 func (msgs Messages) DynDistLauncherArchive() string {
 	return Catalog.Format(msgs.locale, "dynDistLauncherArchive", nil)
 }
+
+// DynDistSaveKit says "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, whi…"
+// in the language the app shows.
+func DynDistSaveKit() string { return In(i18n.Locale()).DynDistSaveKit() }
+
+// DynDistSaveKit says "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, whi…"
+// in the language of msgs.
+func (msgs Messages) DynDistSaveKit() string {
+	return Catalog.Format(msgs.locale, "dynDistSaveKit", nil)
+}
+
+// DeveloperStagingFailed says "Developer staging failed, so the app continued without the staged helpers: {reason}"
+// in the language the app shows.
+func DeveloperStagingFailed(reason string) string {
+	return In(i18n.Locale()).DeveloperStagingFailed(reason)
+}
+
+// DeveloperStagingFailed says "Developer staging failed, so the app continued without the staged helpers: {reason}"
+// in the language of msgs.
+func (msgs Messages) DeveloperStagingFailed(reason string) string {
+	return Catalog.Format(msgs.locale, "developerStagingFailed", map[string]any{"reason": reason})
+}

@@ -443,5 +443,7 @@
   "launcherBalatroShowcase": "Balatro (RCE showcase variant)",
   "launcherGravityCircuit": "Gravity Circuit (RCE v1.1)",
   "dynDistLauncherArtemis": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
-  "dynDistLauncherArchive": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled."
+  "dynDistLauncherArchive": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+  "dynDistSaveKit": "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned sources locally; no package includes them.",
+  "developerStagingFailed": "Developer staging failed, so the app continued without the staged helpers: {reason}"
 }
