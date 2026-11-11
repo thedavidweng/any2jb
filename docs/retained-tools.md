@@ -53,7 +53,11 @@ The `savekit` mutation gate runs, in order, per operation:
 1. **Preview and confirmation.** The view previews the affected files locally
    (write: a flat source folder; restore: a verified export; delete: the exact
    file name), states the target title, account and archive, and requires a
-   confirmation that covers exactly one operation. `savekit.Validate` binds
+   confirmation that covers exactly one operation. Write and restore have a
+   preview control because they scan a folder; delete does not, because
+   `savekit.PreviewDelete` derives its digest from the confirmed file name alone
+   and reads no filesystem, so the rendered section already is the preview.
+   `savekit.Validate` binds
    the preview's SHA-256 digest to the request. The manager recomputes the
    digest at run time, and the host module checks it again against its private
    staged copies just before the pinned tool runs, so a source that changed

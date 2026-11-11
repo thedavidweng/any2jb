@@ -296,6 +296,11 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	remove.Action = "delete"
 	remove.FileName = p.deleteName
 	remove.Confirm = p.confirmDelete
+	// Delete has no separate preview step on purpose: what the user confirms is
+	// the exact file name above, and savekit.PreviewDelete derives the digest
+	// from that name alone. Unlike the write and restore previews it reads no
+	// filesystem, so computing it here reports nothing and cannot disagree with
+	// what the section shows.
 	remove.PreviewDigest = savekit.PreviewDelete(p.deleteName).Digest
 	if ui.Button(c.Key("savekit-delete"), locales.SaveKitDelete()).
 		Disabled(!writeReady || !defaultTarget || remove.Validate() != nil).Clicked() {
