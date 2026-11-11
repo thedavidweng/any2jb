@@ -286,6 +286,32 @@ func TestSaveKitWriteEditsNeedNewConsent(t *testing.T) {
 	}
 }
 
+func TestSaveKitPreviewRunsOffTheRenderPassAndDropsStaleResults(t *testing.T) {
+	a, _, tt, _ := leasedSaveKit(t, map[string]string{"save.bin": "save\n"})
+	published := previewPublisher(a)
+	if err := tt.Click("Preview save write"); err != nil {
+		t.Fatal(err)
+	}
+	// The click only starts the work: the result arrives through the window's
+	// update, and both preview controls stay disabled until it does.
+	tt.Frame()
+	previewWrite, ok := tt.AccessByRole(ui.RoleButton, "Preview save write")
+	if !ok || !previewWrite.Disabled {
+		t.Fatalf("a preview control is usable while the preview runs: %+v", previewWrite)
+	}
+	// The folder changed while the preview was running, so its result is
+	// dropped instead of describing files the user no longer chose.
+	a.saveKit.sourceFolder = t.TempDir()
+	applyPublished(t, published)
+	tt.Frame()
+	if a.saveKit.writePreview != nil {
+		t.Fatal("a stale preview was applied")
+	}
+	if write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save"); !ok || !write.Disabled {
+		t.Fatalf("a stale preview enabled the write: %+v", write)
+	}
+}
+
 func TestSaveKitRestoreListsFilesBeforeConsent(t *testing.T) {
 	a, _, tt, _ := leasedSaveKit(t, map[string]string{"extra.bin": "extra\n"})
 	dir := t.TempDir()
