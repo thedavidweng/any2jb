@@ -52,6 +52,20 @@ type Request struct {
 }
 
 func (r Request) Validate() error {
+	return r.validate(false)
+}
+
+// ValidateLauncherWrite checks a launcher install before the retained manager
+// prepares its private source folder. The manager must call Validate again
+// after preparation before the write reaches the tool host.
+func (r Request) ValidateLauncherWrite() error {
+	if r.Action != "write" || r.SourceFolder != "" {
+		return errors.New("launcher saves require a write without a caller-provided source folder")
+	}
+	return r.validate(true)
+}
+
+func (r Request) validate(launcherWrite bool) error {
 	switch r.Action {
 	case "accounts", "titles", "inventory":
 		if r.TitleID != "" || r.UID != "" || r.Archive != nil || r.All {
@@ -70,7 +84,7 @@ func (r Request) Validate() error {
 			return errors.New("choose an absolute verified export folder to compare against")
 		}
 	case "write", "restore", "delete":
-		return r.gated()
+		return r.gated(launcherWrite)
 	default:
 		return errors.New("unsupported SaveKit action")
 	}
@@ -97,7 +111,7 @@ func (r Request) readOnly() error {
 
 // gated validates one console-changing operation: an explicit target, the
 // affected files pinned by a preview digest and an individual confirmation.
-func (r Request) gated() error {
+func (r Request) gated(launcherWrite bool) error {
 	if r.ExpectedFolder != "" || r.All {
 		return errors.New("a SaveKit mutation carries no compare fields")
 	}
@@ -114,6 +128,9 @@ func (r Request) gated() error {
 	case "write":
 		if r.Archive != nil || r.FileName != "" {
 			return errors.New("a save write targets the default account archive")
+		}
+		if r.SourceFolder == "" && launcherWrite {
+			return nil
 		}
 		if !filepath.IsAbs(r.SourceFolder) {
 			return errors.New("choose an absolute local save folder")

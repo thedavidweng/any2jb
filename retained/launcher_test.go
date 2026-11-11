@@ -86,6 +86,7 @@ func TestLauncherInstallRefusedAfterModloaderHandoff(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := writeRequest(t, folder, preview, true)
+	req.SaveKit.SourceFolder = ""
 	req.Launcher = &r
 	err = m.RunWith(context.Background(), run, req, func(session.Progress) {})
 	if err == nil || !strings.Contains(err.Error(), "restart") {
@@ -107,6 +108,7 @@ func TestLauncherInstallUsesTheSaveKitGate(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := writeRequest(t, folder, preview, true)
+	req.SaveKit.SourceFolder = ""
 	req.Launcher = &r
 	if err := m.RunWith(context.Background(), run, req, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
@@ -146,6 +148,7 @@ func TestLauncherUnknownCoreNeverWrites(t *testing.T) {
 		t.Fatal(err)
 	}
 	req := writeRequest(t, folder, preview, true)
+	req.SaveKit.SourceFolder = ""
 	req.Launcher = &r
 	err = m.RunWith(context.Background(), run, req, func(session.Progress) {})
 	if err == nil || !strings.Contains(err.Error(), "unrecognised") ||

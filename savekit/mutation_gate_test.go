@@ -75,6 +75,21 @@ func TestWriteRequestsNeedTheFullGate(t *testing.T) {
 	}
 }
 
+func TestLauncherWriteCanBeValidatedBeforeItsSourceIsPrepared(t *testing.T) {
+	request := savekit.Request{Action: "write", TitleID: mutTitle, UID: mutUID,
+		Confirm: true, PreviewDigest: digestOf("launcher preview\n")}
+	if err := request.ValidateLauncherWrite(); err != nil {
+		t.Fatalf("launcher write without a view-owned source folder was rejected: %v", err)
+	}
+	if err := request.Validate(); err == nil {
+		t.Fatal("an ordinary write without a source folder was accepted")
+	}
+	request.SourceFolder = "relative"
+	if err := request.ValidateLauncherWrite(); err == nil {
+		t.Fatal("launcher validation accepted a caller-provided source folder")
+	}
+}
+
 func TestRestoreRequestsNeedAVerifiedBackupAndACompatibleArchive(t *testing.T) {
 	source, digest := writeSource(t, map[string]string{"savegame.bin": "old save\n"})
 	valid := savekit.Request{Action: "restore", TitleID: mutTitle, UID: mutUID,

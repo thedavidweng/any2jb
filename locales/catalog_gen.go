@@ -1810,6 +1810,16 @@ func (msgs Messages) SaveKitWriteVerified(action string, files string, replaced 
 	return Catalog.Format(msgs.locale, "saveKitWriteVerified", map[string]any{"action": action, "files": files, "replaced": replaced, "path": path})
 }
 
+// SaveKitWriteBlocked says "A save operation failed. Further save writes, restores and deletes are blocked until the console restarts."
+// in the language the app shows.
+func SaveKitWriteBlocked() string { return In(i18n.Locale()).SaveKitWriteBlocked() }
+
+// SaveKitWriteBlocked says "A save operation failed. Further save writes, restores and deletes are blocked until the console restarts."
+// in the language of msgs.
+func (msgs Messages) SaveKitWriteBlocked() string {
+	return Catalog.Format(msgs.locale, "saveKitWriteBlocked", nil)
+}
+
 // SaveKitWriteFailed says "The save operation failed. The verified backup is kept at {path}. Finish this session and restart the console before …"
 // in the language the app shows.
 func SaveKitWriteFailed(path string) string { return In(i18n.Locale()).SaveKitWriteFailed(path) }
@@ -4198,11 +4208,11 @@ func (msgs Messages) LauncherPreview() string {
 	return Catalog.Format(msgs.locale, "launcherPreview", nil)
 }
 
-// LauncherConfirm says "I confirm installing this launcher save to the selected game and account"
+// LauncherConfirm says "I confirm installing this launcher save to the selected game and account. Existing files with the same names will be …"
 // in the language the app shows.
 func LauncherConfirm() string { return In(i18n.Locale()).LauncherConfirm() }
 
-// LauncherConfirm says "I confirm installing this launcher save to the selected game and account"
+// LauncherConfirm says "I confirm installing this launcher save to the selected game and account. Existing files with the same names will be …"
 // in the language of msgs.
 func (msgs Messages) LauncherConfirm() string {
 	return Catalog.Format(msgs.locale, "launcherConfirm", nil)

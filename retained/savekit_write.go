@@ -28,7 +28,13 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 	}
 	requested := *request.SaveKit
 	req := &requested
-	if err := req.Validate(); err != nil {
+	var err error
+	if request.Launcher != nil {
+		err = req.ValidateLauncherWrite()
+	} else {
+		err = req.Validate()
+	}
+	if err != nil {
 		return err
 	}
 	ctx, release, err := m.acquireSaveKit(ctx, "savekit")
@@ -58,6 +64,9 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 		}
 		defer os.RemoveAll(filepath.Dir(folder))
 		req.SourceFolder = folder
+		if err := req.Validate(); err != nil {
+			return err
+		}
 		component, err = m.options.Manifest.ToolComponent(request.Launcher.ID)
 		if err != nil {
 			return err

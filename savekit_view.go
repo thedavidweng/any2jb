@@ -178,6 +178,9 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	}
 	blocked := state.SaveKitBlocked != ""
 	writeReady := ready && writeReason == "" && !blocked
+	if blocked && (observed == nil || observed.Write == nil || observed.Write.Failure == "") {
+		ui.Text(c.Key("savekit-write-blocked"), locales.SaveKitWriteBlocked()).Role(ui.RoleStatus)
+	}
 	ui.Text(c, locales.SaveKitWriteHint()).TextColor(c.Theme().TextMuted)
 
 	archive := savekit.Archive{Space: 1, Type: 1}

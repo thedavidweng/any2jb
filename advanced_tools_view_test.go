@@ -27,12 +27,12 @@ func (f *fakeToolAdapter) Unavailable(tool, _ string) string { return f.reasons[
 func (f *fakeToolAdapter) State() retained.State             { return f.state }
 func (f *fakeToolAdapter) Select(titleID string) error       { f.selected = titleID; return nil }
 
-func (f *fakeToolAdapter) PrepareLauncher(_ context.Context, request launcher.Request, _ savekit.Request) (string, savekit.Preview, error) {
+func (f *fakeToolAdapter) PreviewLauncher(_ context.Context, request launcher.Request, _ savekit.Request) (savekit.Preview, error) {
 	f.prepared = request
 	if f.preview == nil {
-		return "", savekit.Preview{}, errors.New("no prepared launcher package")
+		return savekit.Preview{}, errors.New("no prepared launcher package")
 	}
-	return "/tmp/any2jb-launcher-preview/save", *f.preview, nil
+	return *f.preview, nil
 }
 
 func retainedApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolAdapter, tools []string) *app {

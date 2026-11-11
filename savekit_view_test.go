@@ -387,12 +387,12 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 	}
 	// A verified outcome states the counts and keeps the backup accessible.
 	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "write", Verified: true,
-		Files: 1, Backup: "/support/savekit-exports/010012900d38a000-a"}
+		Files: 1, Replaced: 2, Backup: "/support/savekit-exports/010012900d38a000-a"}
 	tt.Frame()
-	if !tt.HasText("Write verified: 1 file(s) written, 0 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a") {
+	if !tt.HasText("Write verified: 1 file(s) written, 2 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a") {
 		t.Fatal(tt.Texts())
 	}
-	if _, ok := tt.AccessByRole(ui.RoleStatus, "Write verified: 1 file(s) written, 0 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a"); !ok {
+	if _, ok := tt.AccessByRole(ui.RoleStatus, "Write verified: 1 file(s) written, 2 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a"); !ok {
 		t.Fatal("the write outcome is not an accessible status")
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Open backup folder"); !ok {
@@ -416,6 +416,16 @@ func TestSaveKitFailedOperationBlocksAndExplains(t *testing.T) {
 		if !ok || !control.Disabled {
 			t.Fatalf("%s ran after a failed save operation: %+v", label, control)
 		}
+	}
+	// Starting another tool can clear the detailed SaveKit observation, but
+	// the console-restart latch must remain visible and keep mutations blocked.
+	adapter.state.SaveKit = nil
+	tt.Frame()
+	if !tt.HasText(locales.SaveKitWriteBlocked()) {
+		t.Fatalf("the persistent write block disappeared with its outcome: %q", tt.Texts())
+	}
+	if write, ok := tt.AccessByRole(ui.RoleButton, "Back up and write save"); !ok || !write.Disabled {
+		t.Fatalf("a write became available after its detailed outcome disappeared: %+v", write)
 	}
 	// Read-only inspection still works after a failed operation.
 	if control, ok := tt.AccessByRole(ui.RoleButton, "Inspect save files"); !ok || control.Disabled {

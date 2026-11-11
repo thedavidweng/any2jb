@@ -20,7 +20,7 @@ type toolAdapter interface {
 	Unavailable(tool, profileID string) string
 	State() retained.State
 	Select(titleID string) error
-	PrepareLauncher(context.Context, launcher.Request, savekit.Request) (string, savekit.Preview, error)
+	PreviewLauncher(context.Context, launcher.Request, savekit.Request) (savekit.Preview, error)
 }
 
 type toolsPanel struct {

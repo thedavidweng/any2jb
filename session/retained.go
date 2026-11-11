@@ -255,7 +255,13 @@ func (c *SessionController) RunToolWith(request ToolRequest) (Snapshot, error) {
 		return c.configurationError(InvalidConfiguration, "Enter the console's IPv4 address on the same reachable LAN.")
 	}
 	if request.SaveKit != nil {
-		if err := request.SaveKit.Validate(); err != nil {
+		var err error
+		if request.Launcher != nil {
+			err = request.SaveKit.ValidateLauncherWrite()
+		} else {
+			err = request.SaveKit.Validate()
+		}
+		if err != nil {
 			return c.configurationError(InvalidConfiguration, err.Error())
 		}
 	}
