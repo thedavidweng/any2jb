@@ -14,11 +14,14 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
   state changes as they happen.
 - State is never carried by color alone. The readiness states
   (`requires attention`, `available but not verified`, `verified`) always show
-  their text label; the Danger/Warning/Success theme colors only supplement it.
+  their text label. Routine verified and available states use neutral ink;
+  danger color only supplements genuine blockers and failures.
   Each state also has its own symbol: ✓ verified, ○ available but not
   verified, ! requires attention, and ? with a dashed frame for a check the
   user must make personally (“Check this yourself”), which the app never
-  observed.
+  observed. State labels are unboxed text, not tinted pills. Observed checks
+  use compact rows separated by neutral hairlines; the manual note alone keeps
+  its dashed frame. Recovery instructions remain bold and visible.
 - Disabled controls stay visible and expose their disabled state; the reason a
   control is unavailable is stated in text next to it. Permanently unsupported
   or distribution-gated tools are named together under their shared reason

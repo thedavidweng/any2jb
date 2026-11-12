@@ -100,11 +100,11 @@ func (k tone) look(c *ui.Context) (symbol string, color ui.Color) {
 	t := c.Theme()
 	switch k {
 	case toneVerified:
-		return "✓", t.Success
+		return "✓", t.TextMuted
 	case toneAvailable:
-		return "○", t.Warning
+		return "○", t.TextMuted
 	case toneManual:
-		return "?", t.Accent
+		return "?", t.Text
 	default:
 		return "!", t.Danger
 	}
@@ -115,27 +115,21 @@ func (k tone) look(c *ui.Context) (symbol string, color ui.Color) {
 func badge(c *ui.Context, key string, k tone, label string) {
 	symbol, color := k.look(c)
 	t := c.Theme()
-	ui.Row(c).Gap(t.Space(1.5)).AlignSelf(ui.Start).Padding(t.Space(0.5), t.Space(2)).
-		Radius(t.Space(3)).Background(color.Alpha(0.12)).Children(func() {
-		ui.Text(c, symbol).Bold().TextColor(color)
-		ui.Text(c.Key(key), label).Bold().TextColor(color).Role(ui.RoleStatus)
+	ui.Row(c).Gap(t.Space(1.5)).AlignSelf(ui.Start).Children(func() {
+		ui.Text(c, symbol).TextColor(color).Shrink(0)
+		ui.Text(c.Key(key), label).TextColor(color).Role(ui.RoleStatus).Shrink(1)
 	})
 }
 
-// stateCard frames one observed fact; its edge repeats the badge's color.
+// Only a manual check gets a frame: it is not an observation made by the app.
 func stateCard(c *ui.Context, k tone, fn func()) {
-	_, color := k.look(c)
 	t := c.Theme()
-	border, style := t.Border, ui.BorderSolid
-	switch k {
-	case toneAttention:
-		border = color.Alpha(0.55)
-	case toneManual:
-		// Dashed, so "nobody checked this" never reads as a checked result.
-		border, style = color.Alpha(0.7), ui.BorderDashed
+	group := ui.Column(c).FillWidth().Gap(t.Space(1.5))
+	if k == toneManual {
+		group.Padding(t.Space(3)).Radius(t.Radius).
+			Border(1, t.Border).BorderStyle(ui.BorderDashed)
 	}
-	ui.Column(c).FillWidth().Gap(t.Space(1.5)).Padding(t.Space(3)).Radius(t.Radius+1).
-		Background(cardFill(c)).Border(1, border).BorderStyle(style).Children(fn)
+	group.Children(fn)
 }
 
 // meter draws determinate progress. The adjacent "Progress: n / total" text
@@ -254,7 +248,7 @@ func steps(c *ui.Context, names []string, current int) {
 				mark, color := "○", t.TextMuted
 				switch {
 				case i < current:
-					mark, color = "✓", t.Success
+					mark, color = "✓", t.TextMuted
 				case i == current:
 					mark, color = "▶", t.Text
 				}

@@ -286,6 +286,7 @@ func (a *app) readinessView(c *ui.Context, s session.Snapshot, detection bool) {
 			if check.GatesTransport == "usb-hid" {
 				muted(c, locales.UsbOnly())
 			}
+			rule(c)
 		})
 	}
 }
