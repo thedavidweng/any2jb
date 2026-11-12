@@ -138,24 +138,18 @@ func meter(c *ui.Context, fraction float32) {
 	})
 }
 
-// stepper shows where the four stages stand. The current one is filled and
-// bold, and the heading below names it in words.
+// The ordered stages use weight, not accent-filled circles, for position.
 func stepper(c *ui.Context, current flowStage, titles []string) {
 	t := c.Theme()
 	ui.Row(c).FillWidth().Wrap().Gap(t.Space(2)).Children(func() {
 		for i, title := range titles {
 			stage := flowStage(i)
 			ui.Row(c).Gap(t.Space(1.5)).Children(func() {
-				fill, fg, ring := ui.Transparent, t.TextMuted, t.Border
-				switch {
-				case stage == current:
-					fill, fg, ring = t.Accent, t.AccentText, t.Accent
-				case stage < current:
-					fg, ring = t.Text, t.TextMuted
+				fg := t.TextMuted
+				if stage <= current {
+					fg = t.Text
 				}
-				ui.Column(c).Size(20, 20).Radius(10).Background(fill).Border(1.5, ring).Center().Children(func() {
-					ui.Text(c, string(rune('1'+i))).FontSize(t.Rem(0.82)).Bold().TextColor(fg)
-				})
+				ui.Text(c, string(rune('1'+i))).FontSize(t.Rem(0.9)).TextColor(fg)
 				label := ui.Text(c, title).SingleLine()
 				switch {
 				case stage == current:

@@ -66,7 +66,7 @@ func launcherLabel(id string) (string, bool) {
 // gate takes and verifies a backup before anything changes.
 func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.State, ready bool) {
 	p := &a.launcherPanel
-	ui.Text(c, locales.LauncherSection()).FontSize(16).Bold()
+	sectionTitle(c, locales.LauncherSection())
 	ui.Text(c, locales.LauncherIntro()).TextColor(c.Theme().TextMuted)
 	ui.Text(c, locales.LauncherRestrictions()).TextColor(c.Theme().TextMuted)
 	ui.Text(c, locales.LauncherSideEffects())

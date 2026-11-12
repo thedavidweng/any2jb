@@ -33,7 +33,7 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 	if mintbrewReason != "" && nativeReason != "" && izReason != "" && customReason != "" {
 		return
 	}
-	ui.Text(c, locales.HbTitle()).FontSize(16).Bold()
+	sectionTitle(c, locales.HbTitle())
 	ui.Text(c, locales.HbNote()).TextColor(c.Theme().TextMuted)
 	if mintbrewReason == "" {
 		if inline(ui.Button(c.Key("hb-mintbrew"), locales.HbMintbrew())).Disabled(mintbrew).Clicked() {
@@ -87,7 +87,7 @@ func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.St
 	if reason != "" {
 		return
 	}
-	ui.Text(c, locales.ModTitle()).FontSize(16).Bold()
+	sectionTitle(c, locales.ModTitle())
 	ui.Text(c, locales.ModNote()).TextColor(c.Theme().TextMuted)
 	if state.ModloaderInstalled {
 		ui.Text(c.Key("mod-installed"), locales.ModInstalled()).Bold().Role(ui.RoleStatus)
