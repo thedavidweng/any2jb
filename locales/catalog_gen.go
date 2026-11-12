@@ -34,6 +34,176 @@ type Messages struct{ locale string }
 // source language.
 func In(locale string) Messages { return Messages{locale} }
 
+// CliDescription says "Native GUI with no arguments; commands and supervised sessions from the terminal."
+// in the language the app shows.
+func CliDescription() string { return In(i18n.Locale()).CliDescription() }
+
+// CliDescription says "Native GUI with no arguments; commands and supervised sessions from the terminal."
+// in the language of msgs.
+func (msgs Messages) CliDescription() string {
+	return Catalog.Format(msgs.locale, "cliDescription", nil)
+}
+
+// CliJSON says "Print machine-readable JSON."
+// in the language the app shows.
+func CliJSON() string { return In(i18n.Locale()).CliJSON() }
+
+// CliJSON says "Print machine-readable JSON."
+// in the language of msgs.
+func (msgs Messages) CliJSON() string {
+	return Catalog.Format(msgs.locale, "cliJSON", nil)
+}
+
+// CliLanguage says "Language: en or zh-CN (default: system language)."
+// in the language the app shows.
+func CliLanguage() string { return In(i18n.Locale()).CliLanguage() }
+
+// CliLanguage says "Language: en or zh-CN (default: system language)."
+// in the language of msgs.
+func (msgs Messages) CliLanguage() string {
+	return Catalog.Format(msgs.locale, "cliLanguage", nil)
+}
+
+// CliScript says "Read session commands from this file."
+// in the language the app shows.
+func CliScript() string { return In(i18n.Locale()).CliScript() }
+
+// CliScript says "Read session commands from this file."
+// in the language of msgs.
+func (msgs Messages) CliScript() string {
+	return Catalog.Format(msgs.locale, "cliScript", nil)
+}
+
+// CliConsent says "Per-action consent token, required without a terminal."
+// in the language the app shows.
+func CliConsent() string { return In(i18n.Locale()).CliConsent() }
+
+// CliConsent says "Per-action consent token, required without a terminal."
+// in the language of msgs.
+func (msgs Messages) CliConsent() string {
+	return Catalog.Format(msgs.locale, "cliConsent", nil)
+}
+
+// CliConfirm says "Per-action confirmation token, required without a terminal."
+// in the language the app shows.
+func CliConfirm() string { return In(i18n.Locale()).CliConfirm() }
+
+// CliConfirm says "Per-action confirmation token, required without a terminal."
+// in the language of msgs.
+func (msgs Messages) CliConfirm() string {
+	return Catalog.Format(msgs.locale, "cliConfirm", nil)
+}
+
+// CliPrompt says "Continue? [y/N]"
+// in the language the app shows.
+func CliPrompt() string { return In(i18n.Locale()).CliPrompt() }
+
+// CliPrompt says "Continue? [y/N]"
+// in the language of msgs.
+func (msgs Messages) CliPrompt() string {
+	return Catalog.Format(msgs.locale, "cliPrompt", nil)
+}
+
+// CliDeclined says "Cancelled by the user."
+// in the language the app shows.
+func CliDeclined() string { return In(i18n.Locale()).CliDeclined() }
+
+// CliDeclined says "Cancelled by the user."
+// in the language of msgs.
+func (msgs Messages) CliDeclined() string {
+	return Catalog.Format(msgs.locale, "cliDeclined", nil)
+}
+
+// CliExplicitConsent says "Explicit per-action consent is required:"
+// in the language the app shows.
+func CliExplicitConsent() string { return In(i18n.Locale()).CliExplicitConsent() }
+
+// CliExplicitConsent says "Explicit per-action consent is required:"
+// in the language of msgs.
+func (msgs Messages) CliExplicitConsent() string {
+	return Catalog.Format(msgs.locale, "cliExplicitConsent", nil)
+}
+
+// CliNeedsSession says "Run this command inside `any2jb session`."
+// in the language the app shows.
+func CliNeedsSession() string { return In(i18n.Locale()).CliNeedsSession() }
+
+// CliNeedsSession says "Run this command inside `any2jb session`."
+// in the language of msgs.
+func (msgs Messages) CliNeedsSession() string {
+	return Catalog.Format(msgs.locale, "cliNeedsSession", nil)
+}
+
+// CliOwned says "Another any2jb process owns this session. Close it before continuing."
+// in the language the app shows.
+func CliOwned() string { return In(i18n.Locale()).CliOwned() }
+
+// CliOwned says "Another any2jb process owns this session. Close it before continuing."
+// in the language of msgs.
+func (msgs Messages) CliOwned() string {
+	return Catalog.Format(msgs.locale, "cliOwned", nil)
+}
+
+// CliAck says "After completing this console step, run: ack --confirm=console-step"
+// in the language the app shows.
+func CliAck() string { return In(i18n.Locale()).CliAck() }
+
+// CliAck says "After completing this console step, run: ack --confirm=console-step"
+// in the language of msgs.
+func (msgs Messages) CliAck() string {
+	return Catalog.Format(msgs.locale, "cliAck", nil)
+}
+
+// CliInvalidArguments says "Invalid command arguments."
+// in the language the app shows.
+func CliInvalidArguments() string { return In(i18n.Locale()).CliInvalidArguments() }
+
+// CliInvalidArguments says "Invalid command arguments."
+// in the language of msgs.
+func (msgs Messages) CliInvalidArguments() string {
+	return Catalog.Format(msgs.locale, "cliInvalidArguments", nil)
+}
+
+// CliFolder says "Absolute local folder."
+// in the language the app shows.
+func CliFolder() string { return In(i18n.Locale()).CliFolder() }
+
+// CliFolder says "Absolute local folder."
+// in the language of msgs.
+func (msgs Messages) CliFolder() string {
+	return Catalog.Format(msgs.locale, "cliFolder", nil)
+}
+
+// CliFile says "File name."
+// in the language the app shows.
+func CliFile() string { return In(i18n.Locale()).CliFile() }
+
+// CliFile says "File name."
+// in the language of msgs.
+func (msgs Messages) CliFile() string {
+	return Catalog.Format(msgs.locale, "cliFile", nil)
+}
+
+// CliArchive says "Archive selection as a JSON object: space, type, rank, index, staticId."
+// in the language the app shows.
+func CliArchive() string { return In(i18n.Locale()).CliArchive() }
+
+// CliArchive says "Archive selection as a JSON object: space, type, rank, index, staticId."
+// in the language of msgs.
+func (msgs Messages) CliArchive() string {
+	return Catalog.Format(msgs.locale, "cliArchive", nil)
+}
+
+// CliRun says "Run identity."
+// in the language the app shows.
+func CliRun() string { return In(i18n.Locale()).CliRun() }
+
+// CliRun says "Run identity."
+// in the language of msgs.
+func (msgs Messages) CliRun() string {
+	return Catalog.Format(msgs.locale, "cliRun", nil)
+}
+
 // DeveloperStaged says "developer-staged, not redistributable"
 // in the language the app shows.
 func DeveloperStaged() string { return In(i18n.Locale()).DeveloperStaged() }
@@ -5224,4 +5394,746 @@ func LabeledList(label string, items string) string {
 // in the language of msgs.
 func (msgs Messages) LabeledList(label string, items string) string {
 	return Catalog.Format(msgs.locale, "labeledList", map[string]any{"label": label, "items": items})
+}
+
+// CliCmdStatus says "Show the session stage, readiness checks and startup-security note."
+// in the language the app shows.
+func CliCmdStatus() string { return In(i18n.Locale()).CliCmdStatus() }
+
+// CliCmdStatus says "Show the session stage, readiness checks and startup-security note."
+// in the language of msgs.
+func (msgs Messages) CliCmdStatus() string {
+	return Catalog.Format(msgs.locale, "cliCmdStatus", nil)
+}
+
+// CliCmdDetect says "Check readiness for the selected input method, including SIP status."
+// in the language the app shows.
+func CliCmdDetect() string { return In(i18n.Locale()).CliCmdDetect() }
+
+// CliCmdDetect says "Check readiness for the selected input method, including SIP status."
+// in the language of msgs.
+func (msgs Messages) CliCmdDetect() string {
+	return Catalog.Format(msgs.locale, "cliCmdDetect", nil)
+}
+
+// CliCmdSession says "Own a supervised interactive or scripted session."
+// in the language the app shows.
+func CliCmdSession() string { return In(i18n.Locale()).CliCmdSession() }
+
+// CliCmdSession says "Own a supervised interactive or scripted session."
+// in the language of msgs.
+func (msgs Messages) CliCmdSession() string {
+	return Catalog.Format(msgs.locale, "cliCmdSession", nil)
+}
+
+// CliCmdPrepare says "Prepare the matching bootstrap and enter it on the console."
+// in the language the app shows.
+func CliCmdPrepare() string { return In(i18n.Locale()).CliCmdPrepare() }
+
+// CliCmdPrepare says "Prepare the matching bootstrap and enter it on the console."
+// in the language of msgs.
+func (msgs Messages) CliCmdPrepare() string {
+	return Catalog.Format(msgs.locale, "cliCmdPrepare", nil)
+}
+
+// CliCmdSave says "Submit SAVE for the prepared bootstrap once."
+// in the language the app shows.
+func CliCmdSave() string { return In(i18n.Locale()).CliCmdSave() }
+
+// CliCmdSave says "Submit SAVE for the prepared bootstrap once."
+// in the language of msgs.
+func (msgs Messages) CliCmdSave() string {
+	return Catalog.Format(msgs.locale, "cliCmdSave", nil)
+}
+
+// CliCmdConfirmSave says "Record that the console completed SAVE."
+// in the language the app shows.
+func CliCmdConfirmSave() string { return In(i18n.Locale()).CliCmdConfirmSave() }
+
+// CliCmdConfirmSave says "Record that the console completed SAVE."
+// in the language of msgs.
+func (msgs Messages) CliCmdConfirmSave() string {
+	return Catalog.Format(msgs.locale, "cliCmdConfirmSave", nil)
+}
+
+// CliCmdUseSaved says "Confirm the console already holds this exact saved bootstrap."
+// in the language the app shows.
+func CliCmdUseSaved() string { return In(i18n.Locale()).CliCmdUseSaved() }
+
+// CliCmdUseSaved says "Confirm the console already holds this exact saved bootstrap."
+// in the language of msgs.
+func (msgs Messages) CliCmdUseSaved() string {
+	return Catalog.Format(msgs.locale, "cliCmdUseSaved", nil)
+}
+
+// CliCmdLaunch says "Start the jailbreak with the selected route and input method."
+// in the language the app shows.
+func CliCmdLaunch() string { return In(i18n.Locale()).CliCmdLaunch() }
+
+// CliCmdLaunch says "Start the jailbreak with the selected route and input method."
+// in the language of msgs.
+func (msgs Messages) CliCmdLaunch() string {
+	return Catalog.Format(msgs.locale, "cliCmdLaunch", nil)
+}
+
+// CliCmdWait says "Follow the running operation until it needs you or ends."
+// in the language the app shows.
+func CliCmdWait() string { return In(i18n.Locale()).CliCmdWait() }
+
+// CliCmdWait says "Follow the running operation until it needs you or ends."
+// in the language of msgs.
+func (msgs Messages) CliCmdWait() string {
+	return Catalog.Format(msgs.locale, "cliCmdWait", nil)
+}
+
+// CliCmdCancel says "Cancel before anything reaches the console."
+// in the language the app shows.
+func CliCmdCancel() string { return In(i18n.Locale()).CliCmdCancel() }
+
+// CliCmdCancel says "Cancel before anything reaches the console."
+// in the language of msgs.
+func (msgs Messages) CliCmdCancel() string {
+	return Catalog.Format(msgs.locale, "cliCmdCancel", nil)
+}
+
+// CliCmdStop says "Stop after console contact; the console then needs a restart."
+// in the language the app shows.
+func CliCmdStop() string { return In(i18n.Locale()).CliCmdStop() }
+
+// CliCmdStop says "Stop after console contact; the console then needs a restart."
+// in the language of msgs.
+func (msgs Messages) CliCmdStop() string {
+	return Catalog.Format(msgs.locale, "cliCmdStop", nil)
+}
+
+// CliCmdFinish says "Finish a verified session and release its resources."
+// in the language the app shows.
+func CliCmdFinish() string { return In(i18n.Locale()).CliCmdFinish() }
+
+// CliCmdFinish says "Finish a verified session and release its resources."
+// in the language of msgs.
+func (msgs Messages) CliCmdFinish() string {
+	return Catalog.Format(msgs.locale, "cliCmdFinish", nil)
+}
+
+// CliCmdRestartConfirm says "Confirm the console was restarted after an indeterminate session."
+// in the language the app shows.
+func CliCmdRestartConfirm() string { return In(i18n.Locale()).CliCmdRestartConfirm() }
+
+// CliCmdRestartConfirm says "Confirm the console was restarted after an indeterminate session."
+// in the language of msgs.
+func (msgs Messages) CliCmdRestartConfirm() string {
+	return Catalog.Format(msgs.locale, "cliCmdRestartConfirm", nil)
+}
+
+// CliCmdAck says "Confirm the console step shown is complete."
+// in the language the app shows.
+func CliCmdAck() string { return In(i18n.Locale()).CliCmdAck() }
+
+// CliCmdAck says "Confirm the console step shown is complete."
+// in the language of msgs.
+func (msgs Messages) CliCmdAck() string {
+	return Catalog.Format(msgs.locale, "cliCmdAck", nil)
+}
+
+// CliCmdSettings says "Read and change host, input and network preferences."
+// in the language the app shows.
+func CliCmdSettings() string { return In(i18n.Locale()).CliCmdSettings() }
+
+// CliCmdSettings says "Read and change host, input and network preferences."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettings() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettings", nil)
+}
+
+// CliCmdSettingsGet says "Print the saved preferences."
+// in the language the app shows.
+func CliCmdSettingsGet() string { return In(i18n.Locale()).CliCmdSettingsGet() }
+
+// CliCmdSettingsGet says "Print the saved preferences."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettingsGet() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettingsGet", nil)
+}
+
+// CliCmdSettingsSet says "Validate, apply and save preferences."
+// in the language the app shows.
+func CliCmdSettingsSet() string { return In(i18n.Locale()).CliCmdSettingsSet() }
+
+// CliCmdSettingsSet says "Validate, apply and save preferences."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettingsSet() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettingsSet", nil)
+}
+
+// CliCmdSettingsProfiles says "List host profiles and their capabilities."
+// in the language the app shows.
+func CliCmdSettingsProfiles() string { return In(i18n.Locale()).CliCmdSettingsProfiles() }
+
+// CliCmdSettingsProfiles says "List host profiles and their capabilities."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettingsProfiles() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettingsProfiles", nil)
+}
+
+// CliCmdSettingsDeveloper says "Explain developer staging."
+// in the language the app shows.
+func CliCmdSettingsDeveloper() string { return In(i18n.Locale()).CliCmdSettingsDeveloper() }
+
+// CliCmdSettingsDeveloper says "Explain developer staging."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettingsDeveloper() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettingsDeveloper", nil)
+}
+
+// CliCmdSettingsAbout says "Show the build version and limits."
+// in the language the app shows.
+func CliCmdSettingsAbout() string { return In(i18n.Locale()).CliCmdSettingsAbout() }
+
+// CliCmdSettingsAbout says "Show the build version and limits."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettingsAbout() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettingsAbout", nil)
+}
+
+// CliCmdSettingsUpdates says "Check for a signed app update."
+// in the language the app shows.
+func CliCmdSettingsUpdates() string { return In(i18n.Locale()).CliCmdSettingsUpdates() }
+
+// CliCmdSettingsUpdates says "Check for a signed app update."
+// in the language of msgs.
+func (msgs Messages) CliCmdSettingsUpdates() string {
+	return Catalog.Format(msgs.locale, "cliCmdSettingsUpdates", nil)
+}
+
+// CliCmdLanguage says "Print the language this command line uses."
+// in the language the app shows.
+func CliCmdLanguage() string { return In(i18n.Locale()).CliCmdLanguage() }
+
+// CliCmdLanguage says "Print the language this command line uses."
+// in the language of msgs.
+func (msgs Messages) CliCmdLanguage() string {
+	return Catalog.Format(msgs.locale, "cliCmdLanguage", nil)
+}
+
+// CliCmdUsbDefaults says "Print the stock USB typing timing."
+// in the language the app shows.
+func CliCmdUsbDefaults() string { return In(i18n.Locale()).CliCmdUsbDefaults() }
+
+// CliCmdUsbDefaults says "Print the stock USB typing timing."
+// in the language of msgs.
+func (msgs Messages) CliCmdUsbDefaults() string {
+	return Catalog.Format(msgs.locale, "cliCmdUsbDefaults", nil)
+}
+
+// CliCmdTool says "Run tools on a verified retained session."
+// in the language the app shows.
+func CliCmdTool() string { return In(i18n.Locale()).CliCmdTool() }
+
+// CliCmdTool says "Run tools on a verified retained session."
+// in the language of msgs.
+func (msgs Messages) CliCmdTool() string {
+	return Catalog.Format(msgs.locale, "cliCmdTool", nil)
+}
+
+// CliCmdToolList says "List the profile's tools and why any is unavailable."
+// in the language the app shows.
+func CliCmdToolList() string { return In(i18n.Locale()).CliCmdToolList() }
+
+// CliCmdToolList says "List the profile's tools and why any is unavailable."
+// in the language of msgs.
+func (msgs Messages) CliCmdToolList() string {
+	return Catalog.Format(msgs.locale, "cliCmdToolList", nil)
+}
+
+// CliCmdToolState says "Print the tools' current observations."
+// in the language the app shows.
+func CliCmdToolState() string { return In(i18n.Locale()).CliCmdToolState() }
+
+// CliCmdToolState says "Print the tools' current observations."
+// in the language of msgs.
+func (msgs Messages) CliCmdToolState() string {
+	return Catalog.Format(msgs.locale, "cliCmdToolState", nil)
+}
+
+// CliCmdToolRun says "Run one tool; user code needs its own consent."
+// in the language the app shows.
+func CliCmdToolRun() string { return In(i18n.Locale()).CliCmdToolRun() }
+
+// CliCmdToolRun says "Run one tool; user code needs its own consent."
+// in the language of msgs.
+func (msgs Messages) CliCmdToolRun() string {
+	return Catalog.Format(msgs.locale, "cliCmdToolRun", nil)
+}
+
+// CliCmdToolStop says "Stop the running tool; the session stays."
+// in the language the app shows.
+func CliCmdToolStop() string { return In(i18n.Locale()).CliCmdToolStop() }
+
+// CliCmdToolStop says "Stop the running tool; the session stays."
+// in the language of msgs.
+func (msgs Messages) CliCmdToolStop() string {
+	return Catalog.Format(msgs.locale, "cliCmdToolStop", nil)
+}
+
+// CliCmdToolSelect says "Choose a reported game for the export."
+// in the language the app shows.
+func CliCmdToolSelect() string { return In(i18n.Locale()).CliCmdToolSelect() }
+
+// CliCmdToolSelect says "Choose a reported game for the export."
+// in the language of msgs.
+func (msgs Messages) CliCmdToolSelect() string {
+	return Catalog.Format(msgs.locale, "cliCmdToolSelect", nil)
+}
+
+// CliCmdDiscover says "List verified retained sessions on this machine."
+// in the language the app shows.
+func CliCmdDiscover() string { return In(i18n.Locale()).CliCmdDiscover() }
+
+// CliCmdDiscover says "List verified retained sessions on this machine."
+// in the language of msgs.
+func (msgs Messages) CliCmdDiscover() string {
+	return Catalog.Format(msgs.locale, "cliCmdDiscover", nil)
+}
+
+// CliCmdConnect says "Connect to an open verified retained session."
+// in the language the app shows.
+func CliCmdConnect() string { return In(i18n.Locale()).CliCmdConnect() }
+
+// CliCmdConnect says "Connect to an open verified retained session."
+// in the language of msgs.
+func (msgs Messages) CliCmdConnect() string {
+	return Catalog.Format(msgs.locale, "cliCmdConnect", nil)
+}
+
+// CliCmdDisconnect says "Disconnect; the original host keeps running."
+// in the language the app shows.
+func CliCmdDisconnect() string { return In(i18n.Locale()).CliCmdDisconnect() }
+
+// CliCmdDisconnect says "Disconnect; the original host keeps running."
+// in the language of msgs.
+func (msgs Messages) CliCmdDisconnect() string {
+	return Catalog.Format(msgs.locale, "cliCmdDisconnect", nil)
+}
+
+// CliCmdSavekit says "Inspect, export and change console saves behind backups."
+// in the language the app shows.
+func CliCmdSavekit() string { return In(i18n.Locale()).CliCmdSavekit() }
+
+// CliCmdSavekit says "Inspect, export and change console saves behind backups."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekit() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekit", nil)
+}
+
+// CliCmdSavekitAccounts says "List console accounts."
+// in the language the app shows.
+func CliCmdSavekitAccounts() string { return In(i18n.Locale()).CliCmdSavekitAccounts() }
+
+// CliCmdSavekitAccounts says "List console accounts."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitAccounts() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitAccounts", nil)
+}
+
+// CliCmdSavekitTitles says "List titles with saves."
+// in the language the app shows.
+func CliCmdSavekitTitles() string { return In(i18n.Locale()).CliCmdSavekitTitles() }
+
+// CliCmdSavekitTitles says "List titles with saves."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitTitles() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitTitles", nil)
+}
+
+// CliCmdSavekitInventory says "List save archives."
+// in the language the app shows.
+func CliCmdSavekitInventory() string { return In(i18n.Locale()).CliCmdSavekitInventory() }
+
+// CliCmdSavekitInventory says "List save archives."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitInventory() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitInventory", nil)
+}
+
+// CliCmdSavekitInspect says "Read one save archive."
+// in the language the app shows.
+func CliCmdSavekitInspect() string { return In(i18n.Locale()).CliCmdSavekitInspect() }
+
+// CliCmdSavekitInspect says "Read one save archive."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitInspect() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitInspect", nil)
+}
+
+// CliCmdSavekitBackup says "Export a verified backup."
+// in the language the app shows.
+func CliCmdSavekitBackup() string { return In(i18n.Locale()).CliCmdSavekitBackup() }
+
+// CliCmdSavekitBackup says "Export a verified backup."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitBackup() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitBackup", nil)
+}
+
+// CliCmdSavekitFiletime says "Read a save archive's timestamps."
+// in the language the app shows.
+func CliCmdSavekitFiletime() string { return In(i18n.Locale()).CliCmdSavekitFiletime() }
+
+// CliCmdSavekitFiletime says "Read a save archive's timestamps."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitFiletime() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitFiletime", nil)
+}
+
+// CliCmdSavekitVerify says "Compare a live save with a verified export."
+// in the language the app shows.
+func CliCmdSavekitVerify() string { return In(i18n.Locale()).CliCmdSavekitVerify() }
+
+// CliCmdSavekitVerify says "Compare a live save with a verified export."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitVerify() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitVerify", nil)
+}
+
+// CliCmdSavekitWrite says "Write a save after preview, consent and a verified backup."
+// in the language the app shows.
+func CliCmdSavekitWrite() string { return In(i18n.Locale()).CliCmdSavekitWrite() }
+
+// CliCmdSavekitWrite says "Write a save after preview, consent and a verified backup."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitWrite() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitWrite", nil)
+}
+
+// CliCmdSavekitRestore says "Restore a backup after preview, consent and a verified backup."
+// in the language the app shows.
+func CliCmdSavekitRestore() string { return In(i18n.Locale()).CliCmdSavekitRestore() }
+
+// CliCmdSavekitRestore says "Restore a backup after preview, consent and a verified backup."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitRestore() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitRestore", nil)
+}
+
+// CliCmdSavekitDelete says "Delete one save file after preview, consent and a verified backup."
+// in the language the app shows.
+func CliCmdSavekitDelete() string { return In(i18n.Locale()).CliCmdSavekitDelete() }
+
+// CliCmdSavekitDelete says "Delete one save file after preview, consent and a verified backup."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitDelete() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitDelete", nil)
+}
+
+// CliCmdSavekitPreview says "Preview the files a write, restore or delete changes."
+// in the language the app shows.
+func CliCmdSavekitPreview() string { return In(i18n.Locale()).CliCmdSavekitPreview() }
+
+// CliCmdSavekitPreview says "Preview the files a write, restore or delete changes."
+// in the language of msgs.
+func (msgs Messages) CliCmdSavekitPreview() string {
+	return Catalog.Format(msgs.locale, "cliCmdSavekitPreview", nil)
+}
+
+// CliCmdLauncher says "Install pinned launcher saves through SaveKit."
+// in the language the app shows.
+func CliCmdLauncher() string { return In(i18n.Locale()).CliCmdLauncher() }
+
+// CliCmdLauncher says "Install pinned launcher saves through SaveKit."
+// in the language of msgs.
+func (msgs Messages) CliCmdLauncher() string {
+	return Catalog.Format(msgs.locale, "cliCmdLauncher", nil)
+}
+
+// CliCmdLauncherList says "List launcher packages and their game restrictions."
+// in the language the app shows.
+func CliCmdLauncherList() string { return In(i18n.Locale()).CliCmdLauncherList() }
+
+// CliCmdLauncherList says "List launcher packages and their game restrictions."
+// in the language of msgs.
+func (msgs Messages) CliCmdLauncherList() string {
+	return Catalog.Format(msgs.locale, "cliCmdLauncherList", nil)
+}
+
+// CliCmdLauncherPreview says "Prepare a launcher package and preview its files."
+// in the language the app shows.
+func CliCmdLauncherPreview() string { return In(i18n.Locale()).CliCmdLauncherPreview() }
+
+// CliCmdLauncherPreview says "Prepare a launcher package and preview its files."
+// in the language of msgs.
+func (msgs Messages) CliCmdLauncherPreview() string {
+	return Catalog.Format(msgs.locale, "cliCmdLauncherPreview", nil)
+}
+
+// CliCmdLauncherInstall says "Install a launcher save after consent and a verified backup."
+// in the language the app shows.
+func CliCmdLauncherInstall() string { return In(i18n.Locale()).CliCmdLauncherInstall() }
+
+// CliCmdLauncherInstall says "Install a launcher save after consent and a verified backup."
+// in the language of msgs.
+func (msgs Messages) CliCmdLauncherInstall() string {
+	return Catalog.Format(msgs.locale, "cliCmdLauncherInstall", nil)
+}
+
+// CliCmdDiagnostics says "Read redacted logs, export support bundles and clean temporary files."
+// in the language the app shows.
+func CliCmdDiagnostics() string { return In(i18n.Locale()).CliCmdDiagnostics() }
+
+// CliCmdDiagnostics says "Read redacted logs, export support bundles and clean temporary files."
+// in the language of msgs.
+func (msgs Messages) CliCmdDiagnostics() string {
+	return Catalog.Format(msgs.locale, "cliCmdDiagnostics", nil)
+}
+
+// CliCmdDiagnosticsLogs says "Print a run's redacted logs."
+// in the language the app shows.
+func CliCmdDiagnosticsLogs() string { return In(i18n.Locale()).CliCmdDiagnosticsLogs() }
+
+// CliCmdDiagnosticsLogs says "Print a run's redacted logs."
+// in the language of msgs.
+func (msgs Messages) CliCmdDiagnosticsLogs() string {
+	return Catalog.Format(msgs.locale, "cliCmdDiagnosticsLogs", nil)
+}
+
+// CliCmdDiagnosticsExport says "Export a redacted support bundle."
+// in the language the app shows.
+func CliCmdDiagnosticsExport() string { return In(i18n.Locale()).CliCmdDiagnosticsExport() }
+
+// CliCmdDiagnosticsExport says "Export a redacted support bundle."
+// in the language of msgs.
+func (msgs Messages) CliCmdDiagnosticsExport() string {
+	return Catalog.Format(msgs.locale, "cliCmdDiagnosticsExport", nil)
+}
+
+// CliCmdDiagnosticsFolders says "Print where local data lives."
+// in the language the app shows.
+func CliCmdDiagnosticsFolders() string { return In(i18n.Locale()).CliCmdDiagnosticsFolders() }
+
+// CliCmdDiagnosticsFolders says "Print where local data lives."
+// in the language of msgs.
+func (msgs Messages) CliCmdDiagnosticsFolders() string {
+	return Catalog.Format(msgs.locale, "cliCmdDiagnosticsFolders", nil)
+}
+
+// CliCmdDiagnosticsCleanup says "Preview temporary files, and delete them with consent."
+// in the language the app shows.
+func CliCmdDiagnosticsCleanup() string { return In(i18n.Locale()).CliCmdDiagnosticsCleanup() }
+
+// CliCmdDiagnosticsCleanup says "Preview temporary files, and delete them with consent."
+// in the language of msgs.
+func (msgs Messages) CliCmdDiagnosticsCleanup() string {
+	return Catalog.Format(msgs.locale, "cliCmdDiagnosticsCleanup", nil)
+}
+
+// CliCmdCivswitch says "Use the separate CivSwitch route."
+// in the language the app shows.
+func CliCmdCivswitch() string { return In(i18n.Locale()).CliCmdCivswitch() }
+
+// CliCmdCivswitch says "Use the separate CivSwitch route."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitch() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitch", nil)
+}
+
+// CliCmdCivswitchLaunch says "Start CivSwitch after confirming its prerequisites."
+// in the language the app shows.
+func CliCmdCivswitchLaunch() string { return In(i18n.Locale()).CliCmdCivswitchLaunch() }
+
+// CliCmdCivswitchLaunch says "Start CivSwitch after confirming its prerequisites."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchLaunch() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchLaunch", nil)
+}
+
+// CliCmdCivswitchConnect says "Connect to an already open CivSwitch loader."
+// in the language the app shows.
+func CliCmdCivswitchConnect() string { return In(i18n.Locale()).CliCmdCivswitchConnect() }
+
+// CliCmdCivswitchConnect says "Connect to an already open CivSwitch loader."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchConnect() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchConnect", nil)
+}
+
+// CliCmdCivswitchRecheck says "Probe the loader again without replaying input."
+// in the language the app shows.
+func CliCmdCivswitchRecheck() string { return In(i18n.Locale()).CliCmdCivswitchRecheck() }
+
+// CliCmdCivswitchRecheck says "Probe the loader again without replaying input."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchRecheck() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchRecheck", nil)
+}
+
+// CliCmdCivswitchAvailability says "Say whether CivSwitch components are available."
+// in the language the app shows.
+func CliCmdCivswitchAvailability() string { return In(i18n.Locale()).CliCmdCivswitchAvailability() }
+
+// CliCmdCivswitchAvailability says "Say whether CivSwitch components are available."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchAvailability() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchAvailability", nil)
+}
+
+// CliCmdCivswitchInstallTrigger says "Install the boot trigger after a verified save backup."
+// in the language the app shows.
+func CliCmdCivswitchInstallTrigger() string { return In(i18n.Locale()).CliCmdCivswitchInstallTrigger() }
+
+// CliCmdCivswitchInstallTrigger says "Install the boot trigger after a verified save backup."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchInstallTrigger() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchInstallTrigger", nil)
+}
+
+// CliCmdCivswitchSendJs says "Run a reviewed JavaScript file in the loader."
+// in the language the app shows.
+func CliCmdCivswitchSendJs() string { return In(i18n.Locale()).CliCmdCivswitchSendJs() }
+
+// CliCmdCivswitchSendJs says "Run a reviewed JavaScript file in the loader."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchSendJs() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchSendJs", nil)
+}
+
+// CliCmdCivswitchStageJs says "Stage a reviewed JavaScript file for the Control Center."
+// in the language the app shows.
+func CliCmdCivswitchStageJs() string { return In(i18n.Locale()).CliCmdCivswitchStageJs() }
+
+// CliCmdCivswitchStageJs says "Stage a reviewed JavaScript file for the Control Center."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchStageJs() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchStageJs", nil)
+}
+
+// CliCmdCivswitchControlCenter says "Open the Control Center connection."
+// in the language the app shows.
+func CliCmdCivswitchControlCenter() string { return In(i18n.Locale()).CliCmdCivswitchControlCenter() }
+
+// CliCmdCivswitchControlCenter says "Open the Control Center connection."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchControlCenter() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchControlCenter", nil)
+}
+
+// CliCmdCivswitchStopControlCenter says "Close the Control Center connection."
+// in the language the app shows.
+func CliCmdCivswitchStopControlCenter() string {
+	return In(i18n.Locale()).CliCmdCivswitchStopControlCenter()
+}
+
+// CliCmdCivswitchStopControlCenter says "Close the Control Center connection."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchStopControlCenter() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchStopControlCenter", nil)
+}
+
+// CliCmdCivswitchLeave says "Leave the CivSwitch route."
+// in the language the app shows.
+func CliCmdCivswitchLeave() string { return In(i18n.Locale()).CliCmdCivswitchLeave() }
+
+// CliCmdCivswitchLeave says "Leave the CivSwitch route."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchLeave() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchLeave", nil)
+}
+
+// CliCmdKeyboard says "Check and use live USB keyboard forwarding."
+// in the language the app shows.
+func CliCmdKeyboard() string { return In(i18n.Locale()).CliCmdKeyboard() }
+
+// CliCmdKeyboard says "Check and use live USB keyboard forwarding."
+// in the language of msgs.
+func (msgs Messages) CliCmdKeyboard() string {
+	return Catalog.Format(msgs.locale, "cliCmdKeyboard", nil)
+}
+
+// CliCmdKeyboardCheck says "Check the saved USB controller and timing."
+// in the language the app shows.
+func CliCmdKeyboardCheck() string { return In(i18n.Locale()).CliCmdKeyboardCheck() }
+
+// CliCmdKeyboardCheck says "Check the saved USB controller and timing."
+// in the language of msgs.
+func (msgs Messages) CliCmdKeyboardCheck() string {
+	return Catalog.Format(msgs.locale, "cliCmdKeyboardCheck", nil)
+}
+
+// CliCmdKeyboardOpen says "Open live keyboard forwarding."
+// in the language the app shows.
+func CliCmdKeyboardOpen() string { return In(i18n.Locale()).CliCmdKeyboardOpen() }
+
+// CliCmdKeyboardOpen says "Open live keyboard forwarding."
+// in the language of msgs.
+func (msgs Messages) CliCmdKeyboardOpen() string {
+	return Catalog.Format(msgs.locale, "cliCmdKeyboardOpen", nil)
+}
+
+// CliCmdKeyboardReport says "Send one 8-byte keyboard report, as hex."
+// in the language the app shows.
+func CliCmdKeyboardReport() string { return In(i18n.Locale()).CliCmdKeyboardReport() }
+
+// CliCmdKeyboardReport says "Send one 8-byte keyboard report, as hex."
+// in the language of msgs.
+func (msgs Messages) CliCmdKeyboardReport() string {
+	return Catalog.Format(msgs.locale, "cliCmdKeyboardReport", nil)
+}
+
+// CliCmdKeyboardClose says "Close forwarding after a neutral key release."
+// in the language the app shows.
+func CliCmdKeyboardClose() string { return In(i18n.Locale()).CliCmdKeyboardClose() }
+
+// CliCmdKeyboardClose says "Close forwarding after a neutral key release."
+// in the language of msgs.
+func (msgs Messages) CliCmdKeyboardClose() string {
+	return Catalog.Format(msgs.locale, "cliCmdKeyboardClose", nil)
+}
+
+// CliCmdDriver says "Review and install the USB gadget driver."
+// in the language the app shows.
+func CliCmdDriver() string { return In(i18n.Locale()).CliCmdDriver() }
+
+// CliCmdDriver says "Review and install the USB gadget driver."
+// in the language of msgs.
+func (msgs Messages) CliCmdDriver() string {
+	return Catalog.Format(msgs.locale, "cliCmdDriver", nil)
+}
+
+// CliCmdDriverStatus says "Explain driver security and report availability."
+// in the language the app shows.
+func CliCmdDriverStatus() string { return In(i18n.Locale()).CliCmdDriverStatus() }
+
+// CliCmdDriverStatus says "Explain driver security and report availability."
+// in the language of msgs.
+func (msgs Messages) CliCmdDriverStatus() string {
+	return Catalog.Format(msgs.locale, "cliCmdDriverStatus", nil)
+}
+
+// CliCmdDriverInstall says "Install the driver after the full disclosure and consent."
+// in the language the app shows.
+func CliCmdDriverInstall() string { return In(i18n.Locale()).CliCmdDriverInstall() }
+
+// CliCmdDriverInstall says "Install the driver after the full disclosure and consent."
+// in the language of msgs.
+func (msgs Messages) CliCmdDriverInstall() string {
+	return Catalog.Format(msgs.locale, "cliCmdDriverInstall", nil)
+}
+
+// CliCmdHelp says "Help about any command."
+// in the language the app shows.
+func CliCmdHelp() string { return In(i18n.Locale()).CliCmdHelp() }
+
+// CliCmdHelp says "Help about any command."
+// in the language of msgs.
+func (msgs Messages) CliCmdHelp() string {
+	return Catalog.Format(msgs.locale, "cliCmdHelp", nil)
+}
+
+// CliRestartHint says "After restarting the console, run: any2jb session, then restart-confirm --confirm=console-restarted"
+// in the language the app shows.
+func CliRestartHint() string { return In(i18n.Locale()).CliRestartHint() }
+
+// CliRestartHint says "After restarting the console, run: any2jb session, then restart-confirm --confirm=console-restarted"
+// in the language of msgs.
+func (msgs Messages) CliRestartHint() string {
+	return Catalog.Format(msgs.locale, "cliRestartHint", nil)
 }

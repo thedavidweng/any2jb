@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/egoist/mygo"
@@ -118,6 +119,11 @@ func main() {
 			log.Fatal(err)
 		}
 		return
+	}
+	// Arguments select the command line. Older macOS launchers pass a
+	// process serial number to an app opened from Finder; that stays the GUI.
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-psn_") {
+		os.Exit(runCLI(os.Args[1:]))
 	}
 	dir, err := os.UserConfigDir()
 	if err != nil {
