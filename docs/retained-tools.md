@@ -9,7 +9,7 @@ success is never accepted as a lease.
 
 ## Stage placement
 
-Stage 4 offers Advanced Tools only after a verified session. SaveKit, launcher
+Stage 5 offers Advanced Tools only after a verified session. SaveKit, launcher
 saves, homebrew and modloader retain all existing capability, distribution,
 consent, backup and single-owner gates. Tools disappear if verification is lost
 or the session ends. Read-only discovery and attachment live separately in stage

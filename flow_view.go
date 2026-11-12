@@ -12,6 +12,7 @@ type flowStage int
 
 const (
 	flowDetection flowStage = iota
+	flowPrepare
 	flowSelection
 	flowLaunch
 	flowTools
@@ -31,6 +32,9 @@ type flowUI struct {
 	attach          bool
 	evidence        bool
 	recoverySteps   bool
+	// The console can change between runs, so these confirmations live only
+	// as long as the app does and are never saved.
+	prepared prepared
 }
 
 // The input-adapter check describes the method the last inspection used, so
@@ -87,7 +91,7 @@ func (a *app) syncStage() {
 }
 
 func flowTitles() []string {
-	return []string{locales.FlowDetection(), locales.FlowSelection(), locales.FlowLaunch(), locales.FlowTools()}
+	return []string{locales.FlowDetection(), locales.FlowPrepare(), locales.FlowSelection(), locales.FlowLaunch(), locales.FlowTools()}
 }
 
 func (a *app) flowView(c *ui.Context) {
@@ -108,6 +112,8 @@ func (a *app) flowView(c *ui.Context) {
 		switch a.flow.stage {
 		case flowDetection:
 			a.detectionView(c, s)
+		case flowPrepare:
+			a.prepareView(c, s)
 		case flowSelection:
 			a.selectionView(c, s)
 		case flowLaunch:
@@ -156,15 +162,12 @@ func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 	if host == "" {
 		host = s.Profile.ID
 	}
+	route := locales.FlowSmile()
+	if a.civSwitchPanel.open {
+		route = locales.CivTitle()
+	}
 	card(c, func() {
-		field(c, locales.FlowRoute(), func() {
-			// Radio buttons mark the chosen route by shape and announce it as
-			// chosen; the arrows move between the two.
-			ui.RadioGroup(c.Key("route"), func() {
-				ui.Radio(c.Key("smile-route"), &a.civSwitchPanel.open, false, locales.FlowSmile()).Disabled(s.Busy || s.SideEffects)
-				ui.Radio(c.Key("civ-open"), &a.civSwitchPanel.open, true, locales.CivTitle()).Disabled(s.Busy || s.SideEffects)
-			}).Row().Wrap().Gap(c.Theme().Space(5)).Label(locales.FlowRoute())
-		})
+		keyValue(c, locales.FlowRoute(), route)
 		keyValue(c, locales.HostProfile(), host+" · "+s.Edition)
 	})
 	if a.civSwitchPanel.open {
@@ -252,6 +255,25 @@ func (a *app) footerView(c *ui.Context) {
 				a.continueWith(mode)
 			}
 		})
+	case flowPrepare:
+		civ := a.civSwitchPanel.open
+		method := !civ || s.Transport.Capabilities.Keyboard && s.Transport.Capabilities.Gamepad
+		ready := method && a.prepareDone()
+		footer(c, func() {
+			if ui.Button(c.Key("flow-back-detection"), locales.FlowBackDetection()).Disabled(s.Busy || s.SideEffects).Clicked() {
+				a.flow.stage = flowDetection
+			}
+			switch {
+			case !method:
+				muted(c, locales.PrepCivMethod()).Shrink(1)
+			case !ready:
+				muted(c, locales.PrepBlocked()).Shrink(1)
+			}
+		}, func() {
+			if ui.PrimaryButton(c.Key("flow-next-prepare"), locales.FlowNextSelection()).Disabled(!ready).Clicked() {
+				a.flow.stage = flowSelection
+			}
+		})
 	case flowSelection:
 		civ := a.civSwitchPanel.open && s.Transport.Capabilities.Keyboard && s.Transport.Capabilities.Gamepad
 		ready := a.selectionReady(s)
@@ -261,8 +283,8 @@ func (a *app) footerView(c *ui.Context) {
 				a.civSwitchPanel.prerequisites.SameReachableNetwork && a.civSwitchPanel.prerequisites.LobbyChatFocused
 		}
 		footer(c, func() {
-			if ui.Button(c.Key("flow-back-detection"), locales.FlowBackDetection()).Disabled(s.Busy || s.SideEffects || s.Stage == session.BootstrapSetup).Clicked() {
-				a.flow.stage = flowDetection
+			if ui.Button(c.Key("flow-back-prepare"), locales.FlowBackDetection()).Disabled(s.Busy || s.SideEffects || s.Stage == session.BootstrapSetup).Clicked() {
+				a.flow.stage = flowPrepare
 			}
 			if !ready && !a.civSwitchPanel.open {
 				muted(c, locales.SelectionBlocked()).Shrink(1)
@@ -299,7 +321,7 @@ func (a *app) footerView(c *ui.Context) {
 	}
 }
 
-// continueWith moves on to the route with the input method the first stage
+// continueWith moves on to preparing the Switch with the input method the first stage
 // settled on. A different method is applied first and checked again, since
 // the route's checks depend on it.
 func (a *app) continueWith(mode string) {
@@ -316,7 +338,7 @@ func (a *app) continueWith(mode string) {
 		}
 		a.command(a.controller.Inspect())
 	}
-	a.flow.stage = flowSelection
+	a.flow.stage = flowPrepare
 }
 
 func (a *app) settingsView(c *ui.Context) {

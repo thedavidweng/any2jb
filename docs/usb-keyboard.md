@@ -56,13 +56,15 @@ one Enter and never accepts an overwrite prompt for the user.
 
 ## Staged presentation
 
-Choose keyboard input in stage 1 before detection. Only that method's observed
+Stage 1 settles on built-in USB keyboard input from its own observed checks.
+Only that method's observed
 prerequisites gate route selection, including SIP enabled, driver state, pending
 restart and controller discovery. Enumeration remains available but not verified
 until observed; route selection never relaxes `Snapshot.CanStart`.
 The live keyboard panel stays reachable from stage 1 and Settings. First-time
-bootstrap transfer and SAVE are in stage 2, launch/progress in stage 3, and tools
-only after verification in stage 4. CivSwitch is a separate stage-2 route and
+bootstrap transfer and SAVE are in stage 3, launch/progress in stage 4, and tools
+only after verification in stage 5. CivSwitch is a separate route, chosen in the
+stage 2 checklist, and
 states why keyboard-only input cannot provide its composite HID requirement.
 
 ## Progress and readiness

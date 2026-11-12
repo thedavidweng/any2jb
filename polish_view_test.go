@@ -21,7 +21,7 @@ func TestPolishStateMatrix(t *testing.T) {
 	for _, language := range []string{"en", "zh-CN"} {
 		t.Run(language, func(t *testing.T) {
 			withLocale(t, language)
-			for _, state := range []string{"detection", "blocked", "selection", "launch", "progress", "restart", "verified", "tool"} {
+			for _, state := range []string{"detection", "blocked", "prepare", "selection", "launch", "progress", "restart", "verified", "tool"} {
 				t.Run(state, func(t *testing.T) {
 					f := sessiontest.NewFakeEnvironment()
 					if state == "blocked" {
@@ -62,6 +62,8 @@ func TestPolishStateMatrix(t *testing.T) {
 						uiStage(t, a, tt, want)
 					}
 					switch state {
+					case "prepare":
+						a.flow.stage = flowPrepare
 					case "selection":
 						a.flow.stage = flowSelection
 					case "launch":

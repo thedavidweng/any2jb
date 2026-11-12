@@ -1,6 +1,8 @@
 # 0003: Staged flow with per-method readiness
 
-Status: accepted; stage 1 and the startup-security row are superseded by
+Status: accepted; the stage count and route-choice location are superseded by
+[0005](0005-prepare-the-switch-checklist.md); stage 1 and the
+startup-security row are superseded by
 [0004](0004-installer-style-first-stage.md).
 
 ## Context

@@ -34,10 +34,6 @@ func (a *app) civSwitchView(c *ui.Context) {
 	}
 	if a.flow.stage != flowLaunch && a.flow.stage != flowTools {
 		ui.TextInput(c.Key("civ-address"), &p.prerequisites.ConsoleIPv4).Label(locales.CivAddress()).Disabled(s.Busy)
-		ui.Checkbox(c.Key("civ-cartridge"), &p.prerequisites.PhysicalSwitch1Cartridge100, locales.CivCartridge()).Disabled(s.Busy)
-		ui.Checkbox(c.Key("civ-language"), &p.prerequisites.EnglishUS, locales.CivLanguage()).Disabled(s.Busy)
-		ui.Checkbox(c.Key("civ-network"), &p.prerequisites.SameReachableNetwork, locales.CivNetwork()).Disabled(s.Busy)
-		ui.Checkbox(c.Key("civ-chat"), &p.prerequisites.LobbyChatFocused, locales.CivChat()).Disabled(s.Busy)
 	}
 	eligible := !s.Busy && (s.Stage == session.Idle || s.Stage == session.Ready || s.Stage == session.NeedsSetup || s.Stage == session.Failed || s.Stage == session.Finished)
 	confirmed := p.prerequisites.PhysicalSwitch1Cartridge100 && p.prerequisites.EnglishUS && p.prerequisites.SameReachableNetwork && p.prerequisites.LobbyChatFocused
@@ -95,8 +91,10 @@ func (a *app) civSwitchView(c *ui.Context) {
 		if s.CivSwitch {
 			a.command(a.controller.SelectProfile(s.Profile, s.Edition))
 		}
+		// The route is chosen where its checklist is, so SmileBASIC's own
+		// confirmations are asked for before its setup.
 		p.open = false
-		a.flow.stage = flowSelection
+		a.flow.stage = flowPrepare
 	}
 }
 

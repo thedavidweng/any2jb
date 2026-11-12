@@ -100,21 +100,26 @@ func TestWizardSavedBootstrapStagesAndCornerAccess(t *testing.T) {
 			check("1-detection", []string{locales.CheckAgain(), locales.FlowNextSelection()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.ToolsStatus()})
 			clickManual(t, tt, locales.FlowTypeYourself())
 			uiStage(t, a, tt, session.Ready)
-			check("2-selection", []string{locales.FlowNextLaunch()}, []string{locales.CheckAgain(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsStatus()})
+			check("2-prepare", []string{locales.FlowNextSelection()}, []string{locales.CheckAgain(), locales.FlowNextLaunch(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsStatus()})
+			if _, ok := tt.AccessByRole(ui.RoleRadio, locales.CivTitle()); !ok {
+				t.Fatal("route choice missing from Prepare the Switch")
+			}
+			passPrepare(t, a, tt)
+			check("3-selection", []string{locales.FlowNextLaunch()}, []string{locales.CheckAgain(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsStatus()})
 			if !tt.HasText(locales.FlowSaved()) {
 				t.Fatal("matching saved bootstrap did not skip setup")
 			}
-			if _, ok := tt.AccessByRole(ui.RoleRadio, locales.CivTitle()); !ok {
-				t.Fatal("route choice missing from route and setup")
+			if _, ok := tt.AccessByRole(ui.RoleRadio, locales.CivTitle()); ok {
+				t.Fatal("route choice leaked into route and setup")
 			}
 			clickManual(t, tt, locales.FlowNextLaunch())
-			check("3-launch", []string{locales.GuidedManualLaunch()}, []string{locales.PrepareBootstrap(), locales.CheckAgain(), locales.ToolsStatus()})
+			check("4-launch", []string{locales.GuidedManualLaunch()}, []string{locales.PrepareBootstrap(), locales.CheckAgain(), locales.ToolsStatus()})
 			if _, ok := tt.AccessByRole(ui.RoleRadio, locales.CivTitle()); ok {
 				t.Fatal("route choice leaked into launch")
 			}
 			clickManual(t, tt, locales.GuidedManualLaunch())
 			uiStage(t, a, tt, session.RetainedRPC)
-			check("4-tools", []string{locales.ToolsStatus(), locales.Finish()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.CheckAgain()})
+			check("5-tools", []string{locales.ToolsStatus(), locales.Finish()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.CheckAgain()})
 			clickManual(t, tt, locales.Finish())
 			uiStage(t, a, tt, session.Finished)
 			if _, ok := tt.AccessByRole(ui.RoleButton, locales.ToolsStatus()); ok {
@@ -274,7 +279,7 @@ func TestWizardFirstStage(t *testing.T) {
 				}
 				clickManual(t, tt, label)
 				s := a.controller.Snapshot()
-				if a.flow.stage != flowSelection || a.preferences.Transport != mode || s.Transport.Mode != mode {
+				if a.flow.stage != flowPrepare || a.preferences.Transport != mode || s.Transport.Mode != mode {
 					t.Fatalf("%q went to stage %d with %q / %q", label, a.flow.stage, a.preferences.Transport, s.Transport.Mode)
 				}
 				waitIdle(t, a, tt)
@@ -379,6 +384,7 @@ func TestUnreportedRouteChecksDoNotEnableContinueOrClaimReadiness(t *testing.T) 
 	uiStage(t, a, tt, session.Ready)
 	clickManual(t, tt, locales.FlowTypeYourself())
 	uiStage(t, a, tt, session.Ready)
+	passPrepare(t, a, tt)
 	if !disabled(t, tt, locales.FlowNextLaunch()) {
 		t.Fatal("unreported route checks enabled Continue")
 	}
@@ -396,15 +402,24 @@ func TestSelectionHidesLaunchAndExplainsCivSwitchMethod(t *testing.T) {
 	uiStage(t, a, tt, session.Ready)
 	clickManual(t, tt, locales.FlowTypeYourself())
 	uiStage(t, a, tt, session.Ready)
+	passPrepare(t, a, tt)
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Start"); ok {
 		t.Fatal("launch control appears in selection")
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Check live RPC status"); ok {
 		t.Fatal("tools appear before verification")
 	}
+	clickManual(t, tt, locales.FlowBackDetection())
+	if a.flow.stage != flowPrepare {
+		t.Fatal("route and setup does not go back to Prepare the Switch")
+	}
+	// The method gate is stated where the route is chosen, before any ticking.
 	clickManual(t, tt, locales.CivTitle())
-	if !tt.HasText(locales.FlowCivUnavailable()) {
+	if !tt.HasText(locales.FlowCivUnavailable()) || !tt.HasText(locales.PrepCivMethod()) || !disabled(t, tt, locales.FlowNextSelection()) {
 		t.Fatal(tt.Texts())
+	}
+	if _, ok := tt.AccessByRole(ui.RoleCheckBox, locales.CivCartridge()); ok {
+		t.Fatal("a checklist is offered for a route this method cannot use")
 	}
 	clickManual(t, tt, locales.FlowBackDetection())
 	if _, ok := tt.AccessByRole(ui.RoleButton, locales.CheckAgain()); !ok {
@@ -446,10 +461,11 @@ func TestCompositeCivSwitchUsesSetupLaunchAndVerifiedToolsStages(t *testing.T) {
 		t.Fatal("Continue dropped the composite method chosen in Settings")
 	}
 	clickManual(t, tt, locales.CivTitle())
+	passPrepare(t, a, tt)
 	if _, ok := tt.AccessByRole(ui.RoleButton, locales.CivStart()); ok {
 		t.Fatal("CivSwitch launch leaked into setup")
 	}
-	a.civSwitchPanel.prerequisites = session.CivSwitchPrerequisites{ConsoleIPv4: "192.0.2.2", PhysicalSwitch1Cartridge100: true, EnglishUS: true, SameReachableNetwork: true, LobbyChatFocused: true}
+	a.civSwitchPanel.prerequisites.ConsoleIPv4 = "192.0.2.2"
 	tt.Frame()
 	clickManual(t, tt, locales.FlowNextLaunch())
 	if _, ok := tt.AccessByRole(ui.RoleTextField, locales.CivAddress()); ok {
@@ -466,8 +482,8 @@ func TestCompositeCivSwitchUsesSetupLaunchAndVerifiedToolsStages(t *testing.T) {
 	clickManual(t, tt, locales.CivFinish())
 	uiStage(t, a, tt, session.Finished)
 	clickManual(t, tt, locales.CivBack())
-	if a.flow.stage != flowSelection {
-		t.Fatal("return from CivSwitch bypassed route selection")
+	if a.flow.stage != flowPrepare || a.civSwitchPanel.open {
+		t.Fatal("return from CivSwitch bypassed the SmileBASIC checklist")
 	}
 }
 
@@ -478,7 +494,7 @@ func TestRouteChoiceIsAnAnnouncedRadioGroup(t *testing.T) {
 	tt := ui.NewTester(a.view, 760, 1000)
 	a.command(a.controller.Inspect())
 	uiStage(t, a, tt, session.Ready)
-	a.flow.stage = flowSelection
+	a.flow.stage = flowPrepare
 	tt.Frame()
 	chosen := func(label string) bool {
 		t.Helper()
@@ -488,7 +504,7 @@ func TestRouteChoiceIsAnAnnouncedRadioGroup(t *testing.T) {
 		}
 		return info.Checked
 	}
-	if _, ok := tt.AccessByRole(ui.RoleRadioGroup, locales.FlowRoute()); !ok {
+	if _, ok := tt.AccessByRole(ui.RoleRadioGroup, locales.PrepRoute()); !ok {
 		t.Fatal("the route choice is not a named radio group")
 	}
 	if !chosen(locales.FlowSmile()) || chosen(locales.CivTitle()) {

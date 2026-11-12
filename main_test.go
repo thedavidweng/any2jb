@@ -216,6 +216,9 @@ func advanceToLaunch(t *testing.T, a *app, tt *ui.Tester) {
 		clickManual(t, tt, locales.FlowTypeYourself())
 		waitIdle(t, a, tt)
 	}
+	if a.flow.stage == flowPrepare {
+		passPrepare(t, a, tt)
+	}
 	if a.flow.stage == flowSelection {
 		clickManual(t, tt, locales.FlowNextLaunch())
 	}

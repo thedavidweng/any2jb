@@ -8,11 +8,13 @@ LAN assignment are observed independently. Neither proves console reachability.
 
 ## Stage flow
 
-CivSwitch appears alongside SmileBASIC/ns2jb in stage 2, not in Advanced Tools.
+CivSwitch appears alongside SmileBASIC/ns2jb in the stage 2 checklist, not in
+Advanced Tools.
 A method lacking both keyboard and gamepad HID shows an unavailable reason and
 a return to stage 1. With composite input, stage 2 collects the console
-confirmations (or connects to an already-open loader), stage 3 launches and
-reports progress, and stage 4 exposes dependent actions only after verified
+confirmations in the shared checklist, stage 3 takes the console IPv4 (or
+connects to an already-open loader), stage 4 launches and reports progress,
+and stage 5 exposes dependent actions only after verified
 loader evidence. Diagnostics and Settings remain in the window corner.
 Stage-1 composite integrity checks inspect the pinned helper and payload without
 executing a helper or opening USB. The ns2jb-only input adapter cannot block this

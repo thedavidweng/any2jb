@@ -8,9 +8,11 @@ to exercise the host locally; this does not authorize redistribution.
 
 ## Setup
 
-1. In stage 1 choose Guided manual input, apply it, and check its scoped
+1. In stage 1 choose **Type the commands yourself instead**, which applies
+   guided manual input, and check its scoped
    readiness. USB driver/security/controller facts do not block this method.
-2. Continue to stage 2. Select the SmileBASIC/ns2jb route and its host/edition.
+2. In stage 2 select the SmileBASIC/ns2jb route and confirm its checklist,
+   then in stage 3 select its host/edition.
    A trustworthy matching saved-bootstrap record skips first-time setup.
    Otherwise check the selected host and complete setup below.
 3. Prepare bootstrap. Confirm an empty Slot 0 editor, enter the complete displayed
@@ -38,7 +40,7 @@ The full and demo SAVE commands have explicit literal regression tests.
 ## Launch
 
 After matching bootstrap confirmation and controller readiness, continue to
-stage 3 for launch and progress. Tools appear only at stage 4 after a verified
+stage 4 for launch and progress. Tools appear only at stage 5 after a verified
 session. Diagnostics and Settings stay reachable outside the stage flow.
 
 The primary action reads **Guided manual launch**, not one-click.
