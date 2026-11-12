@@ -168,7 +168,9 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 				if info.Focusable && info.Name == "" {
 					t.Errorf("%v control without an accessible name", info.Role)
 				}
-				if info.Focusable && !info.Disabled && info.Name != "" {
+				// A radio group is one Tab stop, on its chosen radio; the
+				// arrows reach the others.
+				if info.Focusable && !info.Disabled && info.Name != "" && (info.Role != ui.RoleRadio || info.Checked) {
 					focusable[info.Name] = true
 				}
 			}

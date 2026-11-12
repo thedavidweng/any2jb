@@ -53,8 +53,9 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 ## Text
 
 - Task sections share a flat neutral surface and 1-DIP separators. The system
-  accent remains on primary actions and keyboard focus. Route selection uses
-  a neutral fill and hairline edge, with the selected route named above it.
+  accent remains on primary actions, keyboard focus and the chosen route.
+  The route choice is a named radio group: the chosen route has a filled dot
+  and is announced as checked, and the arrows move the choice.
 - The system sans and relative heading sizes follow text scaling. Compact
   section spacing does not reduce native control padding or hit targets.
   Theme borders and muted ink retain Increase Contrast adjustments.

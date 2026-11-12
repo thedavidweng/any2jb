@@ -40,13 +40,24 @@ func (a *app) sessionView(c *ui.Context) {
 	showStage := a.flow.stage != flowSelection ||
 		(s.Stage != session.Idle && s.Stage != session.Ready && s.Stage != session.NeedsSetup)
 	if showStage {
-		stage := ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
-		if a.flow.stage == flowSelection || a.flow.stage == flowTools {
+		switch a.flow.stage {
+		case flowSelection:
 			// The card around this view carries the section's title, so the
 			// session state is a line in it, not a second heading.
-			stage.TextColor(c.Theme().TextMuted)
-		} else {
-			stage.FontSize(c.Theme().Rem(1.25)).Bold()
+			muted(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
+		case flowTools:
+			// It opens the stage, above the tools it allows.
+			ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
+		default:
+			// In launch the session state is the section's title, and a
+			// recovery state ends its line, as an observed row does.
+			ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).Children(func() {
+				sectionTitle(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus).Shrink(1)
+				if s.Stage == session.Indeterminate {
+					grow(c)
+					badge(c, "console-restart-badge", toneAttention, locales.CheckAttention())
+				}
+			})
 		}
 	}
 	// A long-lived tool child keeps the retained_rpc stage, so its ownership
@@ -214,7 +225,7 @@ func (a *app) launchStepsView(c *ui.Context, s session.Snapshot) {
 		return
 	}
 	ui.Column(c).FillWidth().Gap(c.Theme().Space(2)).Children(func() {
-		sectionTitle(c, locales.LaunchSteps())
+		muted(c, locales.LaunchSteps())
 		steps(c, names, current)
 		if s.Total > 0 {
 			meter(c, float32(s.Current)/float32(s.Total))

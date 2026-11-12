@@ -10,6 +10,7 @@
   "diagnosticsPrivacy": "Logs are redacted for viewing. Session folders contain private data; share only an exported support bundle. Bundles include structured state, verification and fixed log summaries, never raw logs, pairing details, account identifiers or save data.",
   "logHost": "Host",
   "logAll": "All sources",
+  "logSource": "Log source",
   "logUSB": "USB and typing",
   "logPipeline": "Pipeline",
   "logAcquisition": "Acquisition",

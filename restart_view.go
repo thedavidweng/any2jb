@@ -21,13 +21,10 @@ func (a *app) restartView(c *ui.Context, s session.Snapshot) {
 	if s.Stage != session.Indeterminate {
 		return
 	}
-	stateCard(c, toneAttention, func() {
-		badge(c, "console-restart-badge", toneAttention, locales.CheckAttention())
-		ui.Text(c, locales.RestartConsole()).Bold()
-		if s.ReleaseUnconfirmed {
-			ui.Text(c, localize(session.ReleaseUnconfirmedWarning)).Bold()
-		}
-	})
+	ui.Text(c, locales.RestartConsole()).Bold()
+	if s.ReleaseUnconfirmed {
+		ui.Text(c, localize(session.ReleaseUnconfirmedWarning)).Bold()
+	}
 	if p.errorText != "" {
 		ui.Text(c, localize(p.errorText)).TextColor(c.Theme().Danger)
 	}
