@@ -141,7 +141,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	release, err := sessionlock.Acquire(filepath.Join(support, "session.lock"))
+	release, err := sessionlock.Acquire(support)
 	if err != nil {
 		log.Fatal(err)
 	}

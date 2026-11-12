@@ -115,7 +115,7 @@ func (c *commandLine) own() error {
 			return err
 		}
 	}
-	release, err := sessionlock.Acquire(filepath.Join(c.support, "session.lock"))
+	release, err := sessionlock.Acquire(c.support)
 	if errors.Is(err, sessionlock.ErrOwned) {
 		return cliFail(exitBlocked, cliMessage("cliOwned"))
 	}

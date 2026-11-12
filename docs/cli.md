@@ -33,7 +33,8 @@ Commands that only read preferences or the manifest (`settings get`,
 `language`, `usb-defaults`, `launcher list`, `savekit preview`) run at any time.
 
 Every other command composes the production session, so it takes the session
-lock in the app support folder first. The GUI takes the same lock at startup.
+lock, `app-owner.lock` in the app support folder, first. It is separate from
+the host's per-run `session.lock` lease, whose presence means an interrupted run. The GUI takes the same lock at startup.
 While one holds it, the other refuses with exit code 3:
 
 ```text

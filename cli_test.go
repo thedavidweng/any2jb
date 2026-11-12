@@ -190,7 +190,7 @@ func interruptAt(t *testing.T, c *commandLine, stage session.Stage) int {
 
 func TestCLISessionExcludesAnotherOwner(t *testing.T) {
 	c, _ := fixtureCLI(t, "")
-	release, err := sessionlock.Acquire(filepath.Join(c.support, "session.lock"))
+	release, err := sessionlock.Acquire(c.support)
 	if err != nil {
 		t.Fatal(err)
 	}
