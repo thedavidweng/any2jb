@@ -45,8 +45,8 @@ func card(c *ui.Context, fn func()) {
 	})
 }
 
-func sectionTitle(c *ui.Context, title string) {
-	ui.Text(c, title).FontSize(c.Theme().Rem(1.08)).Bold()
+func sectionTitle(c *ui.Context, title string) ui.Element {
+	return ui.Text(c, title).FontSize(c.Theme().Rem(1.08)).Bold()
 }
 
 func muted(c *ui.Context, s string) ui.Element {

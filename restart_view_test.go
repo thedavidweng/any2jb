@@ -100,3 +100,21 @@ func TestConsoleRestartPanelShowsTheUnconfirmedReleaseInstruction(t *testing.T) 
 		t.Fatal(tt.Texts())
 	}
 }
+
+// Recovery states its status where every observed row does: at the end of
+// the line that names it.
+func TestRecoveryStatusSharesItsHeadingLine(t *testing.T) {
+	a := newTestApp(t)
+	a.controller.MarkInterrupted()
+	tt := ui.NewTester(a.view, 960, 900)
+	tt.Frame()
+	heading, ok := tt.Access(locales.RecoveryRequired())
+	status, found := tt.Access(locales.CheckAttention())
+	if !ok || !found {
+		t.Fatal("recovery heading or status missing")
+	}
+	middle := status.Bounds.Y + status.Bounds.H/2
+	if middle < heading.Bounds.Y || middle > heading.Bounds.Y+heading.Bounds.H || status.Bounds.X <= heading.Bounds.X+heading.Bounds.W {
+		t.Fatalf("recovery status %v is not at the end of its heading %v", status.Bounds, heading.Bounds)
+	}
+}
