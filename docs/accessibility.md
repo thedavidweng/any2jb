@@ -52,6 +52,13 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 
 ## Text
 
+- Task sections share a flat neutral surface and 1-DIP separators. The system
+  accent remains on primary actions and keyboard focus. Route selection uses
+  a neutral fill and hairline edge, with the selected route named above it.
+- The system sans and relative heading sizes follow text scaling. Compact
+  section spacing does not reduce native control padding or hit targets.
+  Theme borders and muted ink retain Increase Contrast adjustments.
+
 - A readiness row reads subject, state, then one next action prefixed with
   “Next:”. Guidance, preferences and reference notes are never shown as rows
   with a state badge; only observed checks are.

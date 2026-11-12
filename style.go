@@ -12,27 +12,22 @@ const contentWidth = 720
 
 func rgb(r, g, b uint8) ui.Color { return ui.Color{R: r, G: g, B: b, A: 255} }
 
-// applyTheme keeps the system appearance, accent, contrast and text size,
-// and only deepens the status colors so state text meets 4.5:1 contrast on
-// the light window background.
+// Keep the system accent, contrast and text size on neutral surfaces.
 func applyTheme(c *ui.Context) {
 	t := *c.Theme()
-	t.Radius = 7
+	t.Radius = 5
 	if t.Dark {
 		t.Background = rgb(20, 20, 22)
 		t.Danger, t.Warning, t.Success = rgb(248, 113, 113), rgb(251, 191, 36), rgb(74, 222, 128)
 	} else {
-		t.Background = rgb(244, 245, 247)
+		t.Background = rgb(250, 250, 250)
 		t.Danger, t.Warning, t.Success = rgb(180, 35, 24), rgb(154, 91, 0), rgb(20, 116, 58)
 	}
 	c.SetTheme(&t)
 }
 
 func cardFill(c *ui.Context) ui.Color {
-	if c.Theme().Dark {
-		return rgb(30, 30, 33)
-	}
-	return rgb(255, 255, 255)
+	return c.Theme().Background
 }
 
 func rule(c *ui.Context) {
@@ -41,11 +36,13 @@ func rule(c *ui.Context) {
 
 func grow(c *ui.Context) { ui.Row(c).Grow(1) }
 
-// card groups one task of a stage on a raised surface.
+// card separates tasks without adding another surface.
 func card(c *ui.Context, fn func()) {
 	t := c.Theme()
-	ui.Column(c).FillWidth().Gap(t.Space(3)).Padding(t.Space(4)).Radius(t.Radius+3).
-		Background(cardFill(c)).Border(1, t.Border).Children(fn)
+	ui.Column(c).FillWidth().Gap(t.Space(3)).Children(func() {
+		rule(c)
+		ui.Column(c).FillWidth().Gap(t.Space(2)).Children(fn)
+	})
 }
 
 func sectionTitle(c *ui.Context, title string) {
@@ -233,8 +230,8 @@ func panelBody(c *ui.Context, fn func()) {
 
 func keyValue(c *ui.Context, label, value string) {
 	ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).Children(func() {
-		muted(c, label).Shrink(0)
-		ui.Text(c, value).Bold().Shrink(1)
+		muted(c, label).MinWidth(c.Theme().Rem(8)).Shrink(0)
+		ui.Text(c, value).Shrink(1)
 	})
 }
 
