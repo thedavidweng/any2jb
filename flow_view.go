@@ -150,11 +150,10 @@ func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 		keyValue(c, locales.FlowRoute(), route)
 		keyValue(c, locales.HostProfile(), host+" · "+s.Edition)
 		ui.Row(c).Wrap().Gap(8).Children(func() {
-			// The chosen route keeps an accent outline; the row above it
-			// names the route in words.
+			// The route row names the selection; a quiet surface repeats it.
 			chosen := func(e ui.Element, on bool) ui.Element {
 				if on {
-					e.Border(2, c.Theme().Accent)
+					e.Background(c.Theme().SurfacePressed).Border(1, c.Theme().TextMuted)
 				}
 				return e
 			}
