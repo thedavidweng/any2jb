@@ -107,12 +107,12 @@ func (a *app) flowView(c *ui.Context) {
 				card(c, func() { a.civSwitchView(c) })
 				return
 			}
-			card(c, func() { a.sessionView(c) })
 			if a.saveKit.open {
 				card(c, func() { a.saveKitView(c) })
 			} else {
 				card(c, func() { a.advancedToolsView(c) })
 			}
+			a.sessionView(c)
 		}
 	})
 }
@@ -124,12 +124,16 @@ func (a *app) selectionReady(s session.Snapshot) bool {
 	if a.preferencesPending(s) || !s.CanStart() {
 		return false
 	}
+	rows := 0
 	for _, check := range s.Checks {
 		if !detectionCheck(check) && checkApplies(check, s.Transport) && check.State != session.CheckVerified {
 			return false
 		}
+		if !detectionCheck(check) && checkApplies(check, s.Transport) {
+			rows++
+		}
 	}
-	return true
+	return rows > 0
 }
 
 func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
@@ -182,12 +186,17 @@ func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 				rows++
 			}
 		}
-		if rows == 0 {
-			routeCheckList(c, s.Transport)
-		}
-		a.readinessView(c, s, false)
-		if inline(ui.Button(c.Key("selection-inspect"), locales.FlowCheckSelection())).Disabled(s.Busy || s.SideEffects || a.preferencesPending(s)).Clicked() {
-			a.command(a.controller.Inspect())
+		// During bootstrap setup the setup steps are the stage's work; the
+		// checks that allowed it stay out of the way.
+		if s.Stage != session.BootstrapSetup {
+			if rows == 0 {
+				routeCheckList(c, s.Transport)
+				ui.Text(c, locales.RouteUnchecked()).Role(ui.RoleStatus)
+			}
+			a.readinessView(c, s, false)
+			if inline(ui.Button(c.Key("selection-inspect"), locales.FlowCheckSelection())).Disabled(s.Busy || s.SideEffects || a.preferencesPending(s)).Clicked() {
+				a.command(a.controller.Inspect())
+			}
 		}
 		if s.BootstrapSaved {
 			stateCard(c, toneVerified, func() {
@@ -219,7 +228,15 @@ func (a *app) footerView(c *ui.Context) {
 		ready := a.detectionReady(s)
 		footer(c, func() {
 			if !ready {
-				muted(c, locales.FlowDetectionBlocked()).Shrink(1).Grow(1)
+				hint := locales.FlowDetectionBlocked()
+				if len(s.Checks) == 0 {
+					hint = locales.FlowCheckFirst()
+				} else if a.preferencesPending(s) {
+					hint = locales.ApplyLanHint()
+				} else if s.Busy {
+					hint = locales.CheckingReadiness()
+				}
+				muted(c, hint).Shrink(1).Grow(1)
 			}
 		}, func() {
 			if ui.PrimaryButton(c.Key("flow-next-selection"), locales.FlowNextSelection()).Disabled(!ready).Clicked() {
@@ -263,6 +280,15 @@ func (a *app) footerView(c *ui.Context) {
 				a.flow.stage = flowSelection
 			}
 		}, func() {})
+	case flowTools:
+		if s.CivSwitch || (s.Stage != session.Verified && s.Stage != session.RetainedRPC) {
+			return
+		}
+		footer(c, func() {}, func() {
+			if ui.Button(c.Key("finish"), locales.Finish()).Disabled(s.Busy).Clicked() {
+				a.command(a.controller.Finish())
+			}
+		})
 	}
 }
 func (a *app) detectionView(c *ui.Context, s session.Snapshot) {

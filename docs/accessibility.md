@@ -20,7 +20,10 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
   user must make personally (“Check this yourself”), which the app never
   observed.
 - Disabled controls stay visible and expose their disabled state; the reason a
-  control is unavailable is stated in text next to it.
+  control is unavailable is stated in text next to it. Permanently unsupported
+  or distribution-gated tools are named together under their shared reason
+  instead of repeating disabled actions; temporary session gates keep the
+  controls visible.
 
 ## Keyboard
 

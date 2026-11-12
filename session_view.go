@@ -35,17 +35,23 @@ func (a *app) sessionView(c *ui.Context) {
 	if pending {
 		ui.Text(c, locales.ApplyBeforeLaunch()).Bold().TextColor(c.Theme().Warning)
 	}
-	stage := ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
-	if a.flow.stage == flowSelection {
-		// The card around this view carries the section's title, so the
-		// session state is a line in it, not a second heading.
-		stage.TextColor(c.Theme().TextMuted)
-	} else {
-		stage.FontSize(c.Theme().Rem(1.25)).Bold()
+	// In selection the route rows carry the verdict; only work in progress,
+	// such as bootstrap setup, is named here.
+	showStage := a.flow.stage != flowSelection ||
+		(s.Stage != session.Idle && s.Stage != session.Ready && s.Stage != session.NeedsSetup)
+	if showStage {
+		stage := ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
+		if a.flow.stage == flowSelection || a.flow.stage == flowTools {
+			// The card around this view carries the section's title, so the
+			// session state is a line in it, not a second heading.
+			stage.TextColor(c.Theme().TextMuted)
+		} else {
+			stage.FontSize(c.Theme().Rem(1.25)).Bold()
+		}
 	}
 	// A long-lived tool child keeps the retained_rpc stage, so its ownership
-	// is stated next to the stage.
-	if a.tools != nil {
+	// is stated next to the stage; the tools panel states it in its own stage.
+	if a.tools != nil && a.flow.stage != flowTools {
 		if owner := a.tools.State().Tool; owner != "" {
 			ui.Text(c.Key("session-tool-owner"), locales.ToolRunning(owner)).Role(ui.RoleStatus)
 		}
@@ -63,9 +69,11 @@ func (a *app) sessionView(c *ui.Context) {
 		if s.Stage == session.RetainedRPC {
 			summary, evidence = locales.VerifiedHeldSummary(), locales.HeldVerificationEvidence()
 		}
-		stateCard(c, toneVerified, func() {
-			badge(c, "session-verified-badge", toneVerified, locales.CheckVerified())
-			ui.Text(c, summary)
+		ui.Column(c).FillWidth().Gap(6).Children(func() {
+			// In the tools stage the muted stage line above is the summary.
+			if a.flow.stage != flowTools {
+				muted(c, summary)
+			}
 			ui.Collapsible(c.Key("verified-details"), locales.DetailsLabel(), &a.flow.evidence, func() {
 				panelBody(c, func() {
 					ui.Text(c, evidence)
@@ -159,7 +167,7 @@ func (a *app) sessionView(c *ui.Context) {
 			}
 		}
 	}
-	if s.Stage == session.Verified || s.Stage == session.RetainedRPC {
+	if a.flow.stage != flowTools && (s.Stage == session.Verified || s.Stage == session.RetainedRPC) {
 		if inline(ui.Button(c.Key("finish"), locales.Finish())).Disabled(s.Busy).Clicked() {
 			a.command(a.controller.Finish())
 		}
@@ -210,7 +218,6 @@ func (a *app) launchStepsView(c *ui.Context, s session.Snapshot) {
 		steps(c, names, current)
 		if s.Total > 0 {
 			meter(c, float32(s.Current)/float32(s.Total))
-			muted(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
 			if s.HasEstimate && s.Busy {
 				muted(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000)))
 			}
@@ -301,7 +308,16 @@ func routeCheckList(c *ui.Context, transport session.Transport) {
 // first visit explains the stage instead of showing an empty card.
 func checkList(c *ui.Context, transport session.Transport) {
 	muted(c, locales.CheckListTitle())
-	names := []string{locales.CheckNetwork(), locales.CheckTypingMethod()}
+	method := locales.FlowManual()
+	switch transport.Mode {
+	case "keyboard":
+		method = locales.FlowKeyboard()
+	case "composite":
+		method = locales.FlowComposite()
+	case "external-pico":
+		method = locales.FlowPico()
+	}
+	names := []string{locales.CheckNetwork(), method}
 	if !transport.Capabilities.Manual && !transport.Capabilities.ExternalPico {
 		names = append(names, locales.CheckSip(), locales.CheckDriverLoaded(), locales.CheckUsbController(), locales.CheckUsbHelpers())
 	}

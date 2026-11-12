@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -72,7 +73,12 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	if !tt.HasText(ounce.Reason) || !tt.HasText(research.Reason) {
 		t.Fatalf("missing recorded reasons: %q", tt.Texts())
 	}
-	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this Mac", "Check live RPC status"} {
+	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this Mac"} {
+		if _, ok := tt.AccessByRole(ui.RoleButton, label); ok {
+			t.Fatalf("gated tool %s remains an action", label)
+		}
+	}
+	for _, label := range []string{"Check live RPC status"} {
 		control, ok := tt.AccessByRole(ui.RoleButton, label)
 		if !ok || !control.Disabled {
 			t.Fatalf("%s is usable without a retained lease: %+v", label, control)
@@ -84,6 +90,26 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	}
 	if !tt.HasText(locales.ToolsNeedLease()) {
 		t.Fatal(tt.Texts())
+	}
+}
+
+func TestUnavailableToolsShareOneReasonAndKeepUsableToolsVisible(t *testing.T) {
+	a := retainedApp(t, sessiontest.NewFakeEnvironment(), &fakeToolAdapter{}, []string{"rpc-status"})
+	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
+	count := 0
+	for _, text := range tt.Texts() {
+		if strings.Contains(text, locales.ToolsNotPermitted()) {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("profile refusal repeated %d times: %v", count, tt.Texts())
+	}
+	if _, ok := tt.AccessByRole(ui.RoleButton, locales.ToolsStatus()); !ok {
+		t.Fatal("usable tool disappeared")
+	}
+	if _, ok := tt.AccessByRole(ui.RoleButton, locales.ToolsDump()); ok {
+		t.Fatal("unsupported tool remains an action")
 	}
 }
 

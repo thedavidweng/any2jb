@@ -908,11 +908,11 @@ func (msgs Messages) ChooseLANIPv4() string {
 	return Catalog.Format(msgs.locale, "chooseLANIPv4", nil)
 }
 
-// ToolsTitle says "Advanced Tools"
+// ToolsTitle says "Session tools"
 // in the language the app shows.
 func ToolsTitle() string { return In(i18n.Locale()).ToolsTitle() }
 
-// ToolsTitle says "Advanced Tools"
+// ToolsTitle says "Session tools"
 // in the language of msgs.
 func (msgs Messages) ToolsTitle() string {
 	return Catalog.Format(msgs.locale, "toolsTitle", nil)
@@ -938,11 +938,11 @@ func (msgs Messages) ToolsNeedLease() string {
 	return Catalog.Format(msgs.locale, "toolsNeedLease", nil)
 }
 
-// ToolsOwned says "This app is in charge of the open verified session."
+// ToolsOwned says "Choose Finish when you are done to close this session."
 // in the language the app shows.
 func ToolsOwned() string { return In(i18n.Locale()).ToolsOwned() }
 
-// ToolsOwned says "This app is in charge of the open verified session."
+// ToolsOwned says "Choose Finish when you are done to close this session."
 // in the language of msgs.
 func (msgs Messages) ToolsOwned() string {
 	return Catalog.Format(msgs.locale, "toolsOwned", nil)
@@ -1850,11 +1850,11 @@ func (msgs Messages) SaveKitOpenBackup() string {
 	return Catalog.Format(msgs.locale, "saveKitOpenBackup", nil)
 }
 
-// SaveKitBack says "Back to Advanced Tools"
+// SaveKitBack says "Back to session tools"
 // in the language the app shows.
 func SaveKitBack() string { return In(i18n.Locale()).SaveKitBack() }
 
-// SaveKitBack says "Back to Advanced Tools"
+// SaveKitBack says "Back to session tools"
 // in the language of msgs.
 func (msgs Messages) SaveKitBack() string {
 	return Catalog.Format(msgs.locale, "saveKitBack", nil)
@@ -5042,21 +5042,21 @@ func (msgs Messages) StopExplains() string {
 	return Catalog.Format(msgs.locale, "stopExplains", nil)
 }
 
-// VerifiedSummary says "This session is verified, so the actions below are available."
+// VerifiedSummary says "This session is verified."
 // in the language the app shows.
 func VerifiedSummary() string { return In(i18n.Locale()).VerifiedSummary() }
 
-// VerifiedSummary says "This session is verified, so the actions below are available."
+// VerifiedSummary says "This session is verified."
 // in the language of msgs.
 func (msgs Messages) VerifiedSummary() string {
 	return Catalog.Format(msgs.locale, "verifiedSummary", nil)
 }
 
-// VerifiedHeldSummary says "This session is verified and still open on the console, so the tools below can run."
+// VerifiedHeldSummary says "This session is verified and still open on the console."
 // in the language the app shows.
 func VerifiedHeldSummary() string { return In(i18n.Locale()).VerifiedHeldSummary() }
 
-// VerifiedHeldSummary says "This session is verified and still open on the console, so the tools below can run."
+// VerifiedHeldSummary says "This session is verified and still open on the console."
 // in the language of msgs.
 func (msgs Messages) VerifiedHeldSummary() string {
 	return Catalog.Format(msgs.locale, "verifiedHeldSummary", nil)
@@ -5110,4 +5110,56 @@ func RouteCheckListTitle() string { return In(i18n.Locale()).RouteCheckListTitle
 // in the language of msgs.
 func (msgs Messages) RouteCheckListTitle() string {
 	return Catalog.Format(msgs.locale, "routeCheckListTitle", nil)
+}
+
+// ToolsGroupedReason says "{tools}: {reason}"
+// in the language the app shows.
+func ToolsGroupedReason(tools string, reason string) string {
+	return In(i18n.Locale()).ToolsGroupedReason(tools, reason)
+}
+
+// ToolsGroupedReason says "{tools}: {reason}"
+// in the language of msgs.
+func (msgs Messages) ToolsGroupedReason(tools string, reason string) string {
+	return Catalog.Format(msgs.locale, "toolsGroupedReason", map[string]any{"tools": tools, "reason": reason})
+}
+
+// ToolsConsolePlaceholder says "For example 192.0.2.24"
+// in the language the app shows.
+func ToolsConsolePlaceholder() string { return In(i18n.Locale()).ToolsConsolePlaceholder() }
+
+// ToolsConsolePlaceholder says "For example 192.0.2.24"
+// in the language of msgs.
+func (msgs Messages) ToolsConsolePlaceholder() string {
+	return Catalog.Format(msgs.locale, "toolsConsolePlaceholder", nil)
+}
+
+// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this M…"
+// in the language the app shows.
+func ToolsConsoleHint() string { return In(i18n.Locale()).ToolsConsoleHint() }
+
+// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this M…"
+// in the language of msgs.
+func (msgs Messages) ToolsConsoleHint() string {
+	return Catalog.Format(msgs.locale, "toolsConsoleHint", nil)
+}
+
+// RouteUnchecked says "This route's requirements have not been reported. Run the check before continuing."
+// in the language the app shows.
+func RouteUnchecked() string { return In(i18n.Locale()).RouteUnchecked() }
+
+// RouteUnchecked says "This route's requirements have not been reported. Run the check before continuing."
+// in the language of msgs.
+func (msgs Messages) RouteUnchecked() string {
+	return Catalog.Format(msgs.locale, "routeUnchecked", nil)
+}
+
+// FlowCheckFirst says "Check what this method needs, then continue."
+// in the language the app shows.
+func FlowCheckFirst() string { return In(i18n.Locale()).FlowCheckFirst() }
+
+// FlowCheckFirst says "Check what this method needs, then continue."
+// in the language of msgs.
+func (msgs Messages) FlowCheckFirst() string {
+	return Catalog.Format(msgs.locale, "flowCheckFirst", nil)
 }

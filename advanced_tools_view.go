@@ -77,34 +77,42 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	a.attachView(c, s)
 	ui.Text(c, locales.ToolsConsoleAddress())
-	ui.TextInput(c.Key("tool-console"), &p.consoleIPv4).Label(locales.ToolsConsoleAddress()).Disabled(s.Busy || !leased)
+	ui.TextInput(c.Key("tool-console"), &p.consoleIPv4).Label(locales.ToolsConsoleAddress()).
+		Placeholder(locales.ToolsConsolePlaceholder()).Disabled(s.Busy || !leased)
+	muted(c, locales.ToolsConsoleHint())
 	status, statusReason := a.toolGate(s, state, "rpc-status")
-	if inline(ui.Button(c.Key("rpc-status"), locales.ToolsStatus())).Disabled(status).Clicked() {
-		a.runTool("rpc-status", "")
+	if statusReason == "" {
+		if inline(ui.Button(c.Key("rpc-status"), locales.ToolsStatus())).Disabled(status).Clicked() {
+			a.runTool("rpc-status", "")
+		}
 	}
-	a.toolReason(c, "rpc-status", state, statusReason)
 	dump, dumpReason := a.toolGate(s, state, "system-code-dump")
-	if inline(ui.Button(c.Key("system-dump"), locales.ToolsDump())).Disabled(dump).Clicked() {
-		a.runTool("system-code-dump", "")
+	if dumpReason == "" {
+		if inline(ui.Button(c.Key("system-dump"), locales.ToolsDump())).Disabled(dump).Clicked() {
+			a.runTool("system-code-dump", "")
+		}
 	}
-	a.toolReason(c, "system-code-dump", state, dumpReason)
 	webdav, webdavReason := a.toolGate(s, state, "ouncecake-webdav")
-	if inline(ui.Button(c.Key("ouncecake-webdav"), locales.ToolsOunceWebdav())).Disabled(webdav).Clicked() {
-		a.runTool("ouncecake-webdav", p.consoleIPv4)
+	if webdavReason == "" {
+		if inline(ui.Button(c.Key("ouncecake-webdav"), locales.ToolsOunceWebdav())).Disabled(webdav).Clicked() {
+			a.runTool("ouncecake-webdav", p.consoleIPv4)
+		}
 	}
-	a.toolReason(c, "ouncecake-webdav", state, webdavReason)
 	ftp, ftpReason := a.toolGate(s, state, "ouncecake-ftp")
-	if inline(ui.Button(c.Key("ouncecake-ftp"), locales.ToolsOunceFtp())).Disabled(ftp).Clicked() {
-		a.runTool("ouncecake-ftp", p.consoleIPv4)
+	if ftpReason == "" {
+		if inline(ui.Button(c.Key("ouncecake-ftp"), locales.ToolsOunceFtp())).Disabled(ftp).Clicked() {
+			a.runTool("ouncecake-ftp", p.consoleIPv4)
+		}
 	}
-	a.toolReason(c, "ouncecake-ftp", state, ftpReason)
 	sd, sdReason := a.toolGate(s, state, "sd-browser")
-	if inline(ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser())).Disabled(sd).Clicked() {
-		a.runTool("sd-browser", p.consoleIPv4)
+	if sdReason == "" {
+		if inline(ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser())).Disabled(sd).Clicked() {
+			a.runTool("sd-browser", p.consoleIPv4)
+		}
 	}
-	a.toolReason(c, "sd-browser", state, sdReason)
 	a.homebrewView(c, s, state)
 	a.modloaderView(c, s, state)
+	a.toolRefusals(c, s, state)
 	if len(state.Games) > 0 {
 		ids := make([]string, 0, len(state.Games))
 		for _, game := range state.Games {
@@ -157,13 +165,31 @@ func (a *app) toolGate(s session.Snapshot, state retained.State, tool string) (b
 	return s.Busy || !leased || state.Lost || state.ModloaderInstalled || reason != "" || owned, reason
 }
 
-func (a *app) toolReason(c *ui.Context, tool string, state retained.State, reason string) {
-	if reason != "" {
-		ui.Text(c.Key(tool+"-reason"), localize(reason)).TextColor(c.Theme().TextMuted)
-		return
+func (a *app) toolRefusals(c *ui.Context, s session.Snapshot, state retained.State) {
+	reasons := []string{}
+	names := map[string][]string{}
+	for _, tool := range []struct{ id, name string }{
+		{"rpc-status", locales.ToolsStatus()}, {"system-code-dump", locales.ToolsDump()},
+		{"ouncecake-webdav", locales.ToolsOunceWebdav()}, {"ouncecake-ftp", locales.ToolsOunceFtp()},
+		{"sd-browser", locales.ToolsSDBrowser()}, {"mintbrew", locales.HbMintbrew()},
+		{"native-hblauncher", locales.HbNative()}, {"izlauncher", locales.HbIZ()},
+		{"custom-homebrew", locales.HbCustom()}, {"modloader", locales.ModInstall()},
+	} {
+		_, reason := a.toolGate(s, state, tool.id)
+		if reason == "" {
+			continue
+		}
+		reason = localize(reason)
+		if _, exists := names[reason]; !exists {
+			reasons = append(reasons, reason)
+		}
+		names[reason] = append(names[reason], tool.name)
 	}
-	if state.Tool != "" && state.Tool != tool {
-		ui.Text(c.Key(tool+"-owner"), locales.ToolsOwner(state.Tool)).TextColor(c.Theme().TextMuted)
+	for _, reason := range reasons {
+		muted(c, locales.ToolsGroupedReason(strings.Join(names[reason], ", "), reason))
+	}
+	if state.Tool != "" {
+		muted(c, locales.ToolsOwner(state.Tool))
 	}
 }
 

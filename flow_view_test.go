@@ -139,6 +139,22 @@ func TestDetectionShowsOnlyItsOwnControls(t *testing.T) {
 	}
 }
 
+func TestUnreportedRouteChecksDoNotEnableContinueOrClaimReadiness(t *testing.T) {
+	f := sessiontest.NewFakeEnvironment()
+	f.Checks = []session.Check{{ID: "network", State: session.CheckVerified}}
+	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 760, 1400)
+	clickManual(t, tt, locales.CheckReadiness())
+	uiStage(t, a, tt, session.Ready)
+	clickManual(t, tt, locales.FlowNextSelection())
+	if !disabled(t, tt, locales.FlowNextLaunch()) {
+		t.Fatal("unreported route checks enabled Continue")
+	}
+	if tt.HasText(locales.ReadyToLaunch()) || !tt.HasText(locales.RouteUnchecked()) {
+		t.Fatal(tt.Texts())
+	}
+}
+
 func TestInputMethodScopesDetectionGate(t *testing.T) {
 	for _, mode := range []string{"manual", "keyboard", "composite"} {
 		t.Run(mode, func(t *testing.T) {

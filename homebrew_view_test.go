@@ -60,21 +60,14 @@ func TestHomebrewToolsStateTheirRecordedReasons(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	a := retainedApp(t, f, adapter, []string{"mintbrew", "native-hblauncher", "izlauncher"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1600)
-	if !tt.HasText("Homebrew launching (experimental)") {
-		t.Fatal(tt.Texts())
-	}
-	if !tt.HasText("One homebrew app runs at a time. Stop the running app and wait for its verified cleanup before switching; an unproven cleanup requires a console restart.") {
-		t.Fatal(tt.Texts())
-	}
 	for _, reason := range adapter.reasons {
 		if !tt.HasText(reason) {
 			t.Fatalf("missing recorded reason %q in %q", reason, tt.Texts())
 		}
 	}
 	for _, label := range []string{"Launch MintBrew", "Launch native HBLauncher", "Launch IZlauncher (experimental)"} {
-		control, ok := tt.AccessByRole(ui.RoleButton, label)
-		if !ok || !control.Disabled {
-			t.Fatalf("%s is usable without a retained lease: %+v", label, control)
+		if _, ok := tt.AccessByRole(ui.RoleButton, label); ok {
+			t.Fatalf("gated tool %s remains an action", label)
 		}
 	}
 }
