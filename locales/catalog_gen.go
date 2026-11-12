@@ -6137,3 +6137,23 @@ func CliRestartHint() string { return In(i18n.Locale()).CliRestartHint() }
 func (msgs Messages) CliRestartHint() string {
 	return Catalog.Format(msgs.locale, "cliRestartHint", nil)
 }
+
+// CliAvailable says "available"
+// in the language the app shows.
+func CliAvailable() string { return In(i18n.Locale()).CliAvailable() }
+
+// CliAvailable says "available"
+// in the language of msgs.
+func (msgs Messages) CliAvailable() string {
+	return Catalog.Format(msgs.locale, "cliAvailable", nil)
+}
+
+// CliUnavailable says "unavailable"
+// in the language the app shows.
+func CliUnavailable() string { return In(i18n.Locale()).CliUnavailable() }
+
+// CliUnavailable says "unavailable"
+// in the language of msgs.
+func (msgs Messages) CliUnavailable() string {
+	return Catalog.Format(msgs.locale, "cliUnavailable", nil)
+}

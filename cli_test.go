@@ -47,6 +47,18 @@ func TestCLIStatusOneShotJSON(t *testing.T) {
 	}
 }
 
+func TestCLIRecoveryRequiredHasItsOwnExitCode(t *testing.T) {
+	c, out := fixtureCLI(t, "launch\n")
+	c.app.controller.MarkInterrupted()
+	err := c.execute([]string{"session"})
+	if code := cliExitCode(err); code != exitIndeterminate {
+		t.Fatalf("exit %d: %s", code, out)
+	}
+	if !strings.Contains(err.Error(), "restart-confirm --confirm=console-restarted") {
+		t.Fatalf("no recovery instruction: %v", err)
+	}
+}
+
 func TestCLIDetectOneShotJSON(t *testing.T) {
 	c, out := fixtureCLI(t, "")
 	if err := c.execute([]string{"detect", "--json"}); err != nil {

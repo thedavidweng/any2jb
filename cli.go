@@ -338,7 +338,8 @@ func (c *commandLine) root() *cobra.Command {
 	})
 	bootstrap.Flags().StringVar(&reuse, "confirm", "", cliMessage("cliConfirm"))
 	c.command(root, "launch", locales.StartJailbreak(), true, func(*cobra.Command, []string) error {
-		if !c.app.controller.Snapshot().CanStart() {
+		// A recovery-required session reports its own exit code through Start.
+		if s := c.app.controller.Snapshot(); s.Stage != session.Indeterminate && !s.CanStart() {
 			return cliFail(exitBlocked, locales.SetupNeedsAttention())
 		}
 		return c.operation(c.app.controller.Start())

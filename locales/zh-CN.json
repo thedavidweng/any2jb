@@ -604,5 +604,7 @@
   "cliCmdDriverStatus": "说明驱动安全事项并报告可用性。",
   "cliCmdDriverInstall": "在完整说明并授权后安装驱动。",
   "cliCmdHelp": "查看任意命令的帮助。",
-  "cliRestartHint": "重启游戏机后运行：any2jb session，然后运行 restart-confirm --confirm=console-restarted"
+  "cliRestartHint": "重启游戏机后运行：any2jb session，然后运行 restart-confirm --confirm=console-restarted",
+  "cliAvailable": "可用",
+  "cliUnavailable": "不可用"
 }

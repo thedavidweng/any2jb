@@ -26,7 +26,17 @@ func (c *commandLine) addTools(root *cobra.Command) {
 			}
 			entries = append(entries, entry{id, localize(reason)})
 		}
-		return c.print(entries)
+		if c.json {
+			return c.print(entries)
+		}
+		for _, e := range entries {
+			if e.Unavailable == "" {
+				fmt.Fprintf(c.out, "%s\t%s\n", e.ID, cliMessage("cliAvailable"))
+			} else {
+				fmt.Fprintf(c.out, "%s\t%s: %s\n", e.ID, cliMessage("cliUnavailable"), e.Unavailable)
+			}
+		}
+		return nil
 	})
 	c.command(tools, "state", locales.ToolsStatus(), false, func(*cobra.Command, []string) error {
 		if c.app.tools == nil {
