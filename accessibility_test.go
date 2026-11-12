@@ -19,7 +19,8 @@ func newTestApp(t *testing.T) *app {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a := &app{manifest: m, preferences: preferences{Profile: m.Default, Edition: "full", Transport: "manual"}}
+	a := &app{manifest: m, preferences: preferences{Profile: m.Default, Edition: "full", Transport: "manual"},
+		driverPanel: driverPanel{gate: blockedDriverGate(m)}}
 	if err := a.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +44,7 @@ func focusedName(tt *ui.Tester) string {
 func TestAccessibleControlsHaveNames(t *testing.T) {
 	a := newTestApp(t)
 	tt := ui.NewTester(a.view, 800, 1000)
-	if err := tt.Click(locales.CheckReadiness()); err != nil {
+	if err := tt.Click(locales.CheckAgain()); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
@@ -65,29 +66,33 @@ func TestAccessibleControlsHaveNames(t *testing.T) {
 func TestSessionStatusIsSemantic(t *testing.T) {
 	a := newTestApp(t)
 	tt := ui.NewTester(a.view, 800, 1000)
-	if err := tt.Click(locales.CheckReadiness()); err != nil {
+	if err := tt.Click(locales.CheckAgain()); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
+	if _, ok := tt.AccessByRole(ui.RoleStatus, locales.FlowPosition("1", locales.FlowDetection())); !ok {
+		t.Error("the stage position is not exposed as a status live region")
+	}
+	// The fake environment reports none of the first stage's checks.
+	if _, ok := tt.AccessByRole(ui.RoleStatus, locales.MacNotChecked()); !ok {
+		t.Error("a first-stage step state is not exposed as a status live region")
+	}
+	advanceToLaunch(t, a, tt)
 	if _, ok := tt.AccessByRole(ui.RoleStatus, locales.ReadyToLaunch()); !ok {
 		t.Error("session stage is not exposed as a status live region")
-	}
-	if _, ok := tt.AccessByRole(ui.RoleStatus, locales.CheckVerified()); !ok {
-		t.Error("readiness check state is not exposed as a status live region")
 	}
 }
 
 func TestTabOrderFollowsVisualOrder(t *testing.T) {
 	a := newTestApp(t)
 	tt := ui.NewTester(a.view, 800, 1000)
-	if err := tt.Click(locales.CheckReadiness()); err != nil {
+	if err := tt.Click(locales.CheckAgain()); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
 	expected := []string{
 		locales.Diagnostics(), locales.Settings(),
-		locales.FlowPosition("1", locales.FlowDetection()), locales.TransportMode(), locales.LanOverride(),
-		locales.CheckReadiness(), locales.FlowNextSelection(),
+		locales.FlowPosition("1", locales.FlowDetection()), locales.CheckAgain(), locales.FlowTypeYourself(),
 	}
 	seen := []string{}
 	for range 40 {

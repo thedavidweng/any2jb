@@ -15,11 +15,13 @@ import (
 
 func TestExistingBootstrapRequiresDeliberateIdentityConfirmation(t *testing.T) {
 	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	a.driverPanel.gate = blockedDriverGate(a.manifest)
 	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
 	tt := ui.NewTester(a.view, 640, 900)
-	clickManual(t, tt, "Check readiness")
+	clickManual(t, tt, "Check again")
 	uiStage(t, a, tt, session.Ready)
-	clickManual(t, tt, "Continue to route and setup")
+	clickManual(t, tt, "Type the commands yourself instead")
+	waitIdle(t, a, tt)
 	if err := tt.Click("Use saved bootstrap"); err != nil {
 		t.Fatal(err)
 	}
@@ -39,6 +41,7 @@ func TestExistingBootstrapRequiresDeliberateIdentityConfirmation(t *testing.T) {
 
 func TestBootstrapSaveRequiresExplicitOverwritePermission(t *testing.T) {
 	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	a.driverPanel.gate = blockedDriverGate(a.manifest)
 	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
 	a.controller.Inspect()
 	waitBootstrap(t, a.controller)
@@ -65,11 +68,13 @@ func TestBootstrapSaveRequiresExplicitOverwritePermission(t *testing.T) {
 // for, in the catalog's order, and the recorded identity must match it.
 func TestBootstrapIdentityConfirmationNamesTheConfirmedIdentity(t *testing.T) {
 	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	a.driverPanel.gate = blockedDriverGate(a.manifest)
 	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
 	tt := ui.NewTester(a.view, 640, 900)
-	clickManual(t, tt, "Check readiness")
+	clickManual(t, tt, "Check again")
 	uiStage(t, a, tt, session.Ready)
-	clickManual(t, tt, "Continue to route and setup")
+	clickManual(t, tt, "Type the commands yourself instead")
+	waitIdle(t, a, tt)
 	if err := tt.Click("Use saved bootstrap"); err != nil {
 		t.Fatal(err)
 	}

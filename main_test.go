@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
@@ -18,7 +19,7 @@ func TestSessionFailureHasSafeRecovery(t *testing.T) {
 	f.PrepareError = errors.New("simulated failure")
 	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 640, 900)
-	if err := tt.Click("Check readiness"); err != nil {
+	if err := tt.Click("Check again"); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
@@ -83,8 +84,14 @@ func testApp(t *testing.T, c *session.SessionController) *app {
 		prefs = preferences{Profile: s.Profile.ID, Edition: s.Edition,
 			Transport: s.Transport.Mode, LANIPv4: s.LANOverride}
 	}
-	return &app{manifest: m, controller: c,
+	return &app{manifest: m, controller: c, driverPanel: driverPanel{gate: blockedDriverGate(m)},
 		preferencesPath: filepath.Join(t.TempDir(), "preferences.json"), preferences: prefs}
+}
+
+// blockedDriverGate is the packaged build's gate: the driver components are
+// not cleared for redistribution.
+func blockedDriverGate(m *manifest.Manifest) *driver.Gate {
+	return driver.New(driver.Options{Manifest: m})
 }
 
 func uiStage(t *testing.T, a *app, tt *ui.Tester, stage session.Stage) {
@@ -109,16 +116,13 @@ func TestSessionDashboardAndRecovery(t *testing.T) {
 	f.InputGate = make(chan struct{})
 	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 640, 900)
-	if !tt.HasText(locales.Home()) {
+	if !tt.HasText(locales.FlowCheckFirst()) {
 		t.Fatal(tt.Texts())
 	}
-	if err := tt.Click("Check readiness"); err != nil {
+	if err := tt.Click("Check again"); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
-	if !tt.HasText("Simulated readiness, not a real hardware check.") {
-		t.Fatal(tt.Texts())
-	}
 	advanceToLaunch(t, a, tt)
 	if err := tt.Click("Guided manual launch"); err != nil {
 		t.Fatal(err)
@@ -153,18 +157,20 @@ func TestFailingReadinessIsActionable(t *testing.T) {
 	f.Checks = []session.Check{{ID: "network", State: session.RequiresAttention, Message: "No reachable LAN address.", NextAction: "Connect the host to the console LAN."}}
 	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 640, 900)
-	if err := tt.Click("Check readiness"); err != nil {
+	if err := tt.Click("Check again"); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.NeedsSetup)
-	for _, text := range []string{locales.SetupNeedsAttention(), "No reachable LAN address.", locales.NextStep("Connect the host to the console LAN.")} {
+	for _, text := range []string{locales.MacNeedsAction(), locales.MacNetworkAction(), locales.FlowDetectionBlocked()} {
 		if !tt.HasText(text) {
 			t.Fatalf("missing %q: %q", text, tt.Texts())
 		}
 	}
-	start, ok := tt.AccessByRole(ui.RoleButton, "Continue to route and setup")
-	if !ok || !start.Disabled {
-		t.Fatal("Start missing or enabled with failing readiness")
+	// No input method helps without the network, so neither way on is open.
+	for _, label := range []string{locales.FlowNextSelection(), locales.FlowTypeYourself()} {
+		if control, ok := tt.Access(label); !ok || !control.Disabled {
+			t.Fatalf("%q enabled with failing readiness", label)
+		}
 	}
 }
 
@@ -174,7 +180,7 @@ func TestDashboardCancelAndFinish(t *testing.T) {
 	f.PrepareGate = gate
 	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 640, 900)
-	if err := tt.Click("Check readiness"); err != nil {
+	if err := tt.Click("Check again"); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
@@ -207,7 +213,8 @@ func TestDashboardCancelAndFinish(t *testing.T) {
 func advanceToLaunch(t *testing.T, a *app, tt *ui.Tester) {
 	t.Helper()
 	if a.flow.stage == flowDetection {
-		clickManual(t, tt, locales.FlowNextSelection())
+		clickManual(t, tt, locales.FlowTypeYourself())
+		waitIdle(t, a, tt)
 	}
 	if a.flow.stage == flowSelection {
 		clickManual(t, tt, locales.FlowNextLaunch())

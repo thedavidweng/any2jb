@@ -147,8 +147,29 @@ func (a *app) initializeSession(env session.Environment) error {
 	return nil
 }
 
+// openSession starts the session the window shows. An interrupted run needs
+// a console restart first; otherwise this Mac is checked once, read-only, so
+// the first stage opens on observations instead of an empty list.
+func (a *app) openSession(env session.Environment, interrupted bool) error {
+	if err := a.initializeSession(env); err != nil {
+		return err
+	}
+	if interrupted {
+		a.controller.MarkInterrupted()
+		return nil
+	}
+	a.command(a.controller.Inspect())
+	return nil
+}
+
 func (a *app) preferredTransport() session.Transport {
-	t := preferredTransport(a.preferences.Transport)
+	return a.transportFor(a.preferences.Transport)
+}
+
+// transportFor is the transport mode names, with the saved USB controller
+// for the plain USB keyboard.
+func (a *app) transportFor(mode string) session.Transport {
+	t := preferredTransport(mode)
 	if a.preferences.USB != nil && t.Capabilities.Keyboard && !t.Capabilities.Gamepad && !t.Capabilities.ExternalPico {
 		t.Controller = a.preferences.USB.Controller
 	}

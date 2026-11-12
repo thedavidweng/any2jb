@@ -71,18 +71,29 @@ func (a *app) view(c *ui.Context) {
 			}
 			if ui.Button(c.Key("settings-open"), locales.Settings()).Clicked() {
 				a.stopKeyboard()
-				a.flow.method = ""
 				a.flow.settings = !a.flow.settings
 				a.flow.diagnostics = false
 			}
 		})
 		rule(c)
-		ui.Scroll(c).Fill().Children(func() {
-			ui.Column(c).FillWidth().AlignItems(ui.Center).Padding(20, 20, 24).Children(func() {
-				ui.Column(c).FillWidth().MaxWidth(contentWidth).Gap(16).Children(func() { a.body(c) })
+		flow := a.inFlow()
+		if flow {
+			a.syncStage()
+		}
+		// A zero minimum lets the stage scroll inside the window instead of
+		// growing past it and pushing the footer out of view.
+		ui.Row(c).FillWidth().Grow(1).MinHeight(0).Children(func() {
+			if flow {
+				sidebar(c, a.flow.stage, flowTitles())
+				ui.Column(c).Width(1).FillHeight().Shrink(0).Background(c.Theme().Border)
+			}
+			ui.Scroll(c).Fill().Children(func() {
+				ui.Column(c).FillWidth().AlignItems(ui.Center).Padding(20, 20, 24).Children(func() {
+					ui.Column(c).FillWidth().MaxWidth(contentWidth).Gap(16).Children(func() { a.body(c) })
+				})
 			})
 		})
-		if a.inFlow() {
+		if flow {
 			a.footerView(c)
 		}
 	})
@@ -168,7 +179,7 @@ func main() {
 	mygo.App.WhenReady(func() {
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     locales.AppName(),
-			Width:     640,
+			Width:     720,
 			Height:    720,
 			MinWidth:  560,
 			MinHeight: 360,
@@ -205,12 +216,9 @@ func main() {
 			interrupted, recoveryErr := store.Interrupted()
 			win.Update(func() {
 				helpers = inputOptions.Helpers
-				if err := a.initializeSession(env); err != nil {
+				if err := a.openSession(env, interrupted || recoveryErr != nil); err != nil {
 					a.commandRejected = true
 					return
-				}
-				if interrupted || recoveryErr != nil {
-					a.controller.MarkInterrupted()
 				}
 				a.startDiagnostics(win, store)
 				a.toolsPanel.update = win.Update

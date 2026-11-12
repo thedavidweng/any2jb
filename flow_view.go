@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/locales"
@@ -23,7 +22,6 @@ type flowUI struct {
 	stage, rendered flowStage
 	initialized     bool
 	observed        session.Stage
-	method          string
 	heading         ui.Handle
 	settings        bool
 	diagnostics     bool
@@ -32,10 +30,14 @@ type flowUI struct {
 	expert          bool
 	attach          bool
 	evidence        bool
+	recoverySteps   bool
 }
 
+// The input-adapter check describes the method the last inspection used, so
+// it belongs to the route stage, which inspects again with the method that
+// Continue applied.
 func detectionCheck(check session.Check) bool {
-	return check.ID != "runtime" && check.ID != "engine"
+	return check.ID != "runtime" && check.ID != "engine" && check.ID != "input-adapter"
 }
 
 func checkApplies(check session.Check, transport session.Transport) bool {
@@ -48,20 +50,23 @@ func (a *app) preferencesPending(s session.Snapshot) bool {
 		s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport
 }
 
-func (a *app) detectionReady(s session.Snapshot) bool {
+// detectionReady reports whether the observed checks allow leaving the first
+// stage with transport t. It only reads the controller's checks.
+func (a *app) detectionReady(s session.Snapshot, t session.Transport) bool {
 	if a.preferencesPending(s) || s.Busy || s.SideEffects || len(s.Checks) == 0 ||
 		s.Stage == session.Indeterminate || s.Stage == session.Failed {
 		return false
 	}
 	for _, check := range s.Checks {
-		if detectionCheck(check) && checkApplies(check, s.Transport) && check.State == session.RequiresAttention {
+		if detectionCheck(check) && checkApplies(check, t) && check.State == session.RequiresAttention {
 			return false
 		}
 	}
 	return true
 }
 
-func (a *app) flowView(c *ui.Context) {
+// syncStage follows the controller into the stage that shows its work.
+func (a *app) syncStage() {
 	s := a.controller.Snapshot()
 	switch {
 	case s.Stage == session.Verified || s.Stage == session.RetainedRPC || s.Stage == session.RunningTool:
@@ -70,16 +75,25 @@ func (a *app) flowView(c *ui.Context) {
 		a.flow.stage = flowSelection
 	case s.Stage == session.Idle && a.flow.observed == session.Indeterminate:
 		a.flow.stage = flowDetection
+	// An inspection reports Ready or NeedsSetup a moment before it stops
+	// being busy; that is still the stage that asked for it, not a launch.
 	case s.Stage == session.Indeterminate || (s.Stage == session.Finished && a.flow.observed != s.Stage) ||
-		(s.Busy && s.Stage != session.Inspecting):
+		(s.Busy && s.Stage != session.Inspecting && s.Stage != session.Ready && s.Stage != session.NeedsSetup):
 		a.flow.stage = flowLaunch
 	case a.flow.stage == flowTools:
 		a.flow.stage = flowLaunch
 	}
 	a.flow.observed = s.Stage
-	titles := []string{locales.FlowDetection(), locales.FlowSelection(), locales.FlowLaunch(), locales.FlowTools()}
-	stepper(c, a.flow.stage, titles)
-	// The stepper carries the position visually; the heading names the stage
+}
+
+func flowTitles() []string {
+	return []string{locales.FlowDetection(), locales.FlowSelection(), locales.FlowLaunch(), locales.FlowTools()}
+}
+
+func (a *app) flowView(c *ui.Context) {
+	s := a.controller.Snapshot()
+	titles := flowTitles()
+	// The sidebar carries the position visually; the heading names the stage
 	// once, and announces the position to assistive technology.
 	ui.Text(c.Key("flow-stage-heading"), titles[a.flow.stage]).FontSize(c.Theme().Rem(1.55)).Bold().
 		Label(locales.FlowPosition(fmt.Sprint(int(a.flow.stage)+1), titles[a.flow.stage])).
@@ -155,7 +169,7 @@ func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 	})
 	if a.civSwitchPanel.open {
 		if !s.Transport.Capabilities.Keyboard || !s.Transport.Capabilities.Gamepad {
-			stateCard(c, toneAttention, func() {
+			stateCard(c, func() {
 				badge(c, "civ-method-badge", toneAttention, locales.CheckAttention())
 				ui.Text(c.Key("civ-method-unavailable"), locales.FlowCivUnavailable()).Role(ui.RoleStatus)
 			})
@@ -164,12 +178,13 @@ func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 		card(c, func() { a.civSwitchView(c) })
 		return
 	}
+	routeCheck := func(check session.Check) bool { return !detectionCheck(check) && checkApplies(check, s.Transport) }
 	// One card for everything this route still needs before launch.
 	card(c, func() {
 		sectionTitle(c, locales.SelectionRequirements())
 		rows := 0
 		for _, check := range s.Checks {
-			if !detectionCheck(check) && checkApplies(check, s.Transport) {
+			if routeCheck(check) {
 				rows++
 			}
 		}
@@ -180,13 +195,13 @@ func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 				routeCheckList(c, s.Transport)
 				ui.Text(c, locales.RouteUnchecked()).Role(ui.RoleStatus)
 			}
-			a.readinessView(c, s, false)
+			readinessView(c, s, routeCheck)
 			if inline(ui.Button(c.Key("selection-inspect"), locales.FlowCheckSelection())).Disabled(s.Busy || s.SideEffects || a.preferencesPending(s)).Clicked() {
 				a.command(a.controller.Inspect())
 			}
 		}
 		if s.BootstrapSaved {
-			stateCard(c, toneVerified, func() {
+			stateCard(c, func() {
 				badge(c, "flow-saved-badge", toneVerified, locales.CheckVerified())
 				ui.Text(c, locales.FlowSaved()).Role(ui.RoleStatus)
 			})
@@ -212,24 +227,29 @@ func (a *app) footerView(c *ui.Context) {
 	s := a.controller.Snapshot()
 	switch a.flow.stage {
 	case flowDetection:
-		ready := a.detectionReady(s)
+		mode := a.continueMode(s)
+		ready := mode != "" && a.detectionReady(s, a.transportFor(mode))
 		footer(c, func() {
-			if !ready {
-				hint := locales.FlowDetectionBlocked()
-				if len(s.Checks) == 0 {
-					hint = locales.FlowCheckFirst()
-				} else if a.preferencesPending(s) {
-					hint = locales.ApplyLanHint()
-				} else if s.Busy {
-					hint = locales.CheckingReadiness()
-				}
+			hint := ""
+			switch {
+			case s.Busy:
+				hint = locales.CheckingReadiness()
+			case len(s.Checks) == 0:
+				hint = locales.FlowCheckFirst()
+			case a.preferencesPending(s):
+				hint = locales.ApplyBeforeLaunch()
+			case ready:
+			case a.usbRoute(s) == usbUnavailable && a.detectionReady(s, a.transportFor("manual")):
+				hint = locales.FlowUsbUnavailable()
+			default:
+				hint = locales.FlowDetectionBlocked()
+			}
+			if hint != "" {
 				muted(c, hint).Shrink(1)
 			}
 		}, func() {
 			if ui.PrimaryButton(c.Key("flow-next-selection"), locales.FlowNextSelection()).Disabled(!ready).Clicked() {
-				a.stopKeyboard()
-				a.keyboard.open = false
-				a.flow.stage = flowSelection
+				a.continueWith(mode)
 			}
 		})
 	case flowSelection:
@@ -279,98 +299,26 @@ func (a *app) footerView(c *ui.Context) {
 	}
 }
 
-// startupSecurityApplies names the built-in USB routes whose driver needs
-// startup security the app can only describe, never observe or change.
-func startupSecurityApplies(t session.Transport) bool {
-	return !t.Capabilities.Manual && !t.Capabilities.ExternalPico
-}
-
-func (a *app) detectionView(c *ui.Context, s session.Snapshot) {
-	disabled := s.Busy || s.SideEffects || s.Stage == session.Indeterminate
-	card(c, func() {
-		sectionTitle(c, locales.TransportMode())
-		muted(c, locales.FlowDetectHint())
-		labels := []string{locales.FlowManual(), locales.FlowKeyboard(), locales.FlowComposite(), locales.FlowPico()}
-		modes := []string{"manual", "keyboard", "composite", "external-pico"}
-		if !slices.Contains(labels, a.flow.method) {
-			for i, mode := range modes {
-				if a.preferences.Transport == mode {
-					a.flow.method = labels[i]
-				}
-			}
-		}
-		// Choosing a method is the whole step: it applies the method and
-		// checks what that method needs, through the same commands.
-		ui.Select(c.Key("input-method"), &a.flow.method, labels).Label(locales.TransportMode()).Disabled(disabled).OnChange(func() {
-			for i, label := range labels {
-				if label == a.flow.method {
-					a.preferences.Transport = modes[i]
-				}
-			}
-			a.applyAndCheck()
-		})
-		ui.Column(c).FillWidth().Gap(6).Children(func() {
-			ui.Text(c, locales.LanOverride())
-			ui.TextInput(c.Key("lan-override"), &a.preferences.LANIPv4).Label(locales.LanOverride()).
-				Placeholder(locales.AutomaticLAN()).Disabled(disabled).OnSubmit(a.applyAndCheck)
-		})
-		if a.preferenceError != "" {
-			ui.Text(c, a.preferenceError).TextColor(c.Theme().Danger)
-		}
-	})
-	card(c, func() {
-		ui.Row(c).FillWidth().Wrap().Gap(8).Children(func() {
-			sectionTitle(c, locales.ReadinessChecks())
-			grow(c)
-			muted(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
-		})
-		if len(s.Checks) == 0 {
-			checkList(c, s.Transport)
-		}
-		a.readinessView(c, s, true)
-		if a.preferencesPending(s) {
-			muted(c, locales.ApplyLanHint())
-		}
-		if inline(ui.Button(c.Key("inspect"), locales.CheckReadiness())).Disabled(disabled || a.preferencesPending(s)).Clicked() {
-			a.command(a.controller.Inspect())
-		}
-	})
-	if startupSecurityApplies(s.Transport) {
-		ui.Column(c.Key("startup-security-note")).FillWidth().Children(func() {
-			stateCard(c, toneManual, func() {
-				manualBadge(c)
-				ui.Text(c.Key("startup-security-state"), locales.StartupSecurityTitle()).Bold().Role(ui.RoleStatus)
-				ui.Text(c, locales.StartupSecurityUnverified())
-				ui.Text(c, locales.StartupSecurityAction())
-			})
-		})
-		card(c, func() {
-			ui.Text(c, locales.DriverSecurityGuidance())
-			ui.Row(c).Wrap().Gap(8).Children(func() {
-				if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(disabled).Clicked() {
-					a.driverPanel.open = true
-				}
-				if ui.Button(c.Key("usb-keyboard"), locales.UsbKeyboardTitle()).Disabled(disabled).Clicked() {
-					a.keyboard.open = !a.keyboard.open
-				}
-			})
-			if a.keyboard.open {
-				a.keyboardView(c)
-			}
-		})
-	}
-}
-
-// applyAndCheck issues the two controller commands this stage stands for:
-// apply the chosen method, then inspect what that method needs.
-func (a *app) applyAndCheck() {
+// continueWith moves on to the route with the input method the first stage
+// settled on. A different method is applied first and checked again, since
+// the route's checks depend on it.
+func (a *app) continueWith(mode string) {
+	a.stopKeyboard()
+	a.keyboard.open = false
 	a.preferenceError = ""
-	if err := a.applyPreferences(); err != nil {
-		a.preferenceError = err.Error()
-		return
+	if mode != a.controller.Snapshot().Transport.Mode {
+		previous := a.preferences.Transport
+		a.preferences.Transport = mode
+		if err := a.applyPreferences(); err != nil {
+			a.preferences.Transport = previous
+			a.preferenceError = err.Error()
+			return
+		}
+		a.command(a.controller.Inspect())
 	}
-	a.command(a.controller.Inspect())
+	a.flow.stage = flowSelection
 }
+
 func (a *app) settingsView(c *ui.Context) {
 	ui.Text(c, locales.Settings()).FontSize(c.Theme().Rem(1.55)).Bold()
 	card(c, func() { a.profileView(c) })
@@ -396,5 +344,254 @@ func (a *app) settingsView(c *ui.Context) {
 		if a.about {
 			muted(c, locales.BuildLimitations())
 		}
+	})
+}
+
+// usbRoute is what the observed checks say about built-in USB input.
+type usbRoute int
+
+const (
+	usbPending usbRoute = iota
+	usbUnavailable
+	usbReady
+)
+
+func findCheck(checks []session.Check, id string) session.Check {
+	for _, check := range checks {
+		if check.ID == id {
+			return check
+		}
+	}
+	return session.Check{}
+}
+
+// usbMode is the built-in USB method Continue applies: composite when it was
+// chosen in Settings, otherwise the plain USB keyboard.
+func (a *app) usbMode() string {
+	if a.preferences.Transport == "composite" {
+		return "composite"
+	}
+	return "keyboard"
+}
+
+// usbRoute is unavailable when this Mac or this build cannot use built-in USB
+// input at all, so no step the user takes could make it ready.
+func (a *app) usbRoute(s session.Snapshot) usbRoute {
+	loaded, present := findCheck(s.Checks, "driver-loaded"), findCheck(s.Checks, "driver-present")
+	switch {
+	case findCheck(s.Checks, "usb-platform").State == session.RequiresAttention,
+		findCheck(s.Checks, "usb-runtime").State == session.RequiresAttention,
+		a.driverPanel.gate.Availability() != nil && loaded.State != session.CheckVerified && present.State != session.CheckVerified:
+		return usbUnavailable
+	case loaded.State == session.CheckVerified && a.detectionReady(s, a.transportFor(a.usbMode())):
+		return usbReady
+	}
+	return usbPending
+}
+
+// continueMode is the automatic input method Continue applies, or "" while
+// this Mac is not set up for it. Guided manual input is never chosen for the
+// user. An external Pico chosen in Settings does not use this Mac's USB port,
+// so the USB steps do not decide it.
+func (a *app) continueMode(s session.Snapshot) string {
+	if a.preferences.Transport == "external-pico" {
+		return "external-pico"
+	}
+	if a.usbRoute(s) == usbReady {
+		return a.usbMode()
+	}
+	return ""
+}
+
+type macAction int
+
+const (
+	noAction macAction = iota
+	showRecoverySteps
+	installDriver
+	chooseConnection
+)
+
+// macStep is one row of the first stage: a plain subject, its state and at
+// most one sentence and one action.
+type macStep struct {
+	key, title, status, detail string
+	tone                       tone
+	action                     macAction
+}
+
+func (a *app) macSteps(s session.Snapshot) []macStep {
+	steps := []macStep{
+		{key: "mac-network", title: locales.CheckNetwork()},
+		{key: "mac-allow", title: locales.MacAllow()},
+		{key: "mac-install", title: locales.MacInstall()},
+		{key: "mac-connect", title: locales.MacConnect()},
+	}
+	status := locales.MacNotChecked()
+	if s.Stage == session.Inspecting {
+		status = locales.MacChecking()
+	}
+	for i := range steps {
+		steps[i].tone, steps[i].status = toneAvailable, status
+	}
+	if len(s.Checks) == 0 || s.Stage == session.Inspecting {
+		return steps
+	}
+	set := func(step *macStep, k tone, status, detail string, action macAction) {
+		step.tone, step.status, step.detail, step.action = k, status, detail, action
+	}
+	network, sip := findCheck(s.Checks, "network"), findCheck(s.Checks, "sip")
+	present, loaded, restart := findCheck(s.Checks, "driver-present"), findCheck(s.Checks, "driver-loaded"), findCheck(s.Checks, "driver-restart")
+	controllers := findCheck(s.Checks, "usb-controllers")
+	unsupported := findCheck(s.Checks, "usb-platform").State == session.RequiresAttention
+	unavailable := a.usbRoute(s) == usbUnavailable
+	found := 0
+	for _, check := range s.Checks {
+		if check.Controller != "" {
+			found++
+		}
+	}
+
+	switch {
+	case network.ID == "":
+		steps[0].status = locales.MacNotChecked()
+	case network.State == session.CheckVerified:
+		set(&steps[0], toneVerified, locales.MacDone(), locales.MacNetworkDone(network.LANIPv4), noAction)
+	default:
+		set(&steps[0], toneAttention, locales.MacNeedsAction(), locales.MacNetworkAction(), noAction)
+	}
+
+	// Security is never lowered for a driver this build cannot install.
+	switch {
+	case unsupported:
+		steps[1].status = locales.MacNotAvailable()
+	case unavailable:
+		steps[1].status = locales.MacWaiting()
+	case loaded.State == session.CheckVerified:
+		set(&steps[1], toneVerified, locales.MacDone(), locales.MacAllowDone(), noAction)
+	case sip.State == session.CheckVerified:
+		set(&steps[1], toneAvailable, locales.MacInProgress(), locales.MacAllowProgress(), showRecoverySteps)
+	case sip.State == session.RequiresAttention:
+		set(&steps[1], toneAttention, locales.MacNeedsAction(), locales.MacAllowAction(), showRecoverySteps)
+	default:
+		set(&steps[1], toneAvailable, locales.MacNotChecked(), locales.MacAllowUnknown(), showRecoverySteps)
+	}
+
+	switch {
+	case unsupported:
+		steps[2].status = locales.MacNotAvailable()
+	case restart.State == session.RequiresAttention:
+		set(&steps[2], toneAttention, locales.MacNeedsAction(), locales.MacRestart(), noAction)
+	case unavailable && loaded.State != session.CheckVerified:
+		set(&steps[2], toneAvailable, locales.MacNotAvailable(), locales.MacInstallBlocked(), noAction)
+	case unavailable:
+		set(&steps[2], toneAvailable, locales.MacNotAvailable(), locales.MacUsbBlocked(), noAction)
+	case loaded.State == session.CheckVerified:
+		set(&steps[2], toneVerified, locales.MacDone(), locales.MacInstallDone(), noAction)
+	case present.State == session.CheckVerified:
+		set(&steps[2], toneAttention, locales.MacNeedsAction(), locales.MacInstallNotRunning(), noAction)
+	case present.ID == "":
+		steps[2].status = locales.MacNotChecked()
+	default:
+		set(&steps[2], toneAttention, locales.MacNeedsAction(), locales.MacInstallAction(), installDriver)
+	}
+
+	// Discovery is never shown as done: only observed keyboard enumeration
+	// verifies the connection.
+	switch {
+	case unsupported:
+		set(&steps[3], toneAvailable, locales.MacNotAvailable(), locales.MacConnectUnsupported(), noAction)
+	case unavailable:
+		set(&steps[3], toneAvailable, locales.MacWaiting(), locales.MacConnectWaiting(), noAction)
+	case controllers.State == session.CheckVerified:
+		set(&steps[3], toneVerified, locales.MacDone(), locales.MacConnectDone(), noAction)
+	case controllers.State == session.Available:
+		set(&steps[3], toneAvailable, locales.MacFound(), locales.MacConnectFound(), chooseConnection)
+	case loaded.State != session.CheckVerified:
+		set(&steps[3], toneAvailable, locales.MacWaiting(), locales.MacConnectWaiting(), noAction)
+	case found > 1:
+		set(&steps[3], toneAttention, locales.MacNeedsAction(), locales.MacConnectSeveral(), chooseConnection)
+	default:
+		set(&steps[3], toneAttention, locales.MacNeedsAction(), locales.MacConnectAction(), noAction)
+	}
+	return steps
+}
+
+func (a *app) detectionView(c *ui.Context, s session.Snapshot) {
+	disabled := s.Busy || s.SideEffects || s.Stage == session.Indeterminate
+	t := c.Theme()
+	card(c, func() {
+		muted(c, locales.MacIntro())
+		for _, step := range a.macSteps(s) {
+			ui.Column(c.Key(step.key)).FillWidth().Gap(t.Space(1.5)).Children(func() {
+				ui.Row(c).FillWidth().Wrap().Gap(t.Space(2)).Children(func() {
+					ui.Text(c, step.title).Bold().Shrink(1)
+					grow(c)
+					badge(c, step.key+"-state", step.tone, step.status)
+				})
+				if step.detail != "" {
+					ui.Text(c.Key(step.key+"-detail"), step.detail)
+				}
+				switch step.action {
+				// Steps a blocked row needs are shown outright; while the step
+				// is only in progress or unknown they wait behind a disclosure.
+				case showRecoverySteps:
+					if step.tone == toneAttention {
+						panelBody(c, func() { recoverySteps(c) })
+					} else {
+						ui.Collapsible(c.Key("recovery-steps"), locales.MacAllowShowSteps(), &a.flow.recoverySteps, func() {
+							panelBody(c, func() { recoverySteps(c) })
+						})
+					}
+				case installDriver:
+					if inline(ui.Button(c.Key("driver-install"), locales.MacInstallButton())).Disabled(disabled).Clicked() {
+						a.driverPanel.open = true
+					}
+				case chooseConnection:
+					if inline(ui.Button(c.Key("usb-keyboard"), locales.MacConnectButton())).Disabled(disabled).Clicked() {
+						a.keyboard.open = !a.keyboard.open
+					}
+				}
+				rule(c)
+			})
+		}
+		if a.keyboard.open {
+			a.keyboardView(c)
+		}
+		if a.preferenceError != "" {
+			ui.Text(c, a.preferenceError).TextColor(t.Danger)
+		}
+		if inline(ui.Button(c.Key("inspect"), locales.CheckAgain())).Disabled(disabled || a.preferencesPending(s)).Clicked() {
+			a.command(a.controller.Inspect())
+		}
+	})
+	// Guided manual input stays reachable for those who want it, as a quiet
+	// link after the setup, never beside or like the primary action.
+	if inline(ui.Link(c.Key("flow-manual"), locales.FlowTypeYourself(), "")).
+		Disabled(!a.detectionReady(s, a.transportFor("manual"))).Clicked() {
+		a.continueWith("manual")
+	}
+}
+
+// recoverySteps is the walkthrough the user follows in macOS Recovery. The app
+// shows it as text and never performs or checks any of it.
+func recoverySteps(c *ui.Context) {
+	t := c.Theme()
+	ui.Column(c).FillWidth().Gap(t.Space(1.5)).Children(func() {
+		for i, step := range []string{locales.MacRecovery1(), locales.MacRecovery2(), locales.MacRecovery3(),
+			locales.MacRecovery4(), locales.MacRecovery5(), locales.MacRecovery6()} {
+			ui.Row(c).FillWidth().AlignItems(ui.Start).Gap(t.Space(2)).Children(func() {
+				ui.Text(c, fmt.Sprint(i+1, ".")).TextColor(t.TextMuted).Shrink(0)
+				ui.Text(c, step).Shrink(1)
+			})
+		}
+	})
+	muted(c, locales.MacRecoveryNote())
+	// The catalogs carry each guide's URL, so the page is in the app's language
+	// where Apple publishes one.
+	ui.Column(c).Gap(t.Space(1)).Children(func() {
+		ui.Link(c.Key("apple-startup-security"), locales.MacGuideStartupSecurity(), locales.MacGuideStartupSecurityURL())
+		ui.Link(c.Key("apple-recovery"), locales.MacGuideRecovery(), locales.MacGuideRecoveryURL())
+		ui.Link(c.Key("apple-sip"), locales.MacGuideSip(), locales.MacGuideSipURL())
 	})
 }

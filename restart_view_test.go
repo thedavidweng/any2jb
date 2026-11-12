@@ -57,8 +57,8 @@ func TestConsoleRestartUIKeepsLiveLeaseBlockedAndShowsError(t *testing.T) {
 		}
 		timer.Stop()
 		tt.Frame()
-		if releaseError == nil && !tt.HasText(locales.Home()) {
-			t.Fatal("recovery did not return to Home")
+		if releaseError == nil && (a.flow.stage != flowDetection || !tt.HasText(locales.FlowCheckFirst())) {
+			t.Fatal("recovery did not return to the first stage")
 		}
 	}
 }
@@ -77,7 +77,7 @@ func TestConsoleRestartPanelShowsTheUnconfirmedReleaseInstruction(t *testing.T) 
 	env.Input = unconfirmedInput{env.Input}
 	a := testApp(t, session.New(env, session.Profile{ID: "fixture", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 640, 1200)
-	clickManual(t, tt, locales.CheckReadiness())
+	clickManual(t, tt, locales.CheckAgain())
 	uiStage(t, a, tt, session.Ready)
 	advanceToLaunch(t, a, tt)
 	clickManual(t, tt, locales.GuidedManualLaunch())

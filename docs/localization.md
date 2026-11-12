@@ -27,6 +27,10 @@ detection, no app code needed.
   that the views pass through `localize` therefore cannot fall through in
   English.
 
+Apple's UI names follow Apple's own pages in each language (for example
+“启动安全性实用工具”, “降低安全性”, “正在加载启动选项”). A catalog may carry a
+URL, so a link opens the page for the app's language.
+
 ## zh-CN term list
 
 Use these consistently; never soften a risk statement.
@@ -51,7 +55,11 @@ Use these consistently; never soften a risk statement.
 | Session tools | 会话工具 |
 | Developer options | 开发者选项 |
 | Settings | 设置 |
-| Input and detection | 输入方式与检测 |
+| Check this Mac | 检查这台 Mac |
+| Check again | 重新检查 |
+| Continue | 继续 |
+| Type the commands yourself instead | 改为自己手动输入命令 |
+| Needs action | 需要处理 |
 | Route and setup | 路线与设置 |
 | Launch | 启动 |
 | Tools | 工具 |

@@ -51,6 +51,7 @@ func TestUnappliedHostChoiceCannotLaunchPreviousHost(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	a.driverPanel.gate = blockedDriverGate(a.manifest)
 	if err := a.initializeSession(sessiontest.NewFakeEnvironment().Environment()); err != nil {
 		t.Fatal(err)
 	}
