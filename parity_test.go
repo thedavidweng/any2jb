@@ -82,7 +82,19 @@ func TestParityLedger(t *testing.T) {
 	if rows == 0 {
 		t.Fatal("no parity rows")
 	}
-	err = filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
+	for key, position := range guiControls(t) {
+		if key == "" || !keys[key] {
+			t.Errorf("%s needs a literal c.Key(\"action-id\") and matching ledger UI key (got %q)", position, key)
+		}
+	}
+}
+
+// guiControls maps each interactive control's literal key to its position;
+// a control without a literal key is reported under the empty key.
+func guiControls(t *testing.T) map[string]string {
+	t.Helper()
+	controls := map[string]string{}
+	err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -125,9 +137,7 @@ func TestParityLedger(t *testing.T) {
 					}
 				}
 			}
-			if key == "" || !keys[key] {
-				t.Errorf("%s: %s needs a literal c.Key(\"action-id\") and matching ledger UI key (got %q)", fset.Position(call.Pos()), label, key)
-			}
+			controls[key] = fset.Position(call.Pos()).String() + ": " + label
 			return true
 		})
 		return nil
@@ -135,6 +145,7 @@ func TestParityLedger(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	return controls
 }
 
 func parityControl(call *ast.CallExpr, uiName string) (*ast.CallExpr, string) {

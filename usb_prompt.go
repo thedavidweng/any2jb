@@ -61,21 +61,35 @@ func (p *usbPrompt) Wait(ctx context.Context, run session.Run, step transport.Co
 func (p *usbPrompt) view(c *ui.Context) {
 	p.mu.Lock()
 	p.notify = c.Services().Invalidate
-	step, id, pending := p.step, p.sequence, p.pending
+	step, id, pending := p.step, p.sequence, p.pending != nil
 	profile, edition := p.profile, p.edition
 	p.mu.Unlock()
-	if pending == nil {
+	if !pending {
 		return
 	}
 	consoleStepView(c, locales.UsbProfile(profile, edition), consolePrompt(step))
 	if ui.PrimaryButton(c.Key("usb-confirm-console"), locales.UsbConfirmContinue()).Clicked() {
-		p.mu.Lock()
-		if p.pending == pending && p.sequence == id {
-			close(pending)
-			p.pending = nil
-		}
-		p.mu.Unlock()
+		p.confirm(id)
 	}
+}
+
+// current reports the pending console step and its sequence.
+func (p *usbPrompt) current() (transport.ConsoleStep, uint64, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.step, p.sequence, p.pending != nil
+}
+
+// confirm releases only the step it was shown for, never a later one.
+func (p *usbPrompt) confirm(id uint64) bool {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.pending == nil || p.sequence != id {
+		return false
+	}
+	close(p.pending)
+	p.pending = nil
+	return true
 }
 
 func consolePrompt(step transport.ConsoleStep) string {
