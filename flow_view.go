@@ -223,7 +223,7 @@ func (a *app) footerView(c *ui.Context) {
 				} else if s.Busy {
 					hint = locales.CheckingReadiness()
 				}
-				muted(c, hint).Shrink(1).Grow(1)
+				muted(c, hint).Shrink(1)
 			}
 		}, func() {
 			if ui.PrimaryButton(c.Key("flow-next-selection"), locales.FlowNextSelection()).Disabled(!ready).Clicked() {

@@ -333,3 +333,18 @@ func TestRouteChoiceIsAnAnnouncedRadioGroup(t *testing.T) {
 		t.Fatal("the arrows do not move the route selection")
 	}
 }
+
+// The reason Continue is disabled takes the footer's free width, so at a
+// normal window size it reads as one line beside the button.
+func TestFooterReasonUsesTheFreeWidth(t *testing.T) {
+	a := newTestApp(t)
+	tt := ui.NewTester(a.view, 960, 900)
+	hint, ok := tt.Access(locales.FlowCheckFirst())
+	if !ok {
+		t.Fatal("the disabled Continue has no reason")
+	}
+	line, _ := tt.Access(locales.AppDescriptionShort())
+	if hint.Bounds.H > 1.5*line.Bounds.H {
+		t.Fatalf("the footer reason wraps in %v", hint.Bounds)
+	}
+}
