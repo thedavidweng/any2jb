@@ -138,6 +138,16 @@ func (msgs Messages) LogAll() string {
 	return Catalog.Format(msgs.locale, "logAll", nil)
 }
 
+// LogSource says "Log source"
+// in the language the app shows.
+func LogSource() string { return In(i18n.Locale()).LogSource() }
+
+// LogSource says "Log source"
+// in the language of msgs.
+func (msgs Messages) LogSource() string {
+	return Catalog.Format(msgs.locale, "logSource", nil)
+}
+
 // LogUSB says "USB and typing"
 // in the language the app shows.
 func LogUSB() string { return In(i18n.Locale()).LogUSB() }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
@@ -80,9 +81,11 @@ func TestAllSixHostsCanBeSelected(t *testing.T) {
 	a.developer = true
 	tt := ui.NewTester(a.profileView, 720, 1200)
 	for _, id := range []string{"pepsipu", "cellenseres", "BermTheSequel", "izmysh", "astral", "kurumuz"} {
-		if err := tt.Click(a.preferences.Profile); err != nil {
-			t.Fatal(err)
+		choice, ok := tt.AccessByRole(ui.RolePopUpButton, locales.HostProfile())
+		if !ok {
+			t.Fatal("host profile choice missing", tt.Texts())
 		}
+		tt.ClickAt(choice.Bounds.X+choice.Bounds.W/2, choice.Bounds.Y+choice.Bounds.H/2)
 		if err := tt.Click(id); err != nil {
 			t.Fatal(err)
 		}

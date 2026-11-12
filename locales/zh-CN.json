@@ -4,6 +4,7 @@
   "diagnosticsPrivacy": "查看时，日志中的敏感信息已被遮蔽。会话文件夹含有私人数据，请仅分享导出的支持包。支持包包含结构化状态、验证结果和固定格式的日志摘要，不包含原始日志、配对详情、账号标识或存档数据。",
   "logHost": "主机",
   "logAll": "所有来源",
+  "logSource": "日志来源",
   "logUSB": "USB 与键盘输入",
   "logPipeline": "处理流水线",
   "logAcquisition": "数据获取",

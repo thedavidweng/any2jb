@@ -74,25 +74,14 @@ func (a *app) diagnosticsView(c *ui.Context) {
 	if !d.ready {
 		return
 	}
-	sectionTitle(c, locales.Diagnostics())
 	ui.Text(c, locales.DiagnosticsPrivacy()).TextColor(c.Theme().TextMuted)
-	ui.Row(c).Gap(8).Children(func() {
-		if inline(ui.Button(c.Key("logs-all"), locales.LogAll())).Clicked() {
-			d.source = -1
-		}
-		if inline(ui.Button(c.Key("logs-host"), locales.LogHost())).Clicked() {
-			d.source = 0
-		}
-		if inline(ui.Button(c.Key("logs-usb"), locales.LogUSB())).Clicked() {
-			d.source = 1
-		}
-		if inline(ui.Button(c.Key("logs-pipeline"), locales.LogPipeline())).Clicked() {
-			d.source = 2
-		}
-		if inline(ui.Button(c.Key("logs-acquisition"), locales.LogAcquisition())).Clicked() {
-			d.source = 3
-		}
-	})
+	ui.RadioGroup(c.Key("logs-source"), func() {
+		ui.Radio(c.Key("logs-all"), &d.source, -1, locales.LogAll())
+		ui.Radio(c.Key("logs-host"), &d.source, 0, locales.LogHost())
+		ui.Radio(c.Key("logs-usb"), &d.source, 1, locales.LogUSB())
+		ui.Radio(c.Key("logs-pipeline"), &d.source, 2, locales.LogPipeline())
+		ui.Radio(c.Key("logs-acquisition"), &d.source, 3, locales.LogAcquisition())
+	}).Row().Wrap().Gap(c.Theme().Space(5)).Label(locales.LogSource())
 	ui.Checkbox(c.Key("logs-follow"), &d.follow, locales.FollowLogs())
 	text := strings.Join([]string{d.logs.Host, d.logs.USB, d.logs.Pipeline, d.logs.Acquisition}, "\n")
 	if d.source >= 0 {
@@ -108,7 +97,9 @@ func (a *app) diagnosticsView(c *ui.Context) {
 	if d.follow {
 		d.scroll.Y = math.MaxFloat32
 	}
-	ui.Scroll(c.Key("logs-output")).Height(180).FillWidth().TrackScroll(&d.scroll).Children(func() { ui.Text(c, text).Selectable() })
+	t := c.Theme()
+	ui.Scroll(c.Key("logs-output")).Height(180).FillWidth().Padding(t.Space(2)).Radius(t.Radius).Border(1, t.Border).
+		TrackScroll(&d.scroll).Children(func() { ui.Text(c, text).Selectable() })
 	ui.Row(c).Gap(8).Children(func() {
 		if inline(ui.Button(c.Key("logs-open"), locales.OpenSessionFolder())).Disabled(!currentRun || d.folder == "").Clicked() {
 			d.failed = mygo.Shell.OpenPath(d.folder) != nil

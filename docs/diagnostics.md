@@ -1,8 +1,8 @@
 # Diagnostics and local data
 
 Diagnostics is a local, read-only view of the selected run. It polls off the UI
-thread every 500 ms and publishes through `Window.Update`. Source controls select
-All, Host, USB and typing, Pipeline, or Acquisition. Follow keeps the log scrolled
+thread every 500 ms and publishes through `Window.Update`. A radio group, Log
+source, selects All, Host (the default), USB and typing, Pipeline, or Acquisition. Follow keeps the log scrolled
 to its newest output; turning it off allows selection and copying.
 
 ## Sources and privacy
