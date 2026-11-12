@@ -48,8 +48,8 @@ Use these consistently; never soften a risk statement.
 | Saved bootstrap | 已保存的引导程序 |
 | Retained RPC | 保留 RPC |
 | Console | 游戏机 |
-| Advanced Tools | 高级工具 |
-| Developer Options | 开发者选项 |
+| Session tools | 会话工具 |
+| Developer options | 开发者选项 |
 | Settings | 设置 |
 | Input and detection | 输入方式与检测 |
 | Route and setup | 路线与设置 |

@@ -656,11 +656,11 @@ func (msgs Messages) UsbConfirmSave() string {
 	return Catalog.Format(msgs.locale, "usbConfirmSave", nil)
 }
 
-// DeveloperOptions says "Developer Options"
+// DeveloperOptions says "Developer options"
 // in the language the app shows.
 func DeveloperOptions() string { return In(i18n.Locale()).DeveloperOptions() }
 
-// DeveloperOptions says "Developer Options"
+// DeveloperOptions says "Developer options"
 // in the language of msgs.
 func (msgs Messages) DeveloperOptions() string {
 	return Catalog.Format(msgs.locale, "developerOptions", nil)
@@ -868,11 +868,11 @@ func (msgs Messages) ApplyBeforeLaunch() string {
 	return Catalog.Format(msgs.locale, "applyBeforeLaunch", nil)
 }
 
-// ChooseKnownHost says "Choose a host from Developer Options. The saved host is not in the pinned manifest."
+// ChooseKnownHost says "Choose a host under Developer options in Settings. The saved host is not in the pinned manifest."
 // in the language the app shows.
 func ChooseKnownHost() string { return In(i18n.Locale()).ChooseKnownHost() }
 
-// ChooseKnownHost says "Choose a host from Developer Options. The saved host is not in the pinned manifest."
+// ChooseKnownHost says "Choose a host under Developer options in Settings. The saved host is not in the pinned manifest."
 // in the language of msgs.
 func (msgs Messages) ChooseKnownHost() string {
 	return Catalog.Format(msgs.locale, "chooseKnownHost", nil)
@@ -1210,11 +1210,11 @@ func (msgs Messages) ToolsExcluded(component string, reason string) string {
 	return Catalog.Format(msgs.locale, "toolsExcluded", map[string]any{"component": component, "reason": reason})
 }
 
-// ToolsFailed says "The last Advanced Tools action could not be completed. Check diagnostics; nothing was retried."
+// ToolsFailed says "The last session tool action could not be completed. Check diagnostics; nothing was retried."
 // in the language the app shows.
 func ToolsFailed() string { return In(i18n.Locale()).ToolsFailed() }
 
-// ToolsFailed says "The last Advanced Tools action could not be completed. Check diagnostics; nothing was retried."
+// ToolsFailed says "The last session tool action could not be completed. Check diagnostics; nothing was retried."
 // in the language of msgs.
 func (msgs Messages) ToolsFailed() string {
 	return Catalog.Format(msgs.locale, "toolsFailed", nil)
@@ -1910,11 +1910,11 @@ func (msgs Messages) Modloader() string {
 	return Catalog.Format(msgs.locale, "modloader", nil)
 }
 
-// HostUnsupported says "Not supported by this host. Choose a compatible host in Developer Options."
+// HostUnsupported says "Not supported by this host. Choose a compatible host under Developer options in Settings."
 // in the language the app shows.
 func HostUnsupported() string { return In(i18n.Locale()).HostUnsupported() }
 
-// HostUnsupported says "Not supported by this host. Choose a compatible host in Developer Options."
+// HostUnsupported says "Not supported by this host. Choose a compatible host under Developer options in Settings."
 // in the language of msgs.
 func (msgs Messages) HostUnsupported() string {
 	return Catalog.Format(msgs.locale, "hostUnsupported", nil)
@@ -2728,11 +2728,11 @@ func (msgs Messages) CivAddress() string {
 	return Catalog.Format(msgs.locale, "civAddress", nil)
 }
 
-// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select composit…"
+// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select Composit…"
 // in the language the app shows.
 func CivComposite() string { return In(i18n.Locale()).CivComposite() }
 
-// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select composit…"
+// CivComposite says "Composite keyboard + gamepad HID is required for a new transfer. Keyboard-only HID is not equivalent. Select Composit…"
 // in the language of msgs.
 func (msgs Messages) CivComposite() string {
 	return Catalog.Format(msgs.locale, "civComposite", nil)
@@ -4482,11 +4482,11 @@ func (msgs Messages) FlowPosition(current string, stage string) string {
 	return Catalog.Format(msgs.locale, "flowPosition", map[string]any{"current": current, "stage": stage})
 }
 
-// FlowNextSelection says "Continue to selection"
+// FlowNextSelection says "Continue to route and setup"
 // in the language the app shows.
 func FlowNextSelection() string { return In(i18n.Locale()).FlowNextSelection() }
 
-// FlowNextSelection says "Continue to selection"
+// FlowNextSelection says "Continue to route and setup"
 // in the language of msgs.
 func (msgs Messages) FlowNextSelection() string {
 	return Catalog.Format(msgs.locale, "flowNextSelection", nil)
@@ -4512,11 +4512,11 @@ func (msgs Messages) FlowBackDetection() string {
 	return Catalog.Format(msgs.locale, "flowBackDetection", nil)
 }
 
-// FlowBackSelection says "Back to selection"
+// FlowBackSelection says "Back to route and setup"
 // in the language the app shows.
 func FlowBackSelection() string { return In(i18n.Locale()).FlowBackSelection() }
 
-// FlowBackSelection says "Back to selection"
+// FlowBackSelection says "Back to route and setup"
 // in the language of msgs.
 func (msgs Messages) FlowBackSelection() string {
 	return Catalog.Format(msgs.locale, "flowBackSelection", nil)
