@@ -86,13 +86,13 @@ func (a *app) saveKitView(c *ui.Context) {
 	ready := leased && !s.Busy && !state.Lost && !state.ModloaderInstalled && !state.CleanupBlocked && reason == "" && !owned
 
 	ui.Text(c, locales.SaveKitManual()).TextColor(c.Theme().TextMuted)
-	if ui.Button(c.Key("savekit-accounts"), locales.SaveKitAccounts()).Disabled(!ready).Clicked() {
+	if inline(ui.Button(c.Key("savekit-accounts"), locales.SaveKitAccounts())).Disabled(!ready).Clicked() {
 		a.runSaveKit(savekit.Request{Action: "accounts"})
 	}
-	if ui.Button(c.Key("savekit-titles"), locales.SaveKitTitles()).Disabled(!ready).Clicked() {
+	if inline(ui.Button(c.Key("savekit-titles"), locales.SaveKitTitles())).Disabled(!ready).Clicked() {
 		a.runSaveKit(savekit.Request{Action: "titles"})
 	}
-	if ui.Button(c.Key("savekit-inventory"), locales.SaveKitInventory()).Disabled(!ready).Clicked() {
+	if inline(ui.Button(c.Key("savekit-inventory"), locales.SaveKitInventory())).Disabled(!ready).Clicked() {
 		a.runSaveKit(savekit.Request{Action: "inventory"})
 	}
 
@@ -130,13 +130,13 @@ func (a *app) saveKitView(c *ui.Context) {
 	filetime := target
 	filetime.Action = "filetime"
 	filetime.All = false
-	if ui.Button(c.Key("savekit-inspect"), locales.SaveKitInspect()).Disabled(!ready || inspect.Validate() != nil).Clicked() {
+	if inline(ui.Button(c.Key("savekit-inspect"), locales.SaveKitInspect())).Disabled(!ready || inspect.Validate() != nil).Clicked() {
 		a.runSaveKit(inspect)
 	}
-	if ui.Button(c.Key("savekit-backup"), locales.SaveKitBackup()).Disabled(!ready || backup.Validate() != nil).Clicked() {
+	if inline(ui.Button(c.Key("savekit-backup"), locales.SaveKitBackup())).Disabled(!ready || backup.Validate() != nil).Clicked() {
 		a.runSaveKit(backup)
 	}
-	if ui.Button(c.Key("savekit-filetime"), locales.SaveKitFiletime()).Disabled(!ready || filetime.Validate() != nil).Clicked() {
+	if inline(ui.Button(c.Key("savekit-filetime"), locales.SaveKitFiletime())).Disabled(!ready || filetime.Validate() != nil).Clicked() {
 		a.runSaveKit(filetime)
 	}
 
@@ -146,7 +146,7 @@ func (a *app) saveKitView(c *ui.Context) {
 	}
 	if observed != nil && observed.Path != "" {
 		ui.Text(c, locales.SaveKitExportSaved(observed.Path)).Selectable()
-		if ui.Button(c.Key("savekit-open-export"), locales.SaveKitOpenExport()).Clicked() {
+		if inline(ui.Button(c.Key("savekit-open-export"), locales.SaveKitOpenExport())).Clicked() {
 			p.failed = mygo.Shell.OpenPath(observed.Path) != nil
 		}
 	}
@@ -157,7 +157,7 @@ func (a *app) saveKitView(c *ui.Context) {
 	if p.failed || a.commandRejected {
 		ui.Text(c, locales.SaveKitFailed())
 	}
-	if ui.Button(c.Key("savekit-back"), locales.SaveKitBack()).Disabled(s.Busy).Clicked() {
+	if inline(ui.Button(c.Key("savekit-back"), locales.SaveKitBack())).Disabled(s.Busy).Clicked() {
 		p.open = false
 	}
 }
@@ -204,7 +204,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 		p.confirmWrite = false
 		p.writePreviewSource = p.sourceFolder
 	}
-	if ui.Button(c.Key("savekit-preview-write"), locales.SaveKitPreviewWrite()).
+	if inline(ui.Button(c.Key("savekit-preview-write"), locales.SaveKitPreviewWrite())).
 		Disabled(!writeReady || p.busy || !defaultTarget || strings.TrimSpace(p.sourceFolder) == "").Clicked() {
 		a.previewSaveKitWrite(strings.TrimSpace(p.sourceFolder))
 	}
@@ -231,7 +231,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	if p.writePreview != nil {
 		write.PreviewDigest = p.writePreview.Digest
 	}
-	if ui.Button(c.Key("savekit-write"), locales.SaveKitWrite()).
+	if inline(ui.Button(c.Key("savekit-write"), locales.SaveKitWrite())).
 		Disabled(!writeReady || !defaultTarget || write.Validate() != nil).Clicked() {
 		a.runSaveKitWrite(write)
 	}
@@ -246,7 +246,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 		p.confirmRestore = false
 		p.restorePreviewSource = p.restoreFolder
 	}
-	if ui.Button(c.Key("savekit-preview-restore"), locales.SaveKitPreviewRestore()).
+	if inline(ui.Button(c.Key("savekit-preview-restore"), locales.SaveKitPreviewRestore())).
 		Disabled(!writeReady || p.busy || strings.TrimSpace(p.restoreFolder) == "").Clicked() {
 		a.previewSaveKitRestore(strings.TrimSpace(p.restoreFolder))
 	}
@@ -267,7 +267,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	if p.restorePreview != nil {
 		restore.PreviewDigest = p.restorePreview.Digest
 	}
-	if ui.Button(c.Key("savekit-restore"), locales.SaveKitRestore()).
+	if inline(ui.Button(c.Key("savekit-restore"), locales.SaveKitRestore())).
 		Disabled(!writeReady || restore.Validate() != nil).Clicked() {
 		a.runSaveKitWrite(restore)
 	}
@@ -277,7 +277,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	compare := target
 	compare.Action = "verify"
 	compare.ExpectedFolder = strings.TrimSpace(p.compareFolder)
-	if ui.Button(c.Key("savekit-compare"), locales.SaveKitCompare()).
+	if inline(ui.Button(c.Key("savekit-compare"), locales.SaveKitCompare())).
 		Disabled(!writeReady || compare.Validate() != nil).Clicked() {
 		a.runSaveKitWrite(compare)
 	}
@@ -305,7 +305,7 @@ func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snap
 	// filesystem, so computing it here reports nothing and cannot disagree with
 	// what the section shows.
 	remove.PreviewDigest = savekit.PreviewDelete(p.deleteName).Digest
-	if ui.Button(c.Key("savekit-delete"), locales.SaveKitDelete()).
+	if inline(ui.Button(c.Key("savekit-delete"), locales.SaveKitDelete())).
 		Disabled(!writeReady || !defaultTarget || remove.Validate() != nil).Clicked() {
 		a.runSaveKitWrite(remove)
 	}
@@ -335,7 +335,7 @@ func (a *app) saveKitWriteOutcome(c *ui.Context, p *saveKitPanel, out *retained.
 			fmt.Sprint(out.Files), fmt.Sprint(out.Replaced), out.Backup)).Selectable().Role(ui.RoleStatus)
 	}
 	if out.Backup != "" {
-		if ui.Button(c.Key("savekit-open-backup"), locales.SaveKitOpenBackup()).Clicked() {
+		if inline(ui.Button(c.Key("savekit-open-backup"), locales.SaveKitOpenBackup())).Clicked() {
 			p.failed = mygo.Shell.OpenPath(out.Backup) != nil
 		}
 	}

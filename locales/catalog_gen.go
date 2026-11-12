@@ -838,11 +838,11 @@ func (msgs Messages) DriverSecurityGuidance() string {
 	return Catalog.Format(msgs.locale, "driverSecurityGuidance", nil)
 }
 
-// TransportMode says "Input transport"
+// TransportMode says "How commands reach the console"
 // in the language the app shows.
 func TransportMode() string { return In(i18n.Locale()).TransportMode() }
 
-// TransportMode says "Input transport"
+// TransportMode says "How commands reach the console"
 // in the language of msgs.
 func (msgs Messages) TransportMode() string {
 	return Catalog.Format(msgs.locale, "transportMode", nil)
@@ -908,41 +908,41 @@ func (msgs Messages) ChooseLANIPv4() string {
 	return Catalog.Format(msgs.locale, "chooseLANIPv4", nil)
 }
 
-// ToolsTitle says "Advanced Tools"
+// ToolsTitle says "Session tools"
 // in the language the app shows.
 func ToolsTitle() string { return In(i18n.Locale()).ToolsTitle() }
 
-// ToolsTitle says "Advanced Tools"
+// ToolsTitle says "Session tools"
 // in the language of msgs.
 func (msgs Messages) ToolsTitle() string {
 	return Catalog.Format(msgs.locale, "toolsTitle", nil)
 }
 
-// ToolsReadOnly says "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possib…"
+// ToolsReadOnly says "Only the status check, the system-code capture and the WebDAV, FTP and SD exports are read-only. SaveKit save operati…"
 // in the language the app shows.
 func ToolsReadOnly() string { return In(i18n.Locale()).ToolsReadOnly() }
 
-// ToolsReadOnly says "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possib…"
+// ToolsReadOnly says "Only the status check, the system-code capture and the WebDAV, FTP and SD exports are read-only. SaveKit save operati…"
 // in the language of msgs.
 func (msgs Messages) ToolsReadOnly() string {
 	return Catalog.Format(msgs.locale, "toolsReadOnly", nil)
 }
 
-// ToolsNeedLease says "Advanced Tools need a verified session with a live retained RPC lease, or a connection to an existing one."
+// ToolsNeedLease says "These tools need a verified session that is still open on the console, or a connection to one that another app keeps …"
 // in the language the app shows.
 func ToolsNeedLease() string { return In(i18n.Locale()).ToolsNeedLease() }
 
-// ToolsNeedLease says "Advanced Tools need a verified session with a live retained RPC lease, or a connection to an existing one."
+// ToolsNeedLease says "These tools need a verified session that is still open on the console, or a connection to one that another app keeps …"
 // in the language of msgs.
 func (msgs Messages) ToolsNeedLease() string {
 	return Catalog.Format(msgs.locale, "toolsNeedLease", nil)
 }
 
-// ToolsOwned says "This app owns the verified retained session."
+// ToolsOwned says "Choose Finish when you are done to close this session."
 // in the language the app shows.
 func ToolsOwned() string { return In(i18n.Locale()).ToolsOwned() }
 
-// ToolsOwned says "This app owns the verified retained session."
+// ToolsOwned says "Choose Finish when you are done to close this session."
 // in the language of msgs.
 func (msgs Messages) ToolsOwned() string {
 	return Catalog.Format(msgs.locale, "toolsOwned", nil)
@@ -958,11 +958,11 @@ func (msgs Messages) ToolsAttached() string {
 	return Catalog.Format(msgs.locale, "toolsAttached", nil)
 }
 
-// ToolsLost says "The retained session was lost. It is never reconnected automatically; restart the console before another attempt."
+// ToolsLost says "The open session was lost. It is never reconnected automatically; restart the console before another attempt."
 // in the language the app shows.
 func ToolsLost() string { return In(i18n.Locale()).ToolsLost() }
 
-// ToolsLost says "The retained session was lost. It is never reconnected automatically; restart the console before another attempt."
+// ToolsLost says "The open session was lost. It is never reconnected automatically; restart the console before another attempt."
 // in the language of msgs.
 func (msgs Messages) ToolsLost() string {
 	return Catalog.Format(msgs.locale, "toolsLost", nil)
@@ -1850,11 +1850,11 @@ func (msgs Messages) SaveKitOpenBackup() string {
 	return Catalog.Format(msgs.locale, "saveKitOpenBackup", nil)
 }
 
-// SaveKitBack says "Back to Advanced Tools"
+// SaveKitBack says "Back to session tools"
 // in the language the app shows.
 func SaveKitBack() string { return In(i18n.Locale()).SaveKitBack() }
 
-// SaveKitBack says "Back to Advanced Tools"
+// SaveKitBack says "Back to session tools"
 // in the language of msgs.
 func (msgs Messages) SaveKitBack() string {
 	return Catalog.Format(msgs.locale, "saveKitBack", nil)
@@ -1992,11 +1992,11 @@ func (msgs Messages) AboutBuild() string {
 	return Catalog.Format(msgs.locale, "aboutBuild", nil)
 }
 
-// Home says "Home"
+// Home says "No session started yet"
 // in the language the app shows.
 func Home() string { return In(i18n.Locale()).Home() }
 
-// Home says "Home"
+// Home says "No session started yet"
 // in the language of msgs.
 func (msgs Messages) Home() string {
 	return Catalog.Format(msgs.locale, "home", nil)
@@ -2012,11 +2012,11 @@ func (msgs Messages) CheckingReadiness() string {
 	return Catalog.Format(msgs.locale, "checkingReadiness", nil)
 }
 
-// SetupNeedsAttention says "Setup needs attention"
+// SetupNeedsAttention says "Some requirements need attention"
 // in the language the app shows.
 func SetupNeedsAttention() string { return In(i18n.Locale()).SetupNeedsAttention() }
 
-// SetupNeedsAttention says "Setup needs attention"
+// SetupNeedsAttention says "Some requirements need attention"
 // in the language of msgs.
 func (msgs Messages) SetupNeedsAttention() string {
 	return Catalog.Format(msgs.locale, "setupNeedsAttention", nil)
@@ -2052,11 +2052,11 @@ func (msgs Messages) VerifiedSession() string {
 	return Catalog.Format(msgs.locale, "verifiedSession", nil)
 }
 
-// RetainedSession says "Verified session with retained RPC"
+// RetainedSession says "Verified session, still open on the console"
 // in the language the app shows.
 func RetainedSession() string { return In(i18n.Locale()).RetainedSession() }
 
-// RetainedSession says "Verified session with retained RPC"
+// RetainedSession says "Verified session, still open on the console"
 // in the language of msgs.
 func (msgs Messages) RetainedSession() string {
 	return Catalog.Format(msgs.locale, "retainedSession", nil)
@@ -3548,11 +3548,11 @@ func (msgs Messages) DynRtHelpersVerified() string {
 	return Catalog.Format(msgs.locale, "dynRtHelpersVerified", nil)
 }
 
-// DynToolNotImplemented says "This read-only tool is not implemented in this build."
+// DynToolNotImplemented says "This tool is not implemented in this build."
 // in the language the app shows.
 func DynToolNotImplemented() string { return In(i18n.Locale()).DynToolNotImplemented() }
 
-// DynToolNotImplemented says "This read-only tool is not implemented in this build."
+// DynToolNotImplemented says "This tool is not implemented in this build."
 // in the language of msgs.
 func (msgs Messages) DynToolNotImplemented() string {
 	return Catalog.Format(msgs.locale, "dynToolNotImplemented", nil)
@@ -4562,11 +4562,11 @@ func (msgs Messages) FlowCivUnavailable() string {
 	return Catalog.Format(msgs.locale, "flowCivUnavailable", nil)
 }
 
-// FlowDetectHint says "Choose an input method, apply it, then check only its requirements. USB discovery does not prove enumeration or accep…"
+// FlowDetectHint says "Pick how commands reach the console. Choosing a method checks only what that method needs. Finding a USB controller i…"
 // in the language the app shows.
 func FlowDetectHint() string { return In(i18n.Locale()).FlowDetectHint() }
 
-// FlowDetectHint says "Choose an input method, apply it, then check only its requirements. USB discovery does not prove enumeration or accep…"
+// FlowDetectHint says "Pick how commands reach the console. Choosing a method checks only what that method needs. Finding a USB controller i…"
 // in the language of msgs.
 func (msgs Messages) FlowDetectHint() string {
 	return Catalog.Format(msgs.locale, "flowDetectHint", nil)
@@ -4582,21 +4582,21 @@ func (msgs Messages) FlowSaved() string {
 	return Catalog.Format(msgs.locale, "flowSaved", nil)
 }
 
-// FlowCheckSelection says "Check selected host readiness"
+// FlowCheckSelection says "Check this route's requirements"
 // in the language the app shows.
 func FlowCheckSelection() string { return In(i18n.Locale()).FlowCheckSelection() }
 
-// FlowCheckSelection says "Check selected host readiness"
+// FlowCheckSelection says "Check this route's requirements"
 // in the language of msgs.
 func (msgs Messages) FlowCheckSelection() string {
 	return Catalog.Format(msgs.locale, "flowCheckSelection", nil)
 }
 
-// FlowDetectionBlocked says "Resolve the selected input method's checks before continuing."
+// FlowDetectionBlocked says "Resolve the checks marked “Requires attention” before continuing."
 // in the language the app shows.
 func FlowDetectionBlocked() string { return In(i18n.Locale()).FlowDetectionBlocked() }
 
-// FlowDetectionBlocked says "Resolve the selected input method's checks before continuing."
+// FlowDetectionBlocked says "Resolve the checks marked “Requires attention” before continuing."
 // in the language of msgs.
 func (msgs Messages) FlowDetectionBlocked() string {
 	return Catalog.Format(msgs.locale, "flowDetectionBlocked", nil)
@@ -4720,4 +4720,478 @@ func StartupSecurityTitle() string { return In(i18n.Locale()).StartupSecurityTit
 // in the language of msgs.
 func (msgs Messages) StartupSecurityTitle() string {
 	return Catalog.Format(msgs.locale, "startupSecurityTitle", nil)
+}
+
+// CheckManual says "Check this yourself"
+// in the language the app shows.
+func CheckManual() string { return In(i18n.Locale()).CheckManual() }
+
+// CheckManual says "Check this yourself"
+// in the language of msgs.
+func (msgs Messages) CheckManual() string {
+	return Catalog.Format(msgs.locale, "checkManual", nil)
+}
+
+// ReadinessChecks says "Readiness checks"
+// in the language the app shows.
+func ReadinessChecks() string { return In(i18n.Locale()).ReadinessChecks() }
+
+// ReadinessChecks says "Readiness checks"
+// in the language of msgs.
+func (msgs Messages) ReadinessChecks() string {
+	return Catalog.Format(msgs.locale, "readinessChecks", nil)
+}
+
+// CheckNetwork says "Network"
+// in the language the app shows.
+func CheckNetwork() string { return In(i18n.Locale()).CheckNetwork() }
+
+// CheckNetwork says "Network"
+// in the language of msgs.
+func (msgs Messages) CheckNetwork() string {
+	return Catalog.Format(msgs.locale, "checkNetwork", nil)
+}
+
+// CheckSip says "macOS system protection (SIP)"
+// in the language the app shows.
+func CheckSip() string { return In(i18n.Locale()).CheckSip() }
+
+// CheckSip says "macOS system protection (SIP)"
+// in the language of msgs.
+func (msgs Messages) CheckSip() string {
+	return Catalog.Format(msgs.locale, "checkSip", nil)
+}
+
+// CheckDriverFiles says "USB driver files"
+// in the language the app shows.
+func CheckDriverFiles() string { return In(i18n.Locale()).CheckDriverFiles() }
+
+// CheckDriverFiles says "USB driver files"
+// in the language of msgs.
+func (msgs Messages) CheckDriverFiles() string {
+	return Catalog.Format(msgs.locale, "checkDriverFiles", nil)
+}
+
+// CheckDriverLoaded says "USB driver"
+// in the language the app shows.
+func CheckDriverLoaded() string { return In(i18n.Locale()).CheckDriverLoaded() }
+
+// CheckDriverLoaded says "USB driver"
+// in the language of msgs.
+func (msgs Messages) CheckDriverLoaded() string {
+	return Catalog.Format(msgs.locale, "checkDriverLoaded", nil)
+}
+
+// CheckDriverRestart says "Mac restart"
+// in the language the app shows.
+func CheckDriverRestart() string { return In(i18n.Locale()).CheckDriverRestart() }
+
+// CheckDriverRestart says "Mac restart"
+// in the language of msgs.
+func (msgs Messages) CheckDriverRestart() string {
+	return Catalog.Format(msgs.locale, "checkDriverRestart", nil)
+}
+
+// CheckUsbPort says "USB connection on this Mac"
+// in the language the app shows.
+func CheckUsbPort() string { return In(i18n.Locale()).CheckUsbPort() }
+
+// CheckUsbPort says "USB connection on this Mac"
+// in the language of msgs.
+func (msgs Messages) CheckUsbPort() string {
+	return Catalog.Format(msgs.locale, "checkUsbPort", nil)
+}
+
+// CheckUsbController says "USB controller"
+// in the language the app shows.
+func CheckUsbController() string { return In(i18n.Locale()).CheckUsbController() }
+
+// CheckUsbController says "USB controller"
+// in the language of msgs.
+func (msgs Messages) CheckUsbController() string {
+	return Catalog.Format(msgs.locale, "checkUsbController", nil)
+}
+
+// CheckRuntime says "Bundled runtime"
+// in the language the app shows.
+func CheckRuntime() string { return In(i18n.Locale()).CheckRuntime() }
+
+// CheckRuntime says "Bundled runtime"
+// in the language of msgs.
+func (msgs Messages) CheckRuntime() string {
+	return Catalog.Format(msgs.locale, "checkRuntime", nil)
+}
+
+// CheckHostProgram says "Host program"
+// in the language the app shows.
+func CheckHostProgram() string { return In(i18n.Locale()).CheckHostProgram() }
+
+// CheckHostProgram says "Host program"
+// in the language of msgs.
+func (msgs Messages) CheckHostProgram() string {
+	return Catalog.Format(msgs.locale, "checkHostProgram", nil)
+}
+
+// CheckUsbHelpers says "USB helper programs"
+// in the language the app shows.
+func CheckUsbHelpers() string { return In(i18n.Locale()).CheckUsbHelpers() }
+
+// CheckUsbHelpers says "USB helper programs"
+// in the language of msgs.
+func (msgs Messages) CheckUsbHelpers() string {
+	return Catalog.Format(msgs.locale, "checkUsbHelpers", nil)
+}
+
+// CheckTypingMethod says "Typing method"
+// in the language the app shows.
+func CheckTypingMethod() string { return In(i18n.Locale()).CheckTypingMethod() }
+
+// CheckTypingMethod says "Typing method"
+// in the language of msgs.
+func (msgs Messages) CheckTypingMethod() string {
+	return Catalog.Format(msgs.locale, "checkTypingMethod", nil)
+}
+
+// CheckOther says "Check"
+// in the language the app shows.
+func CheckOther() string { return In(i18n.Locale()).CheckOther() }
+
+// CheckOther says "Check"
+// in the language of msgs.
+func (msgs Messages) CheckOther() string {
+	return Catalog.Format(msgs.locale, "checkOther", nil)
+}
+
+// CheckListTitle says "This method needs:"
+// in the language the app shows.
+func CheckListTitle() string { return In(i18n.Locale()).CheckListTitle() }
+
+// CheckListTitle says "This method needs:"
+// in the language of msgs.
+func (msgs Messages) CheckListTitle() string {
+	return Catalog.Format(msgs.locale, "checkListTitle", nil)
+}
+
+// NextStep says "Next: {action}"
+// in the language the app shows.
+func NextStep(action string) string { return In(i18n.Locale()).NextStep(action) }
+
+// NextStep says "Next: {action}"
+// in the language of msgs.
+func (msgs Messages) NextStep(action string) string {
+	return Catalog.Format(msgs.locale, "nextStep", map[string]any{"action": action})
+}
+
+// FlowRoute says "Route"
+// in the language the app shows.
+func FlowRoute() string { return In(i18n.Locale()).FlowRoute() }
+
+// FlowRoute says "Route"
+// in the language of msgs.
+func (msgs Messages) FlowRoute() string {
+	return Catalog.Format(msgs.locale, "flowRoute", nil)
+}
+
+// ExpertOptions says "Expert options"
+// in the language the app shows.
+func ExpertOptions() string { return In(i18n.Locale()).ExpertOptions() }
+
+// ExpertOptions says "Expert options"
+// in the language of msgs.
+func (msgs Messages) ExpertOptions() string {
+	return Catalog.Format(msgs.locale, "expertOptions", nil)
+}
+
+// DetailsLabel says "Details"
+// in the language the app shows.
+func DetailsLabel() string { return In(i18n.Locale()).DetailsLabel() }
+
+// DetailsLabel says "Details"
+// in the language of msgs.
+func (msgs Messages) DetailsLabel() string {
+	return Catalog.Format(msgs.locale, "detailsLabel", nil)
+}
+
+// ConnectExisting says "Connect to a session that is already open"
+// in the language the app shows.
+func ConnectExisting() string { return In(i18n.Locale()).ConnectExisting() }
+
+// ConnectExisting says "Connect to a session that is already open"
+// in the language of msgs.
+func (msgs Messages) ConnectExisting() string {
+	return Catalog.Format(msgs.locale, "connectExisting", nil)
+}
+
+// SelectionRequirements says "Requirements for this route"
+// in the language the app shows.
+func SelectionRequirements() string { return In(i18n.Locale()).SelectionRequirements() }
+
+// SelectionRequirements says "Requirements for this route"
+// in the language of msgs.
+func (msgs Messages) SelectionRequirements() string {
+	return Catalog.Format(msgs.locale, "selectionRequirements", nil)
+}
+
+// LaunchSteps says "Steps"
+// in the language the app shows.
+func LaunchSteps() string { return In(i18n.Locale()).LaunchSteps() }
+
+// LaunchSteps says "Steps"
+// in the language of msgs.
+func (msgs Messages) LaunchSteps() string {
+	return Catalog.Format(msgs.locale, "launchSteps", nil)
+}
+
+// StepHost says "Start the host program on this Mac"
+// in the language the app shows.
+func StepHost() string { return In(i18n.Locale()).StepHost() }
+
+// StepHost says "Start the host program on this Mac"
+// in the language of msgs.
+func (msgs Messages) StepHost() string {
+	return Catalog.Format(msgs.locale, "stepHost", nil)
+}
+
+// StepLoad says "Load the saved program on the console"
+// in the language the app shows.
+func StepLoad() string { return In(i18n.Locale()).StepLoad() }
+
+// StepLoad says "Load the saved program on the console"
+// in the language of msgs.
+func (msgs Messages) StepLoad() string {
+	return Catalog.Format(msgs.locale, "stepLoad", nil)
+}
+
+// StepRun says "Run it"
+// in the language the app shows.
+func StepRun() string { return In(i18n.Locale()).StepRun() }
+
+// StepRun says "Run it"
+// in the language of msgs.
+func (msgs Messages) StepRun() string {
+	return Catalog.Format(msgs.locale, "stepRun", nil)
+}
+
+// StepRemove says "Free memory"
+// in the language the app shows.
+func StepRemove() string { return In(i18n.Locale()).StepRemove() }
+
+// StepRemove says "Free memory"
+// in the language of msgs.
+func (msgs Messages) StepRemove() string {
+	return Catalog.Format(msgs.locale, "stepRemove", nil)
+}
+
+// StepStart says "Start this session"
+// in the language the app shows.
+func StepStart() string { return In(i18n.Locale()).StepStart() }
+
+// StepStart says "Start this session"
+// in the language of msgs.
+func (msgs Messages) StepStart() string {
+	return Catalog.Format(msgs.locale, "stepStart", nil)
+}
+
+// StepTyping says "Type the commands on the console"
+// in the language the app shows.
+func StepTyping() string { return In(i18n.Locale()).StepTyping() }
+
+// StepTyping says "Type the commands on the console"
+// in the language of msgs.
+func (msgs Messages) StepTyping() string {
+	return Catalog.Format(msgs.locale, "stepTyping", nil)
+}
+
+// StepExploit says "Wait for the console to finish"
+// in the language the app shows.
+func StepExploit() string { return In(i18n.Locale()).StepExploit() }
+
+// StepExploit says "Wait for the console to finish"
+// in the language of msgs.
+func (msgs Messages) StepExploit() string {
+	return Catalog.Format(msgs.locale, "stepExploit", nil)
+}
+
+// StepVerify says "Check the result"
+// in the language the app shows.
+func StepVerify() string { return In(i18n.Locale()).StepVerify() }
+
+// StepVerify says "Check the result"
+// in the language of msgs.
+func (msgs Messages) StepVerify() string {
+	return Catalog.Format(msgs.locale, "stepVerify", nil)
+}
+
+// CancelExplains says "Cancel stops the attempt now. Nothing has reached the console yet."
+// in the language the app shows.
+func CancelExplains() string { return In(i18n.Locale()).CancelExplains() }
+
+// CancelExplains says "Cancel stops the attempt now. Nothing has reached the console yet."
+// in the language of msgs.
+func (msgs Messages) CancelExplains() string {
+	return Catalog.Format(msgs.locale, "cancelExplains", nil)
+}
+
+// StopExplains says "Stop ends the attempt after input already reached the console. The console state cannot be known afterwards, so you m…"
+// in the language the app shows.
+func StopExplains() string { return In(i18n.Locale()).StopExplains() }
+
+// StopExplains says "Stop ends the attempt after input already reached the console. The console state cannot be known afterwards, so you m…"
+// in the language of msgs.
+func (msgs Messages) StopExplains() string {
+	return Catalog.Format(msgs.locale, "stopExplains", nil)
+}
+
+// VerifiedSummary says "This session is verified."
+// in the language the app shows.
+func VerifiedSummary() string { return In(i18n.Locale()).VerifiedSummary() }
+
+// VerifiedSummary says "This session is verified."
+// in the language of msgs.
+func (msgs Messages) VerifiedSummary() string {
+	return Catalog.Format(msgs.locale, "verifiedSummary", nil)
+}
+
+// VerifiedHeldSummary says "This session is verified and still open on the console."
+// in the language the app shows.
+func VerifiedHeldSummary() string { return In(i18n.Locale()).VerifiedHeldSummary() }
+
+// VerifiedHeldSummary says "This session is verified and still open on the console."
+// in the language of msgs.
+func (msgs Messages) VerifiedHeldSummary() string {
+	return Catalog.Format(msgs.locale, "verifiedHeldSummary", nil)
+}
+
+// ToolsLeaseDetail says "Exactly: a live retained RPC lease owned by this verified run, or an attachment to an existing verified session."
+// in the language the app shows.
+func ToolsLeaseDetail() string { return In(i18n.Locale()).ToolsLeaseDetail() }
+
+// ToolsLeaseDetail says "Exactly: a live retained RPC lease owned by this verified run, or an attachment to an existing verified session."
+// in the language of msgs.
+func (msgs Messages) ToolsLeaseDetail() string {
+	return Catalog.Format(msgs.locale, "toolsLeaseDetail", nil)
+}
+
+// AppDescriptionShort says "Switch 2 session manager"
+// in the language the app shows.
+func AppDescriptionShort() string { return In(i18n.Locale()).AppDescriptionShort() }
+
+// AppDescriptionShort says "Switch 2 session manager"
+// in the language of msgs.
+func (msgs Messages) AppDescriptionShort() string {
+	return Catalog.Format(msgs.locale, "appDescriptionShort", nil)
+}
+
+// SelectionBlocked says "Check this route's requirements before continuing."
+// in the language the app shows.
+func SelectionBlocked() string { return In(i18n.Locale()).SelectionBlocked() }
+
+// SelectionBlocked says "Check this route's requirements before continuing."
+// in the language of msgs.
+func (msgs Messages) SelectionBlocked() string {
+	return Catalog.Format(msgs.locale, "selectionBlocked", nil)
+}
+
+// ApplyLanHint says "Press Enter in the address field to use it."
+// in the language the app shows.
+func ApplyLanHint() string { return In(i18n.Locale()).ApplyLanHint() }
+
+// ApplyLanHint says "Press Enter in the address field to use it."
+// in the language of msgs.
+func (msgs Messages) ApplyLanHint() string {
+	return Catalog.Format(msgs.locale, "applyLanHint", nil)
+}
+
+// RouteCheckListTitle says "This route needs:"
+// in the language the app shows.
+func RouteCheckListTitle() string { return In(i18n.Locale()).RouteCheckListTitle() }
+
+// RouteCheckListTitle says "This route needs:"
+// in the language of msgs.
+func (msgs Messages) RouteCheckListTitle() string {
+	return Catalog.Format(msgs.locale, "routeCheckListTitle", nil)
+}
+
+// ToolsGroupedReason says "{tools}: {reason}"
+// in the language the app shows.
+func ToolsGroupedReason(tools string, reason string) string {
+	return In(i18n.Locale()).ToolsGroupedReason(tools, reason)
+}
+
+// ToolsGroupedReason says "{tools}: {reason}"
+// in the language of msgs.
+func (msgs Messages) ToolsGroupedReason(tools string, reason string) string {
+	return Catalog.Format(msgs.locale, "toolsGroupedReason", map[string]any{"tools": tools, "reason": reason})
+}
+
+// ToolsConsolePlaceholder says "For example 192.0.2.24"
+// in the language the app shows.
+func ToolsConsolePlaceholder() string { return In(i18n.Locale()).ToolsConsolePlaceholder() }
+
+// ToolsConsolePlaceholder says "For example 192.0.2.24"
+// in the language of msgs.
+func (msgs Messages) ToolsConsolePlaceholder() string {
+	return Catalog.Format(msgs.locale, "toolsConsolePlaceholder", nil)
+}
+
+// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this M…"
+// in the language the app shows.
+func ToolsConsoleHint() string { return In(i18n.Locale()).ToolsConsoleHint() }
+
+// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this M…"
+// in the language of msgs.
+func (msgs Messages) ToolsConsoleHint() string {
+	return Catalog.Format(msgs.locale, "toolsConsoleHint", nil)
+}
+
+// RouteUnchecked says "This route's requirements have not been reported. Run the check before continuing."
+// in the language the app shows.
+func RouteUnchecked() string { return In(i18n.Locale()).RouteUnchecked() }
+
+// RouteUnchecked says "This route's requirements have not been reported. Run the check before continuing."
+// in the language of msgs.
+func (msgs Messages) RouteUnchecked() string {
+	return Catalog.Format(msgs.locale, "routeUnchecked", nil)
+}
+
+// FlowCheckFirst says "Check what this method needs, then continue."
+// in the language the app shows.
+func FlowCheckFirst() string { return In(i18n.Locale()).FlowCheckFirst() }
+
+// FlowCheckFirst says "Check what this method needs, then continue."
+// in the language of msgs.
+func (msgs Messages) FlowCheckFirst() string {
+	return Catalog.Format(msgs.locale, "flowCheckFirst", nil)
+}
+
+// BrowserResearch says "Browser research probes"
+// in the language the app shows.
+func BrowserResearch() string { return In(i18n.Locale()).BrowserResearch() }
+
+// BrowserResearch says "Browser research probes"
+// in the language of msgs.
+func (msgs Messages) BrowserResearch() string {
+	return Catalog.Format(msgs.locale, "browserResearch", nil)
+}
+
+// ListSeparator says ", "
+// in the language the app shows.
+func ListSeparator() string { return In(i18n.Locale()).ListSeparator() }
+
+// ListSeparator says ", "
+// in the language of msgs.
+func (msgs Messages) ListSeparator() string {
+	return Catalog.Format(msgs.locale, "listSeparator", nil)
+}
+
+// LabeledList says "{label}: {items}"
+// in the language the app shows.
+func LabeledList(label string, items string) string {
+	return In(i18n.Locale()).LabeledList(label, items)
+}
+
+// LabeledList says "{label}: {items}"
+// in the language of msgs.
+func (msgs Messages) LabeledList(label string, items string) string {
+	return Catalog.Format(msgs.locale, "labeledList", map[string]any{"label": label, "items": items})
 }

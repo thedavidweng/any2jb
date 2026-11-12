@@ -25,7 +25,7 @@ func (a *app) profileView(c *ui.Context) {
 		ui.Text(c, locales.LanOverride())
 		ui.TextInput(c.Key("lan-override"), &a.preferences.LANIPv4).Label(locales.LanOverride()).Placeholder(locales.AutomaticLAN()).Disabled(disabled)
 	}
-	if ui.Button(c.Key("apply-preferences"), locales.ApplyPreferences()).Disabled(disabled).Clicked() {
+	if inline(ui.Button(c.Key("apply-preferences"), locales.ApplyPreferences())).Disabled(disabled).Clicked() {
 		a.preferenceError = ""
 		if err := a.applyPreferences(); err != nil {
 			a.preferenceError = err.Error()
@@ -34,7 +34,7 @@ func (a *app) profileView(c *ui.Context) {
 	if a.preferenceError != "" {
 		ui.Text(c, a.preferenceError)
 	}
-	if ui.Button(c.Key("developer-options"), locales.DeveloperOptions()).Clicked() {
+	if inline(ui.Button(c.Key("developer-options"), locales.DeveloperOptions())).Clicked() {
 		a.developer = !a.developer
 	}
 	if !a.developer {
@@ -52,7 +52,7 @@ func (a *app) profileView(c *ui.Context) {
 		if p.SupportsDemo {
 			editions = append(editions, "demo")
 		}
-		ui.Text(c, locales.SmilebasicEdition()+": "+strings.Join(p.SupportedSmileBASIC, ", "))
+		ui.Text(c, locales.LabeledList(locales.SmilebasicEdition(), strings.Join(p.SupportedSmileBASIC, locales.ListSeparator())))
 		ui.Select(c.Key("smilebasic-edition"), &a.preferences.Edition, editions).Label(locales.SmilebasicEdition()).Disabled(disabled)
 		if a.flow.settings {
 			ui.Text(c, locales.TransportMode())
@@ -60,17 +60,17 @@ func (a *app) profileView(c *ui.Context) {
 		}
 		ui.Text(c, locales.TransportUnverified()).TextColor(c.Theme().TextMuted)
 		ui.Text(c, fmt.Sprintf("%s · START: %d · TCP: %d", p.SaveName, p.StartArgumentCount, p.StartPort))
-		ui.Button(c.Key("capability-rpc"), locales.HeldRPC()).Disabled(true)
+		inline(ui.Button(c.Key("capability-rpc"), locales.HeldRPC())).Disabled(true)
 		capabilityReason(c, p.SupportsHeldRPC, locales.RequiresVerifiedSession())
-		if ui.Button(c.Key("capability-demo"), locales.DemoEdition()).Disabled(disabled || !p.SupportsDemo).Clicked() {
+		if inline(ui.Button(c.Key("capability-demo"), locales.DemoEdition())).Disabled(disabled || !p.SupportsDemo).Clicked() {
 			a.preferences.Edition = "demo"
 		}
 		capabilityReason(c, p.SupportsDemo, locales.SupportedEdition())
-		ui.Button(c.Key("capability-savekit"), locales.SaveKit()).Disabled(true)
+		inline(ui.Button(c.Key("capability-savekit"), locales.SaveKit())).Disabled(true)
 		capabilityReason(c, p.SupportsSaveKit, locales.RequiresVerifiedSession())
-		ui.Button(c.Key("capability-native"), locales.NativeLauncher()).Disabled(true)
+		inline(ui.Button(c.Key("capability-native"), locales.NativeLauncher())).Disabled(true)
 		capabilityReason(c, p.SupportsNativeHBLauncher, locales.RequiresVerifiedSession())
-		ui.Button(c.Key("capability-modloader"), locales.Modloader()).Disabled(true)
+		inline(ui.Button(c.Key("capability-modloader"), locales.Modloader())).Disabled(true)
 		capabilityReason(c, p.SupportsModloader, locales.RequiresVerifiedSession())
 	})
 }

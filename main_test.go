@@ -109,7 +109,7 @@ func TestSessionDashboardAndRecovery(t *testing.T) {
 	f.InputGate = make(chan struct{})
 	a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 640, 900)
-	if !tt.HasText("Home") {
+	if !tt.HasText(locales.Home()) {
 		t.Fatal(tt.Texts())
 	}
 	if err := tt.Click("Check readiness"); err != nil {
@@ -157,7 +157,7 @@ func TestFailingReadinessIsActionable(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.NeedsSetup)
-	for _, text := range []string{"Setup needs attention", "No reachable LAN address.", "Connect the host to the console LAN."} {
+	for _, text := range []string{locales.SetupNeedsAttention(), "No reachable LAN address.", locales.NextStep("Connect the host to the console LAN.")} {
 		if !tt.HasText(text) {
 			t.Fatalf("missing %q: %q", text, tt.Texts())
 		}

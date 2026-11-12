@@ -77,19 +77,19 @@ func (a *app) diagnosticsView(c *ui.Context) {
 	ui.Text(c, locales.Diagnostics()).FontSize(20).Bold()
 	ui.Text(c, locales.DiagnosticsPrivacy()).TextColor(c.Theme().TextMuted)
 	ui.Row(c).Gap(8).Children(func() {
-		if ui.Button(c.Key("logs-all"), locales.LogAll()).Clicked() {
+		if inline(ui.Button(c.Key("logs-all"), locales.LogAll())).Clicked() {
 			d.source = -1
 		}
-		if ui.Button(c.Key("logs-host"), locales.LogHost()).Clicked() {
+		if inline(ui.Button(c.Key("logs-host"), locales.LogHost())).Clicked() {
 			d.source = 0
 		}
-		if ui.Button(c.Key("logs-usb"), locales.LogUSB()).Clicked() {
+		if inline(ui.Button(c.Key("logs-usb"), locales.LogUSB())).Clicked() {
 			d.source = 1
 		}
-		if ui.Button(c.Key("logs-pipeline"), locales.LogPipeline()).Clicked() {
+		if inline(ui.Button(c.Key("logs-pipeline"), locales.LogPipeline())).Clicked() {
 			d.source = 2
 		}
-		if ui.Button(c.Key("logs-acquisition"), locales.LogAcquisition()).Clicked() {
+		if inline(ui.Button(c.Key("logs-acquisition"), locales.LogAcquisition())).Clicked() {
 			d.source = 3
 		}
 	})
@@ -110,10 +110,10 @@ func (a *app) diagnosticsView(c *ui.Context) {
 	}
 	ui.Scroll(c.Key("logs-output")).Height(180).FillWidth().TrackScroll(&d.scroll).Children(func() { ui.Text(c, text).Selectable() })
 	ui.Row(c).Gap(8).Children(func() {
-		if ui.Button(c.Key("logs-open"), locales.OpenSessionFolder()).Disabled(!currentRun || d.folder == "").Clicked() {
+		if inline(ui.Button(c.Key("logs-open"), locales.OpenSessionFolder())).Disabled(!currentRun || d.folder == "").Clicked() {
 			d.failed = mygo.Shell.OpenPath(d.folder) != nil
 		}
-		if ui.Button(c.Key("logs-export"), locales.ExportSupportBundle()).Disabled(d.busy || d.update == nil).Clicked() {
+		if inline(ui.Button(c.Key("logs-export"), locales.ExportSupportBundle())).Disabled(d.busy || d.update == nil).Clicked() {
 			d.busy = true
 			controller, update := a.controller, d.update
 			go func() {
@@ -125,13 +125,13 @@ func (a *app) diagnosticsView(c *ui.Context) {
 	ui.Text(c, locales.LocalDataFolders(d.store.Support))
 	if d.bundle != "" {
 		ui.Text(c, locales.SupportBundleSaved(d.bundle))
-		if ui.Button(c.Key("bundle-open"), locales.OpenBundleFolder()).Clicked() {
+		if inline(ui.Button(c.Key("bundle-open"), locales.OpenBundleFolder())).Clicked() {
 			d.failed = mygo.Shell.OpenPath(filepath.Dir(d.bundle)) != nil
 		}
 	}
 	s := a.controller.Snapshot()
 	active := s.Busy || s.SideEffects || s.Stage == session.Verified || s.Stage == session.RetainedRPC
-	if ui.Button(c.Key("cleanup-preview"), locales.PreviewCleanup()).Disabled(active || d.busy || d.update == nil).Clicked() {
+	if inline(ui.Button(c.Key("cleanup-preview"), locales.PreviewCleanup())).Disabled(active || d.busy || d.update == nil).Clicked() {
 		d.busy = true
 		store, update := d.store, d.update
 		go func() {
@@ -147,7 +147,7 @@ func (a *app) diagnosticsView(c *ui.Context) {
 			ui.Text(c, strings.Join(d.plan, "\n"))
 		}
 		ui.Row(c).Gap(8).Children(func() {
-			if ui.Button(c.Key("cleanup-confirm"), locales.DeleteTemporaryFiles()).Disabled(active || d.busy || len(d.plan) == 0 || d.update == nil).Clicked() {
+			if inline(ui.Button(c.Key("cleanup-confirm"), locales.DeleteTemporaryFiles())).Disabled(active || d.busy || len(d.plan) == 0 || d.update == nil).Clicked() {
 				d.busy = true
 				store, update, plan := d.store, d.update, append([]string(nil), d.plan...)
 				go func() {
@@ -155,7 +155,7 @@ func (a *app) diagnosticsView(c *ui.Context) {
 					update(func() { d.busy = false; d.failed = err != nil; d.preview = false })
 				}()
 			}
-			if ui.Button(c.Key("cleanup-cancel"), locales.KeepFiles()).Clicked() {
+			if inline(ui.Button(c.Key("cleanup-cancel"), locales.KeepFiles())).Clicked() {
 				d.preview = false
 			}
 		})

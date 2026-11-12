@@ -57,7 +57,7 @@ func TestConsoleRestartUIKeepsLiveLeaseBlockedAndShowsError(t *testing.T) {
 		}
 		timer.Stop()
 		tt.Frame()
-		if releaseError == nil && !tt.HasText("Home") {
+		if releaseError == nil && !tt.HasText(locales.Home()) {
 			t.Fatal("recovery did not return to Home")
 		}
 	}

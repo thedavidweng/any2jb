@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/launcher"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
@@ -44,7 +46,6 @@ func retainedApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeTool
 	a := &app{manifest: m, tools: adapter,
 		controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
 			RetainsRPC: true, Tools: tools})}
-	a.toolsPanel.open = true
 	return a
 }
 
@@ -66,13 +67,18 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	a := retainedApp(t, f, adapter, []string{"rpc-status", "ouncecake-webdav", "ouncecake-ftp", "sd-browser"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
-	if !tt.HasText("These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possible here.") {
+	if !tt.HasText(locales.ToolsReadOnly()) {
 		t.Fatal(tt.Texts())
 	}
 	if !tt.HasText(ounce.Reason) || !tt.HasText(research.Reason) {
 		t.Fatalf("missing recorded reasons: %q", tt.Texts())
 	}
-	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this Mac", "Check live RPC status"} {
+	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this Mac"} {
+		if _, ok := tt.AccessByRole(ui.RoleButton, label); ok {
+			t.Fatalf("gated tool %s remains an action", label)
+		}
+	}
+	for _, label := range []string{"Check live RPC status"} {
 		control, ok := tt.AccessByRole(ui.RoleButton, label)
 		if !ok || !control.Disabled {
 			t.Fatalf("%s is usable without a retained lease: %+v", label, control)
@@ -82,8 +88,28 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	if !tt.HasText("This host profile does not enable this tool.") {
 		t.Fatal(tt.Texts())
 	}
-	if !tt.HasText("Advanced Tools need a verified session with a live retained RPC lease, or a connection to an existing one.") {
+	if !tt.HasText(locales.ToolsNeedLease()) {
 		t.Fatal(tt.Texts())
+	}
+}
+
+func TestUnavailableToolsShareOneReasonAndKeepUsableToolsVisible(t *testing.T) {
+	a := retainedApp(t, sessiontest.NewFakeEnvironment(), &fakeToolAdapter{}, []string{"rpc-status"})
+	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
+	count := 0
+	for _, text := range tt.Texts() {
+		if strings.Contains(text, locales.ToolsNotPermitted()) {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("profile refusal repeated %d times: %v", count, tt.Texts())
+	}
+	if _, ok := tt.AccessByRole(ui.RoleButton, locales.ToolsStatus()); !ok {
+		t.Fatal("usable tool disappeared")
+	}
+	if _, ok := tt.AccessByRole(ui.RoleButton, locales.ToolsDump()); ok {
+		t.Fatal("unsupported tool remains an action")
 	}
 }
 
@@ -100,7 +126,7 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.RetainedRPC)
-	if !tt.HasText("This app owns the verified retained session.") {
+	if !tt.HasText(locales.ToolsOwned()) {
 		t.Fatal(tt.Texts())
 	}
 	status, ok := tt.AccessByRole(ui.RoleButton, "Check live RPC status")
@@ -127,7 +153,7 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 	}
 	adapter.state = retained.State{Lost: true}
 	tt.Frame()
-	if !tt.HasText("The retained session was lost. It is never reconnected automatically; restart the console before another attempt.") {
+	if !tt.HasText(locales.ToolsLost()) {
 		t.Fatal(tt.Texts())
 	}
 }

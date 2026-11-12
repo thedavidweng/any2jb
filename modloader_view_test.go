@@ -21,12 +21,11 @@ const (
 func TestModloaderNeedsTheHostCapability(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	_, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{"mintbrew"})
-	if !tt.HasText("Installing mods is the final action of this session. The mod overlay stays active until the console restarts, and no other tool can launch in the same boot. Only Kurumuz and Cellenseres hosts support it. No game files or mods are included; choose your own folder.") {
+	if !tt.HasText(installMods) || !tt.HasText("This host profile does not enable this tool.") {
 		t.Fatal(tt.Texts())
 	}
-	control, ok := tt.AccessByRole(ui.RoleButton, installMods)
-	if !ok || !control.Disabled {
-		t.Fatalf("the modloader is usable on a host without its capability: %+v", control)
+	if _, ok := tt.AccessByRole(ui.RoleButton, installMods); ok {
+		t.Fatal("the modloader is an action on a host without its capability")
 	}
 }
 

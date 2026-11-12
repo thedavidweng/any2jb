@@ -24,7 +24,6 @@ type toolAdapter interface {
 }
 
 type toolsPanel struct {
-	open         bool
 	busy, failed bool
 	consoleIPv4  string
 	sessions     []session.RetainedSession
@@ -61,7 +60,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		state = a.tools.State()
 	}
 	leased := s.Leased()
-	ui.Text(c, locales.ToolsTitle()).FontSize(20).Bold()
+	sectionTitle(c, locales.ToolsTitle())
 	ui.Text(c, locales.ToolsReadOnly()).TextColor(c.Theme().TextMuted)
 	switch {
 	case state.Lost:
@@ -78,34 +77,42 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	a.attachView(c, s)
 	ui.Text(c, locales.ToolsConsoleAddress())
-	ui.TextInput(c.Key("tool-console"), &p.consoleIPv4).Label(locales.ToolsConsoleAddress()).Disabled(s.Busy || !leased)
+	ui.TextInput(c.Key("tool-console"), &p.consoleIPv4).Label(locales.ToolsConsoleAddress()).
+		Placeholder(locales.ToolsConsolePlaceholder()).Disabled(s.Busy || !leased)
+	muted(c, locales.ToolsConsoleHint())
 	status, statusReason := a.toolGate(s, state, "rpc-status")
-	if ui.Button(c.Key("rpc-status"), locales.ToolsStatus()).Disabled(status).Clicked() {
-		a.runTool("rpc-status", "")
+	if statusReason == "" {
+		if inline(ui.Button(c.Key("rpc-status"), locales.ToolsStatus())).Disabled(status).Clicked() {
+			a.runTool("rpc-status", "")
+		}
 	}
-	a.toolReason(c, "rpc-status", state, statusReason)
 	dump, dumpReason := a.toolGate(s, state, "system-code-dump")
-	if ui.Button(c.Key("system-dump"), locales.ToolsDump()).Disabled(dump).Clicked() {
-		a.runTool("system-code-dump", "")
+	if dumpReason == "" {
+		if inline(ui.Button(c.Key("system-dump"), locales.ToolsDump())).Disabled(dump).Clicked() {
+			a.runTool("system-code-dump", "")
+		}
 	}
-	a.toolReason(c, "system-code-dump", state, dumpReason)
 	webdav, webdavReason := a.toolGate(s, state, "ouncecake-webdav")
-	if ui.Button(c.Key("ouncecake-webdav"), locales.ToolsOunceWebdav()).Disabled(webdav).Clicked() {
-		a.runTool("ouncecake-webdav", p.consoleIPv4)
+	if webdavReason == "" {
+		if inline(ui.Button(c.Key("ouncecake-webdav"), locales.ToolsOunceWebdav())).Disabled(webdav).Clicked() {
+			a.runTool("ouncecake-webdav", p.consoleIPv4)
+		}
 	}
-	a.toolReason(c, "ouncecake-webdav", state, webdavReason)
 	ftp, ftpReason := a.toolGate(s, state, "ouncecake-ftp")
-	if ui.Button(c.Key("ouncecake-ftp"), locales.ToolsOunceFtp()).Disabled(ftp).Clicked() {
-		a.runTool("ouncecake-ftp", p.consoleIPv4)
+	if ftpReason == "" {
+		if inline(ui.Button(c.Key("ouncecake-ftp"), locales.ToolsOunceFtp())).Disabled(ftp).Clicked() {
+			a.runTool("ouncecake-ftp", p.consoleIPv4)
+		}
 	}
-	a.toolReason(c, "ouncecake-ftp", state, ftpReason)
 	sd, sdReason := a.toolGate(s, state, "sd-browser")
-	if ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser()).Disabled(sd).Clicked() {
-		a.runTool("sd-browser", p.consoleIPv4)
+	if sdReason == "" {
+		if inline(ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser())).Disabled(sd).Clicked() {
+			a.runTool("sd-browser", p.consoleIPv4)
+		}
 	}
-	a.toolReason(c, "sd-browser", state, sdReason)
 	a.homebrewView(c, s, state)
 	a.modloaderView(c, s, state)
+	a.toolRefusals(c, s, state)
 	if len(state.Games) > 0 {
 		ids := make([]string, 0, len(state.Games))
 		for _, game := range state.Games {
@@ -113,7 +120,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		}
 		ui.Text(c, locales.ToolsGame())
 		ui.Select(c.Key("ouncecake-game"), &p.game, ids).Label(locales.ToolsGame())
-		if ui.Button(c.Key("ouncecake-select"), locales.ToolsGameSelect()).Disabled(p.game == "").Clicked() {
+		if inline(ui.Button(c.Key("ouncecake-select"), locales.ToolsGameSelect())).Disabled(p.game == "").Clicked() {
 			title, _, _ := strings.Cut(p.game, " ")
 			p.failed = a.tools.Select(title) != nil
 		}
@@ -123,26 +130,23 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	if state.Export != "" {
 		ui.Text(c, locales.ToolsDumpSaved(state.Export)).Selectable()
-		if ui.Button(c.Key("dump-open"), locales.ToolsOpenExport()).Clicked() {
+		if inline(ui.Button(c.Key("dump-open"), locales.ToolsOpenExport())).Clicked() {
 			p.failed = mygo.Shell.OpenPath(state.Export) != nil
 		}
 	}
-	if ui.Button(c.Key("tool-stop"), locales.ToolsStop()).Disabled(s.Busy || !leased || state.Tool == "").Clicked() {
+	if inline(ui.Button(c.Key("tool-stop"), locales.ToolsStop())).Disabled(s.Busy || !leased || state.Tool == "").Clicked() {
 		a.command(a.controller.StopTool())
 	}
-	if ui.Button(c.Key("savekit-open"), locales.SaveKitOpen()).Disabled(s.Busy).Clicked() {
+	if inline(ui.Button(c.Key("savekit-open"), locales.SaveKitOpen())).Disabled(s.Busy).Clicked() {
 		a.saveKit.open = true
 	}
 	// A gated or excluded component states the recorded reason instead of an
 	// action; host capability booleans never decide this.
 	if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
-		ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
+		ui.Text(c, locales.ToolsExcluded(locales.BrowserResearch(), localize(d.Reason))).TextColor(c.Theme().TextMuted)
 	}
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())
-	}
-	if ui.Button(c.Key("tools-back"), locales.ToolsBack()).Disabled(s.Busy).Clicked() {
-		p.open = false
 	}
 }
 
@@ -161,13 +165,31 @@ func (a *app) toolGate(s session.Snapshot, state retained.State, tool string) (b
 	return s.Busy || !leased || state.Lost || state.ModloaderInstalled || reason != "" || owned, reason
 }
 
-func (a *app) toolReason(c *ui.Context, tool string, state retained.State, reason string) {
-	if reason != "" {
-		ui.Text(c.Key(tool+"-reason"), localize(reason)).TextColor(c.Theme().TextMuted)
-		return
+func (a *app) toolRefusals(c *ui.Context, s session.Snapshot, state retained.State) {
+	reasons := []string{}
+	names := map[string][]string{}
+	for _, tool := range []struct{ id, name string }{
+		{"rpc-status", locales.ToolsStatus()}, {"system-code-dump", locales.ToolsDump()},
+		{"ouncecake-webdav", locales.ToolsOunceWebdav()}, {"ouncecake-ftp", locales.ToolsOunceFtp()},
+		{"sd-browser", locales.ToolsSDBrowser()}, {"mintbrew", locales.HbMintbrew()},
+		{"native-hblauncher", locales.HbNative()}, {"izlauncher", locales.HbIZ()},
+		{"custom-homebrew", locales.HbCustom()}, {"modloader", locales.ModInstall()},
+	} {
+		_, reason := a.toolGate(s, state, tool.id)
+		if reason == "" {
+			continue
+		}
+		reason = localize(reason)
+		if _, exists := names[reason]; !exists {
+			reasons = append(reasons, reason)
+		}
+		names[reason] = append(names[reason], tool.name)
 	}
-	if state.Tool != "" && state.Tool != tool {
-		ui.Text(c.Key(tool+"-owner"), locales.ToolsOwner(state.Tool)).TextColor(c.Theme().TextMuted)
+	for _, reason := range reasons {
+		muted(c, locales.ToolsGroupedReason(strings.Join(names[reason], locales.ListSeparator()), reason))
+	}
+	if state.Tool != "" {
+		muted(c, locales.ToolsOwner(state.Tool))
 	}
 }
 
@@ -178,17 +200,19 @@ func (a *app) runTool(tool, consoleIPv4 string) {
 func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	p := &a.toolsPanel
 	leased := s.Leased()
-	ui.Text(c, locales.ToolsAttachNote())
+	if !leased || s.Attached {
+		ui.Text(c, locales.ToolsAttachNote())
+	}
 	if leased {
 		if s.Attached {
 			ui.Text(c, locales.ToolsDetachNote())
-			if ui.Button(c.Key("rpc-detach"), locales.ToolsDetach()).Disabled(s.Busy).Clicked() {
+			if inline(ui.Button(c.Key("rpc-detach"), locales.ToolsDetach())).Disabled(s.Busy).Clicked() {
 				a.command(a.controller.DetachRetained())
 			}
 		}
 		return
 	}
-	if ui.Button(c.Key("rpc-find"), locales.ToolsFind()).Disabled(s.Busy || p.busy || p.update == nil).Clicked() {
+	if inline(ui.Button(c.Key("rpc-find"), locales.ToolsFind())).Disabled(s.Busy || p.busy || p.update == nil).Clicked() {
 		a.discoverRetained()
 	}
 	if len(p.sessions) == 0 {
@@ -200,7 +224,7 @@ func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 		ids = append(ids, found.ID)
 	}
 	ui.Select(c.Key("rpc-choose"), &p.chosen, ids).Label(locales.ToolsChoose())
-	if ui.Button(c.Key("rpc-attach"), locales.ToolsAttach()).Disabled(s.Busy || p.chosen == "").Clicked() {
+	if inline(ui.Button(c.Key("rpc-attach"), locales.ToolsAttach())).Disabled(s.Busy || p.chosen == "").Clicked() {
 		a.command(a.controller.AttachRetained(p.chosen))
 	}
 }

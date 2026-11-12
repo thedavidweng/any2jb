@@ -21,14 +21,17 @@ func (a *app) restartView(c *ui.Context, s session.Snapshot) {
 	if s.Stage != session.Indeterminate {
 		return
 	}
-	ui.Text(c, locales.RestartConsole()).Bold()
-	if s.ReleaseUnconfirmed {
-		ui.Text(c, localize(session.ReleaseUnconfirmedWarning))
-	}
+	stateCard(c, toneAttention, func() {
+		badge(c, "console-restart-badge", toneAttention, locales.CheckAttention())
+		ui.Text(c, locales.RestartConsole()).Bold()
+		if s.ReleaseUnconfirmed {
+			ui.Text(c, localize(session.ReleaseUnconfirmedWarning)).Bold()
+		}
+	})
 	if p.errorText != "" {
-		ui.Text(c, localize(p.errorText))
+		ui.Text(c, localize(p.errorText)).TextColor(c.Theme().Danger)
 	}
-	if ui.Button(c.Key("console-restart"), locales.ConsoleRestartConfirmed()).
+	if inline(ui.PrimaryButton(c.Key("console-restart"), locales.ConsoleRestartConfirmed())).
 		Disabled(s.Busy || p.busy || p.update == nil).Clicked() {
 		p.busy, p.errorText = true, ""
 		controller, update := a.controller, p.update

@@ -43,7 +43,11 @@ type FakeEnvironment struct {
 func NewFakeEnvironment() *FakeEnvironment {
 	return &FakeEnvironment{
 		Prepared: session.PreparedHost{Listening: true, PairingValid: true},
-		Checks:   []session.Check{{ID: "simulated", State: session.CheckVerified, Message: "Simulated readiness, not a real hardware check."}},
+		Checks: []session.Check{
+			{ID: "simulated", State: session.CheckVerified, Message: "Simulated readiness, not a real hardware check."},
+			{ID: "runtime", State: session.CheckVerified, Message: "Simulated readiness, not a real hardware check."},
+			{ID: "engine", State: session.CheckVerified, Message: "Simulated readiness, not a real hardware check."},
+		},
 		Outcome: session.Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true,
 			RetainedReady: true, CleanupDeferred: true, DonorCleanedUp: true, RPCListening: true},
 		FinishOutcome: session.Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true},

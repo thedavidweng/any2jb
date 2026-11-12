@@ -28,11 +28,11 @@ func (a *app) manualView(c *ui.Context, s session.Snapshot) {
 			height = 160
 		}
 		ui.TextArea(c.Key("manual-text"), &text).Label(locales.ConsoleText()).ReadOnly(true).Height(height)
-		if ui.Button(c.Key("manual-copy"), locales.CopyConsoleText()).Clicked() {
+		if inline(ui.Button(c.Key("manual-copy"), locales.CopyConsoleText())).Clicked() {
 			c.Services().WriteClipboard(p.Text)
 		}
 	}
-	if ui.PrimaryButton(c.Key("manual-acknowledge"), locales.ManualAcknowledge()).Clicked() {
+	if inline(ui.PrimaryButton(c.Key("manual-acknowledge"), locales.ManualAcknowledge())).Clicked() {
 		a.manual.Acknowledge(p.RunID, p.Sequence)
 	}
 }

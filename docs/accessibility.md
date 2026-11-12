@@ -15,8 +15,15 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 - State is never carried by color alone. The readiness states
   (`requires attention`, `available but not verified`, `verified`) always show
   their text label; the Danger/Warning/Success theme colors only supplement it.
+  Each state also has its own symbol: ✓ verified, ○ available but not
+  verified, ! requires attention, and ? with a dashed frame for a check the
+  user must make personally (“Check this yourself”), which the app never
+  observed.
 - Disabled controls stay visible and expose their disabled state; the reason a
-  control is unavailable is stated in text next to it.
+  control is unavailable is stated in text next to it. Permanently unsupported
+  or distribution-gated tools are named together under their shared reason
+  instead of repeating disabled actions; temporary session gates keep the
+  controls visible.
 
 ## Keyboard
 
@@ -27,13 +34,27 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 - Diagnostics and Settings are fixed corner controls outside the scrolling stage
   body. They remain keyboard-reachable from every stage. Stage navigation never
   uses color alone; numbered names, status text and disabled actions carry meaning.
+- Each stage's Back and primary actions sit in a bar pinned to the window's
+  bottom edge, after the stage body in tab order, so they never scroll away.
 - The keyboard forwarding capture is the only raw-input control; Escape stops
   forwarding and Tab leaves it, so the panel stays keyboard-navigable.
 - Test tab traversal with `tt.Key(0, ui.KeyTab)` and `tt.AccessAll()`, and
   accessible names with `tt.AccessByRole`, as in `accessibility_test.go`.
 
+## Motion
+
+- Only a stage's arrival animates: a 200 ms ease-out fade with a 6 DIP rise.
+  Under Reduce Motion MyGo keeps the fade and drops the movement. Buttons,
+  checks, typing and other frequent or keyboard-driven changes never animate.
+
 ## Text
 
+- A readiness row reads subject, state, then one next action prefixed with
+  “Next:”. Guidance, preferences and reference notes are never shown as rows
+  with a state badge; only observed checks are.
+- Expert options, reference prerequisites, connecting to an open session and
+  the exact verification evidence live in disclosures. A disclosure hides
+  detail, never a risk statement or a blocking reason.
 - Errors and blockers say what happened and what to do next in full sentences.
   Safety and warning text is never softened; see `docs/localization.md` for
   the translated term list that keeps risk wording consistent.
