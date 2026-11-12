@@ -14,13 +14,7 @@ func (a *app) manualView(c *ui.Context, s session.Snapshot) {
 	if p.Kind == "" || p.RunID != s.RunID {
 		return
 	}
-	instructions := map[string]string{
-		"slot": locales.ManualSlot(), "bootstrap": locales.ManualBootstrap(),
-		"direct": locales.ManualDirect(), "save": locales.ManualSave(),
-		"load": locales.ManualLoad(), "load-confirm": locales.ManualLoadConfirm(),
-		"run": locales.ManualRun(), "remove": locales.ManualRemove(), "start": locales.ManualStart(),
-	}
-	consoleStepView(c, locales.ManualProfile(s.Profile.ID, s.Edition), instructions[p.Kind])
+	consoleStepView(c, locales.ManualProfile(s.Profile.ID, s.Edition), manualInstruction(p.Kind))
 	if p.Text != "" {
 		text := p.Text
 		height := float32(64)
@@ -35,6 +29,15 @@ func (a *app) manualView(c *ui.Context, s session.Snapshot) {
 	if inline(ui.PrimaryButton(c.Key("manual-acknowledge"), locales.ManualAcknowledge())).Clicked() {
 		a.manual.Acknowledge(p.RunID, p.Sequence)
 	}
+}
+
+func manualInstruction(kind string) string {
+	return map[string]string{
+		"slot": locales.ManualSlot(), "bootstrap": locales.ManualBootstrap(),
+		"direct": locales.ManualDirect(), "save": locales.ManualSave(),
+		"load": locales.ManualLoad(), "load-confirm": locales.ManualLoadConfirm(),
+		"run": locales.ManualRun(), "remove": locales.ManualRemove(), "start": locales.ManualStart(),
+	}[kind]
 }
 
 func consoleStepView(c *ui.Context, title, instruction string) {

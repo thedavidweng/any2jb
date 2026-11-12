@@ -69,6 +69,11 @@ func (a *app) refreshDiagnostics() {
 	}()
 }
 
+// cleanupBlocked keeps temporary-file cleanup away from a live session.
+func cleanupBlocked(s session.Snapshot) bool {
+	return s.Busy || s.SideEffects || s.Stage == session.Verified || s.Stage == session.RetainedRPC
+}
+
 func (a *app) diagnosticsView(c *ui.Context) {
 	d := &a.diagnostic
 	if !d.ready {
@@ -121,7 +126,7 @@ func (a *app) diagnosticsView(c *ui.Context) {
 		}
 	}
 	s := a.controller.Snapshot()
-	active := s.Busy || s.SideEffects || s.Stage == session.Verified || s.Stage == session.RetainedRPC
+	active := cleanupBlocked(s)
 	if inline(ui.Button(c.Key("cleanup-preview"), locales.PreviewCleanup())).Disabled(active || d.busy || d.update == nil).Clicked() {
 		d.busy = true
 		store, update := d.store, d.update

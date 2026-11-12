@@ -278,6 +278,13 @@ func (a *app) footerView(c *ui.Context) {
 		})
 	}
 }
+
+// startupSecurityApplies names the built-in USB routes whose driver needs
+// startup security the app can only describe, never observe or change.
+func startupSecurityApplies(t session.Transport) bool {
+	return !t.Capabilities.Manual && !t.Capabilities.ExternalPico
+}
+
 func (a *app) detectionView(c *ui.Context, s session.Snapshot) {
 	disabled := s.Busy || s.SideEffects || s.Stage == session.Indeterminate
 	card(c, func() {
@@ -328,7 +335,7 @@ func (a *app) detectionView(c *ui.Context, s session.Snapshot) {
 			a.command(a.controller.Inspect())
 		}
 	})
-	if !s.Transport.Capabilities.Manual && !s.Transport.Capabilities.ExternalPico {
+	if startupSecurityApplies(s.Transport) {
 		ui.Column(c.Key("startup-security-note")).FillWidth().Children(func() {
 			stateCard(c, toneManual, func() {
 				manualBadge(c)

@@ -17,6 +17,10 @@ go tool mygo dev
 For explicit local engine/helper staging, see
 [developer launch](docs/developer-launch.md). Packaged builds ignore that option.
 
+The same binary is a command line when given arguments, for example
+`any2jb detect --json` or `any2jb session --script steps.txt`. See the
+[command line](docs/cli.md).
+
 Run the full check suite, including a windowless native UI test, and package
 the app with one command:
 
