@@ -102,7 +102,7 @@ func (a *app) sessionView(c *ui.Context) {
 				a.bootstrapReuse = true
 			}
 			if a.bootstrapReuse {
-				ui.Text(c, locales.ConfirmBootstrapIdentity(s.Profile.ID, s.Edition, s.Profile.SaveName, s.Profile.Revision, s.Profile.BootstrapSHA256))
+				ui.Text(c, locales.ConfirmBootstrapIdentity(s.Profile.SaveName, s.Profile.ID, s.Edition, s.Profile.Revision, s.Profile.BootstrapSHA256))
 				if inline(ui.Button(c.Key("bootstrap-reuse-confirm"), locales.ConfirmBootstrapIdentityAction())).Clicked() {
 					a.bootstrapError = a.confirmExistingBootstrap() != nil
 					a.bootstrapReuse = false
