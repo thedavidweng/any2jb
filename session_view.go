@@ -33,9 +33,9 @@ func (a *app) sessionView(c *ui.Context) {
 	s := a.controller.Snapshot()
 	pending := a.preferencesPending(s)
 	if pending {
-		ui.Text(c, locales.ApplyBeforeLaunch())
+		ui.Text(c, locales.ApplyBeforeLaunch()).Bold().TextColor(c.Theme().Warning)
 	}
-	ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).FontSize(20).Bold().Role(ui.RoleStatus)
+	ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).FontSize(c.Theme().Rem(1.25)).Bold().Role(ui.RoleStatus)
 	// A long-lived tool child keeps the retained_rpc stage, so its ownership
 	// is stated next to the stage.
 	if a.tools != nil {
@@ -48,20 +48,25 @@ func (a *app) sessionView(c *ui.Context) {
 	if s.CleanupConfirmed {
 		ui.Text(c, locales.ResourcesReleased())
 	}
-	if s.Stage == session.Verified {
-		ui.Text(c, locales.VerificationEvidence())
-	} else if s.Stage == session.RetainedRPC {
-		ui.Text(c, locales.HeldVerificationEvidence())
+	if s.Stage == session.Verified || s.Stage == session.RetainedRPC {
+		evidence := locales.VerificationEvidence()
+		if s.Stage == session.RetainedRPC {
+			evidence = locales.HeldVerificationEvidence()
+		}
+		stateCard(c, toneVerified, func() {
+			badge(c, "session-verified-badge", toneVerified, locales.CheckVerified())
+			ui.Text(c, evidence)
+		})
 	}
 	if a.flow.stage == flowSelection && s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
 		ui.Text(c, locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName))
 		if !s.Busy && !s.SideEffects && !pending && (s.Stage == session.Idle || s.Stage == session.Ready || s.Stage == session.NeedsSetup) {
-			if ui.Button(c.Key("bootstrap-reuse"), locales.UseSavedBootstrap()).Clicked() {
+			if inline(ui.Button(c.Key("bootstrap-reuse"), locales.UseSavedBootstrap())).Clicked() {
 				a.bootstrapReuse = true
 			}
 			if a.bootstrapReuse {
 				ui.Text(c, locales.ConfirmBootstrapIdentity(s.Profile.ID, s.Edition, s.Profile.SaveName, s.Profile.Revision, s.Profile.BootstrapSHA256))
-				if ui.Button(c.Key("bootstrap-reuse-confirm"), locales.ConfirmBootstrapIdentityAction()).Clicked() {
+				if inline(ui.Button(c.Key("bootstrap-reuse-confirm"), locales.ConfirmBootstrapIdentityAction())).Clicked() {
 					a.bootstrapError = a.confirmExistingBootstrap() != nil
 					a.bootstrapReuse = false
 				}
@@ -69,13 +74,14 @@ func (a *app) sessionView(c *ui.Context) {
 		}
 	}
 	if a.bootstrapError {
-		ui.Text(c, locales.BootstrapPersistenceError())
+		ui.Text(c, locales.BootstrapPersistenceError()).TextColor(c.Theme().Danger)
 	}
 	a.restartView(c, s)
 	if s.Stage == session.Failed {
-		ui.Text(c, locales.SafeFailure())
+		ui.Text(c, locales.SafeFailure()).Bold().TextColor(c.Theme().Danger)
 	}
 	if s.Total > 0 {
+		meter(c, float32(s.Current)/float32(s.Total))
 		ui.Text(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
 		if s.HasEstimate && s.Busy {
 			ui.Text(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000))).TextColor(c.Theme().TextMuted)
@@ -86,7 +92,7 @@ func (a *app) sessionView(c *ui.Context) {
 		if message == "" {
 			message = locales.CommandRejected()
 		}
-		ui.Text(c, message)
+		ui.Text(c, message).TextColor(c.Theme().Danger)
 	}
 	if a.flow.stage == flowLaunch {
 		label := locales.StartJailbreak()
@@ -95,7 +101,13 @@ func (a *app) sessionView(c *ui.Context) {
 		if s.Transport.Capabilities.Manual {
 			label = locales.GuidedManualLaunch()
 		}
-		if ui.PrimaryButton(c.Key("start"), label).Disabled(pending || !s.CanStart()).Clicked() {
+		// Busy or recovering, Start cannot run, so it steps back and the
+		// action that can (Cancel, Stop or the restart confirmation) leads.
+		start := ui.PrimaryButton
+		if s.Busy || s.Stage == session.Indeterminate {
+			start = ui.Button
+		}
+		if inline(start(c.Key("start"), label)).Disabled(pending || !s.CanStart()).Clicked() {
 			a.command(a.controller.Start())
 		}
 	}
@@ -110,7 +122,7 @@ func (a *app) sessionView(c *ui.Context) {
 		})
 	}
 	if a.flow.stage == flowSelection && !s.BootstrapSaved && (s.Stage == session.NeedsSetup || s.Stage == session.Ready) && !s.Busy {
-		if ui.Button(c.Key("bootstrap"), locales.PrepareBootstrap()).Disabled(pending).Clicked() {
+		if inline(ui.Button(c.Key("bootstrap"), locales.PrepareBootstrap())).Disabled(pending).Clicked() {
 			a.allowOverwrite = false
 			a.command(a.controller.PrepareBootstrap())
 		}
@@ -118,18 +130,23 @@ func (a *app) sessionView(c *ui.Context) {
 	if s.Stage == session.BootstrapSetup && !s.Busy && s.BootstrapPrepared {
 		if !s.SaveSubmitted {
 			ui.Checkbox(c.Key("bootstrap-overwrite"), &a.allowOverwrite, locales.AllowBootstrapOverwrite())
-			if ui.Button(c.Key("save"), locales.SubmitSave()).Disabled(!a.allowOverwrite).Clicked() {
+			if inline(ui.Button(c.Key("save"), locales.SubmitSave())).Disabled(!a.allowOverwrite).Clicked() {
 				a.command(a.controller.SaveBootstrap(false))
 			}
 		} else {
 			ui.Text(c, locales.SavePrompt())
-			if ui.Button(c.Key("confirm-save"), locales.ConfirmSaved()).Clicked() {
+			if inline(ui.Button(c.Key("confirm-save"), locales.ConfirmSaved())).Clicked() {
 				a.command(a.controller.SaveBootstrap(true))
 			}
 		}
 	}
+	if a.flow.stage == flowTools && !a.toolsPanel.open {
+		if inline(ui.PrimaryButton(c.Key("tools-open"), locales.ToolsTitle())).Disabled(s.Busy).Clicked() {
+			a.toolsPanel.open = true
+		}
+	}
 	if s.Stage == session.Verified || s.Stage == session.RetainedRPC {
-		if ui.Button(c.Key("finish"), locales.Finish()).Disabled(s.Busy).Clicked() {
+		if inline(ui.Button(c.Key("finish"), locales.Finish())).Disabled(s.Busy).Clicked() {
 			a.command(a.controller.Finish())
 		}
 	}
@@ -179,37 +196,32 @@ func (a *app) readinessView(c *ui.Context, s session.Snapshot, detection bool) {
 		if detection != detectionCheck(check) || !checkApplies(check, s.Transport) {
 			continue
 		}
-		stateColor := c.Theme().Danger
-		switch check.State {
-		case session.CheckVerified:
-			stateColor = c.Theme().Success
-		case session.Available:
-			stateColor = c.Theme().Warning
-		}
-		ui.Text(c.Key(check.ID+"-state"), checkStateTitle(check.State)).Bold().TextColor(stateColor).Role(ui.RoleStatus)
-		if check.GatesTransport == "usb-hid" {
-			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
-		}
-		message := check.Message
-		if check.State == session.CheckVerified && s.Transport.Controller != "" &&
-			(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
-			message = locales.UsbEnumerationObserved(s.Transport.Controller)
-		}
-		ui.Text(c.Key(check.ID+"-message"), localize(message))
-		if check.NextAction != "" {
-			ui.Text(c.Key(check.ID+"-action"), localize(check.NextAction))
-		}
+		k := checkTone(check.State)
+		stateCard(c, k, func() {
+			badge(c, check.ID+"-state", k, checkStateTitle(check.State))
+			message := check.Message
+			if check.State == session.CheckVerified && s.Transport.Controller != "" &&
+				(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
+				message = locales.UsbEnumerationObserved(s.Transport.Controller)
+			}
+			ui.Text(c.Key(check.ID+"-message"), localize(message))
+			if check.NextAction != "" {
+				ui.Text(c.Key(check.ID+"-action"), localize(check.NextAction)).Bold()
+			}
+			if check.GatesTransport == "usb-hid" {
+				muted(c, locales.UsbOnly())
+			}
+		})
 	}
-
 }
 
 func referencePrerequisites(c *ui.Context, usb bool) {
-	ui.Text(c, locales.ReferencePrerequisites()).Bold()
+	sectionTitle(c, locales.ReferencePrerequisites())
 	ui.Text(c, locales.ConsoleFirmware())
 	ui.Text(c, locales.SmilebasicPrerequisites())
 	ui.Text(c, locales.NetworkPrerequisites())
 	if usb {
 		ui.Text(c, locales.CablePrerequisites())
-		ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
+		muted(c, locales.DriverSecurityGuidance())
 	}
 }

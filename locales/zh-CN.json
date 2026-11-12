@@ -463,5 +463,7 @@
   "dynCompositeInput": "复合输入可用于 CivSwitch，不可用于 SmileBASIC。",
   "dynCompositeUnavailable": "复合输入组件不可用。",
   "dynCompositeAction": "使用复合输入前，请准备获准且通过完整性验证的 CivSwitch 组件。",
-  "startupSecurityTitle": "需自行检查：启动安全策略"
+  "startupSecurityTitle": "需自行检查：启动安全策略",
+  "checkManual": "需要你自行检查",
+  "readinessChecks": "就绪检查"
 }

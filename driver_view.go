@@ -50,7 +50,7 @@ func (a *app) driverView(c *ui.Context) {
 	if p.confirm {
 		ui.Text(c, locales.DriverConfirmTitle()).Bold()
 		ui.Text(c, locales.DriverConfirmText())
-		if ui.PrimaryButton(c.Key("driver-confirm"), locales.DriverConfirm()).Disabled(busy || availability != nil || p.result.Attempted || p.update == nil).Clicked() {
+		if inline(ui.PrimaryButton(c.Key("driver-confirm"), locales.DriverConfirm())).Disabled(busy || availability != nil || p.result.Attempted || p.update == nil).Clicked() {
 			p.confirm, p.busy = false, true
 			gate, update := p.gate, p.update
 			go func() {
@@ -63,16 +63,16 @@ func (a *app) driverView(c *ui.Context) {
 				})
 			}()
 		}
-		if ui.Button(c.Key("driver-back"), locales.DriverBack()).Disabled(busy).Clicked() {
+		if inline(ui.Button(c.Key("driver-back"), locales.DriverBack())).Disabled(busy).Clicked() {
 			p.confirm = false
 		}
-	} else if ui.Button(c.Key("driver-approve"), locales.DriverApprove()).Disabled(busy || availability != nil || p.result.Attempted).Clicked() {
+	} else if inline(ui.Button(c.Key("driver-approve"), locales.DriverApprove())).Disabled(busy || availability != nil || p.result.Attempted).Clicked() {
 		p.confirm = true
 	}
-	if ui.Button(c.Key("driver-decline"), locales.DriverDecline()).Disabled(busy).Clicked() {
+	if inline(ui.Button(c.Key("driver-decline"), locales.DriverDecline())).Disabled(busy).Clicked() {
 		p.open, p.confirm = false, false
 	}
-	if ui.Button(c.Key("driver-manual"), locales.DriverManual()).Disabled(busy).Clicked() {
+	if inline(ui.Button(c.Key("driver-manual"), locales.DriverManual())).Disabled(busy).Clicked() {
 		previous := a.preferences.Transport
 		a.preferences.Transport = "manual"
 		if err := a.applyPreferences(); err != nil {

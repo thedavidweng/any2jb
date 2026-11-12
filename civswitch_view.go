@@ -43,12 +43,12 @@ func (a *app) civSwitchView(c *ui.Context) {
 	confirmed := p.prerequisites.PhysicalSwitch1Cartridge100 && p.prerequisites.EnglishUS && p.prerequisites.SameReachableNetwork && p.prerequisites.LobbyChatFocused
 	composite := s.Transport.Capabilities.Keyboard && s.Transport.Capabilities.Gamepad
 	if a.flow.stage == flowLaunch || a.flow.stage == flowDetection {
-		if ui.PrimaryButton(c.Key("civ-start"), locales.CivStart()).Disabled(!eligible || unavailable != "" || !confirmed || !composite).Clicked() {
+		if inline(ui.PrimaryButton(c.Key("civ-start"), locales.CivStart())).Disabled(!eligible || unavailable != "" || !confirmed || !composite).Clicked() {
 			a.command(a.controller.StartCivSwitch(p.prerequisites))
 		}
 	}
 	if a.flow.stage != flowTools {
-		if ui.Button(c.Key("civ-attach"), locales.CivAttach()).Disabled(!eligible || unavailable != "").Clicked() {
+		if inline(ui.Button(c.Key("civ-attach"), locales.CivAttach())).Disabled(!eligible || unavailable != "").Clicked() {
 			a.command(a.controller.ConnectCivSwitch(p.prerequisites.ConsoleIPv4))
 		}
 	}
@@ -68,20 +68,20 @@ func (a *app) civSwitchView(c *ui.Context) {
 			ui.Text(c, locales.SafeFailure())
 		}
 		if s.Busy && s.Stage != session.Verified {
-			if ui.Button(c.Key("civ-cancel"), locales.Cancel()).Disabled(s.SideEffects).Clicked() {
+			if inline(ui.Button(c.Key("civ-cancel"), locales.Cancel())).Disabled(s.SideEffects).Clicked() {
 				a.command(a.controller.Cancel())
 			}
-			if ui.Button(c.Key("civ-stop"), locales.CivStop()).Disabled(!s.SideEffects).Clicked() {
+			if inline(ui.Button(c.Key("civ-stop"), locales.CivStop())).Disabled(!s.SideEffects).Clicked() {
 				a.command(a.controller.Stop())
 			}
 		}
-		if ui.Button(c.Key("civ-recheck"), locales.CivRecheck()).Disabled(s.Busy || (s.Stage != session.Indeterminate && s.Stage != session.Failed && s.Stage != session.Verified) || unavailable != "").Clicked() {
+		if inline(ui.Button(c.Key("civ-recheck"), locales.CivRecheck())).Disabled(s.Busy || (s.Stage != session.Indeterminate && s.Stage != session.Failed && s.Stage != session.Verified) || unavailable != "").Clicked() {
 			a.command(a.controller.RecheckCivSwitch())
 		}
 		if s.Stage == session.Verified {
 			a.civSwitchActionsView(c, s)
 			ui.Text(c, locales.CivDisconnectNote())
-			if ui.Button(c.Key("civ-finish"), locales.CivFinish()).Disabled(s.Busy).Clicked() {
+			if inline(ui.Button(c.Key("civ-finish"), locales.CivFinish())).Disabled(s.Busy).Clicked() {
 				a.command(a.controller.Finish())
 			}
 		}
@@ -89,7 +89,7 @@ func (a *app) civSwitchView(c *ui.Context) {
 	if a.commandRejected {
 		ui.Text(c, locales.CommandRejected())
 	}
-	if ui.Button(c.Key("civ-back"), locales.CivBack()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate || (s.CivSwitch && s.Stage == session.Verified)).Clicked() {
+	if inline(ui.Button(c.Key("civ-back"), locales.CivBack())).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate || (s.CivSwitch && s.Stage == session.Verified)).Clicked() {
 		// Selecting a host explicitly ends the separate route; no loader proof is
 		// carried into a SmileBASIC session.
 		if s.CivSwitch {
@@ -110,7 +110,7 @@ func (a *app) civSwitchActionsView(c *ui.Context, s session.Snapshot) {
 	ui.Text(c, locales.CivDependentNote())
 	ui.Text(c, locales.CivTriggerWarning())
 	ui.Checkbox(c.Key("civ-consent-saves"), &p.saveConsent, locales.CivTriggerConsent()).Disabled(s.Busy)
-	if ui.Button(c.Key("civ-trigger"), locales.CivTrigger()).
+	if inline(ui.Button(c.Key("civ-trigger"), locales.CivTrigger())).
 		Disabled(s.Busy || !p.saveConsent || actions.TriggerInstalled).Clicked() {
 		a.command(a.controller.InstallCivSwitchTrigger(p.saveConsent))
 	}
@@ -119,7 +119,7 @@ func (a *app) civSwitchActionsView(c *ui.Context, s session.Snapshot) {
 	}
 	if actions.BackupPath != "" {
 		ui.Text(c, locales.CivBackupSaved(actions.BackupPath))
-		if ui.Button(c.Key("civ-backup-open"), locales.CivBackupOpen()).Clicked() {
+		if inline(ui.Button(c.Key("civ-backup-open"), locales.CivBackupOpen())).Clicked() {
 			p.openFailed = mygo.Shell.OpenPath(actions.BackupPath) != nil
 		}
 	}
@@ -127,26 +127,26 @@ func (a *app) civSwitchActionsView(c *ui.Context, s session.Snapshot) {
 	ui.TextInput(c.Key("civ-js-file"), &p.javaScript).Label(locales.CivJSFile()).Disabled(s.Busy)
 	ui.Checkbox(c.Key("civ-consent-code"), &p.codeConsent, locales.CivCodeConsent()).Disabled(s.Busy)
 	code := !s.Busy && p.codeConsent && p.javaScript != ""
-	if ui.Button(c.Key("civ-js"), locales.CivJSSend()).Disabled(!code).Clicked() {
+	if inline(ui.Button(c.Key("civ-js"), locales.CivJSSend())).Disabled(!code).Clicked() {
 		a.command(a.controller.SendCivSwitchJavaScript(p.javaScript, p.codeConsent))
 	}
 	ui.Text(c, locales.CivControlStageNote())
-	if ui.Button(c.Key("civ-control-stage"), locales.CivControlStage()).Disabled(!code).Clicked() {
+	if inline(ui.Button(c.Key("civ-control-stage"), locales.CivControlStage())).Disabled(!code).Clicked() {
 		a.command(a.controller.StageCivSwitchJavaScript(p.javaScript, p.codeConsent))
 	}
 	ui.Text(c, locales.CivControlNote())
-	if ui.Button(c.Key("civ-control-start"), locales.CivControlStart()).Disabled(s.Busy).Clicked() {
+	if inline(ui.Button(c.Key("civ-control-start"), locales.CivControlStart())).Disabled(s.Busy).Clicked() {
 		a.command(a.controller.StartCivSwitchControlCenter())
 	}
 	if actions.ControlCenterLive {
 		ui.Text(c, locales.CivControlLive())
-		if ui.Button(c.Key("civ-control-stop"), locales.CivControlStop()).Clicked() {
+		if inline(ui.Button(c.Key("civ-control-stop"), locales.CivControlStop())).Clicked() {
 			a.command(a.controller.StopCivSwitchControlCenter())
 		}
 	}
 	if actions.ExportPath != "" {
 		ui.Text(c, locales.CivExportSaved(actions.ExportPath))
-		if ui.Button(c.Key("civ-export-open"), locales.CivExportOpen()).Clicked() {
+		if inline(ui.Button(c.Key("civ-export-open"), locales.CivExportOpen())).Clicked() {
 			p.openFailed = mygo.Shell.OpenPath(actions.ExportPath) != nil
 		}
 	}

@@ -95,7 +95,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		} else {
 			ui.Text(c, locales.UsbKeyboardOpening())
 		}
-		if ui.Button(c.Key("usb-stop-forwarding"), locales.UsbStopForwarding()).Disabled(p.closing).Clicked() {
+		if inline(ui.Button(c.Key("usb-stop-forwarding"), locales.UsbStopForwarding())).Disabled(p.closing).Clicked() {
 			a.stopKeyboard()
 		}
 		return
@@ -125,36 +125,53 @@ func (a *app) keyboardView(c *ui.Context) {
 	if len(controllers) == 0 {
 		ui.Text(c, locales.UsbDiscoverControllers())
 	}
-	ui.Text(c, locales.UsbGap())
-	ui.TextInput(c.Key("usb-gap"), &p.gap).Label(locales.UsbGap()).Disabled(busy)
-	ui.Text(c, locales.UsbHold())
-	ui.TextInput(c.Key("usb-hold"), &p.hold).Label(locales.UsbHold()).Disabled(busy)
-	ui.Text(c, locales.UsbEnter())
-	ui.TextInput(c.Key("usb-enter"), &p.enter).Label(locales.UsbEnter()).Disabled(busy)
-	ui.Text(c, locales.UsbEnumeration())
-	ui.TextInput(c.Key("usb-enumeration"), &p.enumeration).Label(locales.UsbEnumeration()).Disabled(busy)
-	ui.Text(c, locales.UsbLoadWait())
-	ui.TextInput(c.Key("usb-load-wait"), &p.load).Label(locales.UsbLoadWait()).Disabled(busy)
-	ui.Text(c, locales.UsbRunWait())
-	ui.TextInput(c.Key("usb-run-wait"), &p.run).Label(locales.UsbRunWait()).Disabled(busy)
-	ui.Text(c, locales.UsbRemoveWait())
-	ui.TextInput(c.Key("usb-remove-wait"), &p.remove).Label(locales.UsbRemoveWait()).Disabled(busy)
+	// Timing values sit two to a row so the panel's actions stay near them.
+	ui.Row(c).FillWidth().Wrap().Gap(12).Children(func() {
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbGap())
+			ui.TextInput(c.Key("usb-gap"), &p.gap).Label(locales.UsbGap()).Disabled(busy)
+		})
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbHold())
+			ui.TextInput(c.Key("usb-hold"), &p.hold).Label(locales.UsbHold()).Disabled(busy)
+		})
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbEnter())
+			ui.TextInput(c.Key("usb-enter"), &p.enter).Label(locales.UsbEnter()).Disabled(busy)
+		})
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbEnumeration())
+			ui.TextInput(c.Key("usb-enumeration"), &p.enumeration).Label(locales.UsbEnumeration()).Disabled(busy)
+		})
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbLoadWait())
+			ui.TextInput(c.Key("usb-load-wait"), &p.load).Label(locales.UsbLoadWait()).Disabled(busy)
+		})
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbRunWait())
+			ui.TextInput(c.Key("usb-run-wait"), &p.run).Label(locales.UsbRunWait()).Disabled(busy)
+		})
+		ui.Column(c).WidthPercent(46).MinWidth(200).Shrink(0).Grow(1).Gap(4).Children(func() {
+			ui.Text(c, locales.UsbRemoveWait())
+			ui.TextInput(c.Key("usb-remove-wait"), &p.remove).Label(locales.UsbRemoveWait()).Disabled(busy)
+		})
+	})
 	if p.invalid {
 		ui.Text(c, locales.UsbInvalidSettings())
 	}
 	ui.Row(c).Gap(8).Children(func() {
-		if ui.Button(c.Key("usb-stock-defaults"), locales.UsbStockDefaults()).Disabled(busy).Clicked() {
+		if inline(ui.Button(c.Key("usb-stock-defaults"), locales.UsbStockDefaults())).Disabled(busy).Clicked() {
 			p.initialized = false
 			p.defaults(nil)
 			p.checkOK = false
 			p.invalid = false
 		}
-		if ui.Button(c.Key("usb-apply"), locales.UsbApplySettings()).Disabled(busy).Clicked() {
+		if inline(ui.Button(c.Key("usb-apply"), locales.UsbApplySettings())).Disabled(busy).Clicked() {
 			a.applyUSBSettings(c, controllers, s)
 		}
 	})
 	caps := s.Transport.Capabilities
-	if ui.PrimaryButton(c.Key("usb-start-forwarding"), locales.UsbStartForwarding()).Disabled(busy || !p.available || !prerequisites || !caps.Keyboard || caps.Gamepad || caps.ExternalPico || a.controller == nil).Clicked() {
+	if inline(ui.PrimaryButton(c.Key("usb-start-forwarding"), locales.UsbStartForwarding())).Disabled(busy || !p.available || !prerequisites || !caps.Keyboard || caps.Gamepad || caps.ExternalPico || a.controller == nil).Clicked() {
 		s, err := a.controller.StartKeyboard()
 		a.command(s, err)
 		if err == nil {
@@ -166,7 +183,7 @@ func (a *app) keyboardView(c *ui.Context) {
 			p.report = [8]byte{}
 		}
 	}
-	if ui.Button(c.Key("usb-close-panel"), locales.UsbClosePanel()).Disabled(p.completion != nil).Clicked() {
+	if inline(ui.Button(c.Key("usb-close-panel"), locales.UsbClosePanel())).Disabled(p.completion != nil).Clicked() {
 		a.closeKeyboardPanel()
 	}
 }

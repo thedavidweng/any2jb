@@ -25,14 +25,14 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 	ui.Text(c, locales.HbTitle()).FontSize(16).Bold()
 	ui.Text(c, locales.HbNote()).TextColor(c.Theme().TextMuted)
 	mintbrew, mintbrewReason := a.toolGate(s, state, "mintbrew")
-	if ui.Button(c.Key("hb-mintbrew"), locales.HbMintbrew()).Disabled(mintbrew).Clicked() {
+	if inline(ui.Button(c.Key("hb-mintbrew"), locales.HbMintbrew())).Disabled(mintbrew).Clicked() {
 		a.runHomebrew("mintbrew")
 	}
 	a.toolReason(c, "hb-mintbrew", state, mintbrewReason)
 	ui.TextInput(c.Key("hb-sd-folder"), &p.sdFolder).Label(locales.HbSDFolder()).Disabled(s.Busy || !leased)
 	ui.TextInput(c.Key("hb-app-folder"), &p.appFolder).Label(locales.HbAppFolder()).Disabled(s.Busy || !leased)
 	native, nativeReason := a.toolGate(s, state, "native-hblauncher")
-	if ui.Button(c.Key("hb-native"), locales.HbNative()).Disabled(native).Clicked() {
+	if inline(ui.Button(c.Key("hb-native"), locales.HbNative())).Disabled(native).Clicked() {
 		a.runHomebrew("native-hblauncher")
 	}
 	a.toolReason(c, "hb-native", state, nativeReason)
@@ -41,7 +41,7 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 	ui.Checkbox(c.Key("hb-mod-blitbun"), &p.blitbun, locales.HbModBlitbun()).Disabled(s.Busy || !leased)
 	ui.Checkbox(c.Key("hb-mod-vacootube"), &p.vacootube, locales.HbModVacootube()).Disabled(s.Busy || !leased)
 	iz, izReason := a.toolGate(s, state, "izlauncher")
-	if ui.Button(c.Key("hb-izlauncher"), locales.HbIZ()).Disabled(iz).Clicked() {
+	if inline(ui.Button(c.Key("hb-izlauncher"), locales.HbIZ())).Disabled(iz).Clicked() {
 		a.runHomebrew("izlauncher")
 	}
 	a.toolReason(c, "hb-izlauncher", state, izReason)
@@ -49,7 +49,7 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 	ui.Text(c, locales.HbCustomNote()).TextColor(c.Theme().TextMuted)
 	ui.TextInput(c.Key("hb-custom-folder"), &p.customFolder).Label(locales.HbCustomFolder()).Disabled(s.Busy || !leased)
 	custom, customReason := a.toolGate(s, state, "custom-homebrew")
-	if ui.Button(c.Key("hb-custom"), locales.HbCustom()).Disabled(custom).Clicked() {
+	if inline(ui.Button(c.Key("hb-custom"), locales.HbCustom())).Disabled(custom).Clicked() {
 		a.runHomebrew("custom-homebrew")
 	}
 	a.toolReason(c, "hb-custom", state, customReason)
@@ -67,7 +67,7 @@ func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.St
 	}
 	ui.TextInput(c.Key("mod-folder"), &p.modsFolder).Label(locales.ModFolder()).Disabled(s.Busy || !leased || state.ModloaderInstalled)
 	install, reason := a.toolGate(s, state, "modloader")
-	if ui.Button(c.Key("mod-install"), locales.ModInstall()).Disabled(install).Clicked() {
+	if inline(ui.Button(c.Key("mod-install"), locales.ModInstall())).Disabled(install).Clicked() {
 		a.runHomebrew("modloader")
 	}
 	a.toolReason(c, "mod-install", state, reason)

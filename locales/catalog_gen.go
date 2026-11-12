@@ -4721,3 +4721,23 @@ func StartupSecurityTitle() string { return In(i18n.Locale()).StartupSecurityTit
 func (msgs Messages) StartupSecurityTitle() string {
 	return Catalog.Format(msgs.locale, "startupSecurityTitle", nil)
 }
+
+// CheckManual says "Check this yourself"
+// in the language the app shows.
+func CheckManual() string { return In(i18n.Locale()).CheckManual() }
+
+// CheckManual says "Check this yourself"
+// in the language of msgs.
+func (msgs Messages) CheckManual() string {
+	return Catalog.Format(msgs.locale, "checkManual", nil)
+}
+
+// ReadinessChecks says "Readiness checks"
+// in the language the app shows.
+func ReadinessChecks() string { return In(i18n.Locale()).ReadinessChecks() }
+
+// ReadinessChecks says "Readiness checks"
+// in the language of msgs.
+func (msgs Messages) ReadinessChecks() string {
+	return Catalog.Format(msgs.locale, "readinessChecks", nil)
+}

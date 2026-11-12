@@ -478,5 +478,7 @@
   "dynCompositeInput": "Composite input is available for CivSwitch, not SmileBASIC.",
   "dynCompositeUnavailable": "Composite input components are unavailable.",
   "dynCompositeAction": "Use permitted, integrity-verified CivSwitch components before using composite input.",
-  "startupSecurityTitle": "Manual check required: startup-security policy"
+  "startupSecurityTitle": "Manual check required: startup-security policy",
+  "checkManual": "Check this yourself",
+  "readinessChecks": "Readiness checks"
 }

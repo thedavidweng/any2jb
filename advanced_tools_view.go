@@ -80,27 +80,27 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	ui.Text(c, locales.ToolsConsoleAddress())
 	ui.TextInput(c.Key("tool-console"), &p.consoleIPv4).Label(locales.ToolsConsoleAddress()).Disabled(s.Busy || !leased)
 	status, statusReason := a.toolGate(s, state, "rpc-status")
-	if ui.Button(c.Key("rpc-status"), locales.ToolsStatus()).Disabled(status).Clicked() {
+	if inline(ui.Button(c.Key("rpc-status"), locales.ToolsStatus())).Disabled(status).Clicked() {
 		a.runTool("rpc-status", "")
 	}
 	a.toolReason(c, "rpc-status", state, statusReason)
 	dump, dumpReason := a.toolGate(s, state, "system-code-dump")
-	if ui.Button(c.Key("system-dump"), locales.ToolsDump()).Disabled(dump).Clicked() {
+	if inline(ui.Button(c.Key("system-dump"), locales.ToolsDump())).Disabled(dump).Clicked() {
 		a.runTool("system-code-dump", "")
 	}
 	a.toolReason(c, "system-code-dump", state, dumpReason)
 	webdav, webdavReason := a.toolGate(s, state, "ouncecake-webdav")
-	if ui.Button(c.Key("ouncecake-webdav"), locales.ToolsOunceWebdav()).Disabled(webdav).Clicked() {
+	if inline(ui.Button(c.Key("ouncecake-webdav"), locales.ToolsOunceWebdav())).Disabled(webdav).Clicked() {
 		a.runTool("ouncecake-webdav", p.consoleIPv4)
 	}
 	a.toolReason(c, "ouncecake-webdav", state, webdavReason)
 	ftp, ftpReason := a.toolGate(s, state, "ouncecake-ftp")
-	if ui.Button(c.Key("ouncecake-ftp"), locales.ToolsOunceFtp()).Disabled(ftp).Clicked() {
+	if inline(ui.Button(c.Key("ouncecake-ftp"), locales.ToolsOunceFtp())).Disabled(ftp).Clicked() {
 		a.runTool("ouncecake-ftp", p.consoleIPv4)
 	}
 	a.toolReason(c, "ouncecake-ftp", state, ftpReason)
 	sd, sdReason := a.toolGate(s, state, "sd-browser")
-	if ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser()).Disabled(sd).Clicked() {
+	if inline(ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser())).Disabled(sd).Clicked() {
 		a.runTool("sd-browser", p.consoleIPv4)
 	}
 	a.toolReason(c, "sd-browser", state, sdReason)
@@ -113,7 +113,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		}
 		ui.Text(c, locales.ToolsGame())
 		ui.Select(c.Key("ouncecake-game"), &p.game, ids).Label(locales.ToolsGame())
-		if ui.Button(c.Key("ouncecake-select"), locales.ToolsGameSelect()).Disabled(p.game == "").Clicked() {
+		if inline(ui.Button(c.Key("ouncecake-select"), locales.ToolsGameSelect())).Disabled(p.game == "").Clicked() {
 			title, _, _ := strings.Cut(p.game, " ")
 			p.failed = a.tools.Select(title) != nil
 		}
@@ -123,14 +123,14 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	}
 	if state.Export != "" {
 		ui.Text(c, locales.ToolsDumpSaved(state.Export)).Selectable()
-		if ui.Button(c.Key("dump-open"), locales.ToolsOpenExport()).Clicked() {
+		if inline(ui.Button(c.Key("dump-open"), locales.ToolsOpenExport())).Clicked() {
 			p.failed = mygo.Shell.OpenPath(state.Export) != nil
 		}
 	}
-	if ui.Button(c.Key("tool-stop"), locales.ToolsStop()).Disabled(s.Busy || !leased || state.Tool == "").Clicked() {
+	if inline(ui.Button(c.Key("tool-stop"), locales.ToolsStop())).Disabled(s.Busy || !leased || state.Tool == "").Clicked() {
 		a.command(a.controller.StopTool())
 	}
-	if ui.Button(c.Key("savekit-open"), locales.SaveKitOpen()).Disabled(s.Busy).Clicked() {
+	if inline(ui.Button(c.Key("savekit-open"), locales.SaveKitOpen())).Disabled(s.Busy).Clicked() {
 		a.saveKit.open = true
 	}
 	// A gated or excluded component states the recorded reason instead of an
@@ -141,7 +141,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())
 	}
-	if ui.Button(c.Key("tools-back"), locales.ToolsBack()).Disabled(s.Busy).Clicked() {
+	if inline(ui.Button(c.Key("tools-back"), locales.ToolsBack())).Disabled(s.Busy).Clicked() {
 		p.open = false
 	}
 }
@@ -182,13 +182,13 @@ func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	if leased {
 		if s.Attached {
 			ui.Text(c, locales.ToolsDetachNote())
-			if ui.Button(c.Key("rpc-detach"), locales.ToolsDetach()).Disabled(s.Busy).Clicked() {
+			if inline(ui.Button(c.Key("rpc-detach"), locales.ToolsDetach())).Disabled(s.Busy).Clicked() {
 				a.command(a.controller.DetachRetained())
 			}
 		}
 		return
 	}
-	if ui.Button(c.Key("rpc-find"), locales.ToolsFind()).Disabled(s.Busy || p.busy || p.update == nil).Clicked() {
+	if inline(ui.Button(c.Key("rpc-find"), locales.ToolsFind())).Disabled(s.Busy || p.busy || p.update == nil).Clicked() {
 		a.discoverRetained()
 	}
 	if len(p.sessions) == 0 {
@@ -200,7 +200,7 @@ func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 		ids = append(ids, found.ID)
 	}
 	ui.Select(c.Key("rpc-choose"), &p.chosen, ids).Label(locales.ToolsChoose())
-	if ui.Button(c.Key("rpc-attach"), locales.ToolsAttach()).Disabled(s.Busy || p.chosen == "").Clicked() {
+	if inline(ui.Button(c.Key("rpc-attach"), locales.ToolsAttach())).Disabled(s.Busy || p.chosen == "").Clicked() {
 		a.command(a.controller.AttachRetained(p.chosen))
 	}
 }

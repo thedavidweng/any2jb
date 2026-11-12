@@ -143,7 +143,7 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 	if component.Launcher.FullGame && request.BackupFolder == "" {
 		usable = false
 	}
-	if ui.Button(c.Key("launcher-preview"), locales.LauncherPreview()).Disabled(!usable).Clicked() {
+	if inline(ui.Button(c.Key("launcher-preview"), locales.LauncherPreview())).Disabled(!usable).Clicked() {
 		a.previewLauncher(request, target, selection)
 	}
 	if p.failed {
@@ -163,7 +163,7 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 	if p.preview != nil {
 		write.PreviewDigest = p.preview.Digest
 	}
-	if ui.Button(c.Key("launcher-install"), locales.LauncherInstall()).
+	if inline(ui.Button(c.Key("launcher-install"), locales.LauncherInstall())).
 		Disabled(!usable || write.ValidateLauncherWrite() != nil).Clicked() {
 		a.installLauncher(write, request)
 	}
