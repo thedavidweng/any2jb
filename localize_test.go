@@ -85,11 +85,13 @@ func TestReadinessMessagesDisplayChinese(t *testing.T) {
 	a.controller = session.New(f.Environment(), a.controller.Snapshot().Profile)
 	a.controller.ConfigureTransport(preferredTransport("keyboard"), "")
 	a.preferences.Transport = "keyboard"
+	a.diagnostic.ready = true
 	tt := ui.NewTester(a.view, 800, 1000)
-	if err := tt.Click("检查就绪状态"); err != nil {
+	if err := tt.Click("重新检查"); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.NeedsSetup)
+	clickManual(t, tt, locales.Diagnostics())
 	for _, text := range []string{
 		"已验证的 USB 辅助程序不可用。",
 		"USB 输入需要获准且通过完整性验证的辅助程序。引导式手动输入不需要这些辅助程序。",

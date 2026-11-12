@@ -80,6 +80,12 @@ func (a *app) diagnosticsView(c *ui.Context) {
 		return
 	}
 	ui.Text(c, locales.DiagnosticsPrivacy()).TextColor(c.Theme().TextMuted)
+	// The first stage states each step plainly; the raw observations behind
+	// it stay readable here.
+	if s := a.controller.Snapshot(); len(s.Checks) > 0 {
+		sectionTitle(c, locales.ReadinessChecks())
+		readinessView(c, s, func(session.Check) bool { return true })
+	}
 	ui.RadioGroup(c.Key("logs-source"), func() {
 		ui.Radio(c.Key("logs-all"), &d.source, -1, locales.LogAll())
 		ui.Radio(c.Key("logs-host"), &d.source, 0, locales.LogHost())

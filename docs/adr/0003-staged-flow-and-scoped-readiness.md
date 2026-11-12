@@ -1,6 +1,7 @@
 # 0003: Staged flow with per-method readiness
 
-Status: accepted
+Status: accepted; stage 1 and the startup-security row are superseded by
+[0004](0004-installer-style-first-stage.md).
 
 ## Context
 

@@ -273,13 +273,15 @@ func stageTitle(stage session.Stage) string {
 	}
 }
 
-func (a *app) readinessView(c *ui.Context, s session.Snapshot, detection bool) {
+// readinessView shows the observed checks that show selects, each as its
+// subject, state, the adapter's message and its next action.
+func readinessView(c *ui.Context, s session.Snapshot, show func(session.Check) bool) {
 	for _, check := range s.Checks {
-		if detection != detectionCheck(check) || !checkApplies(check, s.Transport) {
+		if !show(check) {
 			continue
 		}
 		k := checkTone(check.State)
-		stateCard(c, k, func() {
+		stateCard(c, func() {
 			ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).Children(func() {
 				ui.Text(c, checkName(check)).Bold().Shrink(1)
 				grow(c)
@@ -308,30 +310,6 @@ func routeCheckList(c *ui.Context, transport session.Transport) {
 	names := []string{locales.CheckRuntime(), locales.CheckHostProgram()}
 	if !transport.Capabilities.Manual && !transport.Capabilities.ExternalPico {
 		names = append(names, locales.CheckUsbHelpers())
-	}
-	ui.Column(c).FillWidth().Gap(c.Theme().Space(1)).Children(func() {
-		for _, name := range names {
-			ui.Text(c, "· "+name)
-		}
-	})
-}
-
-// checkList names what the selected method will be checked for, so the
-// first visit explains the stage instead of showing an empty card.
-func checkList(c *ui.Context, transport session.Transport) {
-	muted(c, locales.CheckListTitle())
-	method := locales.FlowManual()
-	switch transport.Mode {
-	case "keyboard":
-		method = locales.FlowKeyboard()
-	case "composite":
-		method = locales.FlowComposite()
-	case "external-pico":
-		method = locales.FlowPico()
-	}
-	names := []string{locales.CheckNetwork(), method}
-	if !transport.Capabilities.Manual && !transport.Capabilities.ExternalPico {
-		names = append(names, locales.CheckSip(), locales.CheckDriverLoaded(), locales.CheckUsbController(), locales.CheckUsbHelpers())
 	}
 	ui.Column(c).FillWidth().Gap(c.Theme().Space(1)).Children(func() {
 		for _, name := range names {

@@ -13,7 +13,9 @@ has not been verified. Signing or notarizing any2jb does not approve the kext.
   [`driver/static_test.go`](../driver/static_test.go), fails if non-test app
   code names one of these commands or uses `kmutil` beyond `showloaded`.
 - Recovery and Startup Security Utility steps are shown as text for the user to
-  perform. The app does not try to judge a working custom configuration.
+  perform in the first stage's **Allow the USB driver** step, with links to
+  Apple's startup-security, macOS Recovery and SIP documentation. That step is done only once the driver is observed loaded; the app does
+  not check or judge the startup-security policy itself.
 - Installation runs the pinned upstream `scripts/install-driver.sh` only after
   two explicit clicks (**Approve driver installation**, then **Install with
   administrator approval**) and the macOS administrator prompt. The prompt is
@@ -56,8 +58,12 @@ environment variable or UI import route.
 - `main` sets `app.driverPanel.gate` from `productionDriverGate`, using the
   merged MyGo resource root and no developer source. Tests verify it reports
   the canonical blocker.
-- The panel opens from **Review USB driver setup**, shown when a driver
-  readiness check is present.
+- The panel opens from **Install…** in the first stage's **Install the USB
+  driver** step, shown when the driver is absent and the gate is available, and
+  from **Review USB driver setup** in Settings. While the gate is blocked the
+  step says this version can't install the driver yet and Continue stays
+  disabled; guided manual input is only the secondary **Type the commands
+  yourself instead** link.
 
 ## Evidence
 

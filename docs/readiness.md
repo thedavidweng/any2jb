@@ -25,16 +25,18 @@ proves assignment only, not console reachability, firewall access or listening.
 The dashboard labels the recommendation as unverified for console connectivity.
 Listening and console connection require independent launch-time evidence.
 
-The visible LAN override and **Apply preferences** action are outside Developer
-Options. **Check readiness** refreshes all observations. A network-only change
+The LAN override and **Apply preferences** action are in Settings, outside
+Developer Options. **Check again** refreshes all observations. A network-only change
 does not discard matching saved-bootstrap confirmation.
 
 ## USB facts
 
 `Check.GatesTransport = "usb-hid"` attaches driver/controller prerequisites only
-to built-in USB input. Stage 1 shows only checks that apply to the selected
-method. Guided manual
-input neither displays nor gates on USB-only facts. Host/runtime checks are
+to built-in USB input. Inspection reports them for every method, so stage 1
+always shows the four plain steps of
+[ADR 0004](adr/0004-installer-style-first-stage.md), and Continue applies
+automatic USB input only once they allow it; the raw checks are listed in Diagnostics. Guided manual input never
+gates on USB-only facts. Host/runtime checks are
 shown separately in stage 2 and remain authoritative at launch.
 A discovered controller is sufficient for route selection, not for ns2jb Start;
 that command still requires the controller's existing verification contract.
@@ -69,11 +71,11 @@ ordinary USB-C never implies device-mode capability.
 ### Startup-security policy is not a SIP observation
 
 The Apple Silicon Full / Reduced / Permissive startup-security policy cannot be
-observed through `csrutil status`. Stage 1 presents a separate informational row,
-not a controller prerequisite: **not checked by this app; you must verify the
-required policy yourself in macOS Recovery**. It carries no passing state and
-never implies that the app inspected the policy. The app never invokes bputil,
-changes security, or adds an unsatisfiable check to the launch contract.
+observed through `csrutil status`. Stage 1 does not show it as its own row:
+**Allow the USB driver** covers SIP and startup security together, and is done
+only when the driver is observed loaded. Disabled SIP alone is shown as in
+progress. The Recovery steps are text the user follows; the app never invokes
+bputil, changes security, or adds an unsatisfiable check to the launch contract.
 
 ## Evidence
 
@@ -85,8 +87,10 @@ changes security, or adds an unsatisfiable check to the launch contract.
   attached-controller parsing, exact driver identity and restart timing.
 - [Controller tests](../session/readiness_test.go) cover automatic selection,
   refresh, stale-address rejection before host launch, and transport gates.
-- [Windowless dashboard test](../readiness_view_test.go) covers visible override,
-  all three evidence labels, and the reference prerequisites.
+- [Windowless readiness tests](../readiness_view_test.go) cover the raw checks
+  and all three evidence labels in Diagnostics, the override in Settings, and
+  the reference prerequisites; [first-stage tests](../flow_view_test.go) cover
+  the four steps.
 
 `ANY2JB_READINESS_INSPECTION=1 go test ./readiness -run TestReadOnlySystemInspection -v`
 opts into inspecting the current machine. It logs no local addresses or raw

@@ -449,6 +449,12 @@ func cliCommandKey(cmd *cobra.Command) string {
 	return key
 }
 
+// startupSecurityApplies names the built-in USB routes whose driver needs
+// startup security the app can only describe, never observe or change.
+func startupSecurityApplies(t session.Transport) bool {
+	return !t.Capabilities.Manual && !t.Capabilities.ExternalPico
+}
+
 func (c *commandLine) status() error {
 	s := c.app.controller.Snapshot()
 	if c.json {

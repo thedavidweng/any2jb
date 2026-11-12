@@ -8,7 +8,10 @@ import (
 	"github.com/thedavidweng/any2jb/session"
 )
 
-const contentWidth = 720
+const (
+	contentWidth = 720
+	sidebarWidth = 168
+)
 
 func rgb(r, g, b uint8) ui.Color { return ui.Color{R: r, G: g, B: b, A: 255} }
 
@@ -58,12 +61,10 @@ func muted(c *ui.Context, s string) ui.Element {
 // where macOS places a default button.
 func footer(c *ui.Context, lead func(), rest func()) {
 	rule(c)
-	ui.Row(c).FillWidth().Justify(ui.Center).Padding(c.Theme().Space(3), 20).Background(cardFill(c)).Children(func() {
-		ui.Row(c).FillWidth().MaxWidth(contentWidth).Wrap().Gap(c.Theme().Space(2)).Children(func() {
-			lead()
-			grow(c)
-			rest()
-		})
+	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(c.Theme().Space(2)).Padding(c.Theme().Space(3), 20).Background(cardFill(c)).Children(func() {
+		lead()
+		grow(c)
+		rest()
 	})
 }
 
@@ -77,7 +78,6 @@ const (
 	toneAttention tone = iota
 	toneAvailable
 	toneVerified
-	toneManual
 )
 
 func checkTone(state session.CheckState) tone {
@@ -100,8 +100,6 @@ func (k tone) look(c *ui.Context) (symbol string, color ui.Color) {
 		return "✓", t.TextMuted
 	case toneAvailable:
 		return "○", t.TextMuted
-	case toneManual:
-		return "?", t.Text
 	default:
 		return "!", t.Danger
 	}
@@ -118,15 +116,8 @@ func badge(c *ui.Context, key string, k tone, label string) {
 	})
 }
 
-// Only a manual check gets a frame: it is not an observation made by the app.
-func stateCard(c *ui.Context, k tone, fn func()) {
-	t := c.Theme()
-	group := ui.Column(c).FillWidth().Gap(t.Space(1.5))
-	if k == toneManual {
-		group.Padding(t.Space(3)).Radius(t.Radius).
-			Border(1, t.Border).BorderStyle(ui.BorderDashed)
-	}
-	group.Children(fn)
+func stateCard(c *ui.Context, fn func()) {
+	ui.Column(c).FillWidth().Gap(c.Theme().Space(1.5)).Children(fn)
 }
 
 // meter draws determinate progress. The adjacent "Progress: n / total" text
@@ -138,29 +129,28 @@ func meter(c *ui.Context, fraction float32) {
 	})
 }
 
-// The ordered stages use weight, not accent-filled circles, for position.
-func stepper(c *ui.Context, current flowStage, titles []string) {
+// sidebar lists the stages as an installer does. Each stage has its own
+// mark, so position never depends on weight or color alone: ✓ passed,
+// ● current and bold, ○ still ahead and muted.
+func sidebar(c *ui.Context, current flowStage, titles []string) {
 	t := c.Theme()
-	ui.Row(c).FillWidth().Wrap().Gap(t.Space(2)).Children(func() {
+	ui.Column(c).Width(sidebarWidth).FillHeight().Shrink(0).Gap(t.Space(3)).Padding(24, 16, 24, 20).Children(func() {
 		for i, title := range titles {
 			stage := flowStage(i)
-			ui.Row(c).Gap(t.Space(1.5)).Children(func() {
-				fg := t.TextMuted
-				if stage <= current {
-					fg = t.Text
-				}
-				ui.Text(c, string(rune('1'+i))).FontSize(t.Rem(0.9)).TextColor(fg)
-				label := ui.Text(c, title).SingleLine()
+			ui.Row(c).FillWidth().Gap(t.Space(2)).Children(func() {
+				mark, fg := "○", t.TextMuted
 				switch {
+				case stage < current:
+					mark, fg = "✓", t.Text
 				case stage == current:
+					mark, fg = "●", t.Text
+				}
+				ui.Text(c, mark).TextColor(fg).Shrink(0)
+				label := ui.Text(c, title).TextColor(fg).Shrink(1)
+				if stage == current {
 					label.Bold()
-				case stage > current:
-					label.TextColor(t.TextMuted)
 				}
 			})
-			if i < len(titles)-1 {
-				ui.Column(c).Size(16, 1).Background(t.Border)
-			}
 		}
 	})
 }
@@ -258,8 +248,4 @@ func steps(c *ui.Context, names []string, current int) {
 			})
 		}
 	})
-}
-
-func manualBadge(c *ui.Context) {
-	badge(c, "startup-security-badge", toneManual, locales.CheckManual())
 }

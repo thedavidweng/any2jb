@@ -16,12 +16,11 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
   (`requires attention`, `available but not verified`, `verified`) always show
   their text label. Routine verified and available states use neutral ink;
   danger color only supplements genuine blockers and failures.
-  Each state also has its own symbol: ✓ verified, ○ available but not
-  verified, ! requires attention, and ? with a dashed frame for a check the
-  user must make personally (“Check this yourself”), which the app never
-  observed. State labels are unboxed text, not tinted pills. Observed checks
-  use compact rows separated by neutral hairlines; the manual note alone keeps
-  its dashed frame. Recovery instructions remain bold and visible.
+  Each state also has its own symbol: ✓ verified or done, ○ available but not
+  verified, waiting or not needed, and ! requires attention. State labels are
+  unboxed text, not tinted pills. Observed checks and the first stage's steps
+  use compact rows separated by neutral hairlines. Risk statements in the
+  Recovery steps remain bold.
 - Disabled controls stay visible and expose their disabled state; the reason a
   control is unavailable is stated in text next to it. Permanently unsupported
   or distribution-gated tools are named together under their shared reason
@@ -31,6 +30,7 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 ## Keyboard
 
 - Tab order is construction order, matching visual order within each stage.
+  The sidebar marks each stage ✓ passed, ● current (bold) or ○ ahead, as text.
   A stable status heading announces “Stage N of 4” and the stage name. Move
   focus to that heading on a stage transition so the user enters the new scope.
   Other programmatic focus is limited to the explicitly opened keyboard capture.
@@ -60,8 +60,9 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
   section spacing does not reduce native control padding or hit targets.
   Theme borders and muted ink retain Increase Contrast adjustments.
 
-- A readiness row reads subject, state, then one next action prefixed with
-  “Next:”. Guidance, preferences and reference notes are never shown as rows
+- A first-stage step reads subject, state, one plain sentence and at most one
+  action. A raw readiness row (route stage and Diagnostics) reads subject,
+  state, then one next action prefixed with “Next:”. Guidance, preferences and reference notes are never shown as rows
   with a state badge; only observed checks are.
 - Expert options, reference prerequisites, connecting to an open session and
   the exact verification evidence live in disclosures. A disclosure hides

@@ -72,9 +72,10 @@ func clickManual(t *testing.T, tt *ui.Tester, label string) {
 
 func saveManualBootstrap(t *testing.T, a *app, tt *ui.Tester) {
 	t.Helper()
-	clickManual(t, tt, "Check readiness")
+	clickManual(t, tt, "Check again")
 	waitManualUI(t, a, tt, func(s session.Snapshot, _ transport.Prompt) bool { return s.Stage == session.Ready && !s.Busy })
-	clickManual(t, tt, "Continue to route and setup")
+	clickManual(t, tt, "Type the commands yourself instead")
+	waitIdle(t, a, tt)
 	clickManual(t, tt, "Prepare bootstrap")
 	for _, kind := range []string{"slot", "bootstrap", "direct"} {
 		waitManualUI(t, a, tt, func(_ session.Snapshot, p transport.Prompt) bool { return p.Kind == kind })

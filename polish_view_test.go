@@ -186,8 +186,8 @@ func TestPolishRespectsDesktopAccessibilityPreferences(t *testing.T) {
 				if scaled.Bounds.H <= normal.Bounds.H {
 					t.Fatal("text scaling did not enlarge the native control")
 				}
-				if !tt.HasText("?") || !tt.HasText(locales.StartupSecurityUnverified()) || !tt.HasText(locales.StartupSecurityAction()) {
-					t.Fatal("manual security note lost its glyph or safety text")
+				if !tt.HasText("○") || !tt.HasText(locales.MacNotChecked()) || !tt.HasText(locales.MacAllow()) {
+					t.Fatal("a first-stage step lost its glyph, state or name")
 				}
 				if tt.FramePending() {
 					t.Fatal("reduced-motion stage did not settle")

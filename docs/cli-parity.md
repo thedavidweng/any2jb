@@ -11,6 +11,9 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | UI key | CLI |
 | --- | --- |
 | about | `settings about` |
+| apple-recovery | n/a: a link to Apple's documentation |
+| apple-sip | n/a: a link to Apple's documentation |
+| apple-startup-security | n/a: a link to Apple's documentation |
 | apply-preferences | `settings set` |
 | bootstrap | `prepare` |
 | bootstrap-overwrite | `save --consent` |
@@ -57,13 +60,14 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | driver-back | n/a: answering N at the prompt declines |
 | driver-confirm | `driver install --consent` |
 | driver-decline | n/a: answering N at the prompt declines |
+| driver-install | `driver install` |
 | driver-manual | `settings set --input` |
-| driver-setup | `driver status` |
 | dump-open | n/a: `tool state` prints the export path |
 | finish | `finish` |
 | flow-back-detection | n/a: commands are not staged pages; the controller gates their order |
 | flow-back-selection | n/a: commands are not staged pages; the controller gates their order |
 | flow-civ-launch | `civswitch launch` |
+| flow-manual | `settings set --input` |
 | flow-next-launch | `launch` |
 | flow-next-selection | `detect` |
 | hb-app-folder | `tool run --app-folder` |
@@ -79,7 +83,6 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | hb-native-consent | `tool run --consent` |
 | hb-sd-folder | `tool run --sd-folder` |
 | host-profile | `settings set --profile` |
-| input-method | `settings set --input` |
 | inspect | `detect` |
 | lan-override | `settings set --lan` |
 | launcher-account | `launcher install --account` |
@@ -109,6 +112,7 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | ouncecake-game | `tool state` |
 | ouncecake-select | `tool select` |
 | ouncecake-webdav | `tool run --console` |
+| recovery-steps | n/a: read-only Recovery instructions the user follows; no command changes security settings |
 | route | `launch` |
 | rpc-attach | `connect` |
 | rpc-choose | `discover` |

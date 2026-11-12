@@ -2332,16 +2332,6 @@ func (msgs Messages) CommandRejected() string {
 	return Catalog.Format(msgs.locale, "commandRejected", nil)
 }
 
-// CheckReadiness says "Check readiness"
-// in the language the app shows.
-func CheckReadiness() string { return In(i18n.Locale()).CheckReadiness() }
-
-// CheckReadiness says "Check readiness"
-// in the language of msgs.
-func (msgs Messages) CheckReadiness() string {
-	return Catalog.Format(msgs.locale, "checkReadiness", nil)
-}
-
 // StartJailbreak says "Start Jailbreak"
 // in the language the app shows.
 func StartJailbreak() string { return In(i18n.Locale()).StartJailbreak() }
@@ -4610,11 +4600,11 @@ func (msgs Messages) Settings() string {
 	return Catalog.Format(msgs.locale, "settings", nil)
 }
 
-// FlowDetection says "Input and detection"
+// FlowDetection says "Check this Mac"
 // in the language the app shows.
 func FlowDetection() string { return In(i18n.Locale()).FlowDetection() }
 
-// FlowDetection says "Input and detection"
+// FlowDetection says "Check this Mac"
 // in the language of msgs.
 func (msgs Messages) FlowDetection() string {
 	return Catalog.Format(msgs.locale, "flowDetection", nil)
@@ -4662,11 +4652,11 @@ func (msgs Messages) FlowPosition(current string, stage string) string {
 	return Catalog.Format(msgs.locale, "flowPosition", map[string]any{"current": current, "stage": stage})
 }
 
-// FlowNextSelection says "Continue to route and setup"
+// FlowNextSelection says "Continue"
 // in the language the app shows.
 func FlowNextSelection() string { return In(i18n.Locale()).FlowNextSelection() }
 
-// FlowNextSelection says "Continue to route and setup"
+// FlowNextSelection says "Continue"
 // in the language of msgs.
 func (msgs Messages) FlowNextSelection() string {
 	return Catalog.Format(msgs.locale, "flowNextSelection", nil)
@@ -4682,11 +4672,11 @@ func (msgs Messages) FlowNextLaunch() string {
 	return Catalog.Format(msgs.locale, "flowNextLaunch", nil)
 }
 
-// FlowBackDetection says "Back to input and detection"
+// FlowBackDetection says "Back"
 // in the language the app shows.
 func FlowBackDetection() string { return In(i18n.Locale()).FlowBackDetection() }
 
-// FlowBackDetection says "Back to input and detection"
+// FlowBackDetection says "Back"
 // in the language of msgs.
 func (msgs Messages) FlowBackDetection() string {
 	return Catalog.Format(msgs.locale, "flowBackDetection", nil)
@@ -4712,64 +4702,14 @@ func (msgs Messages) FlowSmile() string {
 	return Catalog.Format(msgs.locale, "flowSmile", nil)
 }
 
-// FlowManual says "Guided manual input"
-// in the language the app shows.
-func FlowManual() string { return In(i18n.Locale()).FlowManual() }
-
-// FlowManual says "Guided manual input"
-// in the language of msgs.
-func (msgs Messages) FlowManual() string {
-	return Catalog.Format(msgs.locale, "flowManual", nil)
-}
-
-// FlowKeyboard says "Apple Silicon USB keyboard"
-// in the language the app shows.
-func FlowKeyboard() string { return In(i18n.Locale()).FlowKeyboard() }
-
-// FlowKeyboard says "Apple Silicon USB keyboard"
-// in the language of msgs.
-func (msgs Messages) FlowKeyboard() string {
-	return Catalog.Format(msgs.locale, "flowKeyboard", nil)
-}
-
-// FlowComposite says "Composite keyboard + gamepad"
-// in the language the app shows.
-func FlowComposite() string { return In(i18n.Locale()).FlowComposite() }
-
-// FlowComposite says "Composite keyboard + gamepad"
-// in the language of msgs.
-func (msgs Messages) FlowComposite() string {
-	return Catalog.Format(msgs.locale, "flowComposite", nil)
-}
-
-// FlowPico says "External Pico (adapter required)"
-// in the language the app shows.
-func FlowPico() string { return In(i18n.Locale()).FlowPico() }
-
-// FlowPico says "External Pico (adapter required)"
-// in the language of msgs.
-func (msgs Messages) FlowPico() string {
-	return Catalog.Format(msgs.locale, "flowPico", nil)
-}
-
-// FlowCivUnavailable says "CivSwitch requires composite keyboard + gamepad HID. The selected input method cannot provide both. Return to input a…"
+// FlowCivUnavailable says "CivSwitch requires composite keyboard + gamepad HID. The selected input method cannot provide both. Choose composite …"
 // in the language the app shows.
 func FlowCivUnavailable() string { return In(i18n.Locale()).FlowCivUnavailable() }
 
-// FlowCivUnavailable says "CivSwitch requires composite keyboard + gamepad HID. The selected input method cannot provide both. Return to input a…"
+// FlowCivUnavailable says "CivSwitch requires composite keyboard + gamepad HID. The selected input method cannot provide both. Choose composite …"
 // in the language of msgs.
 func (msgs Messages) FlowCivUnavailable() string {
 	return Catalog.Format(msgs.locale, "flowCivUnavailable", nil)
-}
-
-// FlowDetectHint says "Pick how commands reach the console. Choosing a method checks only what that method needs. Finding a USB controller i…"
-// in the language the app shows.
-func FlowDetectHint() string { return In(i18n.Locale()).FlowDetectHint() }
-
-// FlowDetectHint says "Pick how commands reach the console. Choosing a method checks only what that method needs. Finding a USB controller i…"
-// in the language of msgs.
-func (msgs Messages) FlowDetectHint() string {
-	return Catalog.Format(msgs.locale, "flowDetectHint", nil)
 }
 
 // FlowSaved says "The matching saved bootstrap is confirmed. First-time setup is not needed."
@@ -4792,11 +4732,511 @@ func (msgs Messages) FlowCheckSelection() string {
 	return Catalog.Format(msgs.locale, "flowCheckSelection", nil)
 }
 
-// FlowDetectionBlocked says "Resolve the checks marked “Requires attention” before continuing."
+// FlowTypeYourself says "Type the commands yourself instead"
+// in the language the app shows.
+func FlowTypeYourself() string { return In(i18n.Locale()).FlowTypeYourself() }
+
+// FlowTypeYourself says "Type the commands yourself instead"
+// in the language of msgs.
+func (msgs Messages) FlowTypeYourself() string {
+	return Catalog.Format(msgs.locale, "flowTypeYourself", nil)
+}
+
+// FlowUsbUnavailable says "Automatic input can't be set up on this Mac with this version yet."
+// in the language the app shows.
+func FlowUsbUnavailable() string { return In(i18n.Locale()).FlowUsbUnavailable() }
+
+// FlowUsbUnavailable says "Automatic input can't be set up on this Mac with this version yet."
+// in the language of msgs.
+func (msgs Messages) FlowUsbUnavailable() string {
+	return Catalog.Format(msgs.locale, "flowUsbUnavailable", nil)
+}
+
+// FlowCheckFirst says "Choose Check again to check this Mac."
+// in the language the app shows.
+func FlowCheckFirst() string { return In(i18n.Locale()).FlowCheckFirst() }
+
+// FlowCheckFirst says "Choose Check again to check this Mac."
+// in the language of msgs.
+func (msgs Messages) FlowCheckFirst() string {
+	return Catalog.Format(msgs.locale, "flowCheckFirst", nil)
+}
+
+// CheckAgain says "Check again"
+// in the language the app shows.
+func CheckAgain() string { return In(i18n.Locale()).CheckAgain() }
+
+// CheckAgain says "Check again"
+// in the language of msgs.
+func (msgs Messages) CheckAgain() string {
+	return Catalog.Format(msgs.locale, "checkAgain", nil)
+}
+
+// MacIntro says "any2jb sets up this Mac to type on the Switch for you. Do the steps marked “Needs action”, then choose Continue."
+// in the language the app shows.
+func MacIntro() string { return In(i18n.Locale()).MacIntro() }
+
+// MacIntro says "any2jb sets up this Mac to type on the Switch for you. Do the steps marked “Needs action”, then choose Continue."
+// in the language of msgs.
+func (msgs Messages) MacIntro() string {
+	return Catalog.Format(msgs.locale, "macIntro", nil)
+}
+
+// MacAllow says "Allow the USB driver"
+// in the language the app shows.
+func MacAllow() string { return In(i18n.Locale()).MacAllow() }
+
+// MacAllow says "Allow the USB driver"
+// in the language of msgs.
+func (msgs Messages) MacAllow() string {
+	return Catalog.Format(msgs.locale, "macAllow", nil)
+}
+
+// MacInstall says "Install the USB driver"
+// in the language the app shows.
+func MacInstall() string { return In(i18n.Locale()).MacInstall() }
+
+// MacInstall says "Install the USB driver"
+// in the language of msgs.
+func (msgs Messages) MacInstall() string {
+	return Catalog.Format(msgs.locale, "macInstall", nil)
+}
+
+// MacConnect says "Connect the Switch"
+// in the language the app shows.
+func MacConnect() string { return In(i18n.Locale()).MacConnect() }
+
+// MacConnect says "Connect the Switch"
+// in the language of msgs.
+func (msgs Messages) MacConnect() string {
+	return Catalog.Format(msgs.locale, "macConnect", nil)
+}
+
+// MacChecking says "Checking…"
+// in the language the app shows.
+func MacChecking() string { return In(i18n.Locale()).MacChecking() }
+
+// MacChecking says "Checking…"
+// in the language of msgs.
+func (msgs Messages) MacChecking() string {
+	return Catalog.Format(msgs.locale, "macChecking", nil)
+}
+
+// MacDone says "Done"
+// in the language the app shows.
+func MacDone() string { return In(i18n.Locale()).MacDone() }
+
+// MacDone says "Done"
+// in the language of msgs.
+func (msgs Messages) MacDone() string {
+	return Catalog.Format(msgs.locale, "macDone", nil)
+}
+
+// MacNeedsAction says "Needs action"
+// in the language the app shows.
+func MacNeedsAction() string { return In(i18n.Locale()).MacNeedsAction() }
+
+// MacNeedsAction says "Needs action"
+// in the language of msgs.
+func (msgs Messages) MacNeedsAction() string {
+	return Catalog.Format(msgs.locale, "macNeedsAction", nil)
+}
+
+// MacNotChecked says "Not checked"
+// in the language the app shows.
+func MacNotChecked() string { return In(i18n.Locale()).MacNotChecked() }
+
+// MacNotChecked says "Not checked"
+// in the language of msgs.
+func (msgs Messages) MacNotChecked() string {
+	return Catalog.Format(msgs.locale, "macNotChecked", nil)
+}
+
+// MacInProgress says "In progress"
+// in the language the app shows.
+func MacInProgress() string { return In(i18n.Locale()).MacInProgress() }
+
+// MacInProgress says "In progress"
+// in the language of msgs.
+func (msgs Messages) MacInProgress() string {
+	return Catalog.Format(msgs.locale, "macInProgress", nil)
+}
+
+// MacNotAvailable says "Not available"
+// in the language the app shows.
+func MacNotAvailable() string { return In(i18n.Locale()).MacNotAvailable() }
+
+// MacNotAvailable says "Not available"
+// in the language of msgs.
+func (msgs Messages) MacNotAvailable() string {
+	return Catalog.Format(msgs.locale, "macNotAvailable", nil)
+}
+
+// MacFound says "Found, not tested"
+// in the language the app shows.
+func MacFound() string { return In(i18n.Locale()).MacFound() }
+
+// MacFound says "Found, not tested"
+// in the language of msgs.
+func (msgs Messages) MacFound() string {
+	return Catalog.Format(msgs.locale, "macFound", nil)
+}
+
+// MacWaiting says "Waiting"
+// in the language the app shows.
+func MacWaiting() string { return In(i18n.Locale()).MacWaiting() }
+
+// MacWaiting says "Waiting"
+// in the language of msgs.
+func (msgs Messages) MacWaiting() string {
+	return Catalog.Format(msgs.locale, "macWaiting", nil)
+}
+
+// MacNetworkDone says "This Mac is on a local network ({address})."
+// in the language the app shows.
+func MacNetworkDone(address string) string { return In(i18n.Locale()).MacNetworkDone(address) }
+
+// MacNetworkDone says "This Mac is on a local network ({address})."
+// in the language of msgs.
+func (msgs Messages) MacNetworkDone(address string) string {
+	return Catalog.Format(msgs.locale, "macNetworkDone", map[string]any{"address": address})
+}
+
+// MacNetworkAction says "Connect this Mac to the same network as the Switch. If it uses several networks, choose one in Settings."
+// in the language the app shows.
+func MacNetworkAction() string { return In(i18n.Locale()).MacNetworkAction() }
+
+// MacNetworkAction says "Connect this Mac to the same network as the Switch. If it uses several networks, choose one in Settings."
+// in the language of msgs.
+func (msgs Messages) MacNetworkAction() string {
+	return Catalog.Format(msgs.locale, "macNetworkAction", nil)
+}
+
+// MacAllowDone says "macOS lets the USB driver run."
+// in the language the app shows.
+func MacAllowDone() string { return In(i18n.Locale()).MacAllowDone() }
+
+// MacAllowDone says "macOS lets the USB driver run."
+// in the language of msgs.
+func (msgs Messages) MacAllowDone() string {
+	return Catalog.Format(msgs.locale, "macAllowDone", nil)
+}
+
+// MacAllowProgress says "System Integrity Protection is off. This step is done once the driver runs."
+// in the language the app shows.
+func MacAllowProgress() string { return In(i18n.Locale()).MacAllowProgress() }
+
+// MacAllowProgress says "System Integrity Protection is off. This step is done once the driver runs."
+// in the language of msgs.
+func (msgs Messages) MacAllowProgress() string {
+	return Catalog.Format(msgs.locale, "macAllowProgress", nil)
+}
+
+// MacAllowAction says "macOS blocks this driver until you change two settings in Recovery."
+// in the language the app shows.
+func MacAllowAction() string { return In(i18n.Locale()).MacAllowAction() }
+
+// MacAllowAction says "macOS blocks this driver until you change two settings in Recovery."
+// in the language of msgs.
+func (msgs Messages) MacAllowAction() string {
+	return Catalog.Format(msgs.locale, "macAllowAction", nil)
+}
+
+// MacAllowUnknown says "This app could not read the setting. If the driver does not run, follow the steps."
+// in the language the app shows.
+func MacAllowUnknown() string { return In(i18n.Locale()).MacAllowUnknown() }
+
+// MacAllowUnknown says "This app could not read the setting. If the driver does not run, follow the steps."
+// in the language of msgs.
+func (msgs Messages) MacAllowUnknown() string {
+	return Catalog.Format(msgs.locale, "macAllowUnknown", nil)
+}
+
+// MacAllowShowSteps says "Show steps"
+// in the language the app shows.
+func MacAllowShowSteps() string { return In(i18n.Locale()).MacAllowShowSteps() }
+
+// MacAllowShowSteps says "Show steps"
+// in the language of msgs.
+func (msgs Messages) MacAllowShowSteps() string {
+	return Catalog.Format(msgs.locale, "macAllowShowSteps", nil)
+}
+
+// MacRecovery1 says "Choose Apple menu > Shut Down."
+// in the language the app shows.
+func MacRecovery1() string { return In(i18n.Locale()).MacRecovery1() }
+
+// MacRecovery1 says "Choose Apple menu > Shut Down."
+// in the language of msgs.
+func (msgs Messages) MacRecovery1() string {
+	return Catalog.Format(msgs.locale, "macRecovery1", nil)
+}
+
+// MacRecovery2 says "Press and hold the power button until “Loading startup options” appears, then click Options > Continue."
+// in the language the app shows.
+func MacRecovery2() string { return In(i18n.Locale()).MacRecovery2() }
+
+// MacRecovery2 says "Press and hold the power button until “Loading startup options” appears, then click Options > Continue."
+// in the language of msgs.
+func (msgs Messages) MacRecovery2() string {
+	return Catalog.Format(msgs.locale, "macRecovery2", nil)
+}
+
+// MacRecovery3 says "In Recovery, choose Utilities > Startup Security Utility, then click Security Policy."
+// in the language the app shows.
+func MacRecovery3() string { return In(i18n.Locale()).MacRecovery3() }
+
+// MacRecovery3 says "In Recovery, choose Utilities > Startup Security Utility, then click Security Policy."
+// in the language of msgs.
+func (msgs Messages) MacRecovery3() string {
+	return Catalog.Format(msgs.locale, "macRecovery3", nil)
+}
+
+// MacRecovery4 says "Select Reduced Security, turn on “Allow user management of kernel extensions from identified developers”, then cl…"
+// in the language the app shows.
+func MacRecovery4() string { return In(i18n.Locale()).MacRecovery4() }
+
+// MacRecovery4 says "Select Reduced Security, turn on “Allow user management of kernel extensions from identified developers”, then cl…"
+// in the language of msgs.
+func (msgs Messages) MacRecovery4() string {
+	return Catalog.Format(msgs.locale, "macRecovery4", nil)
+}
+
+// MacRecovery5 says "Choose Utilities > Terminal, enter csrutil disable, confirm, then restart."
+// in the language the app shows.
+func MacRecovery5() string { return In(i18n.Locale()).MacRecovery5() }
+
+// MacRecovery5 says "Choose Utilities > Terminal, enter csrutil disable, confirm, then restart."
+// in the language of msgs.
+func (msgs Messages) MacRecovery5() string {
+	return Catalog.Format(msgs.locale, "macRecovery5", nil)
+}
+
+// MacRecovery6 says "Open any2jb again and choose Check again."
+// in the language the app shows.
+func MacRecovery6() string { return In(i18n.Locale()).MacRecovery6() }
+
+// MacRecovery6 says "Open any2jb again and choose Check again."
+// in the language of msgs.
+func (msgs Messages) MacRecovery6() string {
+	return Catalog.Format(msgs.locale, "macRecovery6", nil)
+}
+
+// MacRecoveryNote says "If FileVault is on, you'll be asked to unlock the disk. These settings lower macOS protection, and any2jb never chang…"
+// in the language the app shows.
+func MacRecoveryNote() string { return In(i18n.Locale()).MacRecoveryNote() }
+
+// MacRecoveryNote says "If FileVault is on, you'll be asked to unlock the disk. These settings lower macOS protection, and any2jb never chang…"
+// in the language of msgs.
+func (msgs Messages) MacRecoveryNote() string {
+	return Catalog.Format(msgs.locale, "macRecoveryNote", nil)
+}
+
+// MacGuideStartupSecurity says "Apple: Change startup security"
+// in the language the app shows.
+func MacGuideStartupSecurity() string { return In(i18n.Locale()).MacGuideStartupSecurity() }
+
+// MacGuideStartupSecurity says "Apple: Change startup security"
+// in the language of msgs.
+func (msgs Messages) MacGuideStartupSecurity() string {
+	return Catalog.Format(msgs.locale, "macGuideStartupSecurity", nil)
+}
+
+// MacGuideStartupSecurityURL says "https://support.apple.com/guide/mac-help/mchl768f7291/mac"
+// in the language the app shows.
+func MacGuideStartupSecurityURL() string { return In(i18n.Locale()).MacGuideStartupSecurityURL() }
+
+// MacGuideStartupSecurityURL says "https://support.apple.com/guide/mac-help/mchl768f7291/mac"
+// in the language of msgs.
+func (msgs Messages) MacGuideStartupSecurityURL() string {
+	return Catalog.Format(msgs.locale, "macGuideStartupSecurityURL", nil)
+}
+
+// MacGuideRecovery says "Apple: macOS Recovery on a Mac with Apple silicon"
+// in the language the app shows.
+func MacGuideRecovery() string { return In(i18n.Locale()).MacGuideRecovery() }
+
+// MacGuideRecovery says "Apple: macOS Recovery on a Mac with Apple silicon"
+// in the language of msgs.
+func (msgs Messages) MacGuideRecovery() string {
+	return Catalog.Format(msgs.locale, "macGuideRecovery", nil)
+}
+
+// MacGuideRecoveryURL says "https://support.apple.com/guide/mac-help/mchl82829c17/mac"
+// in the language the app shows.
+func MacGuideRecoveryURL() string { return In(i18n.Locale()).MacGuideRecoveryURL() }
+
+// MacGuideRecoveryURL says "https://support.apple.com/guide/mac-help/mchl82829c17/mac"
+// in the language of msgs.
+func (msgs Messages) MacGuideRecoveryURL() string {
+	return Catalog.Format(msgs.locale, "macGuideRecoveryURL", nil)
+}
+
+// MacGuideSip says "Apple Developer: System Integrity Protection"
+// in the language the app shows.
+func MacGuideSip() string { return In(i18n.Locale()).MacGuideSip() }
+
+// MacGuideSip says "Apple Developer: System Integrity Protection"
+// in the language of msgs.
+func (msgs Messages) MacGuideSip() string {
+	return Catalog.Format(msgs.locale, "macGuideSip", nil)
+}
+
+// MacGuideSipURL says "https://developer.apple.com/documentation/security/disabling-and-enabling-system-integrity-protection"
+// in the language the app shows.
+func MacGuideSipURL() string { return In(i18n.Locale()).MacGuideSipURL() }
+
+// MacGuideSipURL says "https://developer.apple.com/documentation/security/disabling-and-enabling-system-integrity-protection"
+// in the language of msgs.
+func (msgs Messages) MacGuideSipURL() string {
+	return Catalog.Format(msgs.locale, "macGuideSipURL", nil)
+}
+
+// MacRestart says "Restart your Mac to finish installing, then check again."
+// in the language the app shows.
+func MacRestart() string { return In(i18n.Locale()).MacRestart() }
+
+// MacRestart says "Restart your Mac to finish installing, then check again."
+// in the language of msgs.
+func (msgs Messages) MacRestart() string {
+	return Catalog.Format(msgs.locale, "macRestart", nil)
+}
+
+// MacInstallBlocked says "This version can't install the driver yet."
+// in the language the app shows.
+func MacInstallBlocked() string { return In(i18n.Locale()).MacInstallBlocked() }
+
+// MacInstallBlocked says "This version can't install the driver yet."
+// in the language of msgs.
+func (msgs Messages) MacInstallBlocked() string {
+	return Catalog.Format(msgs.locale, "macInstallBlocked", nil)
+}
+
+// MacUsbBlocked says "This version can't use USB input yet."
+// in the language the app shows.
+func MacUsbBlocked() string { return In(i18n.Locale()).MacUsbBlocked() }
+
+// MacUsbBlocked says "This version can't use USB input yet."
+// in the language of msgs.
+func (msgs Messages) MacUsbBlocked() string {
+	return Catalog.Format(msgs.locale, "macUsbBlocked", nil)
+}
+
+// MacInstallDone says "The USB driver is installed and running."
+// in the language the app shows.
+func MacInstallDone() string { return In(i18n.Locale()).MacInstallDone() }
+
+// MacInstallDone says "The USB driver is installed and running."
+// in the language of msgs.
+func (msgs Messages) MacInstallDone() string {
+	return Catalog.Format(msgs.locale, "macInstallDone", nil)
+}
+
+// MacInstallNotRunning says "Installed, but not running yet. Allow it in System Settings > Privacy & Security, then restart your Mac."
+// in the language the app shows.
+func MacInstallNotRunning() string { return In(i18n.Locale()).MacInstallNotRunning() }
+
+// MacInstallNotRunning says "Installed, but not running yet. Allow it in System Settings > Privacy & Security, then restart your Mac."
+// in the language of msgs.
+func (msgs Messages) MacInstallNotRunning() string {
+	return Catalog.Format(msgs.locale, "macInstallNotRunning", nil)
+}
+
+// MacInstallAction says "Not installed yet."
+// in the language the app shows.
+func MacInstallAction() string { return In(i18n.Locale()).MacInstallAction() }
+
+// MacInstallAction says "Not installed yet."
+// in the language of msgs.
+func (msgs Messages) MacInstallAction() string {
+	return Catalog.Format(msgs.locale, "macInstallAction", nil)
+}
+
+// MacInstallButton says "Install…"
+// in the language the app shows.
+func MacInstallButton() string { return In(i18n.Locale()).MacInstallButton() }
+
+// MacInstallButton says "Install…"
+// in the language of msgs.
+func (msgs Messages) MacInstallButton() string {
+	return Catalog.Format(msgs.locale, "macInstallButton", nil)
+}
+
+// MacConnectUnsupported says "This Mac can't type on the Switch over USB."
+// in the language the app shows.
+func MacConnectUnsupported() string { return In(i18n.Locale()).MacConnectUnsupported() }
+
+// MacConnectUnsupported says "This Mac can't type on the Switch over USB."
+// in the language of msgs.
+func (msgs Messages) MacConnectUnsupported() string {
+	return Catalog.Format(msgs.locale, "macConnectUnsupported", nil)
+}
+
+// MacConnectDone says "The Switch recognized this Mac as a USB keyboard."
+// in the language the app shows.
+func MacConnectDone() string { return In(i18n.Locale()).MacConnectDone() }
+
+// MacConnectDone says "The Switch recognized this Mac as a USB keyboard."
+// in the language of msgs.
+func (msgs Messages) MacConnectDone() string {
+	return Catalog.Format(msgs.locale, "macConnectDone", nil)
+}
+
+// MacConnectFound says "A USB connection was found. Typing on the Switch is tested when you start."
+// in the language the app shows.
+func MacConnectFound() string { return In(i18n.Locale()).MacConnectFound() }
+
+// MacConnectFound says "A USB connection was found. Typing on the Switch is tested when you start."
+// in the language of msgs.
+func (msgs Messages) MacConnectFound() string {
+	return Catalog.Format(msgs.locale, "macConnectFound", nil)
+}
+
+// MacConnectWaiting says "Do this after the driver is running."
+// in the language the app shows.
+func MacConnectWaiting() string { return In(i18n.Locale()).MacConnectWaiting() }
+
+// MacConnectWaiting says "Do this after the driver is running."
+// in the language of msgs.
+func (msgs Messages) MacConnectWaiting() string {
+	return Catalog.Format(msgs.locale, "macConnectWaiting", nil)
+}
+
+// MacConnectSeveral says "More than one USB connection was found. Choose the one to the Switch."
+// in the language the app shows.
+func MacConnectSeveral() string { return In(i18n.Locale()).MacConnectSeveral() }
+
+// MacConnectSeveral says "More than one USB connection was found. Choose the one to the Switch."
+// in the language of msgs.
+func (msgs Messages) MacConnectSeveral() string {
+	return Catalog.Format(msgs.locale, "macConnectSeveral", nil)
+}
+
+// MacConnectAction says "Plug a USB-C data cable from the Switch into this Mac. The Switch must power the Mac, not the other way round."
+// in the language the app shows.
+func MacConnectAction() string { return In(i18n.Locale()).MacConnectAction() }
+
+// MacConnectAction says "Plug a USB-C data cable from the Switch into this Mac. The Switch must power the Mac, not the other way round."
+// in the language of msgs.
+func (msgs Messages) MacConnectAction() string {
+	return Catalog.Format(msgs.locale, "macConnectAction", nil)
+}
+
+// MacConnectButton says "USB connection settings"
+// in the language the app shows.
+func MacConnectButton() string { return In(i18n.Locale()).MacConnectButton() }
+
+// MacConnectButton says "USB connection settings"
+// in the language of msgs.
+func (msgs Messages) MacConnectButton() string {
+	return Catalog.Format(msgs.locale, "macConnectButton", nil)
+}
+
+// FlowDetectionBlocked says "Finish the steps marked “Needs action” to continue."
 // in the language the app shows.
 func FlowDetectionBlocked() string { return In(i18n.Locale()).FlowDetectionBlocked() }
 
-// FlowDetectionBlocked says "Resolve the checks marked “Requires attention” before continuing."
+// FlowDetectionBlocked says "Finish the steps marked “Needs action” to continue."
 // in the language of msgs.
 func (msgs Messages) FlowDetectionBlocked() string {
 	return Catalog.Format(msgs.locale, "flowDetectionBlocked", nil)
@@ -4920,16 +5360,6 @@ func StartupSecurityTitle() string { return In(i18n.Locale()).StartupSecurityTit
 // in the language of msgs.
 func (msgs Messages) StartupSecurityTitle() string {
 	return Catalog.Format(msgs.locale, "startupSecurityTitle", nil)
-}
-
-// CheckManual says "Check this yourself"
-// in the language the app shows.
-func CheckManual() string { return In(i18n.Locale()).CheckManual() }
-
-// CheckManual says "Check this yourself"
-// in the language of msgs.
-func (msgs Messages) CheckManual() string {
-	return Catalog.Format(msgs.locale, "checkManual", nil)
 }
 
 // ReadinessChecks says "Readiness checks"
@@ -5060,16 +5490,6 @@ func CheckOther() string { return In(i18n.Locale()).CheckOther() }
 // in the language of msgs.
 func (msgs Messages) CheckOther() string {
 	return Catalog.Format(msgs.locale, "checkOther", nil)
-}
-
-// CheckListTitle says "This method needs:"
-// in the language the app shows.
-func CheckListTitle() string { return In(i18n.Locale()).CheckListTitle() }
-
-// CheckListTitle says "This method needs:"
-// in the language of msgs.
-func (msgs Messages) CheckListTitle() string {
-	return Catalog.Format(msgs.locale, "checkListTitle", nil)
 }
 
 // NextStep says "Next: {action}"
@@ -5292,16 +5712,6 @@ func (msgs Messages) SelectionBlocked() string {
 	return Catalog.Format(msgs.locale, "selectionBlocked", nil)
 }
 
-// ApplyLanHint says "Press Enter in the address field to use it."
-// in the language the app shows.
-func ApplyLanHint() string { return In(i18n.Locale()).ApplyLanHint() }
-
-// ApplyLanHint says "Press Enter in the address field to use it."
-// in the language of msgs.
-func (msgs Messages) ApplyLanHint() string {
-	return Catalog.Format(msgs.locale, "applyLanHint", nil)
-}
-
 // RouteCheckListTitle says "This route needs:"
 // in the language the app shows.
 func RouteCheckListTitle() string { return In(i18n.Locale()).RouteCheckListTitle() }
@@ -5352,16 +5762,6 @@ func RouteUnchecked() string { return In(i18n.Locale()).RouteUnchecked() }
 // in the language of msgs.
 func (msgs Messages) RouteUnchecked() string {
 	return Catalog.Format(msgs.locale, "routeUnchecked", nil)
-}
-
-// FlowCheckFirst says "Check what this method needs, then continue."
-// in the language the app shows.
-func FlowCheckFirst() string { return In(i18n.Locale()).FlowCheckFirst() }
-
-// FlowCheckFirst says "Check what this method needs, then continue."
-// in the language of msgs.
-func (msgs Messages) FlowCheckFirst() string {
-	return Catalog.Format(msgs.locale, "flowCheckFirst", nil)
 }
 
 // BrowserResearch says "Browser research probes"
