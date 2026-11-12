@@ -19,6 +19,10 @@ exercise setup and a complete structured session result without console hardware
 Only rows with specific evidence are advanced. See the
 [controller seam](session-controller.md) and [manual limits](guided-manual.md).
 
+Every interactive control also has a command-line equivalent, or a stated
+reason it has none, in [command-line parity](cli-parity.md). That test fails
+when a control has no row or a row names a missing command or flag.
+
 Host profile selection, edition/capability gates and local preference reload are
 covered by the [host profile tests](host-profile-ui.md#host-profile-tests).
 Capability buttons do not claim working tool adapters or console verification.
