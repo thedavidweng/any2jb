@@ -25,11 +25,13 @@ func TestPolishStateMatrix(t *testing.T) {
 				t.Run(state, func(t *testing.T) {
 					f := sessiontest.NewFakeEnvironment()
 					if state == "blocked" {
+						// Observed checks only: guidance and preferences are not checks.
 						f.Checks = []session.Check{
-							{ID: "network", State: session.RequiresAttention, Message: locales.NetworkPrerequisites(), NextAction: locales.FlowDetectionBlocked()},
-							{ID: "available", State: session.Available, Message: locales.TransportUnverified()},
-							{ID: "verified", State: session.CheckVerified, Message: locales.ReferencePrerequisites()},
-							{ID: "long-path", State: session.RequiresAttention, Message: "/Users/a-very-long-account-name/Library/Application Support/io.github.thedavidweng.any2jb/sessions/7FBEHYZTUT5Z2PPVHLZXNI7XSD/runs/host-stdout-with-an-unbreakable-segment-0123456789abcdef.log"},
+							{ID: "network", State: session.CheckVerified, Message: locales.DynNetAssignedPrefix() + "en0: 192.0.2.24." + locales.DynNetSelectedPrefix() + "192.0.2.24" + locales.DynNetSelectedSuffix()},
+							{ID: "sip", GatesTransport: "usb-hid", State: session.RequiresAttention, Message: locales.DynSipEnabled(), NextAction: locales.DynSipEnabledAction()},
+							{ID: "usb-controllers", GatesTransport: "usb-hid", State: session.Available, Message: locales.DynUsbOneController(), NextAction: locales.DynUsbVerifyEnumeration()},
+							{ID: "driver-loaded", GatesTransport: "usb-hid", State: session.RequiresAttention, Message: locales.DynUsbKextNotLoaded(), NextAction: locales.DynUsbCompleteApproval()},
+							{ID: "engine", State: session.RequiresAttention, Message: "/Users/a-very-long-account-name/Library/Application Support/io.github.thedavidweng.any2jb/sessions/7FBEHYZTUT5Z2PPVHLZXNI7XSD/runs/host-stdout-with-an-unbreakable-segment-0123456789abcdef.log"},
 						}
 					}
 					gate := make(chan struct{})
@@ -42,7 +44,14 @@ func TestPolishStateMatrix(t *testing.T) {
 						f.ToolGate = gate
 						defer close(gate)
 					}
-					a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned", RetainsRPC: true, Tools: []string{"rpc-status"}}))
+					controller := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned", RetainsRPC: true, Tools: []string{"rpc-status"}})
+					if state == "blocked" {
+						// USB-only checks apply to a USB method, not to guided manual input.
+						if _, err := controller.ConfigureTransport(preferredTransport("keyboard"), ""); err != nil {
+							t.Fatal(err)
+						}
+					}
+					a := testApp(t, controller)
 					tt := ui.NewTester(a.view, 960, 1400)
 					if state != "detection" && state != "restart" {
 						a.command(a.controller.Inspect())

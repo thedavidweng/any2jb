@@ -58,7 +58,10 @@ func (a *app) view(c *ui.Context) {
 	applyTheme(c)
 	ui.Column(c).Fill().Children(func() {
 		ui.Row(c).FillWidth().Gap(8).Padding(12, 20).Background(cardFill(c)).Children(func() {
-			ui.Text(c, locales.AppName()).FontSize(c.Theme().Rem(1.35)).Bold().Grow(1)
+			ui.Column(c).Gap(1).Grow(1).Children(func() {
+				ui.Text(c, locales.AppName()).FontSize(c.Theme().Rem(1.35)).Bold()
+				muted(c, locales.AppDescriptionShort()).FontSize(c.Theme().Rem(0.85)).SingleLine()
+			})
 			if ui.Button(c.Key("diagnostics-open"), locales.Diagnostics()).Clicked() {
 				a.stopKeyboard()
 				a.flow.diagnostics = !a.flow.diagnostics

@@ -46,6 +46,12 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 
 ## Text
 
+- A readiness row reads subject, state, then one next action prefixed with
+  “Next:”. Guidance, preferences and reference notes are never shown as rows
+  with a state badge; only observed checks are.
+- Expert options, reference prerequisites, connecting to an open session and
+  the exact verification evidence live in disclosures. A disclosure hides
+  detail, never a risk statement or a blocking reason.
 - Errors and blockers say what happened and what to do next in full sentences.
   Safety and warning text is never softened; see `docs/localization.md` for
   the translated term list that keeps risk wording consistent.

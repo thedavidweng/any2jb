@@ -73,20 +73,19 @@ func TestWizardSavedBootstrapStagesAndCornerAccess(t *testing.T) {
 					clickManual(t, tt, corner)
 				}
 			}
-			check("1-detection", []string{locales.CheckReadiness()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.ToolsTitle()})
+			check("1-detection", []string{locales.CheckReadiness()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.ToolsStatus()})
 			clickManual(t, tt, locales.CheckReadiness())
 			uiStage(t, a, tt, session.Ready)
 			clickManual(t, tt, locales.FlowNextSelection())
-			check("2-selection", []string{locales.CivTitle(), locales.FlowNextLaunch()}, []string{locales.CheckReadiness(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsTitle()})
+			check("2-selection", []string{locales.CivTitle(), locales.FlowNextLaunch()}, []string{locales.CheckReadiness(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsStatus()})
 			if !tt.HasText(locales.FlowSaved()) {
 				t.Fatal("matching saved bootstrap did not skip setup")
 			}
 			clickManual(t, tt, locales.FlowNextLaunch())
-			check("3-launch", []string{locales.GuidedManualLaunch()}, []string{locales.CivTitle(), locales.PrepareBootstrap(), locales.CheckReadiness(), locales.ToolsTitle()})
+			check("3-launch", []string{locales.GuidedManualLaunch()}, []string{locales.CivTitle(), locales.PrepareBootstrap(), locales.CheckReadiness(), locales.ToolsStatus()})
 			clickManual(t, tt, locales.GuidedManualLaunch())
 			uiStage(t, a, tt, session.RetainedRPC)
-			check("4-tools", []string{locales.ToolsTitle(), locales.Finish()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.CheckReadiness()})
-			clickManual(t, tt, locales.ToolsTitle())
+			check("4-tools", []string{locales.ToolsStatus(), locales.Finish()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.CheckReadiness()})
 			if _, ok := tt.AccessByRole(ui.RoleButton, locales.ToolsStatus()); !ok {
 				t.Fatal("verified tools are unreachable")
 			}
@@ -100,7 +99,7 @@ func TestWizardSavedBootstrapStagesAndCornerAccess(t *testing.T) {
 	}
 }
 
-func TestInputMethodSelectionSurvivesFramesAndRequiresApply(t *testing.T) {
+func TestInputMethodChoiceAppliesItselfAndChecksThatMethod(t *testing.T) {
 	a, err := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -113,22 +112,22 @@ func TestInputMethodSelectionSurvivesFramesAndRequiresApply(t *testing.T) {
 	clickManual(t, tt, locales.FlowKeyboard())
 	tt.Frame()
 	tt.Frame()
-	if a.preferences.Transport != "keyboard" || a.controller.Snapshot().Transport.Mode != "manual" {
-		t.Fatal("method choice was lost or applied without permission")
+	if a.preferences.Transport != "keyboard" || a.controller.Snapshot().Transport.Mode != "keyboard" {
+		t.Fatal("choosing a method did not apply it")
 	}
-	if !disabled(t, tt, locales.CheckReadiness()) {
-		t.Fatal("unapplied transport can inspect old method")
+	uiStage(t, a, tt, session.Ready)
+	if len(a.controller.Snapshot().Checks) == 0 {
+		t.Fatal("choosing a method did not check what that method needs")
 	}
-	clickManual(t, tt, locales.ApplyPreferences())
-	if a.controller.Snapshot().Transport.Mode != "keyboard" {
-		t.Fatal("input method was not applied")
+	if disabled(t, tt, locales.CheckReadiness()) {
+		t.Fatal("the applied method cannot be checked again")
 	}
 }
 
 func TestDetectionShowsOnlyItsOwnControls(t *testing.T) {
 	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"}))
 	tt := ui.NewTester(a.view, 760, 1000)
-	for _, label := range []string{"Guided manual launch", "Advanced Tools", "Prepare bootstrap", "CivSwitch"} {
+	for _, label := range []string{"Guided manual launch", "Check live RPC status", "Prepare bootstrap", "CivSwitch"} {
 		if _, ok := tt.AccessByRole(ui.RoleButton, label); ok {
 			t.Errorf("later-stage action %q appears during detection", label)
 		}
@@ -191,7 +190,7 @@ func TestSelectionHidesLaunchAndExplainsCivSwitchMethod(t *testing.T) {
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Start"); ok {
 		t.Fatal("launch control appears in selection")
 	}
-	if _, ok := tt.AccessByRole(ui.RoleButton, "Advanced Tools"); ok {
+	if _, ok := tt.AccessByRole(ui.RoleButton, "Check live RPC status"); ok {
 		t.Fatal("tools appear before verification")
 	}
 	if err := tt.Click("CivSwitch"); err != nil {

@@ -24,7 +24,6 @@ type toolAdapter interface {
 }
 
 type toolsPanel struct {
-	open         bool
 	busy, failed bool
 	consoleIPv4  string
 	sessions     []session.RetainedSession
@@ -61,7 +60,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 		state = a.tools.State()
 	}
 	leased := s.Leased()
-	ui.Text(c, locales.ToolsTitle()).FontSize(20).Bold()
+	sectionTitle(c, locales.ToolsTitle())
 	ui.Text(c, locales.ToolsReadOnly()).TextColor(c.Theme().TextMuted)
 	switch {
 	case state.Lost:
@@ -141,9 +140,6 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())
 	}
-	if inline(ui.Button(c.Key("tools-back"), locales.ToolsBack())).Disabled(s.Busy).Clicked() {
-		p.open = false
-	}
 }
 
 // toolGate separates the two refusals a user must be able to tell apart: the
@@ -178,7 +174,9 @@ func (a *app) runTool(tool, consoleIPv4 string) {
 func (a *app) attachView(c *ui.Context, s session.Snapshot) {
 	p := &a.toolsPanel
 	leased := s.Leased()
-	ui.Text(c, locales.ToolsAttachNote())
+	if !leased || s.Attached {
+		ui.Text(c, locales.ToolsAttachNote())
+	}
 	if leased {
 		if s.Attached {
 			ui.Text(c, locales.ToolsDetachNote())

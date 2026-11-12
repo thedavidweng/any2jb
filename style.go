@@ -198,6 +198,78 @@ func easeOutQuint(t float32) float32 {
 	return 1 - u*u*u*u*u
 }
 
+// checkName names a check's subject, so a row reads subject, state, action.
+// A controller check carries its identifier, which is the subject itself.
+func checkName(check session.Check) string {
+	switch check.ID {
+	case "network":
+		return locales.CheckNetwork()
+	case "sip":
+		return locales.CheckSip()
+	case "driver-present":
+		return locales.CheckDriverFiles()
+	case "driver-loaded":
+		return locales.CheckDriverLoaded()
+	case "driver-restart":
+		return locales.CheckDriverRestart()
+	case "usb-platform":
+		return locales.CheckUsbPort()
+	case "usb-controllers":
+		return locales.CheckUsbController()
+	case "runtime":
+		return locales.CheckRuntime()
+	case "engine":
+		return locales.CheckHostProgram()
+	case "usb-runtime":
+		return locales.CheckUsbHelpers()
+	case "input-adapter":
+		return locales.CheckTypingMethod()
+	}
+	if check.Controller != "" {
+		return locales.CheckUsbController() + " " + check.Controller
+	}
+	return locales.CheckOther()
+}
+
+// panelBody is the inside of a disclosure, which keeps expert or precise
+// detail available without crowding the stage.
+func panelBody(c *ui.Context, fn func()) {
+	ui.Column(c).FillWidth().Gap(c.Theme().Space(2)).Padding(c.Theme().Space(2), 0, 0).Children(fn)
+}
+
+func keyValue(c *ui.Context, label, value string) {
+	ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).Children(func() {
+		muted(c, label).Shrink(0)
+		ui.Text(c, value).Bold().Shrink(1)
+	})
+}
+
+// steps shows where a run stands. The current step is marked and named, so
+// the state never depends on color alone.
+func steps(c *ui.Context, names []string, current int) {
+	t := c.Theme()
+	ui.Column(c).FillWidth().Gap(t.Space(1.5)).Children(func() {
+		for i, name := range names {
+			ui.Row(c).FillWidth().Gap(t.Space(2)).Children(func() {
+				mark, color := "○", t.TextMuted
+				switch {
+				case i < current:
+					mark, color = "✓", t.Success
+				case i == current:
+					mark, color = "▶", t.Text
+				}
+				ui.Text(c, mark).TextColor(color).Shrink(0)
+				label := ui.Text(c, name).Shrink(1)
+				if i == current {
+					label.Bold()
+				} else if i > current {
+					label.TextColor(t.TextMuted)
+				}
+			})
+		}
+	})
+}
+
 func manualBadge(c *ui.Context) {
 	badge(c, "startup-security-badge", toneManual, locales.CheckManual())
 }

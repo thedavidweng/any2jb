@@ -87,7 +87,7 @@ func TestTabOrderFollowsVisualOrder(t *testing.T) {
 	expected := []string{
 		locales.Diagnostics(), locales.Settings(),
 		locales.FlowPosition("1", locales.FlowDetection()), locales.TransportMode(), locales.LanOverride(),
-		locales.ApplyPreferences(), locales.CheckReadiness(), locales.FlowNextSelection(),
+		locales.CheckReadiness(), locales.FlowNextSelection(),
 	}
 	seen := []string{}
 	for range 40 {

@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/thedavidweng/any2jb/launcher"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/savekit"
@@ -44,7 +45,6 @@ func retainedApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeTool
 	a := &app{manifest: m, tools: adapter,
 		controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
 			RetainsRPC: true, Tools: tools})}
-	a.toolsPanel.open = true
 	return a
 }
 
@@ -82,7 +82,7 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	if !tt.HasText("This host profile does not enable this tool.") {
 		t.Fatal(tt.Texts())
 	}
-	if !tt.HasText("Advanced Tools need a verified session with a live retained RPC lease, or a connection to an existing one.") {
+	if !tt.HasText(locales.ToolsNeedLease()) {
 		t.Fatal(tt.Texts())
 	}
 }
@@ -100,7 +100,7 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.RetainedRPC)
-	if !tt.HasText("This app owns the verified retained session.") {
+	if !tt.HasText(locales.ToolsOwned()) {
 		t.Fatal(tt.Texts())
 	}
 	status, ok := tt.AccessByRole(ui.RoleButton, "Check live RPC status")
@@ -127,7 +127,7 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 	}
 	adapter.state = retained.State{Lost: true}
 	tt.Frame()
-	if !tt.HasText("The retained session was lost. It is never reconnected automatically; restart the console before another attempt.") {
+	if !tt.HasText(locales.ToolsLost()) {
 		t.Fatal(tt.Texts())
 	}
 }
