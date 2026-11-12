@@ -21,6 +21,7 @@ import (
 )
 
 type app struct {
+	flow               flowUI
 	bootstrapMu        sync.Mutex
 	developerStaged    bool
 	startupError       string
@@ -54,59 +55,46 @@ func (a *app) view(c *ui.Context) {
 	if a.controller != nil {
 		a.keyboard.observe(a.controller.Snapshot())
 	}
-	ui.Scroll(c).Fill().Children(func() {
-		ui.Column(c).FillWidth().Gap(16).Padding(24).Children(func() {
-			ui.Text(c, locales.AppName()).FontSize(28).Bold()
-			ui.Text(c, locales.AppDescription()).TextColor(c.Theme().TextMuted)
-			if a.developerStaged {
-				ui.Text(c, locales.DeveloperStaged()).Bold()
+	ui.Column(c).Fill().Children(func() {
+		ui.Row(c).FillWidth().Gap(12).Padding(16).Children(func() {
+			ui.Text(c, locales.AppName()).FontSize(24).Bold().Grow(1)
+			if ui.Button(c.Key("diagnostics-open"), locales.Diagnostics()).Clicked() {
+				a.stopKeyboard()
+				a.flow.diagnostics = !a.flow.diagnostics
+				a.flow.settings = false
 			}
-			if a.startupError != "" {
-				ui.Text(c.Key("startup-error"), a.startupError).Role(ui.RoleStatus).Bold()
+			if ui.Button(c.Key("settings-open"), locales.Settings()).Clicked() {
+				a.stopKeyboard()
+				a.flow.method = ""
+				a.flow.settings = !a.flow.settings
+				a.flow.diagnostics = false
 			}
-			if a.driverPanel.open {
-				a.driverView(c)
-				return
-			}
-			if a.controller != nil && a.civSwitchPanel.open {
-				a.civSwitchView(c)
-				return
-			}
-			if a.controller != nil && a.toolsPanel.open {
-				if a.saveKit.open {
-					a.saveKitView(c)
-				} else {
-					a.advancedToolsView(c)
+		})
+		ui.Scroll(c).Fill().Children(func() {
+			ui.Column(c).FillWidth().Gap(12).Padding(24).Children(func() {
+				if a.developerStaged {
+					ui.Text(c, locales.DeveloperStaged()).Bold()
 				}
-				return
-			}
-			if a.controller != nil {
-				s := a.controller.Snapshot()
-				if ui.Button(c.Key("civ-open"), locales.CivTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
-					a.stopKeyboard()
-					a.civSwitchPanel.open = true
+				if a.startupError != "" {
+					ui.Text(c.Key("startup-error"), a.startupError).Role(ui.RoleStatus).Bold()
 				}
-				if ui.Button(c.Key("tools-open"), locales.ToolsTitle()).Disabled(s.Busy || s.CivSwitch || s.Stage == session.Indeterminate).Clicked() {
-					a.toolsPanel.open = true
+				switch {
+				case a.flow.diagnostics:
+					ui.Text(c, locales.Diagnostics()).FontSize(20).Bold()
+					a.diagnosticsView(c)
+				case a.driverPanel.open:
+					a.driverView(c)
+				case a.flow.settings:
+					a.settingsView(c)
+				case a.controller == nil:
+					ui.Text(c, locales.NoSession())
+				default:
+					a.flowView(c)
 				}
-			}
-			a.profileView(c)
-			if a.controller == nil {
-				ui.Text(c, locales.NoSession())
-			} else {
-				a.sessionView(c)
-				a.diagnosticsView(c)
-			}
-			if a.about {
-				ui.Text(c, locales.BuildLimitations())
-			}
-			if ui.Button(c.Key("about"), locales.AboutBuild()).Clicked() {
-				a.about = !a.about
-			}
+			})
 		})
 	})
 }
-
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "--self-test" {
 		if err := packagedSelfTest(); err != nil {

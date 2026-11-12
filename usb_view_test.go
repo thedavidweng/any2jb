@@ -22,6 +22,7 @@ import (
 
 func TestUSBConsoleGateWaitsForExplicitAcknowledgement(t *testing.T) {
 	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "fixture", Revision: "pinned"}))
+	a.flow.stage = flowLaunch
 	done := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

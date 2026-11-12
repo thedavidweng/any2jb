@@ -79,6 +79,7 @@ func TestConsoleRestartPanelShowsTheUnconfirmedReleaseInstruction(t *testing.T) 
 	tt := ui.NewTester(a.view, 640, 1200)
 	clickManual(t, tt, locales.CheckReadiness())
 	uiStage(t, a, tt, session.Ready)
+	advanceToLaunch(t, a, tt)
 	clickManual(t, tt, locales.GuidedManualLaunch())
 	deadline := time.After(time.Second)
 	for {

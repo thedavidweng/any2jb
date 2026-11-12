@@ -31,8 +31,7 @@ func (a *app) sessionView(c *ui.Context) {
 		}
 	}
 	s := a.controller.Snapshot()
-	pending := s.Profile.ID != a.preferences.Profile ||
-		s.Edition != a.preferences.Edition || s.LANOverride != a.preferences.LANIPv4 || s.Transport.Mode != a.preferences.Transport
+	pending := a.preferencesPending(s)
 	if pending {
 		ui.Text(c, locales.ApplyBeforeLaunch())
 	}
@@ -54,7 +53,7 @@ func (a *app) sessionView(c *ui.Context) {
 	} else if s.Stage == session.RetainedRPC {
 		ui.Text(c, locales.HeldVerificationEvidence())
 	}
-	if s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
+	if a.flow.stage == flowSelection && s.Profile.BootstrapSHA256 != "" && !s.BootstrapSaved {
 		ui.Text(c, locales.MatchingBootstrapRequired(s.Profile.ID, s.Edition, s.Profile.SaveName))
 		if !s.Busy && !s.SideEffects && !pending && (s.Stage == session.Idle || s.Stage == session.Ready || s.Stage == session.NeedsSetup) {
 			if ui.Button(c.Key("bootstrap-reuse"), locales.UseSavedBootstrap()).Clicked() {
@@ -76,45 +75,11 @@ func (a *app) sessionView(c *ui.Context) {
 	if s.Stage == session.Failed {
 		ui.Text(c, locales.SafeFailure())
 	}
-	for _, check := range s.Checks {
-		stateColor := c.Theme().Danger
-		switch check.State {
-		case session.CheckVerified:
-			stateColor = c.Theme().Success
-		case session.Available:
-			stateColor = c.Theme().Warning
-		}
-		ui.Text(c.Key(check.ID+"-state"), checkStateTitle(check.State)).Bold().TextColor(stateColor).Role(ui.RoleStatus)
-		if check.GatesTransport == "usb-hid" {
-			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
-		}
-		message := check.Message
-		if check.State == session.CheckVerified && s.Transport.Controller != "" &&
-			(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
-			message = locales.UsbEnumerationObserved(s.Transport.Controller)
-		}
-		ui.Text(c.Key(check.ID+"-message"), localize(message))
-		if check.NextAction != "" {
-			ui.Text(c.Key(check.ID+"-action"), localize(check.NextAction))
-		}
-	}
 	if s.Total > 0 {
 		ui.Text(c, fmt.Sprintf("%s: %d / %d", locales.Progress(), s.Current, s.Total))
 		if s.HasEstimate && s.Busy {
 			ui.Text(c, locales.TypingRemaining(fmt.Sprint((s.Remaining.Milliseconds()+999)/1000))).TextColor(c.Theme().TextMuted)
 		}
-	}
-	for _, check := range s.Checks {
-		if check.ID == "driver-present" || check.ID == "driver-loaded" || check.ID == "driver-restart" {
-			if ui.Button(c.Key("driver-setup"), locales.DriverSetup()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
-				a.stopKeyboard()
-				a.driverPanel.open = true
-			}
-			break
-		}
-	}
-	if ui.Button(c.Key("usb-keyboard"), locales.UsbKeyboardTitle()).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate).Clicked() {
-		a.keyboard.open = true
 	}
 	if a.commandRejected {
 		message := a.commandInstruction
@@ -123,11 +88,7 @@ func (a *app) sessionView(c *ui.Context) {
 		}
 		ui.Text(c, message)
 	}
-	ui.Row(c).Gap(12).Children(func() {
-		if ui.Button(c.Key("inspect"), locales.CheckReadiness()).
-			Disabled(pending || s.Busy || s.Stage == session.Indeterminate || s.SideEffects).Clicked() {
-			a.command(a.controller.Inspect())
-		}
+	if a.flow.stage == flowLaunch {
 		label := locales.StartJailbreak()
 		// The label names the selected transport, never the outcome: a blocked
 		// automatic launch stays "Start" and its blocking checks say why.
@@ -137,7 +98,7 @@ func (a *app) sessionView(c *ui.Context) {
 		if ui.PrimaryButton(c.Key("start"), label).Disabled(pending || !s.CanStart()).Clicked() {
 			a.command(a.controller.Start())
 		}
-	})
+	}
 	if (s.Busy && s.Stage != session.Verified && s.Stage != session.RetainedRPC && s.Stage != session.Finished) || s.Stage == session.BootstrapSetup {
 		ui.Row(c).Gap(12).Children(func() {
 			if ui.Button(c.Key("cancel"), locales.Cancel()).Disabled(s.SideEffects).Clicked() {
@@ -148,7 +109,7 @@ func (a *app) sessionView(c *ui.Context) {
 			}
 		})
 	}
-	if (s.Stage == session.NeedsSetup || s.Stage == session.Ready) && !s.Busy {
+	if a.flow.stage == flowSelection && !s.BootstrapSaved && (s.Stage == session.NeedsSetup || s.Stage == session.Ready) && !s.Busy {
 		if ui.Button(c.Key("bootstrap"), locales.PrepareBootstrap()).Disabled(pending).Clicked() {
 			a.allowOverwrite = false
 			a.command(a.controller.PrepareBootstrap())
@@ -172,12 +133,7 @@ func (a *app) sessionView(c *ui.Context) {
 			a.command(a.controller.Finish())
 		}
 	}
-	ui.Text(c, locales.ReferencePrerequisites()).Bold()
-	ui.Text(c, locales.ConsoleFirmware())
-	ui.Text(c, locales.SmilebasicPrerequisites())
-	ui.Text(c, locales.NetworkPrerequisites())
-	ui.Text(c, locales.CablePrerequisites())
-	ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
+
 }
 
 func checkStateTitle(state session.CheckState) string {
@@ -215,5 +171,45 @@ func stageTitle(stage session.Stage) string {
 		return locales.RecoveryRequired()
 	default:
 		return locales.SessionInProgress()
+	}
+}
+
+func (a *app) readinessView(c *ui.Context, s session.Snapshot, detection bool) {
+	for _, check := range s.Checks {
+		if detection != detectionCheck(check) || !checkApplies(check, s.Transport) {
+			continue
+		}
+		stateColor := c.Theme().Danger
+		switch check.State {
+		case session.CheckVerified:
+			stateColor = c.Theme().Success
+		case session.Available:
+			stateColor = c.Theme().Warning
+		}
+		ui.Text(c.Key(check.ID+"-state"), checkStateTitle(check.State)).Bold().TextColor(stateColor).Role(ui.RoleStatus)
+		if check.GatesTransport == "usb-hid" {
+			ui.Text(c, locales.UsbOnly()).TextColor(c.Theme().TextMuted)
+		}
+		message := check.Message
+		if check.State == session.CheckVerified && s.Transport.Controller != "" &&
+			(check.ID == "usb-controllers" || check.Controller == s.Transport.Controller) {
+			message = locales.UsbEnumerationObserved(s.Transport.Controller)
+		}
+		ui.Text(c.Key(check.ID+"-message"), localize(message))
+		if check.NextAction != "" {
+			ui.Text(c.Key(check.ID+"-action"), localize(check.NextAction))
+		}
+	}
+
+}
+
+func referencePrerequisites(c *ui.Context, usb bool) {
+	ui.Text(c, locales.ReferencePrerequisites()).Bold()
+	ui.Text(c, locales.ConsoleFirmware())
+	ui.Text(c, locales.SmilebasicPrerequisites())
+	ui.Text(c, locales.NetworkPrerequisites())
+	if usb {
+		ui.Text(c, locales.CablePrerequisites())
+		ui.Text(c, locales.DriverSecurityGuidance()).TextColor(c.Theme().TextMuted)
 	}
 }

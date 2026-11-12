@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
 
@@ -13,6 +14,9 @@ func TestExistingBootstrapRequiresDeliberateIdentityConfirmation(t *testing.T) {
 	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
 	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
 	tt := ui.NewTester(a.view, 640, 900)
+	clickManual(t, tt, "Check readiness")
+	uiStage(t, a, tt, session.Ready)
+	clickManual(t, tt, "Continue to selection")
 	if err := tt.Click("Use saved bootstrap"); err != nil {
 		t.Fatal(err)
 	}

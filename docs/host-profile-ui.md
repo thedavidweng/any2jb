@@ -1,5 +1,11 @@
 # Host profile choices
 
+Host and edition selection lives in stage 2 beside the selected route's
+first-time bootstrap setup. The same preferences remain reachable through the
+Settings corner. Stage 1 chooses the input method before detection. Applying a
+host change never carries readiness or a different host's saved-bootstrap proof
+forward. A trustworthy matching record skips first-time setup, not readiness.
+
 The default comes from `manifest/profiles.json` (`kurumuz`). Developer Options
 exposes all six pinned host IDs, the editions each supports, its START argument
 count, port and save name. The `manifest.Profile.SessionProfile()` projection

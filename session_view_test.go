@@ -33,9 +33,9 @@ func TestBlockedStartKeepsItsTransportLabel(t *testing.T) {
 	if s := a.controller.Snapshot(); s.CanStart() {
 		t.Fatalf("the fixture is not blocked: %+v", s.Checks)
 	}
-	start, ok := tt.AccessByRole(ui.RoleButton, locales.StartJailbreak())
+	start, ok := tt.AccessByRole(ui.RoleButton, locales.FlowNextSelection())
 	if !ok || !start.Disabled {
-		t.Fatalf("a blocked automatic launch is not a disabled Start button: %+v", start)
+		t.Fatalf("a blocked USB method is not held at detection: %+v", start)
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, locales.GuidedManualLaunch()); ok {
 		t.Fatal("the primary action was renamed to a guided manual launch")

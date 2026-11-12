@@ -46,3 +46,17 @@ func TestDriverObservation(t *testing.T) {
 		t.Fatal("restart marker did not track boot")
 	}
 }
+
+func TestSIPOutputIsExactAndConservative(t *testing.T) {
+	for input, want := range map[string]string{
+		"System Integrity Protection status: enabled.\n":                      "enabled",
+		"System Integrity Protection status: disabled.\n":                     "disabled",
+		"System Integrity Protection status: unknown (Custom Configuration).": "unknown",
+		"disabled": "unknown",
+		"":         "unknown",
+	} {
+		if got := parseSIPStatus(input); got != want {
+			t.Fatalf("%q: %s", input, got)
+		}
+	}
+}

@@ -42,6 +42,10 @@ func observePlatform(ctx context.Context, o *Observation) {
 	if !o.USBSupported {
 		return
 	}
+	security, securityErr := capture(ctx, "/usr/bin/csrutil", "status")
+	if securityErr == nil {
+		o.SIPStatus = parseSIPStatus(security)
+	}
 	info, err := os.Lstat(DriverPath)
 	if err == nil {
 		o.Driver.Present = info.IsDir()
@@ -74,6 +78,17 @@ func observePlatform(ctx context.Context, o *Observation) {
 	o.ControllerError = err
 	if err == nil {
 		o.Controllers = parseControllers(registry)
+	}
+}
+
+func parseSIPStatus(text string) string {
+	switch strings.TrimSpace(text) {
+	case "System Integrity Protection status: enabled.":
+		return "enabled"
+	case "System Integrity Protection status: disabled.":
+		return "disabled"
+	default:
+		return "unknown"
 	}
 }
 

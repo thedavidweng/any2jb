@@ -98,7 +98,13 @@ and an observable action trace for tests. It lives in the test-only
 it before constructing a controller; do not mutate outcomes during a run. The
 production entrypoint does not inject this environment.
 
-The existing `app` view accepts a controller for windowless `ui.Tester` tests.
+The [four-stage presentation](adr/0003-staged-flow-and-scoped-readiness.md)
+adds no controller stage or session authority. Input checks are scoped to the
+chosen method; engine readiness belongs to selection/setup. Only controller
+verification opens tools, and loss of verification removes them. An unknown SIP
+observation is explicitly advisory; enabled SIP blocks USB.
+
+The `app` view accepts a controller for windowless `ui.Tester` tests.
 These cover Home, readiness blockers, active input, cancellation, stopping,
 verification, finishing and restart-required recovery. A real window integration
 uses `Changes()` for controller events and the manual prompt wake channel,

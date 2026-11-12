@@ -118,6 +118,10 @@ type Check struct {
 }
 
 func (c Check) Blocks(transport Transport) bool {
+	// An unknown SIP observation is advisory; only observed enabled SIP blocks USB.
+	if c.ID == "sip" && c.State == Available {
+		return false
+	}
 	if c.GatesTransport == "usb-hid" && (transport.Capabilities.Manual || transport.Capabilities.ExternalPico) {
 		return false
 	}

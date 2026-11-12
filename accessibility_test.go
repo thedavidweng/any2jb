@@ -47,6 +47,7 @@ func TestAccessibleControlsHaveNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
+	advanceToLaunch(t, a, tt)
 	for _, info := range tt.AccessAll() {
 		switch info.Role {
 		case ui.RoleButton, ui.RoleCheckBox, ui.RoleTextField, ui.RolePopUpButton, ui.RoleComboBox:
@@ -84,9 +85,9 @@ func TestTabOrderFollowsVisualOrder(t *testing.T) {
 	}
 	uiStage(t, a, tt, session.Ready)
 	expected := []string{
-		locales.CivTitle(), locales.ToolsTitle(), locales.LanOverride(),
-		locales.ApplyPreferences(), locales.DeveloperOptions(), locales.UsbKeyboardTitle(),
-		locales.CheckReadiness(), locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.AboutBuild(),
+		locales.Diagnostics(), locales.Settings(),
+		locales.FlowPosition("1", locales.FlowDetection()), locales.TransportMode(), locales.LanOverride(),
+		locales.ApplyPreferences(), locales.CheckReadiness(), locales.FlowNextSelection(),
 	}
 	seen := []string{}
 	for range 40 {

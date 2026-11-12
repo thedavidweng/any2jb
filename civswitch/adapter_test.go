@@ -91,7 +91,7 @@ func helperFixture(t *testing.T, script string) civswitch.Options {
 		t.Fatal(err)
 	}
 	inspector := readiness.Inspector{Observe: func(context.Context) readiness.Observation {
-		return readiness.Observation{Addresses: []readiness.Address{{Interface: "en0", IPv4: "192.168.1.2"}}, USBSupported: true, Driver: readiness.Driver{Present: true, Loaded: true}, Controllers: []string{"usb-drd0"}}
+		return readiness.Observation{Addresses: []readiness.Address{{Interface: "en0", IPv4: "192.168.1.2"}}, USBSupported: true, SIPStatus: "disabled", Driver: readiness.Driver{Present: true, Loaded: true}, Controllers: []string{"usb-drd0"}}
 	}}
 	return civswitch.Options{Manifest: m, DeveloperSourceRoot: root, DeveloperHelperSHA256: fmt.Sprintf("%x", sha256.Sum256([]byte(script))), Inspector: &inspector}
 }
@@ -132,5 +132,21 @@ func TestCompositeHelperRefusesTamperedAssetsAndFalseCompletion(t *testing.T) {
 	}
 	if _, err := a.Prepare(context.Background()); err == nil {
 		t.Fatal("tampered payload accepted")
+	}
+}
+
+func TestCompositeInspectionDoesNotExecuteTheHelper(t *testing.T) {
+	marker := filepath.Join(t.TempDir(), "executed")
+	options := helperFixture(t, "#!/bin/sh\ntouch "+marker+"\nexit 99\n")
+	adapter := civswitch.New(options)
+	if err := adapter.Check(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatal("read-only composite inspection executed its helper")
+	}
+	options.DeveloperHelperSHA256 = ""
+	if err := civswitch.New(options).Check(); err == nil {
+		t.Fatal("inspection accepted an unverified helper")
 	}
 }

@@ -88,6 +88,9 @@ func (a *Adapter) verifySource() error {
 	return nil
 }
 
+// Check verifies the staged helper and payload without running a helper or opening USB.
+func (a *Adapter) Check() error { return a.verify() }
+
 func (a *Adapter) verify() error {
 	if err := a.verifySource(); err != nil {
 		return err

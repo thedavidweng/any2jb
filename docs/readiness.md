@@ -1,9 +1,12 @@
 # Read-only readiness
 
 `readiness.New().Inspect(ctx, run)` supplies the network, driver and controller
-checks for the production `PlatformServices` composition. It installs nothing,
-does not initialize USB, and never invokes sudo, a driver load request or security
-settings. Host/runtime readiness is a separate adapter concern.
+checks, including SIP, for the production `PlatformServices` composition. It
+installs nothing, does not initialize USB, and never invokes sudo, a driver load
+request or a security-setting change.
+The only permitted security command is the fixed read-only `/usr/bin/csrutil status`.
+Every other use of csrutil, spctl, nvram, bputil, sudo and kextload remains
+forbidden. Host/runtime readiness is a separate adapter concern.
 
 ## LAN selection
 
@@ -29,12 +32,23 @@ does not discard matching saved-bootstrap confirmation.
 ## USB facts
 
 `Check.GatesTransport = "usb-hid"` attaches driver/controller prerequisites only
-to built-in USB input. The dashboard still displays them for guided manual
-input, but they cannot block that transport. An external Pico is not proof of
+to built-in USB input. Stage 1 shows only checks that apply to the selected
+method. Guided manual
+input neither displays nor gates on USB-only facts. Host/runtime checks are
+shown separately in stage 2 and remain authoritative at launch.
+A discovered controller is sufficient for route selection, not for ns2jb Start;
+that command still requires the controller's existing verification contract.
+An external Pico is not proof of
 built-in gadget capability and needs its own transport adapter.
 
 On Apple Silicon macOS the adapter independently observes:
 
+- SIP through the exact read-only `csrutil status` command. Disabled is verified;
+  enabled requires attention and blocks USB because the driver is unsigned. Its
+  next action is to disable SIP personally in Recovery or choose guided manual
+  input. A failed command, custom or unparseable output is explicitly unknown,
+  available but not verified, and does not itself block USB. Unknown is never
+  promoted to a passing observation.
 - Kext bundle presence at `/Library/Extensions/usbgadget.kext`. This is not an
   integrity or loading claim.
 - Exact `gay.bowser.usbgadget` membership in `kmutil showloaded --list-only`.
@@ -51,6 +65,15 @@ A discovered controller remains **available but not verified**, even when the
 driver is loaded. Enumeration and accepted console input require later transport
 evidence. Linux, Windows and Intel macOS report built-in USB input unsupported;
 ordinary USB-C never implies device-mode capability.
+
+### Startup-security policy is not a SIP observation
+
+The Apple Silicon Full / Reduced / Permissive startup-security policy cannot be
+observed through `csrutil status`. Stage 1 presents a separate informational row,
+not a controller prerequisite: **not checked by this app; you must verify the
+required policy yourself in macOS Recovery**. It carries no passing state and
+never implies that the app inspected the policy. The app never invokes bputil,
+changes security, or adds an unsatisfiable check to the launch contract.
 
 ## Evidence
 

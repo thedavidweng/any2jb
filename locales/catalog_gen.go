@@ -4399,3 +4399,325 @@ func DeveloperStagingFailed(reason string) string {
 func (msgs Messages) DeveloperStagingFailed(reason string) string {
 	return Catalog.Format(msgs.locale, "developerStagingFailed", map[string]any{"reason": reason})
 }
+
+// Settings says "Settings"
+// in the language the app shows.
+func Settings() string { return In(i18n.Locale()).Settings() }
+
+// Settings says "Settings"
+// in the language of msgs.
+func (msgs Messages) Settings() string {
+	return Catalog.Format(msgs.locale, "settings", nil)
+}
+
+// FlowDetection says "Input and detection"
+// in the language the app shows.
+func FlowDetection() string { return In(i18n.Locale()).FlowDetection() }
+
+// FlowDetection says "Input and detection"
+// in the language of msgs.
+func (msgs Messages) FlowDetection() string {
+	return Catalog.Format(msgs.locale, "flowDetection", nil)
+}
+
+// FlowSelection says "Route and setup"
+// in the language the app shows.
+func FlowSelection() string { return In(i18n.Locale()).FlowSelection() }
+
+// FlowSelection says "Route and setup"
+// in the language of msgs.
+func (msgs Messages) FlowSelection() string {
+	return Catalog.Format(msgs.locale, "flowSelection", nil)
+}
+
+// FlowLaunch says "Launch"
+// in the language the app shows.
+func FlowLaunch() string { return In(i18n.Locale()).FlowLaunch() }
+
+// FlowLaunch says "Launch"
+// in the language of msgs.
+func (msgs Messages) FlowLaunch() string {
+	return Catalog.Format(msgs.locale, "flowLaunch", nil)
+}
+
+// FlowTools says "Tools"
+// in the language the app shows.
+func FlowTools() string { return In(i18n.Locale()).FlowTools() }
+
+// FlowTools says "Tools"
+// in the language of msgs.
+func (msgs Messages) FlowTools() string {
+	return Catalog.Format(msgs.locale, "flowTools", nil)
+}
+
+// FlowPosition says "Stage {current} of 4: {stage}"
+// in the language the app shows.
+func FlowPosition(current string, stage string) string {
+	return In(i18n.Locale()).FlowPosition(current, stage)
+}
+
+// FlowPosition says "Stage {current} of 4: {stage}"
+// in the language of msgs.
+func (msgs Messages) FlowPosition(current string, stage string) string {
+	return Catalog.Format(msgs.locale, "flowPosition", map[string]any{"current": current, "stage": stage})
+}
+
+// FlowNextSelection says "Continue to selection"
+// in the language the app shows.
+func FlowNextSelection() string { return In(i18n.Locale()).FlowNextSelection() }
+
+// FlowNextSelection says "Continue to selection"
+// in the language of msgs.
+func (msgs Messages) FlowNextSelection() string {
+	return Catalog.Format(msgs.locale, "flowNextSelection", nil)
+}
+
+// FlowNextLaunch says "Continue to launch"
+// in the language the app shows.
+func FlowNextLaunch() string { return In(i18n.Locale()).FlowNextLaunch() }
+
+// FlowNextLaunch says "Continue to launch"
+// in the language of msgs.
+func (msgs Messages) FlowNextLaunch() string {
+	return Catalog.Format(msgs.locale, "flowNextLaunch", nil)
+}
+
+// FlowBackDetection says "Back to input and detection"
+// in the language the app shows.
+func FlowBackDetection() string { return In(i18n.Locale()).FlowBackDetection() }
+
+// FlowBackDetection says "Back to input and detection"
+// in the language of msgs.
+func (msgs Messages) FlowBackDetection() string {
+	return Catalog.Format(msgs.locale, "flowBackDetection", nil)
+}
+
+// FlowBackSelection says "Back to selection"
+// in the language the app shows.
+func FlowBackSelection() string { return In(i18n.Locale()).FlowBackSelection() }
+
+// FlowBackSelection says "Back to selection"
+// in the language of msgs.
+func (msgs Messages) FlowBackSelection() string {
+	return Catalog.Format(msgs.locale, "flowBackSelection", nil)
+}
+
+// FlowSmile says "SmileBASIC / ns2jb"
+// in the language the app shows.
+func FlowSmile() string { return In(i18n.Locale()).FlowSmile() }
+
+// FlowSmile says "SmileBASIC / ns2jb"
+// in the language of msgs.
+func (msgs Messages) FlowSmile() string {
+	return Catalog.Format(msgs.locale, "flowSmile", nil)
+}
+
+// FlowManual says "Guided manual input"
+// in the language the app shows.
+func FlowManual() string { return In(i18n.Locale()).FlowManual() }
+
+// FlowManual says "Guided manual input"
+// in the language of msgs.
+func (msgs Messages) FlowManual() string {
+	return Catalog.Format(msgs.locale, "flowManual", nil)
+}
+
+// FlowKeyboard says "Apple Silicon USB keyboard"
+// in the language the app shows.
+func FlowKeyboard() string { return In(i18n.Locale()).FlowKeyboard() }
+
+// FlowKeyboard says "Apple Silicon USB keyboard"
+// in the language of msgs.
+func (msgs Messages) FlowKeyboard() string {
+	return Catalog.Format(msgs.locale, "flowKeyboard", nil)
+}
+
+// FlowComposite says "Composite keyboard + gamepad"
+// in the language the app shows.
+func FlowComposite() string { return In(i18n.Locale()).FlowComposite() }
+
+// FlowComposite says "Composite keyboard + gamepad"
+// in the language of msgs.
+func (msgs Messages) FlowComposite() string {
+	return Catalog.Format(msgs.locale, "flowComposite", nil)
+}
+
+// FlowPico says "External Pico (adapter required)"
+// in the language the app shows.
+func FlowPico() string { return In(i18n.Locale()).FlowPico() }
+
+// FlowPico says "External Pico (adapter required)"
+// in the language of msgs.
+func (msgs Messages) FlowPico() string {
+	return Catalog.Format(msgs.locale, "flowPico", nil)
+}
+
+// FlowCivUnavailable says "CivSwitch requires composite keyboard + gamepad HID. The selected input method cannot provide both. Return to input a…"
+// in the language the app shows.
+func FlowCivUnavailable() string { return In(i18n.Locale()).FlowCivUnavailable() }
+
+// FlowCivUnavailable says "CivSwitch requires composite keyboard + gamepad HID. The selected input method cannot provide both. Return to input a…"
+// in the language of msgs.
+func (msgs Messages) FlowCivUnavailable() string {
+	return Catalog.Format(msgs.locale, "flowCivUnavailable", nil)
+}
+
+// FlowDetectHint says "Choose an input method, apply it, then check only its requirements. USB discovery does not prove enumeration or accep…"
+// in the language the app shows.
+func FlowDetectHint() string { return In(i18n.Locale()).FlowDetectHint() }
+
+// FlowDetectHint says "Choose an input method, apply it, then check only its requirements. USB discovery does not prove enumeration or accep…"
+// in the language of msgs.
+func (msgs Messages) FlowDetectHint() string {
+	return Catalog.Format(msgs.locale, "flowDetectHint", nil)
+}
+
+// FlowSaved says "The matching saved bootstrap is confirmed. First-time setup is not needed."
+// in the language the app shows.
+func FlowSaved() string { return In(i18n.Locale()).FlowSaved() }
+
+// FlowSaved says "The matching saved bootstrap is confirmed. First-time setup is not needed."
+// in the language of msgs.
+func (msgs Messages) FlowSaved() string {
+	return Catalog.Format(msgs.locale, "flowSaved", nil)
+}
+
+// FlowCheckSelection says "Check selected host readiness"
+// in the language the app shows.
+func FlowCheckSelection() string { return In(i18n.Locale()).FlowCheckSelection() }
+
+// FlowCheckSelection says "Check selected host readiness"
+// in the language of msgs.
+func (msgs Messages) FlowCheckSelection() string {
+	return Catalog.Format(msgs.locale, "flowCheckSelection", nil)
+}
+
+// FlowDetectionBlocked says "Resolve the selected input method's checks before continuing."
+// in the language the app shows.
+func FlowDetectionBlocked() string { return In(i18n.Locale()).FlowDetectionBlocked() }
+
+// FlowDetectionBlocked says "Resolve the selected input method's checks before continuing."
+// in the language of msgs.
+func (msgs Messages) FlowDetectionBlocked() string {
+	return Catalog.Format(msgs.locale, "flowDetectionBlocked", nil)
+}
+
+// StartupSecurityUnverified says "Startup-security policy: not checked by this app. You must verify the required policy yourself in macOS Recovery."
+// in the language the app shows.
+func StartupSecurityUnverified() string { return In(i18n.Locale()).StartupSecurityUnverified() }
+
+// StartupSecurityUnverified says "Startup-security policy: not checked by this app. You must verify the required policy yourself in macOS Recovery."
+// in the language of msgs.
+func (msgs Messages) StartupSecurityUnverified() string {
+	return Catalog.Format(msgs.locale, "startupSecurityUnverified", nil)
+}
+
+// StartupSecurityAction says "Check Startup Security Utility in Recovery for the unsigned driver's requirements. This app cannot observe Full, Redu…"
+// in the language the app shows.
+func StartupSecurityAction() string { return In(i18n.Locale()).StartupSecurityAction() }
+
+// StartupSecurityAction says "Check Startup Security Utility in Recovery for the unsigned driver's requirements. This app cannot observe Full, Redu…"
+// in the language of msgs.
+func (msgs Messages) StartupSecurityAction() string {
+	return Catalog.Format(msgs.locale, "startupSecurityAction", nil)
+}
+
+// DynSipUnknown says "SIP status could not be determined."
+// in the language the app shows.
+func DynSipUnknown() string { return In(i18n.Locale()).DynSipUnknown() }
+
+// DynSipUnknown says "SIP status could not be determined."
+// in the language of msgs.
+func (msgs Messages) DynSipUnknown() string {
+	return Catalog.Format(msgs.locale, "dynSipUnknown", nil)
+}
+
+// DynSipUnknownAction says "Check SIP status yourself in macOS Recovery, then refresh readiness; or choose guided manual input. This app never ch…"
+// in the language the app shows.
+func DynSipUnknownAction() string { return In(i18n.Locale()).DynSipUnknownAction() }
+
+// DynSipUnknownAction says "Check SIP status yourself in macOS Recovery, then refresh readiness; or choose guided manual input. This app never ch…"
+// in the language of msgs.
+func (msgs Messages) DynSipUnknownAction() string {
+	return Catalog.Format(msgs.locale, "dynSipUnknownAction", nil)
+}
+
+// DynSipEnabled says "SIP is enabled. The unsigned USB gadget driver requires SIP disabled."
+// in the language the app shows.
+func DynSipEnabled() string { return In(i18n.Locale()).DynSipEnabled() }
+
+// DynSipEnabled says "SIP is enabled. The unsigned USB gadget driver requires SIP disabled."
+// in the language of msgs.
+func (msgs Messages) DynSipEnabled() string {
+	return Catalog.Format(msgs.locale, "dynSipEnabled", nil)
+}
+
+// DynSipEnabledAction says "Disable SIP yourself in macOS Recovery before using the unsigned USB gadget driver, or choose guided manual input. Th…"
+// in the language the app shows.
+func DynSipEnabledAction() string { return In(i18n.Locale()).DynSipEnabledAction() }
+
+// DynSipEnabledAction says "Disable SIP yourself in macOS Recovery before using the unsigned USB gadget driver, or choose guided manual input. Th…"
+// in the language of msgs.
+func (msgs Messages) DynSipEnabledAction() string {
+	return Catalog.Format(msgs.locale, "dynSipEnabledAction", nil)
+}
+
+// DynSipDisabled says "SIP reports disabled."
+// in the language the app shows.
+func DynSipDisabled() string { return In(i18n.Locale()).DynSipDisabled() }
+
+// DynSipDisabled says "SIP reports disabled."
+// in the language of msgs.
+func (msgs Messages) DynSipDisabled() string {
+	return Catalog.Format(msgs.locale, "dynSipDisabled", nil)
+}
+
+// DynCompositeVerified says "Composite helper and payload integrity verified; enumeration is not verified."
+// in the language the app shows.
+func DynCompositeVerified() string { return In(i18n.Locale()).DynCompositeVerified() }
+
+// DynCompositeVerified says "Composite helper and payload integrity verified; enumeration is not verified."
+// in the language of msgs.
+func (msgs Messages) DynCompositeVerified() string {
+	return Catalog.Format(msgs.locale, "dynCompositeVerified", nil)
+}
+
+// DynCompositeInput says "Composite input is available for CivSwitch, not SmileBASIC."
+// in the language the app shows.
+func DynCompositeInput() string { return In(i18n.Locale()).DynCompositeInput() }
+
+// DynCompositeInput says "Composite input is available for CivSwitch, not SmileBASIC."
+// in the language of msgs.
+func (msgs Messages) DynCompositeInput() string {
+	return Catalog.Format(msgs.locale, "dynCompositeInput", nil)
+}
+
+// DynCompositeUnavailable says "Composite input components are unavailable."
+// in the language the app shows.
+func DynCompositeUnavailable() string { return In(i18n.Locale()).DynCompositeUnavailable() }
+
+// DynCompositeUnavailable says "Composite input components are unavailable."
+// in the language of msgs.
+func (msgs Messages) DynCompositeUnavailable() string {
+	return Catalog.Format(msgs.locale, "dynCompositeUnavailable", nil)
+}
+
+// DynCompositeAction says "Use permitted, integrity-verified CivSwitch components before using composite input."
+// in the language the app shows.
+func DynCompositeAction() string { return In(i18n.Locale()).DynCompositeAction() }
+
+// DynCompositeAction says "Use permitted, integrity-verified CivSwitch components before using composite input."
+// in the language of msgs.
+func (msgs Messages) DynCompositeAction() string {
+	return Catalog.Format(msgs.locale, "dynCompositeAction", nil)
+}
+
+// StartupSecurityTitle says "Manual check required: startup-security policy"
+// in the language the app shows.
+func StartupSecurityTitle() string { return In(i18n.Locale()).StartupSecurityTitle() }
+
+// StartupSecurityTitle says "Manual check required: startup-security policy"
+// in the language of msgs.
+func (msgs Messages) StartupSecurityTitle() string {
+	return Catalog.Format(msgs.locale, "startupSecurityTitle", nil)
+}

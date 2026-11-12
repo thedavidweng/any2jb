@@ -14,7 +14,7 @@ func TestHostOptionsAreDisclosedAndCapabilitiesExplained(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tt := ui.NewTester(a.view, 720, 1000)
+	tt := ui.NewTester(a.profileView, 720, 1000)
 	if tt.HasText("Host and input preferences") {
 		t.Fatal("expert options shown in onboarding")
 	}
@@ -58,8 +58,9 @@ func TestUnappliedHostChoiceCannotLaunchPreviousHost(t *testing.T) {
 		SourceSHA256: p.SourceSHA256, BootstrapSHA256: p.BootstrapSHA256, SaveName: p.SaveName, Edition: "full", Confirmed: true}); err != nil {
 		t.Fatal(err)
 	}
+	a.flow.stage = flowLaunch
 	tt := ui.NewTester(a.view, 720, 1000)
-	if err := tt.Click("Check readiness"); err != nil {
+	if _, err := a.controller.Inspect(); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
@@ -77,7 +78,7 @@ func TestAllSixHostsCanBeSelected(t *testing.T) {
 		t.Fatal(err)
 	}
 	a.developer = true
-	tt := ui.NewTester(a.view, 720, 1200)
+	tt := ui.NewTester(a.profileView, 720, 1200)
 	for _, id := range []string{"pepsipu", "cellenseres", "BermTheSequel", "izmysh", "astral", "kurumuz"} {
 		if err := tt.Click(a.preferences.Profile); err != nil {
 			t.Fatal(err)
@@ -97,7 +98,7 @@ func TestIZMYSHQualificationBlockerIsVisible(t *testing.T) {
 		t.Fatal(err)
 	}
 	a.preferences.Profile = "izmysh"
-	tt := ui.NewTester(a.view, 720, 1000)
+	tt := ui.NewTester(a.profileView, 720, 1000)
 	if !tt.HasText("IZMYSH cannot launch yet. Its separate native qualification adapter is not implemented.") {
 		t.Fatal(tt.Texts())
 	}
