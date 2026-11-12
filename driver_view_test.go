@@ -31,6 +31,8 @@ func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
 	tt := ui.NewTester(a.view, 900, 2200)
 	uiStage(t, a, tt, session.Ready)
 	before := a.controller.Snapshot()
+	a.flow.settings = true
+	tt.Frame()
 	if err := tt.Click("Review USB driver setup"); err != nil {
 		t.Fatal(err)
 	}

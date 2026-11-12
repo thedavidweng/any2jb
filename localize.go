@@ -19,6 +19,15 @@ type dynamicSegment struct {
 // longest-first because adapters compose sentences with live data; unknown
 // text passes through unchanged.
 var dynamicSegments = []dynamicSegment{
+	{"SIP status could not be determined.", locales.DynSipUnknown},
+	{"Check SIP status yourself in macOS Recovery, then refresh readiness; or choose guided manual input. This app never changes security settings.", locales.DynSipUnknownAction},
+	{"SIP is enabled. The unsigned USB gadget driver requires SIP disabled.", locales.DynSipEnabled},
+	{"Disable SIP yourself in macOS Recovery before using the unsigned USB gadget driver, or choose guided manual input. This app never changes security settings.", locales.DynSipEnabledAction},
+	{"SIP reports disabled.", locales.DynSipDisabled},
+	{"Composite helper and payload integrity verified; enumeration is not verified.", locales.DynCompositeVerified},
+	{"Composite input is available for CivSwitch, not SmileBASIC.", locales.DynCompositeInput},
+	{"Composite input components are unavailable.", locales.DynCompositeUnavailable},
+	{"Use permitted, integrity-verified CivSwitch components before using composite input.", locales.DynCompositeAction},
 
 	{"Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistSaveKit},
 	{"Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them.", locales.DynDistOunceCake},

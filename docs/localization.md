@@ -50,6 +50,11 @@ Use these consistently; never soften a risk statement.
 | Console | 游戏机 |
 | Advanced Tools | 高级工具 |
 | Developer Options | 开发者选项 |
+| Settings | 设置 |
+| Input and detection | 输入方式与检测 |
+| Route and setup | 路线与设置 |
+| Launch | 启动 |
+| Tools | 工具 |
 | Support bundle | 支持包 |
 | Read-only tool | 只读工具 |
 | Developer-staged, not redistributable | 开发者暂存，不可再分发 |

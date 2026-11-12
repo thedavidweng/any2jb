@@ -19,9 +19,11 @@ func TestDashboardReadinessEvidenceAndPrerequisites(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	f.Checks = []session.Check{
 		{ID: "network", State: session.CheckVerified, Message: "Assigned locally."},
+		{ID: "sip", State: session.RequiresAttention, GatesTransport: "usb-hid", Message: "SIP is enabled. The unsigned USB gadget driver requires SIP disabled.", NextAction: "Disable SIP yourself in macOS Recovery before using the unsigned USB gadget driver, or choose guided manual input. This app never changes security settings."},
 		{ID: "usb-drd0", State: session.Available, GatesTransport: "usb-hid", Message: "Not enumerated."},
 		{ID: "driver-loaded", State: session.RequiresAttention, GatesTransport: "usb-hid", Message: "Not loaded.", NextAction: "Review driver approval."},
 	}
+	a.preferences.Transport = "keyboard"
 	if err := a.initializeSession(f.Environment()); err != nil {
 		t.Fatal(err)
 	}
@@ -32,16 +34,20 @@ func TestDashboardReadinessEvidenceAndPrerequisites(t *testing.T) {
 	if err := tt.Click("Check readiness"); err != nil {
 		t.Fatal(err)
 	}
-	uiStage(t, a, tt, session.Ready)
+	uiStage(t, a, tt, session.NeedsSetup)
+	reference := ui.NewTester(func(c *ui.Context) { referencePrerequisites(c, true) }, 720, 1800)
 	for _, text := range []string{
 		"Verified", "Available but not verified", "Requires attention", "Review driver approval.",
+		"SIP is enabled. The unsigned USB gadget driver requires SIP disabled.",
+		"Manual check required: startup-security policy",
+		"Startup-security policy: not checked by this app. You must verify the required policy yourself in macOS Recovery.",
 		"Reference prerequisites, not compatibility guarantees",
 		"Switch 2 firmware 23.0.1 is the reference target. Newer firmware is not assumed compatible.",
 		"Use SmileBASIC full 4.4.9, or demo 4.4.6 only with a demo-capable host. Keep the game on internal storage with more than 20 MiB free in its save.",
 		"Connect the console by Ethernet to a LAN reachable from this host. Use a US English USB keyboard layout.",
 		"Use a USB-C data cable, not a charge-only cable. The Mac must receive power from the console for the required USB data direction.",
 	} {
-		if !tt.HasText(text) {
+		if !tt.HasText(text) && !reference.HasText(text) {
 			t.Fatalf("missing %q: %v", text, tt.Texts())
 		}
 	}

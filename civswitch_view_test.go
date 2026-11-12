@@ -15,10 +15,7 @@ import (
 
 func TestCivSwitchPanelStatesUnavailableReasonWithoutSmileBASICControls(t *testing.T) {
 	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"}))
-	tt := ui.NewTester(a.view, 900, 1800)
-	if err := tt.Click("CivSwitch"); err != nil {
-		t.Fatal(err)
-	}
+	tt := ui.NewTester(a.civSwitchView, 900, 1800)
 	for _, text := range []string{locales.CivPrerequisites(), locales.CivNoRPC(), locales.CivComposite(), a.controller.CivSwitchUnavailable()} {
 		if !tt.HasText(text) {
 			t.Fatalf("missing %q: %v", text, tt.Texts())
@@ -91,10 +88,7 @@ func verifiedCivSwitchPanel(t *testing.T, w *civPanelAdapter) (*app, *ui.Tester)
 	env := sessiontest.NewFakeEnvironment().Environment()
 	env.CivSwitch = w
 	a := testApp(t, session.New(env, session.Profile{ID: "test", Revision: "pinned"}))
-	tt := ui.NewTester(a.view, 1000, 3200)
-	if err := tt.Click("CivSwitch"); err != nil {
-		t.Fatal(err)
-	}
+	tt := ui.NewTester(a.civSwitchView, 1000, 3200)
 	a.civSwitchPanel.prerequisites.ConsoleIPv4 = "192.0.2.2"
 	tt.Frame()
 	if err := tt.Click(locales.CivAttach()); err != nil {

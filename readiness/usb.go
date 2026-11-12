@@ -37,7 +37,18 @@ func usbChecks(o Observation) []session.Check {
 		loaded.State, loaded.Message, loaded.NextAction = session.CheckVerified,
 			"The running kernel reports the USB gadget kext loaded. USB enumeration is not verified.", ""
 	}
-	checks := []session.Check{present, loaded, restart}
+	sip := check("sip", "SIP status could not be determined.",
+		"Check SIP status yourself in macOS Recovery, then refresh readiness; or choose guided manual input. This app never changes security settings.", session.Available)
+	switch o.SIPStatus {
+	case "enabled":
+		sip.State = session.RequiresAttention
+		sip.Message = "SIP is enabled. The unsigned USB gadget driver requires SIP disabled."
+		sip.NextAction = "Disable SIP yourself in macOS Recovery before using the unsigned USB gadget driver, or choose guided manual input. This app never changes security settings."
+	case "disabled":
+		sip.State, sip.Message, sip.NextAction = session.CheckVerified,
+			"SIP reports disabled.", ""
+	}
+	checks := []session.Check{sip, present, loaded, restart}
 	controllers := check("usb-controllers", "No attached USB gadget controllers were discovered.",
 		"Check driver loading and the USB-C data cable direction, then refresh readiness; or choose guided manual input.", session.RequiresAttention)
 	if o.ControllerError != nil {

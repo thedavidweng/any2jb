@@ -47,14 +47,15 @@ func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions tra
 	}
 	inputOptions.Runtime, inputOptions.Bootstrap = options, bootstrap
 	keyboard := transport.NewDarwin(inputOptions)
-	platform := productionPlatform{root: root, options: options, stageError: stageErr, keyboard: keyboard}
-	inputs := transport.NewDispatcher(transport.NewManual(bootstrap), keyboard, platform.Inspect)
 	civOptions.Manifest, civOptions.Support = options.Manifest, options.Support
 	civOptions.DeveloperSourceRoot = options.DeveloperSourceRoot
+	composite := civswitch.New(civOptions)
+	platform := productionPlatform{root: root, options: options, stageError: stageErr, keyboard: keyboard, composite: composite}
+	inputs := transport.NewDispatcher(transport.NewManual(bootstrap), keyboard, platform.Inspect)
 	host := engine.NewHostRunner(options)
 	tools := productionTools(root, stageErr, options, host)
 	return session.Environment{
-		CivSwitch: civswitch.New(civOptions),
+		CivSwitch: composite,
 		Host:      host,
 		Retained:  tools,
 		Input:     inputs,
@@ -108,6 +109,7 @@ func productionDriverGate(options engine.Options) *driver.Gate {
 }
 
 type productionPlatform struct {
+	composite  *civswitch.Adapter
 	keyboard   *transport.Darwin
 	root       string
 	options    engine.Options
@@ -163,6 +165,15 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 		input.State, input.Message, input.NextAction = session.CheckVerified, locales.ManualInputAvailable(), ""
 	} else if keyboardReady && run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Gamepad && !run.Transport.Capabilities.ExternalPico {
 		input.State, input.Message, input.NextAction = session.CheckVerified, locales.UsbInputAvailable(), ""
+	}
+	if run.Transport.Capabilities.Gamepad && run.Transport.Capabilities.Keyboard {
+		if p.composite != nil && p.composite.Check() == nil {
+			usb.State, usb.Message, usb.NextAction = session.CheckVerified, "Composite helper and payload integrity verified; enumeration is not verified.", ""
+			input.State, input.Message, input.NextAction = session.CheckVerified, "Composite input is available for CivSwitch, not SmileBASIC.", ""
+		} else {
+			input.Message, input.NextAction = "Composite input components are unavailable.", "Use permitted, integrity-verified CivSwitch components before using composite input."
+			usb.Message, usb.NextAction = input.Message, input.NextAction
+		}
 	}
 	checks = append(checks, usb, input)
 	observed, err := readiness.New().Inspect(ctx, run)

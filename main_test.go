@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/session/sessiontest"
@@ -21,6 +22,8 @@ func TestSessionFailureHasSafeRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
+	advanceToLaunch(t, a, tt)
+	advanceToLaunch(t, a, tt)
 	if err := tt.Click("Guided manual launch"); err != nil {
 		t.Fatal(err)
 	}
@@ -38,6 +41,7 @@ func TestShell(t *testing.T) {
 			t.Errorf("missing %q in shell: %q", text, tt.Texts())
 		}
 	}
+	clickManual(t, tt, locales.Settings())
 	if err := tt.Click("About this build"); err != nil {
 		t.Fatal(err)
 	}
@@ -115,6 +119,7 @@ func TestSessionDashboardAndRecovery(t *testing.T) {
 	if !tt.HasText("Simulated readiness, not a real hardware check.") {
 		t.Fatal(tt.Texts())
 	}
+	advanceToLaunch(t, a, tt)
 	if err := tt.Click("Guided manual launch"); err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +162,7 @@ func TestFailingReadinessIsActionable(t *testing.T) {
 			t.Fatalf("missing %q: %q", text, tt.Texts())
 		}
 	}
-	start, ok := tt.AccessByRole(ui.RoleButton, "Guided manual launch")
+	start, ok := tt.AccessByRole(ui.RoleButton, "Continue to selection")
 	if !ok || !start.Disabled {
 		t.Fatal("Start missing or enabled with failing readiness")
 	}
@@ -173,6 +178,7 @@ func TestDashboardCancelAndFinish(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
+	advanceToLaunch(t, a, tt)
 	if err := tt.Click("Guided manual launch"); err != nil {
 		t.Fatal(err)
 	}
@@ -181,6 +187,7 @@ func TestDashboardCancelAndFinish(t *testing.T) {
 	}
 	uiStage(t, a, tt, session.Ready)
 	close(gate)
+	advanceToLaunch(t, a, tt)
 	if err := tt.Click("Guided manual launch"); err != nil {
 		t.Fatal(err)
 	}
@@ -194,5 +201,15 @@ func TestDashboardCancelAndFinish(t *testing.T) {
 	uiStage(t, a, tt, session.Finished)
 	if !tt.HasText("Session finished") {
 		t.Fatal(tt.Texts())
+	}
+}
+
+func advanceToLaunch(t *testing.T, a *app, tt *ui.Tester) {
+	t.Helper()
+	if a.flow.stage == flowDetection {
+		clickManual(t, tt, locales.FlowNextSelection())
+	}
+	if a.flow.stage == flowSelection {
+		clickManual(t, tt, locales.FlowNextLaunch())
 	}
 }

@@ -83,6 +83,8 @@ func TestReadinessMessagesDisplayChinese(t *testing.T) {
 		Message:    "Verified USB helpers are not available.",
 		NextAction: "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."}}
 	a.controller = session.New(f.Environment(), a.controller.Snapshot().Profile)
+	a.controller.ConfigureTransport(preferredTransport("keyboard"), "")
+	a.preferences.Transport = "keyboard"
 	tt := ui.NewTester(a.view, 800, 1000)
 	if err := tt.Click("检查就绪状态"); err != nil {
 		t.Fatal(err)

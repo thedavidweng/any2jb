@@ -7,6 +7,15 @@ tool re-checks the session's private evidence and asks the live loopback
 endpoint before it starts. A stale `result.json`, an open port or an earlier
 success is never accepted as a lease.
 
+## Stage placement
+
+Stage 4 offers Advanced Tools only after a verified session. SaveKit, launcher
+saves, homebrew and modloader retain all existing capability, distribution,
+consent, backup and single-owner gates. Tools disappear if verification is lost
+or the session ends. Read-only discovery and attachment live separately in stage
+2 so a verified existing lease can be attached without launching another run.
+Diagnostics and Settings are always reachable outside the flow.
+
 ## Ownership, attaching and loss
 
 `retained.Manager` is the single owner of lease state. It implements the

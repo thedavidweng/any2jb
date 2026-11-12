@@ -20,9 +20,13 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 
 ## Keyboard
 
-- Tab order is construction order, which must match visual order. Do not move
-  focus programmatically except to place it in a dedicated input area the user
-  explicitly opened (the keyboard forwarding capture).
+- Tab order is construction order, matching visual order within each stage.
+  A stable status heading announces “Stage N of 4” and the stage name. Move
+  focus to that heading on a stage transition so the user enters the new scope.
+  Other programmatic focus is limited to the explicitly opened keyboard capture.
+- Diagnostics and Settings are fixed corner controls outside the scrolling stage
+  body. They remain keyboard-reachable from every stage. Stage navigation never
+  uses color alone; numbered names, status text and disabled actions carry meaning.
 - The keyboard forwarding capture is the only raw-input control; Escape stops
   forwarding and Tab leaves it, so the panel stays keyboard-navigable.
 - Test tab traversal with `tt.Key(0, ui.KeyTab)` and `tt.AccessAll()`, and

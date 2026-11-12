@@ -32,19 +32,25 @@ func (a *app) civSwitchView(c *ui.Context) {
 	if unavailable != "" {
 		ui.Text(c, localize(unavailable))
 	}
-	ui.TextInput(c.Key("civ-address"), &p.prerequisites.ConsoleIPv4).Label(locales.CivAddress()).Disabled(s.Busy)
-	ui.Checkbox(c.Key("civ-cartridge"), &p.prerequisites.PhysicalSwitch1Cartridge100, locales.CivCartridge()).Disabled(s.Busy)
-	ui.Checkbox(c.Key("civ-language"), &p.prerequisites.EnglishUS, locales.CivLanguage()).Disabled(s.Busy)
-	ui.Checkbox(c.Key("civ-network"), &p.prerequisites.SameReachableNetwork, locales.CivNetwork()).Disabled(s.Busy)
-	ui.Checkbox(c.Key("civ-chat"), &p.prerequisites.LobbyChatFocused, locales.CivChat()).Disabled(s.Busy)
+	if a.flow.stage != flowLaunch && a.flow.stage != flowTools {
+		ui.TextInput(c.Key("civ-address"), &p.prerequisites.ConsoleIPv4).Label(locales.CivAddress()).Disabled(s.Busy)
+		ui.Checkbox(c.Key("civ-cartridge"), &p.prerequisites.PhysicalSwitch1Cartridge100, locales.CivCartridge()).Disabled(s.Busy)
+		ui.Checkbox(c.Key("civ-language"), &p.prerequisites.EnglishUS, locales.CivLanguage()).Disabled(s.Busy)
+		ui.Checkbox(c.Key("civ-network"), &p.prerequisites.SameReachableNetwork, locales.CivNetwork()).Disabled(s.Busy)
+		ui.Checkbox(c.Key("civ-chat"), &p.prerequisites.LobbyChatFocused, locales.CivChat()).Disabled(s.Busy)
+	}
 	eligible := !s.Busy && (s.Stage == session.Idle || s.Stage == session.Ready || s.Stage == session.NeedsSetup || s.Stage == session.Failed || s.Stage == session.Finished)
 	confirmed := p.prerequisites.PhysicalSwitch1Cartridge100 && p.prerequisites.EnglishUS && p.prerequisites.SameReachableNetwork && p.prerequisites.LobbyChatFocused
 	composite := s.Transport.Capabilities.Keyboard && s.Transport.Capabilities.Gamepad
-	if ui.PrimaryButton(c.Key("civ-start"), locales.CivStart()).Disabled(!eligible || unavailable != "" || !confirmed || !composite).Clicked() {
-		a.command(a.controller.StartCivSwitch(p.prerequisites))
+	if a.flow.stage == flowLaunch || a.flow.stage == flowDetection {
+		if ui.PrimaryButton(c.Key("civ-start"), locales.CivStart()).Disabled(!eligible || unavailable != "" || !confirmed || !composite).Clicked() {
+			a.command(a.controller.StartCivSwitch(p.prerequisites))
+		}
 	}
-	if ui.Button(c.Key("civ-attach"), locales.CivAttach()).Disabled(!eligible || unavailable != "").Clicked() {
-		a.command(a.controller.ConnectCivSwitch(p.prerequisites.ConsoleIPv4))
+	if a.flow.stage != flowTools {
+		if ui.Button(c.Key("civ-attach"), locales.CivAttach()).Disabled(!eligible || unavailable != "").Clicked() {
+			a.command(a.controller.ConnectCivSwitch(p.prerequisites.ConsoleIPv4))
+		}
 	}
 	if s.CivSwitch {
 		if s.LoaderVerified {
@@ -90,6 +96,7 @@ func (a *app) civSwitchView(c *ui.Context) {
 			a.command(a.controller.SelectProfile(s.Profile, s.Edition))
 		}
 		p.open = false
+		a.flow.stage = flowSelection
 	}
 }
 

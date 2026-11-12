@@ -6,6 +6,18 @@ host/console on the same reachable network, and the correct lobby/chat focus.
 These console facts require explicit user confirmation. Local driver facts and
 LAN assignment are observed independently. Neither proves console reachability.
 
+## Stage flow
+
+CivSwitch appears alongside SmileBASIC/ns2jb in stage 2, not in Advanced Tools.
+A method lacking both keyboard and gamepad HID shows an unavailable reason and
+a return to stage 1. With composite input, stage 2 collects the console
+confirmations (or connects to an already-open loader), stage 3 launches and
+reports progress, and stage 4 exposes dependent actions only after verified
+loader evidence. Diagnostics and Settings remain in the window corner.
+Stage-1 composite integrity checks inspect the pinned helper and payload without
+executing a helper or opening USB. The ns2jb-only input adapter cannot block this
+route; CivSwitch still performs its own independent local and enumeration gates.
+
 ## Controller boundary
 
 `SessionController.StartCivSwitch` requires those confirmations and **both**

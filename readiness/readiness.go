@@ -16,6 +16,7 @@ type Address struct {
 }
 
 type Observation struct {
+	SIPStatus        string
 	Addresses        []Address
 	DefaultInterface string
 	NetworkError     error
