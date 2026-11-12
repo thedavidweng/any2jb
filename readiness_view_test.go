@@ -7,9 +7,45 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/session"
 	"github.com/thedavidweng/any2jb/session/sessiontest"
 )
+
+func TestRoutineReadinessStatesUseNeutralInk(t *testing.T) {
+	for _, dark := range []bool{false, true} {
+		a := newTestApp(t)
+		tt := ui.NewTester(func(c *ui.Context) {
+			applyTheme(c)
+			ui.Column(c).Fill().Children(func() {
+				a.readinessView(c, session.Snapshot{Checks: []session.Check{
+					{ID: "network", State: session.CheckVerified},
+					{ID: "usb-controllers", State: session.Available},
+				}}, true)
+			})
+		}, 720, 300)
+		tt.SetDark(dark)
+		for _, label := range []string{locales.CheckVerified(), locales.CheckAvailable()} {
+			if _, ok := tt.AccessByRole(ui.RoleStatus, label); !ok {
+				t.Fatalf("missing readable status %q", label)
+			}
+		}
+		for _, glyph := range []string{"✓", "○"} {
+			if !tt.HasText(glyph) {
+				t.Fatalf("missing status glyph %q", glyph)
+			}
+		}
+		img := tt.Image()
+		for y := range img.Bounds().Dy() {
+			for x := range img.Bounds().Dx() {
+				r, g, b, _ := img.At(x, y).RGBA()
+				if max(r, g, b)-min(r, g, b) > 12*257 {
+					t.Fatalf("routine status uses colored chrome at %d,%d (dark=%v)", x, y, dark)
+				}
+			}
+		}
+	}
+}
 
 func TestDashboardReadinessEvidenceAndPrerequisites(t *testing.T) {
 	a, err := loadApp(filepath.Join(t.TempDir(), "preferences.json"))

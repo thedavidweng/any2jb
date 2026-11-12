@@ -74,7 +74,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		s = a.controller.Snapshot()
 	}
 	p.observe(s)
-	ui.Text(c, locales.UsbKeyboardTitle()).FontSize(20).Bold()
+	sectionTitle(c, locales.UsbKeyboardTitle())
 	ui.Text(c, locales.UsbKeyboardSafety())
 	if p.forwarding {
 		if p.closing {

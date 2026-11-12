@@ -74,7 +74,7 @@ func (a *app) diagnosticsView(c *ui.Context) {
 	if !d.ready {
 		return
 	}
-	ui.Text(c, locales.Diagnostics()).FontSize(20).Bold()
+	sectionTitle(c, locales.Diagnostics())
 	ui.Text(c, locales.DiagnosticsPrivacy()).TextColor(c.Theme().TextMuted)
 	ui.Row(c).Gap(8).Children(func() {
 		if inline(ui.Button(c.Key("logs-all"), locales.LogAll())).Clicked() {

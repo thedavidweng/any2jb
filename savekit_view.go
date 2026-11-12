@@ -62,7 +62,7 @@ func (a *app) saveKitView(c *ui.Context) {
 	}
 	observed := state.SaveKit
 	leased := s.Leased()
-	ui.Text(c, locales.SaveKitTitle()).FontSize(20).Bold()
+	sectionTitle(c, locales.SaveKitTitle())
 	ui.Text(c, locales.SaveKitIntro()).TextColor(c.Theme().TextMuted)
 	switch {
 	case state.Lost:
@@ -166,7 +166,7 @@ func (a *app) saveKitView(c *ui.Context) {
 // controls. Every mutation needs its own preview, its own confirmation and a
 // verified backup; the manager re-checks all of them at run time.
 func (a *app) saveKitWriteSection(c *ui.Context, p *saveKitPanel, s session.Snapshot, state retained.State, observed *retained.SaveKitState, ready bool, target savekit.Request) {
-	ui.Text(c, locales.SaveKitWriteSection()).FontSize(16).Bold()
+	sectionTitle(c, locales.SaveKitWriteSection())
 	writeReason := ""
 	if !slices.Contains(s.Profile.Tools, "savekit") {
 		writeReason = locales.ToolsNotPermitted()

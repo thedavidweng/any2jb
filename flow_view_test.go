@@ -132,7 +132,7 @@ func TestDetectionShowsOnlyItsOwnControls(t *testing.T) {
 			t.Errorf("later-stage action %q appears during detection", label)
 		}
 	}
-	for _, label := range []string{"Diagnostics", "Settings", "Continue to selection"} {
+	for _, label := range []string{"Diagnostics", "Settings", "Continue to route and setup"} {
 		if _, ok := tt.AccessByRole(ui.RoleButton, label); !ok {
 			t.Errorf("missing %q", label)
 		}
@@ -177,7 +177,7 @@ func TestInputMethodScopesDetectionGate(t *testing.T) {
 				stage = session.Ready
 			}
 			uiStage(t, a, tt, stage)
-			next, ok := tt.AccessByRole(ui.RoleButton, "Continue to selection")
+			next, ok := tt.AccessByRole(ui.RoleButton, "Continue to route and setup")
 			if !ok || next.Disabled != (mode != "manual") {
 				t.Fatalf("%s gate: %+v", mode, next)
 			}
@@ -200,7 +200,7 @@ func TestSelectionHidesLaunchAndExplainsCivSwitchMethod(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
-	if err := tt.Click("Continue to selection"); err != nil {
+	if err := tt.Click("Continue to route and setup"); err != nil {
 		t.Fatal(err)
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, "Start"); ok {
@@ -232,7 +232,7 @@ func TestUSBDiscoveryAllowsSelectionButDoesNotEnableLaunch(t *testing.T) {
 	tt := ui.NewTester(a.view, 760, 1000)
 	clickManual(t, tt, "Check readiness")
 	uiStage(t, a, tt, session.NeedsSetup)
-	if disabled(t, tt, "Continue to selection") {
+	if disabled(t, tt, "Continue to route and setup") {
 		t.Fatal("discovery must allow route selection without claiming enumeration")
 	}
 	if c.Snapshot().CanStart() {

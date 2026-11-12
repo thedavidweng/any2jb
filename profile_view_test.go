@@ -18,7 +18,7 @@ func TestHostOptionsAreDisclosedAndCapabilitiesExplained(t *testing.T) {
 	if tt.HasText("Host and input preferences") {
 		t.Fatal("expert options shown in onboarding")
 	}
-	if err := tt.Click("Developer Options"); err != nil {
+	if err := tt.Click("Developer options"); err != nil {
 		t.Fatal(err)
 	}
 	if !tt.HasText("Host and input preferences") {
@@ -26,7 +26,7 @@ func TestHostOptionsAreDisclosedAndCapabilitiesExplained(t *testing.T) {
 	}
 	a.preferences.Profile = "pepsipu"
 	tt.Frame()
-	if !tt.HasText("Not supported by this host. Choose a compatible host in Developer Options.") {
+	if !tt.HasText("Not supported by this host. Choose a compatible host under Developer options in Settings.") {
 		t.Fatal(tt.Texts())
 	}
 	for _, label := range []string{"Retained RPC", "Demo edition", "SaveKit", "Native HBLauncher", "Modloader"} {
@@ -35,11 +35,11 @@ func TestHostOptionsAreDisclosedAndCapabilitiesExplained(t *testing.T) {
 			t.Fatalf("%s is not disabled: %+v", label, control)
 		}
 	}
-	if err := tt.Click("Developer Options"); err != nil {
+	if err := tt.Click("Developer options"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if err := tt.Click("Developer Options"); err != nil {
+	if err := tt.Click("Developer options"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()

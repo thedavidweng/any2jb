@@ -162,7 +162,7 @@ func TestFailingReadinessIsActionable(t *testing.T) {
 			t.Fatalf("missing %q: %q", text, tt.Texts())
 		}
 	}
-	start, ok := tt.AccessByRole(ui.RoleButton, "Continue to selection")
+	start, ok := tt.AccessByRole(ui.RoleButton, "Continue to route and setup")
 	if !ok || !start.Disabled {
 		t.Fatal("Start missing or enabled with failing readiness")
 	}

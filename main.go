@@ -76,7 +76,7 @@ func (a *app) view(c *ui.Context) {
 		})
 		rule(c)
 		ui.Scroll(c).Fill().Children(func() {
-			ui.Column(c).FillWidth().AlignItems(ui.Center).Padding(24, 20, 32).Children(func() {
+			ui.Column(c).FillWidth().AlignItems(ui.Center).Padding(20, 20, 24).Children(func() {
 				ui.Column(c).FillWidth().MaxWidth(contentWidth).Gap(16).Children(func() { a.body(c) })
 			})
 		})

@@ -16,7 +16,7 @@ func TestExistingBootstrapRequiresDeliberateIdentityConfirmation(t *testing.T) {
 	tt := ui.NewTester(a.view, 640, 900)
 	clickManual(t, tt, "Check readiness")
 	uiStage(t, a, tt, session.Ready)
-	clickManual(t, tt, "Continue to selection")
+	clickManual(t, tt, "Continue to route and setup")
 	if err := tt.Click("Use saved bootstrap"); err != nil {
 		t.Fatal(err)
 	}

@@ -21,7 +21,7 @@ type civSwitchPanel struct {
 func (a *app) civSwitchView(c *ui.Context) {
 	p := &a.civSwitchPanel
 	s := a.controller.Snapshot()
-	ui.Text(c, locales.CivTitle()).FontSize(20).Bold()
+	sectionTitle(c, locales.CivTitle())
 	a.restartView(c, s)
 	ui.Text(c, locales.CivPrerequisites())
 	ui.Text(c, locales.CivNoRPC()).Bold()

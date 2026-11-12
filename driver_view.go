@@ -19,7 +19,7 @@ type driverPanel struct {
 
 func (a *app) driverView(c *ui.Context) {
 	p := &a.driverPanel
-	ui.Text(c, locales.DriverTitle()).FontSize(20).Bold()
+	sectionTitle(c, locales.DriverTitle())
 	ui.Text(c, locales.DriverDisclosure()).Bold()
 	ui.Text(c, locales.DriverSigning())
 	ui.Text(c, locales.DriverRecovery())

@@ -156,3 +156,43 @@ func polishBusyStage(t *testing.T, a *app, stage session.Stage) {
 		}
 	}
 }
+
+func TestPolishRespectsDesktopAccessibilityPreferences(t *testing.T) {
+	for _, language := range []string{"en", "zh-CN"} {
+		t.Run(language, func(t *testing.T) {
+			withLocale(t, language)
+			for _, dark := range []bool{false, true} {
+				a := newTestApp(t)
+				a.preferences.Transport = "keyboard"
+				if _, err := a.controller.ConfigureTransport(preferredTransport("keyboard"), ""); err != nil {
+					t.Fatal(err)
+				}
+				tt := ui.NewTester(a.view, 560, 360)
+				tt.SetDark(dark)
+				normal, ok := tt.AccessByRole(ui.RoleButton, locales.Settings())
+				if !ok {
+					t.Fatal("Settings is missing")
+				}
+				tt.SetPreferences(ui.Preferences{HighContrast: true, TextScale: 1.5, ReduceMotion: true})
+				tt.Advance(time.Second)
+				for _, label := range []string{locales.Diagnostics(), locales.Settings(), locales.FlowNextSelection()} {
+					control, ok := tt.AccessByRole(ui.RoleButton, label)
+					if !ok || control.Bounds.X < 0 || control.Bounds.Y < 0 ||
+						control.Bounds.X+control.Bounds.W > 560 || control.Bounds.Y+control.Bounds.H > 360 {
+						t.Fatalf("pinned control outside minimum window: %q %+v", label, control)
+					}
+				}
+				scaled, _ := tt.AccessByRole(ui.RoleButton, locales.Settings())
+				if scaled.Bounds.H <= normal.Bounds.H {
+					t.Fatal("text scaling did not enlarge the native control")
+				}
+				if !tt.HasText("?") || !tt.HasText(locales.StartupSecurityUnverified()) || !tt.HasText(locales.StartupSecurityAction()) {
+					t.Fatal("manual security note lost its glyph or safety text")
+				}
+				if tt.FramePending() {
+					t.Fatal("reduced-motion stage did not settle")
+				}
+			}
+		})
+	}
+}
