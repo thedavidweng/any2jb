@@ -47,6 +47,18 @@ func TestModloaderNeedsTheProfileCapability(t *testing.T) {
 	}
 }
 
+func TestModloaderRefusesUnconfirmedCodeBeforeTransfer(t *testing.T) {
+	c, f := retainedModloader(t, "modloader")
+	mods := writeTree(t, t.TempDir(), "contents/0100000000010000/romfs/data.bin")
+	_, err := c.RunToolWith(session.ToolRequest{Tool: "modloader", ModsFolder: mods})
+	if rejection, ok := err.(*session.Rejection); !ok || rejection.Reason != session.InvalidConfiguration {
+		t.Fatalf("unconfirmed code must be refused: %v", err)
+	}
+	if f.ToolRequest.Tool != "" || c.Snapshot().Stage != session.RetainedRPC {
+		t.Fatal("unconfirmed mods reached the tool or changed the lease")
+	}
+}
+
 func TestInvalidFoldersAreRejectedWithTheLeaseIntact(t *testing.T) {
 	c, f := retainedModloader(t, "modloader", "custom-homebrew")
 	link := t.TempDir()
@@ -83,7 +95,7 @@ func TestInvalidFoldersAreRejectedWithTheLeaseIntact(t *testing.T) {
 	mods := writeTree(t, t.TempDir(), "contents/0100000000010000/romfs/data/a.bin",
 		"contents/0100000000010000/exefs/main", "contents/0100000000010000/README.md",
 		"exefs_patches/fix/0123456789abcdef0123456789abcdef.ips", ".DS_Store")
-	if _, err := c.RunToolWith(session.ToolRequest{Tool: "modloader", ModsFolder: mods}); err != nil {
+	if _, err := c.RunToolWith(session.ToolRequest{Tool: "modloader", ModsFolder: mods, CodeConsent: true}); err != nil {
 		t.Fatal(err)
 	}
 	await(t, c, session.RetainedRPC)
@@ -98,11 +110,43 @@ func TestCustomHomebrewAcceptsABuiltGPUApp(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(app, "app.json"), []byte(`{"id":"hello-gpu","name":"Hello"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.RunToolWith(session.ToolRequest{Tool: "custom-homebrew", CustomHomebrewFolder: app}); err != nil {
+	if _, err := c.RunToolWith(session.ToolRequest{Tool: "custom-homebrew", CustomHomebrewFolder: app, CodeConsent: true}); err != nil {
 		t.Fatal(err)
 	}
 	await(t, c, session.RetainedRPC)
 	if f.ToolRequest.CustomHomebrewFolder != app {
 		t.Fatalf("unexpected request %+v", f.ToolRequest)
+	}
+}
+
+func TestUserHomebrewRequiresPerActionCodeConsent(t *testing.T) {
+	for _, tool := range []string{"custom-homebrew", "native-hblauncher"} {
+		t.Run(tool, func(t *testing.T) {
+			c, f := retainedModloader(t, tool)
+			folder := t.TempDir()
+			if err := os.WriteFile(filepath.Join(folder, "app.json"), []byte(`{"id":"hello","name":"Hello"}`), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			request := session.ToolRequest{Tool: tool}
+			if tool == "custom-homebrew" {
+				request.CustomHomebrewFolder = folder
+			} else {
+				request.AppFolder = folder
+			}
+			if _, err := c.RunToolWith(request); err == nil {
+				t.Fatal("unconfirmed user code was accepted")
+			}
+			if f.ToolRequest.Tool != "" {
+				t.Fatal("unconfirmed user code reached the tool")
+			}
+			request.CodeConsent = true
+			if _, err := c.RunToolWith(request); err != nil {
+				t.Fatal(err)
+			}
+			await(t, c, session.RetainedRPC)
+			if !f.ToolRequest.CodeConsent {
+				t.Fatal("consent was not carried to the retained runner")
+			}
+		})
 	}
 }

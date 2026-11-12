@@ -110,13 +110,19 @@ func TestNativeLauncherFoldersReachTheToolRequest(t *testing.T) {
 	a.homebrewPanel.sdFolder = "/sd/roms/nes"
 	a.homebrewPanel.appFolder = t.TempDir()
 	tt.Frame()
+	if err := tt.Click(homebrewCodeConsent); err != nil {
+		t.Fatal(err)
+	}
 	if err := tt.Click("Launch native HBLauncher"); err != nil {
 		t.Fatal(err)
 	}
 	request := awaitToolRequest(t, f)
 	if request.Tool != "native-hblauncher" || request.SDRomFolder != "/sd/roms/nes" ||
-		request.AppFolder != a.homebrewPanel.appFolder {
+		request.AppFolder != a.homebrewPanel.appFolder || !request.CodeConsent {
 		t.Fatalf("unexpected tool request: %+v", request)
+	}
+	if a.homebrewPanel.nativeConsent {
+		t.Fatal("native app consent was not consumed")
 	}
 }
 

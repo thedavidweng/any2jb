@@ -3888,11 +3888,11 @@ func (msgs Messages) DynDistOriginal() string {
 	return Catalog.Format(msgs.locale, "dynDistOriginal", nil)
 }
 
-// DynDistOriginalTools says "Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path."
+// DynDistOriginalTools says "Original any2jb code. It drives separately staged pinned exports, homebrew and modloader sources, including console c…"
 // in the language the app shows.
 func DynDistOriginalTools() string { return In(i18n.Locale()).DynDistOriginalTools() }
 
-// DynDistOriginalTools says "Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path."
+// DynDistOriginalTools says "Original any2jb code. It drives separately staged pinned exports, homebrew and modloader sources, including console c…"
 // in the language of msgs.
 func (msgs Messages) DynDistOriginalTools() string {
 	return Catalog.Format(msgs.locale, "dynDistOriginalTools", nil)
@@ -4038,6 +4038,16 @@ func (msgs Messages) HbCustom() string {
 	return Catalog.Format(msgs.locale, "hbCustom", nil)
 }
 
+// HbCodeConsent says "I confirm running user-provided homebrew code on the console for this action."
+// in the language the app shows.
+func HbCodeConsent() string { return In(i18n.Locale()).HbCodeConsent() }
+
+// HbCodeConsent says "I confirm running user-provided homebrew code on the console for this action."
+// in the language of msgs.
+func (msgs Messages) HbCodeConsent() string {
+	return Catalog.Format(msgs.locale, "hbCodeConsent", nil)
+}
+
 // ModTitle says "Modloader"
 // in the language the app shows.
 func ModTitle() string { return In(i18n.Locale()).ModTitle() }
@@ -4076,6 +4086,16 @@ func ModInstall() string { return In(i18n.Locale()).ModInstall() }
 // in the language of msgs.
 func (msgs Messages) ModInstall() string {
 	return Catalog.Format(msgs.locale, "modInstall", nil)
+}
+
+// ModConsent says "I confirm running mods as code on the console. The overlay stays until restart. This is the session's final action an…"
+// in the language the app shows.
+func ModConsent() string { return In(i18n.Locale()).ModConsent() }
+
+// ModConsent says "I confirm running mods as code on the console. The overlay stays until restart. This is the session's final action an…"
+// in the language of msgs.
+func (msgs Messages) ModConsent() string {
+	return Catalog.Format(msgs.locale, "modConsent", nil)
 }
 
 // ModInstalled says "Modloader installed. Finish this session, close SmileBASIC without restarting the console, then launch the game. Ever…"

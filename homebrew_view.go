@@ -14,6 +14,10 @@ import (
 type homebrewPanel struct {
 	sdFolder, appFolder, customFolder, modsFolder string
 	izExchange, blitbun, vacootube                bool
+	modsConsent                                   bool
+	consentedModsFolder                           string
+	customConsent, nativeConsent                  bool
+	consentedCustomFolder, consentedAppFolder     string
 }
 
 // homebrewView offers the pinned homebrew launchers. Gating is the same
@@ -39,7 +43,14 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 	if nativeReason == "" {
 		ui.TextInput(c.Key("hb-sd-folder"), &p.sdFolder).Label(locales.HbSDFolder()).Disabled(s.Busy || !leased)
 		ui.TextInput(c.Key("hb-app-folder"), &p.appFolder).Label(locales.HbAppFolder()).Disabled(s.Busy || !leased)
-		if inline(ui.Button(c.Key("hb-native"), locales.HbNative())).Disabled(native).Clicked() {
+		if p.appFolder != p.consentedAppFolder {
+			p.nativeConsent = false
+			p.consentedAppFolder = p.appFolder
+		}
+		if strings.TrimSpace(p.appFolder) != "" {
+			ui.Checkbox(c.Key("hb-native-consent"), &p.nativeConsent, locales.HbCodeConsent()).Disabled(native)
+		}
+		if inline(ui.Button(c.Key("hb-native"), locales.HbNative())).Disabled(native || strings.TrimSpace(p.appFolder) != "" && !p.nativeConsent).Clicked() {
 			a.runHomebrew("native-hblauncher")
 		}
 	}
@@ -56,7 +67,12 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 		ui.Text(c, locales.HbCustomTitle()).Bold()
 		ui.Text(c, locales.HbCustomNote()).TextColor(c.Theme().TextMuted)
 		ui.TextInput(c.Key("hb-custom-folder"), &p.customFolder).Label(locales.HbCustomFolder()).Disabled(s.Busy || !leased)
-		if inline(ui.Button(c.Key("hb-custom"), locales.HbCustom())).Disabled(custom).Clicked() {
+		if p.customFolder != p.consentedCustomFolder {
+			p.customConsent = false
+			p.consentedCustomFolder = p.customFolder
+		}
+		ui.Checkbox(c.Key("hb-custom-consent"), &p.customConsent, locales.HbCodeConsent()).Disabled(custom)
+		if inline(ui.Button(c.Key("hb-custom"), locales.HbCustom())).Disabled(custom || !p.customConsent).Clicked() {
 			a.runHomebrew("custom-homebrew")
 		}
 	}
@@ -77,7 +93,12 @@ func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.St
 		ui.Text(c.Key("mod-installed"), locales.ModInstalled()).Bold().Role(ui.RoleStatus)
 	}
 	ui.TextInput(c.Key("mod-folder"), &p.modsFolder).Label(locales.ModFolder()).Disabled(s.Busy || !leased || state.ModloaderInstalled)
-	if inline(ui.Button(c.Key("mod-install"), locales.ModInstall())).Disabled(install).Clicked() {
+	if p.modsFolder != p.consentedModsFolder {
+		p.modsConsent = false
+		p.consentedModsFolder = p.modsFolder
+	}
+	ui.Checkbox(c.Key("mod-consent"), &p.modsConsent, locales.ModConsent()).Disabled(install)
+	if inline(ui.Button(c.Key("mod-install"), locales.ModInstall())).Disabled(install || !p.modsConsent).Clicked() {
 		a.runHomebrew("modloader")
 	}
 }
@@ -89,10 +110,16 @@ func (a *app) runHomebrew(tool string) {
 	case "native-hblauncher":
 		request.SDRomFolder = strings.TrimSpace(p.sdFolder)
 		request.AppFolder = strings.TrimSpace(p.appFolder)
+		request.CodeConsent = p.nativeConsent
+		p.nativeConsent = false
 	case "custom-homebrew":
 		request.CustomHomebrewFolder = strings.TrimSpace(p.customFolder)
+		request.CodeConsent = p.customConsent
+		p.customConsent = false
 	case "modloader":
 		request.ModsFolder = strings.TrimSpace(p.modsFolder)
+		request.CodeConsent = p.modsConsent
+		p.modsConsent = false
 	case "izlauncher":
 		for _, module := range []struct {
 			id      string

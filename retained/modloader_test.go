@@ -30,7 +30,7 @@ func TestModloaderAndCustomHomebrewStateTheirRecordedReason(t *testing.T) {
 func TestModloaderCompletionLocksToolsUntilReboot(t *testing.T) {
 	runner, run, support := heldSession(t)
 	m := savekitManager(t, support, runner, "ok", append([]string{"modloader", "savekit"}, homebrewStaged...)...)
-	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir()}
+	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir(), CodeConsent: true}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
@@ -38,9 +38,39 @@ func TestModloaderCompletionLocksToolsUntilReboot(t *testing.T) {
 		t.Fatalf("a verified modloader handoff was not recorded: %+v", state)
 	}
 	for _, tool := range []string{"rpc-status", "mintbrew", "modloader", "savekit", "savekit-read"} {
-		err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: tool}, func(session.Progress) {})
+		err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: tool, CodeConsent: true}, func(session.Progress) {})
 		if err == nil || !strings.Contains(err.Error(), "restart") {
 			t.Fatalf("%s ran while the modloader overlay is active: %v", tool, err)
+		}
+	}
+}
+
+func TestModloaderRefusesMissingConsentAtRetainedBoundary(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := manager(t, support, runner, "ok", "modloader")
+	err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir()}, func(session.Progress) {
+		t.Error("unconfirmed mods started a tool process")
+	})
+	if err == nil || !strings.Contains(err.Error(), "Confirm") {
+		t.Fatalf("missing consent was not refused: %v", err)
+	}
+	if state := m.State(); state.ModloaderInstalled || state.Tool != "" {
+		t.Fatalf("unconfirmed mods changed state: %+v", state)
+	}
+}
+
+func TestRetainedRunnerRefusesUnconfirmedUserHomebrew(t *testing.T) {
+	runner, run, support := heldSession(t)
+	m := manager(t, support, runner, "ok", homebrewStaged...)
+	for _, request := range []session.ToolRequest{
+		{Tool: "custom-homebrew", CustomHomebrewFolder: t.TempDir()},
+		{Tool: "native-hblauncher", AppFolder: t.TempDir()},
+	} {
+		err := m.RunWith(context.Background(), run, request, func(session.Progress) {
+			t.Error("unconfirmed homebrew started a tool process")
+		})
+		if err == nil || !strings.Contains(err.Error(), "Confirm") {
+			t.Fatalf("missing consent was not refused: %v", err)
 		}
 	}
 }
@@ -48,7 +78,7 @@ func TestModloaderCompletionLocksToolsUntilReboot(t *testing.T) {
 func TestModloaderFailureBeforeTransferKeepsTheLease(t *testing.T) {
 	runner, run, support := heldSession(t)
 	m := manager(t, support, runner, "mod-fail-retry", "modloader")
-	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir()}
+	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir(), CodeConsent: true}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err == nil {
 		t.Fatal("a refused mod folder reported success")
 	}
@@ -63,7 +93,7 @@ func TestModloaderFailureBeforeTransferKeepsTheLease(t *testing.T) {
 func TestUnverifiedModloaderHandoffRequiresARestart(t *testing.T) {
 	runner, run, support := heldSession(t)
 	m := manager(t, support, runner, "mod-fail-blocked", append([]string{"modloader"}, homebrewStaged...)...)
-	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir()}
+	request := session.ToolRequest{Tool: "modloader", ModsFolder: t.TempDir(), CodeConsent: true}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err == nil {
 		t.Fatal("an unverified handoff reported success")
 	}

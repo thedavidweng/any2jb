@@ -417,15 +417,15 @@
       "id": "tool-host",
       "path": "runtime/toolhost.cjs",
       "resourcePlatform": "darwin-arm64",
-      "sha256": "19a4fb100c9812be6cfc524884d31b89fff3b3bb658e25f7a4787e89e041e806",
+      "sha256": "6e2e5b15a7bb6c1ac38d607c2b01e74a6bc3eb0b99cbafacec9b7ae7776e7079",
       "upstream": "any2jb",
       "revision": "0.1.0",
-      "licenseStatus": "Original any2jb read-only tool host.",
+      "licenseStatus": "Original any2jb retained-tool host.",
       "distribution": {
         "decision": "may-ship",
         "bundled": true,
         "notice": "Original any2jb tool host; no upstream GUI wrapper copied.",
-        "reason": "Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path."
+        "reason": "Original any2jb code. It drives separately staged pinned exports, homebrew and modloader sources, including console code execution and gated mod transfers. Save writes use the separate gated SaveKit host."
       }
     },
     {

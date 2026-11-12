@@ -1094,6 +1094,10 @@ async function main(args = process.argv.slice(2)) {
     check(config && typeof config === 'object' && !Array.isArray(config),
       'Invalid homebrew launch configuration.');
   }
+  if (selected === 'modloader' || selected === 'custom-homebrew' ||
+      selected === 'native-hblauncher' && config.appFolder) {
+    check(config.codeConsent === true, 'Confirm running user-provided code on the console before this action.');
+  }
   const record = JSON.parse(await fsp.readFile(path.join(stagedRoot, 'stage.json'), 'utf8'));
   check(record.source === 'developer-staged' && record.redistributable === false,
     'Read-only tools require an explicit developer stage of their pinned sources.');

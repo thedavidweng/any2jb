@@ -82,7 +82,7 @@ func TestLauncherInstallRefusedAfterModloaderHandoff(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(filepath.Dir(folder))
-	if err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "modloader"}, func(session.Progress) {}); err != nil {
+	if err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "modloader", CodeConsent: true}, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
 	req := writeRequest(t, folder, preview, true)
