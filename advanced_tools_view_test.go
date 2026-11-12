@@ -67,7 +67,7 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	a := retainedApp(t, f, adapter, []string{"rpc-status", "ouncecake-webdav", "ouncecake-ftp", "sd-browser"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
-	if !tt.HasText("These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possible here.") {
+	if !tt.HasText(locales.ToolsReadOnly()) {
 		t.Fatal(tt.Texts())
 	}
 	if !tt.HasText(ounce.Reason) || !tt.HasText(research.Reason) {

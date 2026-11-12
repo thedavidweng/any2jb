@@ -81,7 +81,7 @@
   "chooseTransport": "请选择手动、键盘、复合设备或外置 Pico 输入。",
   "chooseLANIPv4": "请输入可用的局域网 IPv4 地址，或清空此项以使用网络发现。",
   "toolsTitle": "会话工具",
-  "toolsReadOnly": "这些工具均为只读。此构建没有向游戏机写入的路径，无法写入存档、模组、启动器或文件系统。",
+  "toolsReadOnly": "只有状态检查、系统代码捕获以及 WebDAV、FTP 和 SD 导出是只读的。SaveKit 存档操作和启动器安装包会改动游戏机存档数据：每项操作都会预览受影响的文件，要求你确认确切目标，并先取得经验证的备份。自制软件和 Modloader 会在游戏机上运行代码；已安装的 mod 会一直生效，直到游戏机重启。",
   "toolsNeedLease": "这些工具需要一个仍在游戏机上保持打开的已验证会话，或连接到另一个应用保持打开的会话。",
   "toolsOwned": "使用完毕后，选择“结束会话”关闭本次会话。",
   "toolsAttached": "已连接到由另一应用拥有的已验证会话。只有该应用能结束此会话。",
@@ -341,7 +341,7 @@
   "dynRtHelpersUnavailable": "已验证的 USB 辅助程序不可用。",
   "dynRtHelpersRequired": "USB 输入需要获准且通过完整性验证的辅助程序。引导式手动输入不需要这些辅助程序。",
   "dynRtHelpersVerified": "USB 辅助程序完整性已验证；枚举尚未验证。",
-  "dynToolNotImplemented": "此构建未实现该只读工具。",
+  "dynToolNotImplemented": "此构建未实现该工具。",
   "dynToolHostUnavailable": "此构建中捆绑的工具主机不可用。",
   "dynToolStageFailedSuffix": "曾尝试本地开发者暂存，但未通过完整性检查。",
   "dynToolNotInManifest": "该组件未记录在权威清单中。",
@@ -507,5 +507,8 @@
   "toolsConsolePlaceholder": "例如 192.0.2.24",
   "toolsConsoleHint": "WebDAV 和 SD 导出需要填写游戏机的 IPv4 地址。留空时，导出地址会被拒绝。FTP 在此 Mac 上运行，无需填写。",
   "routeUnchecked": "尚未收到该路线的检查结果。请先运行检查，再继续。",
-  "flowCheckFirst": "先检查该方式需要的项目，再继续。"
+  "flowCheckFirst": "先检查该方式需要的项目，再继续。",
+  "browserResearch": "浏览器研究探针",
+  "listSeparator": "、",
+  "labeledList": "{label}：{items}"
 }

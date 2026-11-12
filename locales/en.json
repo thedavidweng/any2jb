@@ -87,7 +87,7 @@
   "chooseTransport": "Select manual, keyboard, composite or external-pico input.",
   "chooseLANIPv4": "Enter a usable LAN IPv4 address, or clear the override to use network discovery.",
   "toolsTitle": "Session tools",
-  "toolsReadOnly": "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possible here.",
+  "toolsReadOnly": "Only the status check, the system-code capture and the WebDAV, FTP and SD exports are read-only. SaveKit save operations and launcher packages change console save data: each previews the affected files, asks you to confirm the exact target and takes a verified backup first. Homebrew and the modloader run code on the console; installed mods stay active until the console restarts.",
   "toolsNeedLease": "These tools need a verified session that is still open on the console, or a connection to one that another app keeps open.",
   "toolsOwned": "Choose Finish when you are done to close this session.",
   "toolsAttached": "Connected to a verified session another app owns. Only that app can finish it.",
@@ -362,7 +362,7 @@
   "dynRtHelpersUnavailable": "Verified USB helpers are not available.",
   "dynRtHelpersRequired": "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers.",
   "dynRtHelpersVerified": "USB helper integrity verified; enumeration is not verified.",
-  "dynToolNotImplemented": "This read-only tool is not implemented in this build.",
+  "dynToolNotImplemented": "This tool is not implemented in this build.",
   "dynToolHostUnavailable": "The bundled tool host is unavailable in this build.",
   "dynToolStageFailedSuffix": " A local developer stage was attempted and failed its integrity check.",
   "dynToolNotInManifest": "This component is not recorded in the canonical manifest.",
@@ -522,5 +522,8 @@
   "toolsConsolePlaceholder": "For example 192.0.2.24",
   "toolsConsoleHint": "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this Mac and does not need it.",
   "routeUnchecked": "This route's requirements have not been reported. Run the check before continuing.",
-  "flowCheckFirst": "Check what this method needs, then continue."
+  "flowCheckFirst": "Check what this method needs, then continue.",
+  "browserResearch": "Browser research probes",
+  "listSeparator": ", ",
+  "labeledList": "{label}: {items}"
 }

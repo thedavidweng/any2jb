@@ -918,11 +918,11 @@ func (msgs Messages) ToolsTitle() string {
 	return Catalog.Format(msgs.locale, "toolsTitle", nil)
 }
 
-// ToolsReadOnly says "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possib…"
+// ToolsReadOnly says "Only the status check, the system-code capture and the WebDAV, FTP and SD exports are read-only. SaveKit save operati…"
 // in the language the app shows.
 func ToolsReadOnly() string { return In(i18n.Locale()).ToolsReadOnly() }
 
-// ToolsReadOnly says "These tools are read-only. This build has no console write path: no save, mod, launcher or filesystem write is possib…"
+// ToolsReadOnly says "Only the status check, the system-code capture and the WebDAV, FTP and SD exports are read-only. SaveKit save operati…"
 // in the language of msgs.
 func (msgs Messages) ToolsReadOnly() string {
 	return Catalog.Format(msgs.locale, "toolsReadOnly", nil)
@@ -3548,11 +3548,11 @@ func (msgs Messages) DynRtHelpersVerified() string {
 	return Catalog.Format(msgs.locale, "dynRtHelpersVerified", nil)
 }
 
-// DynToolNotImplemented says "This read-only tool is not implemented in this build."
+// DynToolNotImplemented says "This tool is not implemented in this build."
 // in the language the app shows.
 func DynToolNotImplemented() string { return In(i18n.Locale()).DynToolNotImplemented() }
 
-// DynToolNotImplemented says "This read-only tool is not implemented in this build."
+// DynToolNotImplemented says "This tool is not implemented in this build."
 // in the language of msgs.
 func (msgs Messages) DynToolNotImplemented() string {
 	return Catalog.Format(msgs.locale, "dynToolNotImplemented", nil)
@@ -5162,4 +5162,36 @@ func FlowCheckFirst() string { return In(i18n.Locale()).FlowCheckFirst() }
 // in the language of msgs.
 func (msgs Messages) FlowCheckFirst() string {
 	return Catalog.Format(msgs.locale, "flowCheckFirst", nil)
+}
+
+// BrowserResearch says "Browser research probes"
+// in the language the app shows.
+func BrowserResearch() string { return In(i18n.Locale()).BrowserResearch() }
+
+// BrowserResearch says "Browser research probes"
+// in the language of msgs.
+func (msgs Messages) BrowserResearch() string {
+	return Catalog.Format(msgs.locale, "browserResearch", nil)
+}
+
+// ListSeparator says ", "
+// in the language the app shows.
+func ListSeparator() string { return In(i18n.Locale()).ListSeparator() }
+
+// ListSeparator says ", "
+// in the language of msgs.
+func (msgs Messages) ListSeparator() string {
+	return Catalog.Format(msgs.locale, "listSeparator", nil)
+}
+
+// LabeledList says "{label}: {items}"
+// in the language the app shows.
+func LabeledList(label string, items string) string {
+	return In(i18n.Locale()).LabeledList(label, items)
+}
+
+// LabeledList says "{label}: {items}"
+// in the language of msgs.
+func (msgs Messages) LabeledList(label string, items string) string {
+	return Catalog.Format(msgs.locale, "labeledList", map[string]any{"label": label, "items": items})
 }

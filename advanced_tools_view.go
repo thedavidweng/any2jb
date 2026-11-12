@@ -143,7 +143,7 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	// A gated or excluded component states the recorded reason instead of an
 	// action; host capability booleans never decide this.
 	if d, err := a.manifest.DistributionFor("browser-research"); err == nil {
-		ui.Text(c, locales.ToolsExcluded("browser-research", localize(d.Reason))).TextColor(c.Theme().TextMuted)
+		ui.Text(c, locales.ToolsExcluded(locales.BrowserResearch(), localize(d.Reason))).TextColor(c.Theme().TextMuted)
 	}
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())
@@ -186,7 +186,7 @@ func (a *app) toolRefusals(c *ui.Context, s session.Snapshot, state retained.Sta
 		names[reason] = append(names[reason], tool.name)
 	}
 	for _, reason := range reasons {
-		muted(c, locales.ToolsGroupedReason(strings.Join(names[reason], ", "), reason))
+		muted(c, locales.ToolsGroupedReason(strings.Join(names[reason], locales.ListSeparator()), reason))
 	}
 	if state.Tool != "" {
 		muted(c, locales.ToolsOwner(state.Tool))

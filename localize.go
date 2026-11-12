@@ -88,7 +88,7 @@ var dynamicSegments = []dynamicSegment{
 	{"Original any2jb code; no upstream engine or GUI scripts.", locales.DynDistOriginal},
 	{"Check network interface access, then refresh readiness.", locales.DynNetCheckAccess},
 	{" (available but not verified for console connectivity)", locales.DynNetRecommendedSuffix},
-	{"This read-only tool is not implemented in this build.", locales.DynToolNotImplemented},
+	{"This tool is not implemented in this build.", locales.DynToolNotImplemented},
 	{"CivSwitch composite HID requires Apple Silicon macOS", locales.DynCivRequiresAppleSilicon},
 	{"No attached USB gadget controllers were discovered.", locales.DynUsbNoControllers},
 	{"The bundled tool host is unavailable in this build.", locales.DynToolHostUnavailable},

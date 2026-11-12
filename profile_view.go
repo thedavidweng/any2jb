@@ -52,7 +52,7 @@ func (a *app) profileView(c *ui.Context) {
 		if p.SupportsDemo {
 			editions = append(editions, "demo")
 		}
-		ui.Text(c, locales.SmilebasicEdition()+": "+strings.Join(p.SupportedSmileBASIC, ", "))
+		ui.Text(c, locales.LabeledList(locales.SmilebasicEdition(), strings.Join(p.SupportedSmileBASIC, locales.ListSeparator())))
 		ui.Select(c.Key("smilebasic-edition"), &a.preferences.Edition, editions).Label(locales.SmilebasicEdition()).Disabled(disabled)
 		if a.flow.settings {
 			ui.Text(c, locales.TransportMode())

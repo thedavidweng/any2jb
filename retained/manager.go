@@ -249,7 +249,7 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 	if !ok {
 		required, homebrew := homebrewComponents[tool]
 		if !homebrew {
-			return "This read-only tool is not implemented in this build."
+			return "This tool is not implemented in this build."
 		}
 		if m.options.Node == "" || m.options.Host == "" {
 			return "The bundled tool host is unavailable in this build."
