@@ -138,32 +138,20 @@ func (a *app) selectionReady(s session.Snapshot) bool {
 
 func (a *app) selectionView(c *ui.Context, s session.Snapshot) {
 	p, _ := a.manifest.Profile(a.preferences.Profile)
-	route := locales.FlowSmile()
-	if a.civSwitchPanel.open {
-		route = locales.CivTitle()
-	}
 	host := p.Label
 	if host == "" {
 		host = s.Profile.ID
 	}
 	card(c, func() {
-		keyValue(c, locales.FlowRoute(), route)
-		keyValue(c, locales.HostProfile(), host+" · "+s.Edition)
-		ui.Row(c).Wrap().Gap(8).Children(func() {
-			// The route row names the selection; a quiet surface repeats it.
-			chosen := func(e ui.Element, on bool) ui.Element {
-				if on {
-					e.Background(c.Theme().SurfacePressed).Border(1, c.Theme().TextMuted)
-				}
-				return e
-			}
-			if chosen(ui.Button(c.Key("smile-route"), locales.FlowSmile()), !a.civSwitchPanel.open).Disabled(s.Busy || s.SideEffects).Clicked() {
-				a.civSwitchPanel.open = false
-			}
-			if chosen(ui.Button(c.Key("civ-open"), locales.CivTitle()), a.civSwitchPanel.open).Disabled(s.Busy || s.SideEffects).Clicked() {
-				a.civSwitchPanel.open = true
-			}
+		field(c, locales.FlowRoute(), func() {
+			// Radio buttons mark the chosen route by shape and announce it as
+			// chosen; the arrows move between the two.
+			ui.RadioGroup(c.Key("route"), func() {
+				ui.Radio(c.Key("smile-route"), &a.civSwitchPanel.open, false, locales.FlowSmile()).Disabled(s.Busy || s.SideEffects)
+				ui.Radio(c.Key("civ-open"), &a.civSwitchPanel.open, true, locales.CivTitle()).Disabled(s.Busy || s.SideEffects)
+			}).Row().Wrap().Gap(c.Theme().Space(5)).Label(locales.FlowRoute())
 		})
+		keyValue(c, locales.HostProfile(), host+" · "+s.Edition)
 	})
 	if a.civSwitchPanel.open {
 		if !s.Transport.Capabilities.Keyboard || !s.Transport.Capabilities.Gamepad {

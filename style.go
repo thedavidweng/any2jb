@@ -223,9 +223,14 @@ func panelBody(c *ui.Context, fn func()) {
 }
 
 func keyValue(c *ui.Context, label, value string) {
-	ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).Children(func() {
+	field(c, label, func() { ui.Text(c, value).Shrink(1) })
+}
+
+// field puts a value or a control in the column keyValue's values share.
+func field(c *ui.Context, label string, value func()) {
+	ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).AlignItems(ui.Center).Children(func() {
 		muted(c, label).MinWidth(c.Theme().Rem(8)).Shrink(0)
-		ui.Text(c, value).Shrink(1)
+		value()
 	})
 }
 

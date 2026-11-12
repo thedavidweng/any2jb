@@ -77,12 +77,18 @@ func TestWizardSavedBootstrapStagesAndCornerAccess(t *testing.T) {
 			clickManual(t, tt, locales.CheckReadiness())
 			uiStage(t, a, tt, session.Ready)
 			clickManual(t, tt, locales.FlowNextSelection())
-			check("2-selection", []string{locales.CivTitle(), locales.FlowNextLaunch()}, []string{locales.CheckReadiness(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsStatus()})
+			check("2-selection", []string{locales.FlowNextLaunch()}, []string{locales.CheckReadiness(), locales.PrepareBootstrap(), locales.GuidedManualLaunch(), locales.ToolsStatus()})
 			if !tt.HasText(locales.FlowSaved()) {
 				t.Fatal("matching saved bootstrap did not skip setup")
 			}
+			if _, ok := tt.AccessByRole(ui.RoleRadio, locales.CivTitle()); !ok {
+				t.Fatal("route choice missing from route and setup")
+			}
 			clickManual(t, tt, locales.FlowNextLaunch())
-			check("3-launch", []string{locales.GuidedManualLaunch()}, []string{locales.CivTitle(), locales.PrepareBootstrap(), locales.CheckReadiness(), locales.ToolsStatus()})
+			check("3-launch", []string{locales.GuidedManualLaunch()}, []string{locales.PrepareBootstrap(), locales.CheckReadiness(), locales.ToolsStatus()})
+			if _, ok := tt.AccessByRole(ui.RoleRadio, locales.CivTitle()); ok {
+				t.Fatal("route choice leaked into launch")
+			}
 			clickManual(t, tt, locales.GuidedManualLaunch())
 			uiStage(t, a, tt, session.RetainedRPC)
 			check("4-tools", []string{locales.ToolsStatus(), locales.Finish()}, []string{locales.GuidedManualLaunch(), locales.PrepareBootstrap(), locales.CheckReadiness()})
@@ -290,5 +296,40 @@ func TestCompositeCivSwitchUsesSetupLaunchAndVerifiedToolsStages(t *testing.T) {
 	clickManual(t, tt, locales.CivBack())
 	if a.flow.stage != flowSelection {
 		t.Fatal("return from CivSwitch bypassed route selection")
+	}
+}
+
+// The route choice is one radio group: its selection is a state assistive
+// technology reads, not only a fill, and the arrows move it.
+func TestRouteChoiceIsAnAnnouncedRadioGroup(t *testing.T) {
+	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+	tt := ui.NewTester(a.view, 760, 1000)
+	a.command(a.controller.Inspect())
+	uiStage(t, a, tt, session.Ready)
+	a.flow.stage = flowSelection
+	tt.Frame()
+	chosen := func(label string) bool {
+		t.Helper()
+		info, ok := tt.AccessByRole(ui.RoleRadio, label)
+		if !ok {
+			t.Fatalf("route %q is not a radio button: %v", label, tt.Texts())
+		}
+		return info.Checked
+	}
+	if _, ok := tt.AccessByRole(ui.RoleRadioGroup, locales.FlowRoute()); !ok {
+		t.Fatal("the route choice is not a named radio group")
+	}
+	if !chosen(locales.FlowSmile()) || chosen(locales.CivTitle()) {
+		t.Fatal("the default route is not the one announced as chosen")
+	}
+	clickManual(t, tt, locales.CivTitle())
+	tt.Frame()
+	if !a.civSwitchPanel.open || !chosen(locales.CivTitle()) || chosen(locales.FlowSmile()) {
+		t.Fatal("choosing CivSwitch did not move the selection")
+	}
+	tt.Key(0, ui.KeyLeft)
+	tt.Frame()
+	if a.civSwitchPanel.open || !chosen(locales.FlowSmile()) {
+		t.Fatal("the arrows do not move the route selection")
 	}
 }
