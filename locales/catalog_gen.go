@@ -4640,13 +4640,223 @@ func (msgs Messages) FlowTools() string {
 	return Catalog.Format(msgs.locale, "flowTools", nil)
 }
 
-// FlowPosition says "Stage {current} of 4: {stage}"
+// FlowPrepare says "Prepare the Switch"
+// in the language the app shows.
+func FlowPrepare() string { return In(i18n.Locale()).FlowPrepare() }
+
+// FlowPrepare says "Prepare the Switch"
+// in the language of msgs.
+func (msgs Messages) FlowPrepare() string {
+	return Catalog.Format(msgs.locale, "flowPrepare", nil)
+}
+
+// PrepIntro says "This app can't detect these. Tick each one once it's true."
+// in the language the app shows.
+func PrepIntro() string { return In(i18n.Locale()).PrepIntro() }
+
+// PrepIntro says "This app can't detect these. Tick each one once it's true."
+// in the language of msgs.
+func (msgs Messages) PrepIntro() string {
+	return Catalog.Format(msgs.locale, "prepIntro", nil)
+}
+
+// PrepRoute says "What do you want to do"
+// in the language the app shows.
+func PrepRoute() string { return In(i18n.Locale()).PrepRoute() }
+
+// PrepRoute says "What do you want to do"
+// in the language of msgs.
+func (msgs Messages) PrepRoute() string {
+	return Catalog.Format(msgs.locale, "prepRoute", nil)
+}
+
+// PrepConnection says "Network and cable"
+// in the language the app shows.
+func PrepConnection() string { return In(i18n.Locale()).PrepConnection() }
+
+// PrepConnection says "Network and cable"
+// in the language of msgs.
+func (msgs Messages) PrepConnection() string {
+	return Catalog.Format(msgs.locale, "prepConnection", nil)
+}
+
+// PrepConsole says "On the Switch"
+// in the language the app shows.
+func PrepConsole() string { return In(i18n.Locale()).PrepConsole() }
+
+// PrepConsole says "On the Switch"
+// in the language of msgs.
+func (msgs Messages) PrepConsole() string {
+	return Catalog.Format(msgs.locale, "prepConsole", nil)
+}
+
+// PrepNetwork says "Switch 2 is on wired Ethernet, on the same network as this Mac"
+// in the language the app shows.
+func PrepNetwork() string { return In(i18n.Locale()).PrepNetwork() }
+
+// PrepNetwork says "Switch 2 is on wired Ethernet, on the same network as this Mac"
+// in the language of msgs.
+func (msgs Messages) PrepNetwork() string {
+	return Catalog.Format(msgs.locale, "prepNetwork", nil)
+}
+
+// PrepUpdates says "Console system updates are blocked"
+// in the language the app shows.
+func PrepUpdates() string { return In(i18n.Locale()).PrepUpdates() }
+
+// PrepUpdates says "Console system updates are blocked"
+// in the language of msgs.
+func (msgs Messages) PrepUpdates() string {
+	return Catalog.Format(msgs.locale, "prepUpdates", nil)
+}
+
+// PrepUpdatesNote says "Use 90dns or a router that blocks Nintendo's update servers."
+// in the language the app shows.
+func PrepUpdatesNote() string { return In(i18n.Locale()).PrepUpdatesNote() }
+
+// PrepUpdatesNote says "Use 90dns or a router that blocks Nintendo's update servers."
+// in the language of msgs.
+func (msgs Messages) PrepUpdatesNote() string {
+	return Catalog.Format(msgs.locale, "prepUpdatesNote", nil)
+}
+
+// PrepUpdatesLink says "90dns setup guide"
+// in the language the app shows.
+func PrepUpdatesLink() string { return In(i18n.Locale()).PrepUpdatesLink() }
+
+// PrepUpdatesLink says "90dns setup guide"
+// in the language of msgs.
+func (msgs Messages) PrepUpdatesLink() string {
+	return Catalog.Format(msgs.locale, "prepUpdatesLink", nil)
+}
+
+// PrepCable says "A USB-C data cable connects the Switch 2 to this Mac"
+// in the language the app shows.
+func PrepCable() string { return In(i18n.Locale()).PrepCable() }
+
+// PrepCable says "A USB-C data cable connects the Switch 2 to this Mac"
+// in the language of msgs.
+func (msgs Messages) PrepCable() string {
+	return Catalog.Format(msgs.locale, "prepCable", nil)
+}
+
+// PrepCableNote says "The Switch should power the Mac. If the Mac is charging the Switch instead, unplug the cable, wait one second and plu…"
+// in the language the app shows.
+func PrepCableNote() string { return In(i18n.Locale()).PrepCableNote() }
+
+// PrepCableNote says "The Switch should power the Mac. If the Mac is charging the Switch instead, unplug the cable, wait one second and plu…"
+// in the language of msgs.
+func (msgs Messages) PrepCableNote() string {
+	return Catalog.Format(msgs.locale, "prepCableNote", nil)
+}
+
+// PrepVersion says "Switch 2 system version is 23.0.1 or earlier"
+// in the language the app shows.
+func PrepVersion() string { return In(i18n.Locale()).PrepVersion() }
+
+// PrepVersion says "Switch 2 system version is 23.0.1 or earlier"
+// in the language of msgs.
+func (msgs Messages) PrepVersion() string {
+	return Catalog.Format(msgs.locale, "prepVersion", nil)
+}
+
+// PrepVersionNote says "Tested on 23.0.1. Do not update the console."
+// in the language the app shows.
+func PrepVersionNote() string { return In(i18n.Locale()).PrepVersionNote() }
+
+// PrepVersionNote says "Tested on 23.0.1. Do not update the console."
+// in the language of msgs.
+func (msgs Messages) PrepVersionNote() string {
+	return Catalog.Format(msgs.locale, "prepVersionNote", nil)
+}
+
+// PrepSmilebasic says "SmileBASIC 4.4.9 (full) or 4.4.6 (demo) is installed on internal storage"
+// in the language the app shows.
+func PrepSmilebasic() string { return In(i18n.Locale()).PrepSmilebasic() }
+
+// PrepSmilebasic says "SmileBASIC 4.4.9 (full) or 4.4.6 (demo) is installed on internal storage"
+// in the language of msgs.
+func (msgs Messages) PrepSmilebasic() string {
+	return Catalog.Format(msgs.locale, "prepSmilebasic", nil)
+}
+
+// PrepSmilebasicNote says "Its save data needs more than 20 MiB free."
+// in the language the app shows.
+func PrepSmilebasicNote() string { return In(i18n.Locale()).PrepSmilebasicNote() }
+
+// PrepSmilebasicNote says "Its save data needs more than 20 MiB free."
+// in the language of msgs.
+func (msgs Messages) PrepSmilebasicNote() string {
+	return Catalog.Format(msgs.locale, "prepSmilebasicNote", nil)
+}
+
+// PrepKeyboard says "The Switch's USB keyboard layout is US English"
+// in the language the app shows.
+func PrepKeyboard() string { return In(i18n.Locale()).PrepKeyboard() }
+
+// PrepKeyboard says "The Switch's USB keyboard layout is US English"
+// in the language of msgs.
+func (msgs Messages) PrepKeyboard() string {
+	return Catalog.Format(msgs.locale, "prepKeyboard", nil)
+}
+
+// PrepDirect says "SmileBASIC is open in Direct mode, under Make a Program"
+// in the language the app shows.
+func PrepDirect() string { return In(i18n.Locale()).PrepDirect() }
+
+// PrepDirect says "SmileBASIC is open in Direct mode, under Make a Program"
+// in the language of msgs.
+func (msgs Messages) PrepDirect() string {
+	return Catalog.Format(msgs.locale, "prepDirect", nil)
+}
+
+// PrepDirectNote says "For first-time setup, slot 0 must be empty."
+// in the language the app shows.
+func PrepDirectNote() string { return In(i18n.Locale()).PrepDirectNote() }
+
+// PrepDirectNote says "For first-time setup, slot 0 must be empty."
+// in the language of msgs.
+func (msgs Messages) PrepDirectNote() string {
+	return Catalog.Format(msgs.locale, "prepDirectNote", nil)
+}
+
+// PrepNotSaved says "Ticks aren't saved. You confirm them again each time you open the app."
+// in the language the app shows.
+func PrepNotSaved() string { return In(i18n.Locale()).PrepNotSaved() }
+
+// PrepNotSaved says "Ticks aren't saved. You confirm them again each time you open the app."
+// in the language of msgs.
+func (msgs Messages) PrepNotSaved() string {
+	return Catalog.Format(msgs.locale, "prepNotSaved", nil)
+}
+
+// PrepBlocked says "Tick every item to continue."
+// in the language the app shows.
+func PrepBlocked() string { return In(i18n.Locale()).PrepBlocked() }
+
+// PrepBlocked says "Tick every item to continue."
+// in the language of msgs.
+func (msgs Messages) PrepBlocked() string {
+	return Catalog.Format(msgs.locale, "prepBlocked", nil)
+}
+
+// PrepCivMethod says "CivSwitch needs composite keyboard + gamepad input."
+// in the language the app shows.
+func PrepCivMethod() string { return In(i18n.Locale()).PrepCivMethod() }
+
+// PrepCivMethod says "CivSwitch needs composite keyboard + gamepad input."
+// in the language of msgs.
+func (msgs Messages) PrepCivMethod() string {
+	return Catalog.Format(msgs.locale, "prepCivMethod", nil)
+}
+
+// FlowPosition says "Stage {current} of 5: {stage}"
 // in the language the app shows.
 func FlowPosition(current string, stage string) string {
 	return In(i18n.Locale()).FlowPosition(current, stage)
 }
 
-// FlowPosition says "Stage {current} of 4: {stage}"
+// FlowPosition says "Stage {current} of 5: {stage}"
 // in the language of msgs.
 func (msgs Messages) FlowPosition(current string, stage string) string {
 	return Catalog.Format(msgs.locale, "flowPosition", map[string]any{"current": current, "stage": stage})

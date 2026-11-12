@@ -22,6 +22,7 @@ func TestExistingBootstrapRequiresDeliberateIdentityConfirmation(t *testing.T) {
 	uiStage(t, a, tt, session.Ready)
 	clickManual(t, tt, "Type the commands yourself instead")
 	waitIdle(t, a, tt)
+	passPrepare(t, a, tt)
 	if err := tt.Click("Use saved bootstrap"); err != nil {
 		t.Fatal(err)
 	}
@@ -75,6 +76,7 @@ func TestBootstrapIdentityConfirmationNamesTheConfirmedIdentity(t *testing.T) {
 	uiStage(t, a, tt, session.Ready)
 	clickManual(t, tt, "Type the commands yourself instead")
 	waitIdle(t, a, tt)
+	passPrepare(t, a, tt)
 	if err := tt.Click("Use saved bootstrap"); err != nil {
 		t.Fatal(err)
 	}

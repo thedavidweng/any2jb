@@ -31,7 +31,7 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 
 - Tab order is construction order, matching visual order within each stage.
   The sidebar marks each stage ✓ passed, ● current (bold) or ○ ahead, as text.
-  A stable status heading announces “Stage N of 4” and the stage name. Move
+  A stable status heading announces “Stage N of 5” and the stage name. Move
   focus to that heading on a stage transition so the user enters the new scope.
   Other programmatic focus is limited to the explicitly opened keyboard capture.
 - Diagnostics and Settings are fixed corner controls outside the scrolling stage
@@ -61,7 +61,9 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
   Theme borders and muted ink retain Increase Contrast adjustments.
 
 - A first-stage step reads subject, state, one plain sentence and at most one
-  action. A raw readiness row (route stage and Diagnostics) reads subject,
+  action. A prepare-stage item is a plain check box with an accessible name,
+  never a state badge: it is the user's confirmation of something the app
+  cannot observe, not an observation. A raw readiness row (route stage and Diagnostics) reads subject,
   state, then one next action prefixed with “Next:”. Guidance, preferences and reference notes are never shown as rows
   with a state badge; only observed checks are.
 - Expert options, reference prerequisites, connecting to an open session and

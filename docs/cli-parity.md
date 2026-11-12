@@ -43,7 +43,6 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | civ-js | `civswitch send-js` |
 | civ-js-file | `civswitch send-js` |
 | civ-language | `civswitch launch --confirm` |
-| civ-network | `civswitch launch --confirm` |
 | civ-open | `civswitch availability` |
 | civ-recheck | `civswitch recheck` |
 | civ-start | `civswitch launch` |
@@ -65,10 +64,12 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | dump-open | n/a: `tool state` prints the export path |
 | finish | `finish` |
 | flow-back-detection | n/a: commands are not staged pages; the controller gates their order |
+| flow-back-prepare | n/a: commands are not staged pages; the controller gates their order |
 | flow-back-selection | n/a: commands are not staged pages; the controller gates their order |
 | flow-civ-launch | `civswitch launch` |
 | flow-manual | `settings set --input` |
 | flow-next-launch | `launch` |
+| flow-next-prepare | n/a: commands are not staged pages; the controller gates their order |
 | flow-next-selection | `detect` |
 | hb-app-folder | `tool run --app-folder` |
 | hb-custom | `tool run` |
@@ -82,6 +83,14 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | hb-native | `tool run` |
 | hb-native-consent | `tool run --consent` |
 | hb-sd-folder | `tool run --sd-folder` |
+| prep-cable | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-direct | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-guide | n/a: a link to the 90dns setup guide |
+| prep-keyboard | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-network | `civswitch launch --confirm` |
+| prep-smilebasic | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-updates | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-version | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
 | host-profile | `settings set --profile` |
 | inspect | `detect` |
 | lan-override | `settings set --lan` |

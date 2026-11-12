@@ -1,8 +1,9 @@
 # Host profile choices
 
-Host and edition selection lives in stage 2 beside the selected route's
+Host and edition selection lives in the route stage beside the selected route's
 first-time bootstrap setup. The same preferences remain reachable through the
-Settings corner. Stage 1 chooses the input method before detection. Applying a
+Settings corner. Stage 1 checks this Mac and stage 2 confirms the console-side
+prerequisites. Applying a
 host change never carries readiness or a different host's saved-bootstrap proof
 forward. A trustworthy matching record skips first-time setup, not readiness.
 

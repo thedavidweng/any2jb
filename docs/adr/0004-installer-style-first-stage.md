@@ -1,7 +1,9 @@
 # 0004: Installer-style first stage without an up-front method choice
 
 Status: accepted. Supersedes the parts of
-[0003](0003-staged-flow-and-scoped-readiness.md) named below.
+[0003](0003-staged-flow-and-scoped-readiness.md) named below. Its stage count and
+the route-choice location are superseded by
+[0005](0005-prepare-the-switch-checklist.md).
 
 ## Context
 
@@ -12,10 +14,10 @@ to do next.
 
 ## Decision
 
-The window follows the macOS Installer layout: the four stages are listed in a
+The window follows the macOS Installer layout: the stages are listed in a
 left sidebar (✓ passed, ● current and bold, ○ ahead), the stage body is on the
 right, and Back and the primary Continue sit in the pinned bottom bar. The stage
-heading keeps its "Stage N of 4" status label and still takes focus on every
+heading keeps its "Stage N of 5" status label and still takes focus on every
 stage change.
 
 Stage 1, **Check this Mac**, replaces "choose and apply an input method"
@@ -55,7 +57,7 @@ Stage 1, **Check this Mac**, replaces "choose and apply an input method"
   the bottom bar beside Continue.
 - A discovered controller stays "Found, not tested", never done. Only observed
   keyboard enumeration marks the connection done.
-- The `input-adapter` check moves to stage 2, which inspects again with the
+- The `input-adapter` check moves to the route stage, which inspects again with the
   method Continue applied.
 
 Everything else in 0003 stands: `SessionController` alone owns evidence and

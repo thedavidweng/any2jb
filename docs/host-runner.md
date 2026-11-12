@@ -28,7 +28,7 @@ Pairing publication is conservatively a side-effect boundary.
 
 Final verification requires a clean process exit, no result/cleanup errors,
 completion, and strict `verified`, `fs.verified`, `fs.restored` and
-`fs.cleanup.cleanedUp`. Stage 4 only means the final work began.
+`fs.cleanup.cleanedUp`. Verification step 4 only means the final work began.
 
 Held verification instead requires a live process, verified/restored filesystem,
 ready retained endpoint, deferred cleanup, cleaned donor and listening held RPC.

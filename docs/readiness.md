@@ -37,7 +37,7 @@ always shows the four plain steps of
 [ADR 0004](adr/0004-installer-style-first-stage.md), and Continue applies
 automatic USB input only once they allow it; the raw checks are listed in Diagnostics. Guided manual input never
 gates on USB-only facts. Host/runtime checks are
-shown separately in stage 2 and remain authoritative at launch.
+shown separately in the route stage and remain authoritative at launch.
 A discovered controller is sufficient for route selection, not for ns2jb Start;
 that command still requires the controller's existing verification contract.
 An external Pico is not proof of
