@@ -76,6 +76,7 @@ explicit placeholder until any2jb artwork is ready.
 ## Architecture and terminology
 
 - [Domain glossary](GLOSSARY.md)
+- [External projects](docs/external-projects.md): every outside project, pinned revision and link
 - [Direct Go orchestration over upstream engines](docs/adr/0001-direct-go-orchestration-over-upstream-engines.md)
 - [Phase 1 release boundaries](docs/adr/0002-split-phase1-release-into-p1a-and-p1b.md)
 

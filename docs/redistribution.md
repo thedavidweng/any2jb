@@ -8,7 +8,8 @@ another distributor's permission is not a redistribution grant to any2jb.
 
 [`manifest/profiles.json`](../manifest/profiles.json) records each component's
 origin, exact revision, digest, supplied license/notice, `bundled` flag, decision,
-and reason. Profile `sourceSha256` covers the source inventory;
+and reason. [External projects](external-projects.md) lists each origin with
+links for review. Profile `sourceSha256` covers the source inventory;
 `bootstrapSha256` separately identifies the bootstrap. Component `sha256`
 identifies only its recorded file, not a whole repository or compiled binary.
 
