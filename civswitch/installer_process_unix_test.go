@@ -32,7 +32,8 @@ func TestInstallerCancellationStopsDescendants(t *testing.T) {
 	deadline := time.Now().Add(3 * time.Second)
 	for {
 		data, err := os.ReadFile(pidFile)
-		if err == nil {
+		// The shell opens/truncates the file before echo writes its record.
+		if err == nil && strings.HasSuffix(string(data), "\n") {
 			pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
 			if err != nil {
 				t.Fatal(err)

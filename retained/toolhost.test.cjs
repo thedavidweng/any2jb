@@ -486,11 +486,36 @@ async function modloaderWorld(t) {
   writeScript(path.join(component, 'native/prebuilt/manifest.json'), '{}\n');
   const mods = path.join(support, 'mods');
   writeScript(path.join(mods, 'contents/0100000000010000/romfs/data.bin'), 'mod');
-  const config = {supportDir: support, profileID: 'kurumuz', modsFolder: mods};
+  const config = {supportDir: support, profileID: 'kurumuz', modsFolder: mods, codeConsent: true};
   return {bridge, workspace, stagedRoot, config, mods};
 }
 
 const modloaderStaging = workspace => fs.readdirSync(workspace).filter(name => name.startsWith('.any2jb-modloader-'));
+
+test('the modloader refuses missing code consent before staging or console requests', async t => {
+  const {bridge, workspace, stagedRoot, config} = await modloaderWorld(t);
+  const {events, code} = await runToolhost(
+    [stagedRoot, 'modloader', workspace, '-', '-', JSON.stringify({...config, codeConsent: false})], {stop: false});
+  assert.equal(code, 1);
+  assert.match(events.find(e => e.type === 'failed').message, /Confirm/);
+  assert.deepEqual(modloaderStaging(workspace), []);
+  assert.deepEqual(bridge.commands, []);
+});
+
+test('user homebrew needs boolean consent before any console request', async t => {
+  const {bridge, workspace, stagedRoot, config, mods} = await modloaderWorld(t);
+  for (const selected of ['custom-homebrew', 'native-hblauncher']) {
+    for (const codeConsent of [undefined, false, 'true']) {
+      const launch = {...config, appFolder: mods, customHomebrewFolder: mods, codeConsent};
+      const {events, code} = await runToolhost(
+        [stagedRoot, selected, workspace, '-', '-', JSON.stringify(launch)], {stop: false});
+      assert.equal(code, 1);
+      assert.match(events.find(e => e.type === 'failed').message, /Confirm/);
+    }
+  }
+  assert.deepEqual(bridge.commands, []);
+  assert.equal(fs.existsSync(markerPath(workspace)), false);
+});
 
 test('the modloader verifies its game handoff as the final action', {timeout: 60000}, async t => {
   const {workspace, stagedRoot, config} = await modloaderWorld(t);
@@ -541,7 +566,7 @@ test('custom homebrew runs a built GPU app from a fresh session library', {timeo
   const app = path.join(support, 'my-app');
   writeScript(path.join(app, 'app.json'), JSON.stringify({id: 'hello-gpu', name: 'Hello'}));
   const {events, code, stderr} = await runToolhost([stagedRoot, 'custom-homebrew', workspace, '-', '-',
-    JSON.stringify({...config, customHomebrewFolder: app})]);
+    JSON.stringify({...config, customHomebrewFolder: app, codeConsent: true})]);
   assert.equal(code, 0, stderr + '\n' + JSON.stringify(events));
   assert.ok(events.some(e => e.type === 'stopped' && e.cleanupVerified), JSON.stringify(events));
   assert.deepEqual(fs.readdirSync(app), ['app.json'], 'the original folder stays unchanged');
@@ -553,7 +578,7 @@ test('custom homebrew refuses an unsupported format before the console is touche
   writeScript(path.join(module, 'module.json'), '{}');
   writeScript(path.join(module, 'app.json'), JSON.stringify({id: 'x', name: 'X'}));
   const {events, code} = await runToolhost([stagedRoot, 'custom-homebrew', workspace, '-', '-',
-    JSON.stringify({...config, customHomebrewFolder: module})], {stop: false});
+    JSON.stringify({...config, customHomebrewFolder: module, codeConsent: true})], {stop: false});
   assert.equal(code, 1);
   assert.equal(events.find(e => e.type === 'failed').cleanupBlocked, false);
   assert.equal(fs.existsSync(markerPath(workspace)), false);

@@ -186,6 +186,7 @@ func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) (
 	if request.CustomHomebrewFolder != "" {
 		config["customHomebrewFolder"] = request.CustomHomebrewFolder
 	}
+	config["codeConsent"] = request.CodeConsent
 	data, err := json.Marshal(config)
 	return string(data), err
 }

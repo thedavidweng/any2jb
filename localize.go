@@ -50,7 +50,7 @@ var dynamicSegments = []dynamicSegment{
 	{"More than one controller was discovered. Verify the connected controller before using USB input, or choose guided manual input.", locales.DynUsbVerifyController},
 	{"Control Center distribution is blocked pending review of the complete separately authored release inventory and its notices.", locales.DynDistControlCenter},
 	{"Connect a USB-C data cable so the Mac receives power from the console; verify keyboard enumeration before sending input.", locales.DynUsbConnectCable},
-	{"Original any2jb code. It only drives separately staged pinned read-only tool sources and contains no console write path.", locales.DynDistOriginalTools},
+	{"Original any2jb code. It drives separately staged pinned exports, homebrew and modloader sources, including console code execution and gated mod transfers. Save writes use the separate gated SaveKit host.", locales.DynDistOriginalTools},
 	{"Connect the console by Ethernet on the reachable LAN; host listening and console connection are checked during launch.", locales.DynNetConnectConsole},
 	{"USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers.", locales.DynRtHelpersRequired},
 	{"Check driver loading and the USB-C data cable direction, then refresh readiness; or choose guided manual input.", locales.DynUsbCheckCableDirection},

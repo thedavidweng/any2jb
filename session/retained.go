@@ -120,7 +120,7 @@ func (c *SessionController) detach(ctx context.Context, run Run) error {
 }
 
 // ToolRequest carries validated user input for one tool: the console address a
-// read-only export needs, one read-only SaveKit operation or the homebrew
+// read-only export needs, one gated SaveKit operation or the homebrew
 // launch configuration. A parameter is
 // neither a capability nor consent.
 type ToolRequest struct {
@@ -139,6 +139,20 @@ type ToolRequest struct {
 	// built custom homebrew app; both are layout-checked before any transfer.
 	ModsFolder           string
 	CustomHomebrewFolder string
+	// CodeConsent authorizes only this action's user-supplied console code.
+	CodeConsent bool
+}
+
+// ValidateCodeConsent is shared by the controller and retained runner so
+// bypassing the view cannot authorize user-supplied code.
+func (r ToolRequest) ValidateCodeConsent() error {
+	if r.Tool == "modloader" && !r.CodeConsent {
+		return errors.New("Confirm running mods on the console before installing them.")
+	}
+	if (r.Tool == "custom-homebrew" || r.Tool == "native-hblauncher" && r.AppFolder != "") && !r.CodeConsent {
+		return errors.New("Confirm running user-provided homebrew code on the console before launching it.")
+	}
+	return nil
 }
 
 // validateHomebrew checks the optional homebrew launch parameters. They cross
@@ -190,7 +204,7 @@ func (r ToolRequest) validateHomebrew() error {
 
 func (r ToolRequest) needsParameterized() bool {
 	return r.ConsoleIPv4 != "" || r.SaveKit != nil || len(r.Modules) > 0 || r.SDRomFolder != "" || r.AppFolder != "" ||
-		r.ModsFolder != "" || r.CustomHomebrewFolder != ""
+		r.ModsFolder != "" || r.CustomHomebrewFolder != "" || r.CodeConsent
 }
 
 // validModuleID mirrors the staged IZlauncher catalog's id shape.
@@ -269,6 +283,9 @@ func (c *SessionController) RunToolWith(request ToolRequest) (Snapshot, error) {
 		return c.configurationError(InvalidConfiguration, "launcher saves require the SaveKit write gate")
 	}
 	if err := request.validateHomebrew(); err != nil {
+		return c.configurationError(InvalidConfiguration, err.Error())
+	}
+	if err := request.ValidateCodeConsent(); err != nil {
 		return c.configurationError(InvalidConfiguration, err.Error())
 	}
 	runner, parameterized := c.env.Tools.(ParameterizedToolRunner)

@@ -52,7 +52,7 @@ func TestHomebrewToolRequestsValidateTheirInput(t *testing.T) {
 	}
 	await(t, c, session.RetainedRPC)
 	if _, err := c.RunToolWith(session.ToolRequest{Tool: "native-hblauncher",
-		SDRomFolder: "/sd/roms/nes", AppFolder: t.TempDir()}); err != nil {
+		SDRomFolder: "/sd/roms/nes", AppFolder: t.TempDir(), CodeConsent: true}); err != nil {
 		t.Fatal(err)
 	}
 	await(t, c, session.RetainedRPC)

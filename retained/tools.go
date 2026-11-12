@@ -70,9 +70,12 @@ func (m *Manager) Run(ctx context.Context, run session.Run, tool string, report 
 	return m.RunWith(ctx, run, session.ToolRequest{Tool: tool}, report)
 }
 
-// RunWith starts one read-only tool. It returns when the tool has reported a
+// RunWith starts one retained tool. It returns when the tool has reported a
 // verified result or a ready endpoint; an endpoint keeps running until Stop.
 func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.ToolRequest, report session.Report) error {
+	if err := request.ValidateCodeConsent(); err != nil {
+		return err
+	}
 	workspace, err := m.workspace(run)
 	if err != nil {
 		return err

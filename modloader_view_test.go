@@ -58,11 +58,52 @@ func TestModsFolderReachesTheToolRequest(t *testing.T) {
 	}
 	a.homebrewPanel.modsFolder = mods
 	tt.Frame()
+	if err := tt.Click(modConsent); err != nil {
+		t.Fatal(err)
+	}
 	if err := tt.Click(installMods); err != nil {
 		t.Fatal(err)
 	}
-	if request := awaitToolRequest(t, f); request.Tool != "modloader" || request.ModsFolder != mods {
+	if request := awaitToolRequest(t, f); request.Tool != "modloader" || request.ModsFolder != mods || !request.CodeConsent {
 		t.Fatalf("unexpected tool request: %+v", request)
+	}
+	if a.homebrewPanel.modsConsent {
+		t.Fatal("consent was not consumed")
+	}
+}
+
+const modConsent = "I confirm running mods as code on the console. The overlay stays until restart. This is the session's final action and blocks every later tool. No backup is taken because nothing is written to saves."
+
+func TestChangingModsFolderClearsConsent(t *testing.T) {
+	f := sessiontest.NewFakeEnvironment()
+	a, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{"modloader"})
+	a.homebrewPanel.modsFolder = t.TempDir()
+	tt.Frame()
+	if err := tt.Click(modConsent); err != nil {
+		t.Fatal(err)
+	}
+	a.homebrewPanel.modsFolder = t.TempDir()
+	tt.Frame()
+	control, _ := tt.AccessByRole(ui.RoleButton, installMods)
+	if !control.Disabled || a.homebrewPanel.modsConsent {
+		t.Fatal("a different folder reused consent")
+	}
+}
+
+func TestInstallModsNeedsExplicitConsent(t *testing.T) {
+	f := sessiontest.NewFakeEnvironment()
+	a, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{"modloader"})
+	a.homebrewPanel.modsFolder = t.TempDir()
+	tt.Frame()
+	control, ok := tt.AccessByRole(ui.RoleButton, installMods)
+	if !ok || !control.Disabled {
+		t.Fatalf("Install mods is usable without explicit consent: %+v", control)
+	}
+	if err := tt.Click(installMods); err != nil {
+		t.Fatal(err)
+	}
+	if f.ToolRequest.Tool != "" {
+		t.Fatal("unconfirmed mods reached the tool")
 	}
 }
 
@@ -74,6 +115,9 @@ func TestInvalidCustomHomebrewFolderKeepsTheLease(t *testing.T) {
 	}
 	a.homebrewPanel.customFolder = t.TempDir()
 	tt.Frame()
+	if err := tt.Click(homebrewCodeConsent); err != nil {
+		t.Fatal(err)
+	}
 	if err := tt.Click(launchCustom); err != nil {
 		t.Fatal(err)
 	}
@@ -82,6 +126,40 @@ func TestInvalidCustomHomebrewFolderKeepsTheLease(t *testing.T) {
 	}
 	if stage := a.controller.Snapshot().Stage; stage != session.RetainedRPC {
 		t.Fatalf("the refusal dropped the retained lease: %s", stage)
+	}
+}
+
+const homebrewCodeConsent = "I confirm running user-provided homebrew code on the console for this action."
+
+func TestUserHomebrewNeedsConsentAndChangingFolderClearsIt(t *testing.T) {
+	for _, tool := range []string{"custom-homebrew", "native-hblauncher"} {
+		t.Run(tool, func(t *testing.T) {
+			f := sessiontest.NewFakeEnvironment()
+			a, tt := leasedHomebrewApp(t, f, &fakeToolAdapter{}, []string{tool})
+			folder, button := &a.homebrewPanel.customFolder, launchCustom
+			if tool == "native-hblauncher" {
+				folder, button = &a.homebrewPanel.appFolder, "Launch native HBLauncher"
+			}
+			*folder = t.TempDir()
+			tt.Frame()
+			control, _ := tt.AccessByRole(ui.RoleButton, button)
+			if !control.Disabled {
+				t.Fatal("user code can launch without consent")
+			}
+			if err := tt.Click(homebrewCodeConsent); err != nil {
+				t.Fatal(err)
+			}
+			control, _ = tt.AccessByRole(ui.RoleButton, button)
+			if control.Disabled {
+				t.Fatal("consent did not enable launch")
+			}
+			*folder = t.TempDir()
+			tt.Frame()
+			control, _ = tt.AccessByRole(ui.RoleButton, button)
+			if !control.Disabled {
+				t.Fatal("changed homebrew folder reused consent")
+			}
+		})
 	}
 }
 

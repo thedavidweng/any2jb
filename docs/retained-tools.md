@@ -50,8 +50,9 @@ controller's retained adapter and its tool runner:
 | `savekit-read` | Pinned ns2-savekit read-only entrypoints through `retained/savekit-host.cjs` | Read-only: accounts, titles, archive inventory, inspect, verified backup export and timestamps |
 | `savekit` | Pinned ns2-savekit write/delete entrypoints through the same host | The selected archive only: gated write, restore and delete, plus the read-only live-vs-export compare |
 
-No save, mod, launcher or console filesystem write exists outside the gated
-SaveKit path, and the SD export wrapper exposes only `list`, `stat`,
+Save writes and launcher-save installs use the gated SaveKit path. Mod
+transfers and homebrew code execution use the consent gates below, not SaveKit.
+The SD export wrapper exposes only `list`, `stat`,
 `openRead`, `read` and `close` under `/sd`. Go refuses any endpoint
 outside the boundary above, so a tool cannot publish a LAN service of its own.
 The capture's inventory, file sizes and SHA-256 digests are read back and
@@ -198,6 +199,12 @@ Both start only from a verified lease and check the user's folder in Go
 (`session/folders.go`) before anything spawns; the tool host checks it again
 before any transfer. An invalid folder is refused with `invalid_configuration`
 and the session stays `retained_rpc`. Nothing game- or mod-related is bundled.
+Each action requires explicit code consent. The checkbox resets when its folder
+changes and is consumed when submitted, including a refused attempt.
+`session.ToolRequest.CodeConsent` carries that consent through the session
+controller and retained manager to the tool host; all three refuse a request
+without it before transferring anything. Native HBLauncher also requires this
+consent when its optional user app folder is supplied.
 
 - **Modloader** is offered only on profiles whose manifest declares
   `supportsModloader` (Kurumuz and Cellenseres; not Astral) and the tool host
@@ -208,7 +215,10 @@ and the session stays `retained_rpc`. Nothing game- or mod-related is bundled.
   installed. The pinned `ns2jb-modloader` code and the mods are copied
   through no-follow descriptors into a private folder of the run, then its
   installer runs as the **final action**. Failures up to that point are
-  retry-safe. A verified handoff (`READY`, the install lock and the resident
+  retry-safe. Its confirmation states that mods run code on the console, the
+  overlay stays until restart and every later tool is blocked. No backup is
+  taken because this operation writes nothing to saves.
+  A verified handoff (`READY`, the install lock and the resident
   proof) sets `ModloaderInstalled`: the overlay stays until the console
   restarts, so every later tool launch is refused and the UI says to finish,
   close SmileBASIC without restarting, launch the game, and restart before
@@ -230,6 +240,31 @@ blocked `mintbrew` and `homebrew-runtime` stages. Tests:
 and unverified failures), the modloader and custom homebrew fixtures in
 `retained/toolhost.test.cjs`, and `modloader_view_test.go`. No modloader or
 custom homebrew run against a console; hardware behavior is not verified.
+
+## Code-launch consent audit
+
+| Action | Runs console code? | Confirmation before this change | Confirmation now |
+| --- | --- | --- | --- |
+| Install mods | Yes, user mods and the pinned modloader | None | Per-action code consent covering overlay lifetime, final-action lockout and no save backup |
+| Custom GPU homebrew | Yes, user-supplied app | None | Per-action user-code consent |
+| HBLauncher with a user app folder | Yes, user-supplied native app | None | Per-action user-code consent |
+| Pinned MintBrew, default HBLauncher/MintNES, IZlauncher and staged catalog modules | Yes, pinned third-party code | Explicit Launch action, no separate arbitrary-code checkbox | Unchanged |
+| CivSwitch JS send / Control Center staging | Yes, user JavaScript | Explicit arbitrary-code confirmation checked by controller and adapter | Unchanged |
+| CivSwitch boot trigger | Yes, persistent loader | Explicit save-replacement confirmation and verified backup | Unchanged |
+| Launcher-save packages | Yes, when the game starts | Per-install preview/target confirmation, verified backup and post-write verification | Unchanged |
+
+C5 differentiates normal launches from arbitrary user code, persistence and
+save replacement. The pinned launchers and catalog modules have no user-code
+input by default and preserve mac2jb's ordinary Launch affordance
+(`gui/ContentView.swift` MintBrew, HBLauncher and IZlauncher rows;
+`gui/SessionModel.swift` launch methods). Their stages are digest-verified,
+single-owner and cleanup-gated; distribution remains blocked pending rights
+review. A separate confirmation on each unchanged pinned launch would not
+address a new trust decision. Supplying a native app folder does cross that
+boundary and now requires consent. MintNES ROMs are inputs to the pinned
+emulator, not native console payloads; its supported ROM and read-only SD
+validation remain unchanged. No hardware execution was verified.
+
 ## Distribution and local developer staging
 
 `resources/darwin-arm64/runtime/toolhost.cjs` is original any2jb code, recorded
