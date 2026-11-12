@@ -40,11 +40,15 @@ func (a *app) sessionView(c *ui.Context) {
 	showStage := a.flow.stage != flowSelection ||
 		(s.Stage != session.Idle && s.Stage != session.Ready && s.Stage != session.NeedsSetup)
 	if showStage {
-		if a.flow.stage == flowSelection || a.flow.stage == flowTools {
+		switch a.flow.stage {
+		case flowSelection:
 			// The card around this view carries the section's title, so the
 			// session state is a line in it, not a second heading.
 			muted(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
-		} else {
+		case flowTools:
+			// It opens the stage, above the tools it allows.
+			ui.Text(c.Key("session-stage"), stageTitle(s.Stage)).Role(ui.RoleStatus)
+		default:
 			// In launch the session state is the section's title, and a
 			// recovery state ends its line, as an observed row does.
 			ui.Row(c).FillWidth().Wrap().Gap(c.Theme().Space(2)).Children(func() {

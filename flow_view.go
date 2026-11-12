@@ -107,12 +107,12 @@ func (a *app) flowView(c *ui.Context) {
 				card(c, func() { a.civSwitchView(c) })
 				return
 			}
+			a.sessionView(c)
 			if a.saveKit.open {
 				card(c, func() { a.saveKitView(c) })
 			} else {
 				card(c, func() { a.advancedToolsView(c) })
 			}
-			a.sessionView(c)
 		}
 	})
 }

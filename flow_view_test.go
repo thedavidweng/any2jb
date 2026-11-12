@@ -348,3 +348,22 @@ func TestFooterReasonUsesTheFreeWidth(t *testing.T) {
 		t.Fatalf("the footer reason wraps in %v", hint.Bounds)
 	}
 }
+
+// The tools stage opens with what the session is, then what can be done in it.
+func TestToolsStageLeadsWithTheSessionState(t *testing.T) {
+	a := testApp(t, session.New(sessiontest.NewFakeEnvironment().Environment(), session.Profile{ID: "test", Revision: "pinned", RetainsRPC: true, Tools: []string{"rpc-status"}}))
+	tt := ui.NewTester(a.view, 960, 1400)
+	a.command(a.controller.Inspect())
+	uiStage(t, a, tt, session.Ready)
+	a.command(a.controller.Start())
+	uiStage(t, a, tt, session.RetainedRPC)
+	state, ok := tt.Access(locales.RetainedSession())
+	tools, found := tt.Access(locales.ToolsTitle())
+	if !ok || !found {
+		t.Fatal("session state or tools title missing")
+	}
+	if state.Bounds.Y > tools.Bounds.Y {
+		t.Fatalf("session state %v comes after the tools %v", state.Bounds, tools.Bounds)
+	}
+	a.controller.Finish()
+}
