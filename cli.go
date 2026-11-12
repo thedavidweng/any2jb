@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -56,6 +57,11 @@ type cliLine struct {
 	text string
 	err  error
 }
+type cliJSONOutput struct {
+	values []any
+	text   bytes.Buffer
+	stream bool
+}
 type commandLine struct {
 	app                   *app
 	support               string
@@ -69,6 +75,7 @@ type commandLine struct {
 	release               func() error
 	helpers               *transport.DeveloperHelpers
 	sequence              uint64
+	output                *cliJSONOutput
 }
 
 func newCommandLine(in io.Reader, out, stderr io.Writer, terminal bool) *commandLine {
@@ -78,7 +85,8 @@ func cliMessage(key string) string     { return locales.Catalog.Format(i18n.Loca
 func (c *commandLine) say(text string) { fmt.Fprintln(c.stderr, text) }
 func (c *commandLine) print(value any) error {
 	if c.json {
-		return json.NewEncoder(c.out).Encode(value)
+		c.output.values = append(c.output.values, value)
+		return nil
 	}
 	switch v := value.(type) {
 	case string:
@@ -211,9 +219,60 @@ func (c *commandLine) locale() string {
 	return "en"
 }
 
-func (c *commandLine) execute(args []string) error {
+func (c *commandLine) execute(args []string) (err error) {
+	previous := c.output
+	output := &cliJSONOutput{}
+	c.output = output
+	defer func() {
+		c.output = previous
+		if !c.json || output.stream {
+			return
+		}
+		object := map[string]any{}
+		if len(output.values) == 1 {
+			data, marshalErr := json.Marshal(output.values[0])
+			if marshalErr != nil {
+				err = marshalErr
+			} else if len(data) > 0 && data[0] == '{' {
+				decoder := json.NewDecoder(bytes.NewReader(data))
+				decoder.UseNumber()
+				errDecode := decoder.Decode(&object)
+				if errDecode != nil {
+					err = errDecode
+				}
+			} else {
+				object["result"] = output.values[0]
+			}
+		} else if len(output.values) > 1 {
+			object["results"] = output.values
+		}
+		if output.text.Len() > 0 {
+			object["text"] = output.text.String()
+		}
+		if err != nil {
+			exit := cliExitCode(err)
+			object["code"] = map[int]string{exitError: "error", exitCancelled: "cancelled", exitBlocked: "blocked", exitIndeterminate: "recovery_required"}[exit]
+			object["exit"], object["message"] = exit, localize(err.Error())
+			if exit == exitIndeterminate {
+				object["recovery"] = map[string]any{"required": true, "stage": session.Indeterminate}
+				object["next"] = "any2jb session, then restart-confirm --confirm=console-restarted"
+			}
+		}
+		if writeErr := json.NewEncoder(c.out).Encode(object); writeErr != nil {
+			err = writeErr
+		}
+	}()
 	// Translate help too, before Cobra parses flags and constructs descriptions.
 	for i, arg := range args {
+		if arg == "--" {
+			break
+		}
+		if arg == "--json" || arg == "--json=true" {
+			c.json = true
+		}
+		if arg == "--json=false" {
+			c.json = false
+		}
 		if strings.HasPrefix(arg, "--lang=") {
 			c.lang = strings.TrimPrefix(arg, "--lang=")
 		}
@@ -229,6 +288,9 @@ func (c *commandLine) execute(args []string) error {
 	root.SetArgs(args)
 	root.SetIn(c.in)
 	root.SetOut(c.out)
+	if c.json {
+		root.SetOut(&output.text)
+	}
 	root.SetErr(c.stderr)
 	return root.Execute()
 }
@@ -303,6 +365,7 @@ func (c *commandLine) root() *cobra.Command {
 			defer f.Close()
 			c.in, c.terminal = f, false
 		}
+		c.output.stream = true
 		return c.runShell()
 	}}
 	shell.Flags().StringVar(&script, "script", "", cliMessage("cliScript"))

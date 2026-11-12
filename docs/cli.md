@@ -117,9 +117,26 @@ use the codes above.
 
 ## Output and language
 
-Output is text by default. `--json` prints JSON for `status`, `detect`,
-`tool list`, `tool state`, `discover`, `diagnostics logs` and the settings
-listings. Progress and prompts go to stderr, so stdout stays parseable.
+Output is text by default. With `--json`, every one-shot command writes exactly
+one JSON object to stdout, including blocked commands, argument errors and
+recovery-required results. Object results keep their existing fields. Lists,
+strings and other scalar results use `{"result":...}`; multiple results use
+`{"results":[...]}`. Help uses `{"text":...}`. A successful command without a
+result writes `{}`. A `session --json` streams one object per command rather
+than wrapping the whole session. Progress, risk text and prompts go to stderr.
+
+Failures add `code`, `exit` and a localized `message` to the result object.
+The stable codes are `error` (1), `cancelled` (2), `blocked` (3) and
+`recovery_required` (4). The process exit code is unchanged. A command that
+reports state before being blocked, such as `detect`, includes both in one
+object. Recovery-required failures also include:
+
+```json
+{"code":"recovery_required","exit":4,"message":"Console recovery required","recovery":{"required":true,"stage":"indeterminate_console_restart_required"},"next":"any2jb session, then restart-confirm --confirm=console-restarted"}
+```
+
+This is a schema example, not a hardware observation. The recovery gate still
+requires a console restart and explicit confirmation in a session.
 
 Text comes from the same en/zh-CN catalog as the GUI. The language is `--lang`
 when given, otherwise the first of `MYGO_LOCALE`, `LC_ALL`, `LC_MESSAGES` and
@@ -159,8 +176,11 @@ through the same code as the GUI's Apply.
 
 ## Examples
 
-These ran against the packaged `build/darwin-arm64/any2jb.app` on 2026-11-11.
-This machine had an interrupted session on record, so it reported recovery.
+These excerpts came from the packaged `build/darwin-arm64/any2jb.app` on
+2026-11-11. Its recovery report was caused by the former app-owner lock sharing
+the host's `session.lock` filename, not evidence of a real interrupted console
+run. The locks now use separate filenames. Recovery behavior is covered by the
+simulated environment in `cli_test.go`.
 
 ```text
 $ any2jb status

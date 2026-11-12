@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -44,6 +45,108 @@ func TestCLIStatusOneShotJSON(t *testing.T) {
 	var s session.Snapshot
 	if err := json.Unmarshal(out.Bytes(), &s); err != nil || s.Stage != session.Idle {
 		t.Fatalf("status: %v %s", err, out)
+	}
+}
+
+func oneCLIJSONObject(t *testing.T, out *bytes.Buffer) map[string]any {
+	t.Helper()
+	d := json.NewDecoder(out)
+	var object map[string]any
+	if err := d.Decode(&object); err != nil || object == nil {
+		t.Fatalf("expected one JSON object: %v %s", err, out)
+	}
+	var extra any
+	if err := d.Decode(&extra); err != io.EOF {
+		t.Fatalf("extra stdout after JSON object: %v %v", extra, err)
+	}
+	return object
+}
+
+func TestCLIJSONRecoveryFailure(t *testing.T) {
+	c, out := fixtureCLI(t, "")
+	c.stderr = io.Discard
+	c.app.controller.MarkInterrupted()
+	err := c.execute([]string{"detect", "--json"})
+	if cliExitCode(err) != exitIndeterminate {
+		t.Fatalf("expected recovery exit: %v", err)
+	}
+	object := oneCLIJSONObject(t, out)
+	if object["code"] != "recovery_required" || object["exit"] != float64(4) {
+		t.Fatalf("recovery failure: %v", object)
+	}
+	recovery, ok := object["recovery"].(map[string]any)
+	if !ok || recovery["required"] != true || recovery["stage"] != "indeterminate_console_restart_required" || object["next"] == "" {
+		t.Fatalf("missing recovery instruction: %v", object)
+	}
+}
+
+func TestCLIJSONBlockedAndErrorFailures(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		args []string
+		exit int
+		code string
+	}{
+		{"live command", []string{"launch", "--json"}, 3, "blocked"},
+		{"invalid language", []string{"status", "--lang=invalid", "--json"}, 1, "error"},
+		{"bad argument", []string{"status", "extra", "--json"}, 1, "error"},
+		{"unknown command", []string{"not-a-command", "--json"}, 1, "error"},
+		{"unknown flag", []string{"status", "--unknown", "--json"}, 1, "error"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			c, out := fixtureCLI(t, "")
+			c.stderr = io.Discard
+			err := c.execute(test.args)
+			if cliExitCode(err) != test.exit {
+				t.Fatalf("unexpected exit: %v", err)
+			}
+			object := oneCLIJSONObject(t, out)
+			if object["code"] != test.code || object["exit"] != float64(test.exit) || object["message"] == "" {
+				t.Fatalf("failure envelope: %v", object)
+			}
+		})
+	}
+}
+
+func TestCLIJSONDetectNeedsSetupIsOneObject(t *testing.T) {
+	f := sessiontest.NewFakeEnvironment()
+	f.Checks = []session.Check{{ID: "runtime", State: session.RequiresAttention, Message: "Fixture requires setup"}}
+	c, out := fixtureCLIWith(t, f, "")
+	c.stderr = io.Discard
+	if err := c.execute([]string{"detect", "--json"}); cliExitCode(err) != 3 {
+		t.Fatalf("expected setup block: %v", err)
+	}
+	object := oneCLIJSONObject(t, out)
+	if object["code"] != "blocked" || object["Stage"] != "needs_setup" {
+		t.Fatalf("expected status and block together: %v", object)
+	}
+}
+
+func TestCLIJSONOneShotResultsAreObjects(t *testing.T) {
+	for _, line := range []string{
+		"status", "detect", "settings get", "settings profiles", "settings developer", "settings about",
+		"language", "usb-defaults", "tool list", "tool state", "discover", "launcher list",
+		"savekit preview delete --file fixture", "diagnostics logs", "diagnostics export", "diagnostics folders",
+		"diagnostics cleanup", "civswitch availability", "driver status", "--help", "settings --help",
+	} {
+		t.Run(line, func(t *testing.T) {
+			c, out := fixtureCLI(t, "")
+			c.stderr = io.Discard
+			c.execute(append(strings.Fields(line), "--json"))
+			oneCLIJSONObject(t, out)
+		})
+	}
+}
+
+func TestCLIJSONConsentFailureKeepsPreviewInOneObject(t *testing.T) {
+	c, out := fixtureCLI(t, "savekit delete --file fixture\n")
+	c.stderr = io.Discard
+	if err := c.execute([]string{"session", "--json"}); cliExitCode(err) != 2 {
+		t.Fatalf("expected missing consent: %v", err)
+	}
+	object := oneCLIJSONObject(t, out)
+	if object["code"] != "cancelled" || object["exit"] != float64(2) {
+		t.Fatalf("expected consent failure: %v", object)
 	}
 }
 
