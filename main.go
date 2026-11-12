@@ -14,6 +14,7 @@ import (
 	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/internal/devlaunch"
+	"github.com/thedavidweng/any2jb/internal/sessionlock"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
@@ -134,6 +135,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	release, err := sessionlock.Acquire(filepath.Join(support, "session.lock"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer release()
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.manifest}
 	// This is the only developer launch input; it is read only when the build
 	// may use it.
