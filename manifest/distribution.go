@@ -1,8 +1,6 @@
 package manifest
 
 import (
-	"bytes"
-	"debug/macho"
 	"fmt"
 	"io/fs"
 	"os"
@@ -11,6 +9,23 @@ import (
 	"slices"
 	"strings"
 )
+
+var supportedResourcePlatforms = []string{"darwin-arm64", "linux-amd64", "linux-arm64"}
+
+var knownOverlayPrefixes = []string{
+	"darwin-arm64/", "darwin-amd64/", "darwin-universal/", "darwin/",
+	"linux-amd64/", "linux-arm64/", "linux/",
+	"windows-amd64/", "windows-arm64/", "windows/",
+}
+
+func stripOverlayPrefix(name string) string {
+	for _, prefix := range knownOverlayPrefixes {
+		if trimmed, ok := strings.CutPrefix(name, prefix); ok {
+			return trimmed
+		}
+	}
+	return name
+}
 
 // Distribution records an evidence-based packaging decision, not legal clearance.
 type Distribution struct {
@@ -49,7 +64,7 @@ func (m *Manifest) CheckPackage(root string) error {
 	for i := range source.Components {
 		c := &source.Components[i]
 		if c.ResourcePlatform != "" {
-			if c.ResourcePlatform != "darwin-arm64" {
+			if !slices.Contains(supportedResourcePlatforms, c.ResourcePlatform) {
 				return fmt.Errorf("unsupported resource platform %q", c.ResourcePlatform)
 			}
 			c.Path = c.ResourcePlatform + "/" + c.Path
@@ -58,13 +73,41 @@ func (m *Manifest) CheckPackage(root string) error {
 	return source.checkPackage(root, func(string) bool { return false })
 }
 
-// CheckPackageMerged checks an assembled app's Contents/Resources, where MyGo
-// has already merged platform directories and added its own bundle files.
+// CheckPackageMerged checks an assembled macOS app's Contents/Resources, where
+// MyGo has already merged platform directories and added its own bundle files.
 func (m *Manifest) CheckPackageMerged(root string) error {
-	return m.checkPackage(root, func(name string) bool {
-		dir, base := path.Split(name)
-		return name == "AppIcon.icns" || base == "InfoPlist.strings" &&
-			strings.Count(dir, "/") == 1 && strings.HasSuffix(dir, ".lproj/")
+	return m.CheckPackageMergedForPlatform(root, "darwin-arm64")
+}
+
+// CheckPackageMergedForPlatform checks an assembled platform output directory
+// where MyGo has merged platform overlays for target platform.
+func (m *Manifest) CheckPackageMergedForPlatform(root, platform string) error {
+	if !slices.Contains(supportedResourcePlatforms, platform) {
+		return fmt.Errorf("unsupported resource platform %q", platform)
+	}
+	merged := *m
+	merged.Components = nil
+	for _, c := range m.Components {
+		if c.ResourcePlatform != "" && c.ResourcePlatform != platform {
+			continue
+		}
+		merged.Components = append(merged.Components, c)
+	}
+	return merged.checkPackage(root, func(name string) bool {
+		if strings.HasPrefix(platform, "darwin-") {
+			dir, base := path.Split(name)
+			return name == "AppIcon.icns" || base == "InfoPlist.strings" &&
+				strings.Count(dir, "/") == 1 && strings.HasSuffix(dir, ".lproj/")
+		}
+		if strings.HasPrefix(platform, "linux-") {
+			switch name {
+			case "any2jb", "any2jb.desktop", "any2jb.png", "any2jb-256x256.png", "any2jb-512x512.png", "install.sh", "PKGBUILD":
+				return true
+			}
+			return strings.HasPrefix(name, "any2jb-") && strings.HasSuffix(name, ".tar.gz") ||
+				strings.HasPrefix(name, "any2jb_") && strings.HasSuffix(name, ".deb")
+		}
+		return false
 	})
 }
 
@@ -97,13 +140,13 @@ func (m *Manifest) checkPackage(root string, generated func(string) bool) error 
 			if err != nil {
 				return err
 			}
-			if c.ID == m.Runtime.Node || slices.Contains(m.Runtime.Helpers, c.ID) {
-				f, err := macho.NewFile(bytes.NewReader(data))
-				if err != nil {
-					return fmt.Errorf("%s: %w", c.ID, err)
+			if m.Runtime.IsNodeComponent(c.ID) || slices.Contains(m.Runtime.Helpers, c.ID) {
+				platform := c.ResourcePlatform
+				if platform == "" {
+					platform = m.Runtime.Platform
 				}
-				if m.Runtime.Platform != "darwin-arm64" || f.Cpu != macho.CpuArm64 {
-					return fmt.Errorf("%s: expected darwin-arm64 Mach-O", c.ID)
+				if err := VerifyBinaryArchitecture(platform, data); err != nil {
+					return fmt.Errorf("%s: %w", c.ID, err)
 				}
 				info, err := os.Stat(filepath.Join(root, filepath.FromSlash(c.Path)))
 				if err != nil {
@@ -127,7 +170,7 @@ func (m *Manifest) checkPackage(root string, generated func(string) bool) error 
 			return err
 		}
 		name := filepath.ToSlash(relative)
-		profileName := strings.TrimPrefix(name, "darwin-arm64/")
+		profileName := stripOverlayPrefix(name)
 		for _, p := range m.Profiles {
 			if !p.Distribution.Available() && (profileName == p.Bootstrap || profileName == p.SourceDirectory || strings.HasPrefix(profileName, p.SourceDirectory+"/")) {
 				return fmt.Errorf("package contains host %s: %s (%s)", p.ID, p.Distribution.Decision, p.Distribution.Reason)

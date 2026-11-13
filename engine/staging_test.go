@@ -189,3 +189,47 @@ func TestStageOnceReadOnlyAndWorkspaceIsolation(t *testing.T) {
 		}
 	}
 }
+
+func TestStageSupportsLinuxELFArchitectures(t *testing.T) {
+	elf := func(machine uint16) []byte {
+		data := make([]byte, 64)
+		copy(data, []byte{0x7f, 'E', 'L', 'F', 2, 1, 1})
+		binary.LittleEndian.PutUint16(data[16:], 2)
+		binary.LittleEndian.PutUint16(data[18:], machine)
+		binary.LittleEndian.PutUint32(data[20:], 1)
+		binary.LittleEndian.PutUint16(data[52:], 64)
+		return data
+	}
+	for _, tc := range []struct {
+		platform string
+		machine  uint16
+		valid    bool
+	}{
+		{"linux-amd64", 62, true},
+		{"linux-amd64", 183, false},
+		{"linux-arm64", 183, true},
+		{"linux-arm64", 62, false},
+	} {
+		t.Run(tc.platform, func(t *testing.T) {
+			o := fixture(t)
+			o.Manifest.Runtime = manifest.Runtime{
+				Platform: tc.platform, NodeVersion: "24.22.1",
+				Node: "node", Bridge: "bridge",
+			}
+			o.Manifest.Components = o.Manifest.Components[:2]
+			for _, extra := range []string{"sender", "commands", "keyboard", "civswitch-hid"} {
+				os.Remove(filepath.Join(o.Assets, "runtime", extra))
+			}
+			data := elf(tc.machine)
+			if err := os.WriteFile(filepath.Join(o.Assets, "runtime/node"), data, 0o700); err != nil {
+				t.Fatal(err)
+			}
+			digest := sha256.Sum256(data)
+			o.Manifest.Components[0].SHA256 = hex.EncodeToString(digest[:])
+			_, err := engine.Stage(o)
+			if (err == nil) != tc.valid {
+				t.Fatalf("Stage(%s, machine=%d) = %v, want valid=%t", tc.platform, tc.machine, err, tc.valid)
+			}
+		})
+	}
+}

@@ -24,7 +24,7 @@ func TestBuildHookAndResources(t *testing.T) {
 	if config.BuildCommand != "go run ./cmd/prepare-runtime && go run ./cmd/check-package" {
 		t.Fatalf("build must run the package gate: %q", config.BuildCommand)
 	}
-	if err := check(nil); err != nil && !(errors.Is(err, os.ErrNotExist) && strings.Contains(err.Error(), "node-darwin-arm64")) {
+	if err := check(nil); err != nil && !(errors.Is(err, os.ErrNotExist) && strings.Contains(err.Error(), "node-")) {
 		t.Fatal(err)
 	}
 }

@@ -9,7 +9,7 @@ const path = require('node:path');
 test('bridge emits selected canonical profile and rejects blocked profiles', () => {
   const root = mkdtempSync(path.join(tmpdir(), 'any2jb-bridge-'));
   const manifest = path.join(root, 'profiles.json');
-  const bridge = path.join(__dirname, '../resources/darwin-arm64/runtime/bridge.cjs');
+  const bridge = path.join(__dirname, '../resources/runtime/bridge.cjs');
   try {
     writeFileSync(manifest, JSON.stringify({profiles: [
       {id: 'fixture', revision: 'pinned', distribution: {decision: 'may-ship', bundled: true}},

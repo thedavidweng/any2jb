@@ -5,5 +5,11 @@
   "out": "build",
   "buildCommand": "go run ./cmd/prepare-runtime && go run ./cmd/check-package",
   "i18n": { "dir": "locales", "source": "en" },
-  "macos": { "minimumSystemVersion": "14.0" }
+  "macos": { "minimumSystemVersion": "14.0" },
+  "linux": {
+    "webview": false,
+    "comment": "Nintendo Switch homebrew session manager",
+    "categories": ["Utility"],
+    "command": "any2jb"
+  }
 }

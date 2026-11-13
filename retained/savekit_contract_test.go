@@ -20,7 +20,7 @@ func TestHeldProofContractAcrossGoAndBothHosts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	toolHost, _ := filepath.Abs("../resources/darwin-arm64/runtime/toolhost.cjs")
+	toolHost, _ := filepath.Abs("../resources/runtime/toolhost.cjs")
 	saveHost, _ := filepath.Abs("savekit-host.cjs")
 	for _, tc := range []struct {
 		name   string

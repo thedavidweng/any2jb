@@ -36,6 +36,17 @@ func (m *Manifest) Read(root, componentID string) ([]byte, error) {
 	return nil, &IntegrityError{Component: componentID, Err: errors.New("component is not recorded")}
 }
 
+// ReadAt verifies and reads a recorded component at an explicit relative path
+// inside root (used when source resource overlays add a platform prefix).
+func (m *Manifest) ReadAt(root, componentID, relPath string) ([]byte, error) {
+	for _, c := range m.Components {
+		if c.ID == componentID {
+			return verifyFile(root, componentID, relPath, c.SHA256)
+		}
+	}
+	return nil, &IntegrityError{Component: componentID, Path: relPath, Err: errors.New("component is not recorded")}
+}
+
 // Verify checks one recorded artifact, including helpers. Unknown IDs and
 // artifacts without a pinned digest fail closed.
 func (m *Manifest) Verify(root, componentID string) error {

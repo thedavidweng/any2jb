@@ -149,7 +149,7 @@ reported as “up to date.”
 | --- | --- | --- |
 | Apple Silicon, macOS 14+ | Phase 1 target, arm64 Node only | Not verified; engine/USB redistribution blocked |
 | Intel macOS | Unsupported; no universal release | Not verified |
-| Linux amd64/arm64 | Phase 2, not a release target | Not verified; native HID needs real UDC hardware |
+| Linux amd64/arm64 | Phase 2 target, GTK3 (`webview: false`) + x64/arm64 Node 24.22.1 | Not verified; ConfigFS HID needs real `/sys/class/udc` hardware; engine redistribution blocked |
 | Windows amd64/arm64 | Phase 3, not a release target | Not verified; ordinary USB-C is not device-mode HID |
 
 The package smoke test proves local integrity and bundled runtime execution

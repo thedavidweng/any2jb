@@ -27,7 +27,7 @@ test('killing the owner closes bridge stdin and removes its owned lease/workspac
   fs.writeFileSync(path.join(source, 'connection.cjs'),
     `exports.listen = ({onWaiting}) => new Promise(() => {onWaiting(); setInterval(()=>{},1000);});`);
   for (const name of ['native', 'qualify', 'bridge']) fs.writeFileSync(path.join(source, name + '.cjs'), '');
-  const bridge = path.join(__dirname, '../resources/darwin-arm64/runtime/bridge.cjs');
+  const bridge = path.join(__dirname, '../resources/runtime/bridge.cjs');
   // The child inherits the parent's output pipe. Its closure therefore proves
   // both the killed owner and the bridge released their handles.
   const parent = spawn(process.execPath, ['-e', `

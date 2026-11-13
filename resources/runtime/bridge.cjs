@@ -116,7 +116,7 @@ async function launch(manifestPath, profile, workspace, runID, host) {
       addresses: {...connected.addresses, session: path.basename(workspace), target: 'switch2'}});
     // Never invoke upstream run.cjs main: it writes beside its own sealed source.
     // Only the per-run pipeline copies are writable.
-    for (const name of ['shared', 'switch2'])
+    for (const name of ['shared', 'switch2', 'lib'])
       await writableCopy(path.join(source, 'engine', name), path.join(workspace, name));
     if (ownerGone) throw Error('Host owner exited');
     const log = fs.createWriteStream(path.join(workspace, 'run.log'), {flags: 'wx', mode: 0o600});

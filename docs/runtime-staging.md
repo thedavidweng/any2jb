@@ -18,10 +18,13 @@ authorizes developer launches and supervises the process group. Its bridge
 launch mode joins upstream connection/native/qualification APIs to a
 workspace-local pipeline and structured JSON events. See [host runner](host-runner.md).
 
-Staging verifies component SHA-256 digests and native arm64 Mach-O headers
-before atomic activation. Node's exact version is pinned by its binary digest
-and release metadata, without executing unverified payloads. Directories and
-executables become `0500`; the bridge and generated manifest become `0400`.
+Staging verifies component SHA-256 digests and native executable headers
+(arm64 Mach-O on `darwin/arm64`, x86_64 or aarch64 ELF64 on `linux/amd64` and
+`linux/arm64`) before atomic activation. Node's exact version is pinned by its
+per-platform binary digest (`node-darwin-arm64`, `node-linux-x64`,
+`node-linux-arm64`) and release metadata, without executing unverified payloads.
+Directories and executables become `0500`; the bridge, toolhost and generated
+manifest become `0400`.
 Reactivation verifies bytes, manifest content and non-writable permissions
 without copying source assets again. A corrupted stage is discarded and
 reported, not silently repaired during that activation.
@@ -52,10 +55,14 @@ Only `bin/node` and `LICENSE` are extracted. The binary and cache are ignored
 by Git. No system Node is substituted. Release checksum signature validation
 is not implemented; the digest was obtained from the official HTTPS endpoint.
 
-The package gate checks the pre-merge `resources/` source layout.
-`resourcePlatform: darwin-arm64` maps canonical `runtime/node` to the source
-file `resources/darwin-arm64/runtime/node`. MyGo removes that platform prefix
-when packaging; do not add it to runtime paths.
+The package gate checks the pre-merge `resources/` source layout for the target
+platform (`-platform darwin-arm64|linux-amd64|linux-arm64`, defaulting to the
+host platform). Shared scripts (`runtime/bridge.cjs`, `runtime/toolhost.cjs`)
+live in `resources/runtime/`, while each platform's `resourcePlatform` maps
+canonical `runtime/node` to `resources/<platform>/runtime/node`. MyGo merges
+that platform overlay when packaging; do not add the platform prefix to runtime
+paths. `Stage` accepts either a merged package directory or a platform overlay
+directory paired with sibling `resources/runtime/`.
 
 ## Distribution and transport gates
 

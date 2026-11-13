@@ -2,9 +2,13 @@
 package manifest
 
 import (
+	"bytes"
+	"debug/elf"
+	"debug/macho"
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"slices"
 )
 
 //go:embed profiles.json
@@ -19,16 +23,100 @@ type Manifest struct {
 	Components []Component     `json:"components"`
 }
 
-// Runtime pins the release target and its required standalone sidecars.
+// RuntimeTarget pins the official Node sidecar archive and component for one platform.
+type RuntimeTarget struct {
+	Node              string `json:"node"`
+	NodeArchive       string `json:"nodeArchive"`
+	NodeArchiveSHA256 string `json:"nodeArchiveSha256"`
+}
+
+// Runtime pins the release targets and their required standalone sidecars.
 type Runtime struct {
-	Platform          string   `json:"platform"`
-	NodeVersion       string   `json:"nodeVersion"`
-	Node              string   `json:"node"`
-	Bridge            string   `json:"bridge"`
-	ToolHost          string   `json:"toolHost"`
-	Helpers           []string `json:"helpers"`
-	NodeArchive       string   `json:"nodeArchive"`
-	NodeArchiveSHA256 string   `json:"nodeArchiveSha256"`
+	Targets           map[string]RuntimeTarget `json:"targets,omitempty"`
+	Platform          string                   `json:"platform"`
+	NodeVersion       string                   `json:"nodeVersion"`
+	Node              string                   `json:"node"`
+	Bridge            string                   `json:"bridge"`
+	ToolHost          string                   `json:"toolHost"`
+	Helpers           []string                 `json:"helpers"`
+	NodeArchive       string                   `json:"nodeArchive"`
+	NodeArchiveSHA256 string                   `json:"nodeArchiveSha256"`
+}
+
+// Target resolves the Node sidecar entry for platform, falling back to the
+// single-target fields used by synthetic unit-test manifests.
+func (r Runtime) Target(platform string) (RuntimeTarget, bool) {
+	if len(r.Targets) > 0 {
+		t, ok := r.Targets[platform]
+		return t, ok
+	}
+	if r.Platform != "" && r.Platform == platform {
+		return RuntimeTarget{
+			Node:              r.Node,
+			NodeArchive:       r.NodeArchive,
+			NodeArchiveSHA256: r.NodeArchiveSHA256,
+		}, true
+	}
+	return RuntimeTarget{}, false
+}
+
+// Platforms returns the deterministic list of pinned runtime target names.
+func (r Runtime) Platforms() []string {
+	if len(r.Targets) > 0 {
+		names := make([]string, 0, len(r.Targets))
+		for name := range r.Targets {
+			names = append(names, name)
+		}
+		slices.Sort(names)
+		return names
+	}
+	if r.Platform != "" {
+		return []string{r.Platform}
+	}
+	return nil
+}
+
+// IsNodeComponent reports whether componentID is a pinned Node binary for any target.
+func (r Runtime) IsNodeComponent(componentID string) bool {
+	if componentID != "" && componentID == r.Node {
+		return true
+	}
+	for _, t := range r.Targets {
+		if componentID != "" && componentID == t.Node {
+			return true
+		}
+	}
+	return false
+}
+
+// VerifyBinaryArchitecture checks that native executable bytes match platform.
+func VerifyBinaryArchitecture(platform string, data []byte) error {
+	switch platform {
+	case "darwin-arm64":
+		f, err := macho.NewFile(bytes.NewReader(data))
+		if err != nil {
+			return err
+		}
+		if f.Cpu != macho.CpuArm64 {
+			return fmt.Errorf("expected darwin-arm64 Mach-O")
+		}
+		return nil
+	case "linux-amd64", "linux-arm64":
+		f, err := elf.NewFile(bytes.NewReader(data))
+		if err != nil {
+			return err
+		}
+		want := elf.EM_X86_64
+		if platform == "linux-arm64" {
+			want = elf.EM_AARCH64
+		}
+		if f.Class != elf.ELFCLASS64 || f.Machine != want {
+			return fmt.Errorf("expected %s 64-bit ELF", platform)
+		}
+		return nil
+	default:
+		return fmt.Errorf("unsupported binary platform %q", platform)
+	}
 }
 
 type Profile struct {

@@ -35,7 +35,7 @@ come from mac2jb's own records (`upstream.lock`, `packaging/*provenance*`,
 | Project | Pinned | Role | License |
 |---|---|---|---|
 | [egoist/mygo](https://github.com/egoist/mygo) | [`a4b6734f7715c9f73709092f7bae80d861572c03`](https://github.com/egoist/mygo/tree/a4b6734f7715c9f73709092f7bae80d861572c03) | Native UI framework and build tool, and the placeholder icon (records `placeholder-icon`, `mygo-notice`) | MIT |
-| [Node.js](https://nodejs.org) | `v24.22.1`, [darwin-arm64 archive](https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz) | Runs the ns2jb host bridge and the tool host. The archive is checked against its release digest (records `node-darwin-arm64`, `node-notice`). | MIT plus bundled notices |
+| [Node.js](https://nodejs.org) | `v24.22.1` ([darwin-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz), [linux-x64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz), [linux-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-arm64.tar.gz)) | Runs the ns2jb host bridge and the tool host. Each archive is checked against its release digest (records `node-darwin-arm64`, `node-linux-amd64`, `node-linux-arm64`, `node-notice`). | MIT plus bundled notices |
 
 Go modules compiled into the binary, from `go.mod`:
 

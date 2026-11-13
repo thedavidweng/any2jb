@@ -16,18 +16,23 @@ import (
 // the bridge's metadata-only unknown-profile rejection. It never creates a
 // session, launches an engine, opens a network listener or accesses USB.
 func SelfTest(ctx context.Context, assets, version string, m *manifest.Manifest) error {
+	platform, targetRuntime, err := resolveRuntimeTarget(m.Runtime)
+	if err != nil {
+		return err
+	}
 	for _, c := range m.Components {
-		if !c.Distribution.Bundled {
+		if !c.Distribution.Bundled || (c.ResourcePlatform != "" && c.ResourcePlatform != platform) {
 			continue
 		}
 		if !c.Distribution.Available() {
 			return fmt.Errorf("bundled component %s is not permitted", c.ID)
 		}
-		if err := m.Verify(assets, c.ID); err != nil {
+		rel := assetRelPath(assets, c, true)
+		if _, err := m.ReadAt(assets, c.ID, rel); err != nil {
 			return err
 		}
-		if c.ID == m.Runtime.Node {
-			info, err := os.Stat(filepath.Join(assets, c.Path))
+		if c.ID == targetRuntime.Node {
+			info, err := os.Stat(filepath.Join(assets, filepath.FromSlash(rel)))
 			if err != nil {
 				return err
 			}

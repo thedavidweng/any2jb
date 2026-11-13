@@ -20,7 +20,8 @@ func main() {
 
 func check(args []string) error {
 	flags := flag.NewFlagSet("check-package", flag.ContinueOnError)
-	merged := flags.Bool("merged", false, "check an assembled app's Contents/Resources instead of the source resources tree")
+	merged := flags.Bool("merged", false, "check an assembled app's Contents/Resources or platform bundle instead of the source resources tree")
+	platform := flags.String("platform", "darwin-arm64", "target platform when -merged is set")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
@@ -30,7 +31,7 @@ func check(args []string) error {
 		// An explicit root checks staged resources without consulting build config.
 		root = flags.Arg(0)
 	case flags.NArg() > 1:
-		return fmt.Errorf("usage: check-package [-merged] [resource-root]")
+		return fmt.Errorf("usage: check-package [-merged [-platform <target>]] [resource-root]")
 	case *merged:
 		return fmt.Errorf("check-package -merged needs the assembled Contents/Resources path")
 	default:
@@ -55,7 +56,7 @@ func check(args []string) error {
 		return err
 	}
 	if *merged {
-		return m.CheckPackageMerged(root)
+		return m.CheckPackageMergedForPlatform(root, *platform)
 	}
 	return m.CheckPackage(root)
 }

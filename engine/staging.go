@@ -3,21 +3,21 @@ package engine
 
 import (
 	"bytes"
-	"debug/macho"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/thedavidweng/any2jb/manifest"
 )
 
 type Options struct {
-	// Assets is the packaged resource root, injected because go test/run do not
-	// merge MyGo's platform resource overlays. Support is the app support path.
+	// Assets is the packaged resource root or source resources directory.
+	// Support is the app support path.
 	Assets, Support, Version string
 	Manifest                 *manifest.Manifest
 	// DeveloperSourceRoot and DeveloperProfileID opt into local engine staging.
@@ -25,9 +25,33 @@ type Options struct {
 	DeveloperSourceRoot, DeveloperProfileID string
 }
 
+func resolveRuntimeTarget(r manifest.Runtime) (string, manifest.RuntimeTarget, error) {
+	platform := r.Platform
+	if len(r.Targets) > 0 {
+		platform = runtime.GOOS + "-" + runtime.GOARCH
+	}
+	target, ok := r.Target(platform)
+	if !ok || r.NodeVersion != "24.22.1" {
+		return "", manifest.RuntimeTarget{}, errors.New("runtime requires darwin-arm64, linux-amd64, or linux-arm64 Node 24.22.1")
+	}
+	return platform, target, nil
+}
+
+func assetRelPath(root string, c manifest.Component, allowOverlay bool) string {
+	if allowOverlay && c.ResourcePlatform != "" {
+		if _, err := os.Lstat(filepath.Join(root, filepath.FromSlash(c.Path))); os.IsNotExist(err) {
+			overlay := c.ResourcePlatform + "/" + c.Path
+			if _, err := os.Lstat(filepath.Join(root, filepath.FromSlash(overlay))); err == nil {
+				return overlay
+			}
+		}
+	}
+	return c.Path
+}
+
 // Stage verifies an existing version or atomically installs one. No child
-// process is executed here. Digest identity pins Node's version; Mach-O headers
-// independently check the architecture of Node and every native helper.
+// process is executed here. Digest identity pins Node's version; Mach-O and ELF
+// headers independently check the architecture of Node and every native helper.
 func Stage(o Options) (string, error) {
 	if o.Version == "" || o.Version == "." || o.Version == ".." ||
 		strings.ContainsAny(o.Version, `/\`) {
@@ -41,10 +65,11 @@ func Stage(o Options) (string, error) {
 		return "", err
 	}
 	r := o.Manifest.Runtime
-	if r.Platform != "darwin-arm64" || r.NodeVersion != "24.22.1" {
-		return "", errors.New("runtime requires darwin-arm64 Node 24.22.1")
+	platform, targetRuntime, err := resolveRuntimeTarget(r)
+	if err != nil {
+		return "", err
 	}
-	ids := []string{r.Node, r.Bridge}
+	ids := []string{targetRuntime.Node, r.Bridge}
 	if r.ToolHost != "" {
 		ids = append(ids, r.ToolHost)
 	}
@@ -72,7 +97,9 @@ func Stage(o Options) (string, error) {
 	// USB sidecars are optional for guided manual launch. An actually bundled
 	// sidecar is still integrity-checked; VerifyUSB gates transport availability.
 	for _, c := range o.Manifest.Components {
-		if c.ID == r.Node || c.ID == r.Bridge || c.ID == r.ToolHost || !c.Distribution.Available() || !strings.HasPrefix(c.Path, "runtime/") {
+		if r.IsNodeComponent(c.ID) || c.ID == r.Bridge || c.ID == r.ToolHost ||
+			(c.ResourcePlatform != "" && c.ResourcePlatform != platform) ||
+			!c.Distribution.Available() || !strings.HasPrefix(c.Path, "runtime/") {
 			continue
 		}
 		components = append(components, c)
@@ -92,7 +119,7 @@ func Stage(o Options) (string, error) {
 		dest = filepath.Join(parent, profile.ID)
 	}
 	if _, err := os.Lstat(dest); err == nil {
-		err := verify(dest, o.Manifest, components)
+		err := verify(dest, platform, o.Manifest, components, false)
 		if err == nil && profile != nil {
 			err = o.Manifest.VerifyProfile(dest, profile.ID)
 		}
@@ -106,7 +133,7 @@ func Stage(o Options) (string, error) {
 	} else if !os.IsNotExist(err) {
 		return "", err
 	}
-	if err := verify(o.Assets, o.Manifest, components); err != nil {
+	if err := verify(o.Assets, platform, o.Manifest, components, true); err != nil {
 		return "", err
 	}
 	tmp, err := os.MkdirTemp(parent, ".stage-")
@@ -115,7 +142,8 @@ func Stage(o Options) (string, error) {
 	}
 	defer discard(tmp)
 	for _, c := range components {
-		data, err := os.ReadFile(filepath.Join(o.Assets, filepath.FromSlash(c.Path)))
+		rel := assetRelPath(o.Assets, c, true)
+		data, err := o.Manifest.ReadAt(o.Assets, c.ID, rel)
 		if err != nil {
 			return "", err
 		}
@@ -153,7 +181,7 @@ func Stage(o Options) (string, error) {
 	if err := os.WriteFile(filepath.Join(tmp, "stage.json"), stagedRecord, 0o400); err != nil {
 		return "", err
 	}
-	if err := verify(tmp, o.Manifest, components); err != nil {
+	if err := verify(tmp, platform, o.Manifest, components, false); err != nil {
 		return "", err
 	}
 	if err := filepath.WalkDir(tmp, func(p string, d fs.DirEntry, err error) error {
@@ -227,7 +255,7 @@ func verifySealed(root string, m *manifest.Manifest, record StagedRecord) error 
 	})
 }
 
-func verify(root string, m *manifest.Manifest, components []manifest.Component) error {
+func verify(root, platform string, m *manifest.Manifest, components []manifest.Component, allowOverlay bool) error {
 	info, err := os.Lstat(root)
 	if err != nil {
 		return err
@@ -235,43 +263,56 @@ func verify(root string, m *manifest.Manifest, components []manifest.Component) 
 	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return errors.New("runtime root is not a real directory")
 	}
+	allowed := make([]string, 0, len(components))
 	for _, c := range components {
-		if err := m.Verify(root, c.ID); err != nil {
+		rel := assetRelPath(root, c, allowOverlay)
+		allowed = append(allowed, rel)
+		data, err := m.ReadAt(root, c.ID, rel)
+		if err != nil {
 			return err
 		}
 		if c.ID == m.Runtime.Bridge || c.ID == m.Runtime.ToolHost {
 			continue
 		}
-		f, err := macho.Open(filepath.Join(root, filepath.FromSlash(c.Path)))
-		if err != nil {
+		if err := manifest.VerifyBinaryArchitecture(platform, data); err != nil {
 			return fmt.Errorf("%s: %w", c.ID, err)
-		}
-		cpu := f.Cpu
-		f.Close()
-		if cpu != macho.CpuArm64 {
-			return fmt.Errorf("%s: expected arm64 Mach-O", c.ID)
 		}
 	}
 	// Packaged resources may contain the app icon and notices outside runtime/.
-	base := filepath.Join(root, "runtime")
-	return filepath.WalkDir(base, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	dirs := []string{filepath.Join(root, "runtime")}
+	if allowOverlay && platform != "" {
+		overlayDir := filepath.Join(root, platform, "runtime")
+		if _, err := os.Lstat(overlayDir); err == nil {
+			dirs = append(dirs, overlayDir)
 		}
-		if d.IsDir() {
-			return nil
+	}
+	for _, base := range dirs {
+		if _, err := os.Lstat(base); os.IsNotExist(err) {
+			continue
 		}
-		rel, err := filepath.Rel(root, p)
-		if err != nil {
-			return err
-		}
-		for _, c := range components {
-			if filepath.ToSlash(rel) == c.Path {
+		if err := filepath.WalkDir(base, func(p string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if d.IsDir() {
 				return nil
 			}
+			rel, err := filepath.Rel(root, p)
+			if err != nil {
+				return err
+			}
+			slash := filepath.ToSlash(rel)
+			for _, want := range allowed {
+				if slash == want {
+					return nil
+				}
+			}
+			return fmt.Errorf("unrecorded runtime file %s", rel)
+		}); err != nil {
+			return err
 		}
-		return fmt.Errorf("unrecorded runtime file %s", rel)
-	})
+	}
+	return nil
 }
 
 // VerifyUSB is the separate USB-transport gate. Missing or unbundled helpers

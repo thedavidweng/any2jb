@@ -8,9 +8,9 @@ const path = require('node:path');
 const readline = require('node:readline');
 const {spawn} = require('node:child_process');
 const {heldProof, readOnlySD, TOOLS, ATTEMPT_MARKER} =
-  require('../resources/darwin-arm64/runtime/toolhost.cjs');
+  require('../resources/runtime/toolhost.cjs');
 
-const TOOLHOST = path.join(__dirname, '../resources/darwin-arm64/runtime/toolhost.cjs');
+const TOOLHOST = path.join(__dirname, '../resources/runtime/toolhost.cjs');
 
 function heldWorkspace(changes = {}) {
   const support = fs.mkdtempSync(path.join(os.tmpdir(), 'any2jb-toolhost-'));

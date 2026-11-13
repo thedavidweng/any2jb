@@ -28,10 +28,15 @@ test('bridge executes pipeline copies only inside the owned workspace', async ()
   write(path.join(source, 'engine/lib/qualify.cjs'), `exports.qualify = async () => ({activity:{}});`);
   write(path.join(source, 'engine/lib/bridge.cjs'),
     `exports.serve = async () => ({port:1234, keepAwake(){}, async close(){}});`);
+  write(path.join(source, 'engine/lib/atomic-write.cjs'),
+    `exports.marker = 'copied-lib';`);
   write(path.join(source, 'engine/shared/fixture'), 'fixture');
+  write(path.join(source, 'engine/switch2/memory/run-control.cjs'),
+    `module.exports = require('../../lib/atomic-write.cjs');`);
   write(path.join(source, 'engine/switch2/pipeline.cjs'), `
     const fs=require('node:fs'), path=require('node:path');
     if (process.cwd() !== path.dirname(__dirname)) throw Error('not in workspace');
+    if (require('./memory/run-control.cjs').marker !== 'copied-lib') throw Error('missing lib copy');
     fs.writeFileSync(path.join(__dirname,'../shared/fixture'),'working copy');
     for(let stage=1;stage<=4;stage++) console.log(stage+'/4 fixture');
     fs.writeFileSync(path.join(__dirname,'fs-execution-current.json'),
@@ -48,7 +53,7 @@ test('bridge executes pipeline copies only inside the owned workspace', async ()
   seal(staged);
   fs.mkdirSync(workspace, {recursive: true, mode: 0o700});
   try {
-    const bridge = path.join(__dirname, '../resources/darwin-arm64/runtime/bridge.cjs');
+    const bridge = path.join(__dirname, '../resources/runtime/bridge.cjs');
     const child = spawn(process.execPath, [bridge, path.join(staged, 'profiles.json'),
       'fixture', '--launch', workspace, 'fixture-run', '192.0.2.1'], {cwd: workspace, detached: true});
     let stdout = '', stderr = '';

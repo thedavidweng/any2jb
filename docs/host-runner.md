@@ -8,8 +8,9 @@ authorizes an engine. A developer harness must explicitly supply those options.
 
 The original any2jb Node bridge imports the selected pinned host's connection,
 NativeClient, qualification and local bridge APIs. It never invokes upstream
-`run.cjs` main or a mac2jb GUI wrapper. It copies only `engine/shared` and
-`engine/switch2` into the private workspace and makes those copies writable.
+`run.cjs` main or a mac2jb GUI wrapper. It copies only `engine/lib`,
+`engine/shared` and `engine/switch2` into the private workspace and makes those
+copies writable.
 The sealed runtime remains unchanged. The pipeline and its children inherit the
 owned process group. Raw engine output stays in the private run log.
 

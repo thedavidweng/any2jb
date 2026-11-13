@@ -13,6 +13,16 @@ import (
 	"github.com/thedavidweng/any2jb/manifest"
 )
 
+func elfHeader(machine uint16) []byte {
+	data := make([]byte, 64)
+	copy(data, []byte{0x7f, 'E', 'L', 'F', 2, 1, 1})
+	binary.LittleEndian.PutUint16(data[16:], 2)
+	binary.LittleEndian.PutUint16(data[18:], machine)
+	binary.LittleEndian.PutUint32(data[20:], 1)
+	binary.LittleEndian.PutUint16(data[52:], 64)
+	return data
+}
+
 func TestPackageRejectsWrongArchitectureEvenWithMatchingDigest(t *testing.T) {
 	for _, cpu := range []uint32{0x100000c, 0x1000007} {
 		root := t.TempDir()
@@ -42,6 +52,39 @@ func TestPackageRejectsWrongArchitectureEvenWithMatchingDigest(t *testing.T) {
 			}
 		}
 	}
+	for _, tc := range []struct {
+		platform string
+		machine  uint16
+		valid    bool
+	}{
+		{"linux-amd64", 62, true},
+		{"linux-amd64", 183, false},
+		{"linux-arm64", 183, true},
+		{"linux-arm64", 62, false},
+	} {
+		root := t.TempDir()
+		data := elfHeader(tc.machine)
+		target := filepath.Join(root, tc.platform, "runtime/node")
+		if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(target, data, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		digest := sha256.Sum256(data)
+		m := &manifest.Manifest{
+			Runtime: manifest.Runtime{Targets: map[string]manifest.RuntimeTarget{tc.platform: {Node: "node-" + tc.platform}}},
+			Components: []manifest.Component{{
+				ID: "node-" + tc.platform, Path: "runtime/node", ResourcePlatform: tc.platform,
+				SHA256:       hex.EncodeToString(digest[:]),
+				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture NOTICE"},
+			}},
+		}
+		err := m.CheckPackage(root)
+		if (err == nil) != tc.valid {
+			t.Fatalf("%s machine %d package result: %v", tc.platform, tc.machine, err)
+		}
+	}
 }
 
 func TestPackageGate(t *testing.T) {
@@ -69,26 +112,28 @@ func TestPackageGate(t *testing.T) {
 }
 
 func TestPlatformOverlayPreservesHostDistributionGate(t *testing.T) {
-	root := t.TempDir()
-	name := filepath.Join(root, "darwin-arm64/vendor/blocked/run.cjs")
-	if err := os.MkdirAll(filepath.Dir(name), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(name, []byte("hello"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	m := &manifest.Manifest{
-		Profiles: []manifest.Profile{{ID: "blocked", SourceDirectory: "vendor/blocked", Distribution: manifest.Distribution{Decision: "blocked"}}},
-		Components: []manifest.Component{{ID: "misclassified-host", Path: "vendor/blocked/run.cjs", ResourcePlatform: "darwin-arm64",
-			SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
-			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"}}},
-	}
-	if err := m.CheckPackage(root); err == nil {
-		t.Fatal("overlay bypassed blocked host decision")
-	}
-	m.Profiles[0].Distribution = manifest.Distribution{Decision: "may-ship", Bundled: true}
-	if err := m.CheckPackage(root); err != nil {
-		t.Fatal(err)
+	for _, platform := range []string{"darwin-arm64", "linux-amd64", "linux-arm64"} {
+		root := t.TempDir()
+		name := filepath.Join(root, platform, "vendor/blocked/run.cjs")
+		if err := os.MkdirAll(filepath.Dir(name), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(name, []byte("hello"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		m := &manifest.Manifest{
+			Profiles: []manifest.Profile{{ID: "blocked", SourceDirectory: "vendor/blocked", Distribution: manifest.Distribution{Decision: "blocked"}}},
+			Components: []manifest.Component{{ID: "misclassified-host", Path: "vendor/blocked/run.cjs", ResourcePlatform: platform,
+				SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"}}},
+		}
+		if err := m.CheckPackage(root); err == nil {
+			t.Fatalf("%s overlay bypassed blocked host decision", platform)
+		}
+		m.Profiles[0].Distribution = manifest.Distribution{Decision: "may-ship", Bundled: true}
+		if err := m.CheckPackage(root); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -155,14 +200,22 @@ func TestCanonicalResourcesPassDistributionGate(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Ordinary tests stay offline. A source checkout has no generated Node
-	// binary until prepare-runtime runs; the build gate must reject that state.
-	if _, err := os.Stat("../resources/darwin-arm64/runtime/node"); os.IsNotExist(err) {
+	// binaries until prepare-runtime runs; the build gate must reject that state.
+	missingAny := false
+	for _, platform := range []string{"darwin-arm64", "linux-amd64", "linux-arm64"} {
+		if _, err := os.Stat(filepath.Join("../resources", platform, "runtime/node")); os.IsNotExist(err) {
+			missingAny = true
+		}
+	}
+	if missingAny {
 		if err := m.CheckPackage("../resources"); !errors.Is(err, os.ErrNotExist) {
 			t.Fatalf("missing generated Node accepted: %v", err)
 		}
 		for i := range m.Components {
-			if m.Components[i].ID == "node-darwin-arm64" {
-				m.Components[i].Distribution.Bundled = false
+			if m.Runtime.IsNodeComponent(m.Components[i].ID) {
+				if _, err := os.Stat(filepath.Join("../resources", m.Components[i].ResourcePlatform, "runtime/node")); os.IsNotExist(err) {
+					m.Components[i].Distribution.Bundled = false
+				}
 			}
 		}
 	}

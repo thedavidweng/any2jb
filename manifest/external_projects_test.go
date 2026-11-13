@@ -21,6 +21,9 @@ func TestExternalProjectsDocumentListsEveryPinnedSource(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{m.Runtime.NodeArchive}
+	for _, t := range m.Runtime.Targets {
+		want = append(want, t.NodeArchive)
+	}
 	for _, p := range m.Profiles {
 		want = append(want, p.Upstream, p.Revision)
 	}

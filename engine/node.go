@@ -16,22 +16,52 @@ import (
 	"github.com/thedavidweng/any2jb/manifest"
 )
 
-// PrepareNode downloads only the pinned official archive into cache, verifies
-// its release digest, and extracts only Node and its full license. A corrupt
-// cached archive is reported, not silently replaced by a new download.
+func nodeArchiveSuffix(platform string) (string, bool) {
+	switch platform {
+	case "darwin-arm64":
+		return "darwin-arm64", true
+	case "linux-amd64":
+		return "linux-x64", true
+	case "linux-arm64":
+		return "linux-arm64", true
+	default:
+		return "", false
+	}
+}
+
+// PrepareNode downloads only the pinned official archives into cache, verifies
+// their release digests, and extracts only Node and its full license for every
+// pinned target in the manifest.
 func PrepareNode(cache, assets string, m *manifest.Manifest) error {
+	platforms := m.Runtime.Platforms()
+	if len(platforms) == 0 {
+		return errors.New("unapproved Node archive")
+	}
+	for _, platform := range platforms {
+		if err := PrepareNodeForPlatform(cache, assets, platform, m); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// PrepareNodeForPlatform prepares the pinned official Node sidecar for one target.
+// A corrupt cached archive is reported, not silently replaced by a new download.
+func PrepareNodeForPlatform(cache, assets, platform string, m *manifest.Manifest) error {
 	r := m.Runtime
-	if r.NodeArchive != "https://nodejs.org/dist/v"+r.NodeVersion+"/node-v"+r.NodeVersion+"-darwin-arm64.tar.gz" ||
-		r.NodeVersion != "24.22.1" || r.Platform != "darwin-arm64" {
+	suffix, ok := nodeArchiveSuffix(platform)
+	targetInfo, targetOK := r.Target(platform)
+	wantURL := "https://nodejs.org/dist/v" + r.NodeVersion + "/node-v" + r.NodeVersion + "-" + suffix + ".tar.gz"
+	if !ok || !targetOK || r.NodeVersion != "24.22.1" || targetInfo.NodeArchive != wantURL {
 		return errors.New("unapproved Node archive")
 	}
 	if err := privateDir(cache); err != nil {
 		return err
 	}
-	name := filepath.Join(cache, filepath.Base(r.NodeArchive))
+	name := filepath.Join(cache, filepath.Base(targetInfo.NodeArchive))
 	if _, err := os.Lstat(name); os.IsNotExist(err) {
 		client := &http.Client{Timeout: 2 * time.Minute}
-		response, err := client.Get(r.NodeArchive)
+		response, err := client.Get(targetInfo.NodeArchive)
 		if err != nil {
 			return err
 		}
@@ -49,7 +79,7 @@ func PrepareNode(cache, assets string, m *manifest.Manifest) error {
 		if err := errors.Join(copyErr, closeErr); err != nil {
 			return err
 		}
-		if err := verifyArchive(tmp.Name(), r.NodeArchiveSHA256); err != nil {
+		if err := verifyArchive(tmp.Name(), targetInfo.NodeArchiveSHA256); err != nil {
 			return err
 		}
 		if err := os.Rename(tmp.Name(), name); err != nil {
@@ -58,7 +88,7 @@ func PrepareNode(cache, assets string, m *manifest.Manifest) error {
 	} else if err != nil {
 		return err
 	}
-	if err := verifyArchive(name, r.NodeArchiveSHA256); err != nil {
+	if err := verifyArchive(name, targetInfo.NodeArchiveSHA256); err != nil {
 		return err
 	}
 	f, err := os.Open(name)
@@ -72,7 +102,7 @@ func PrepareNode(cache, assets string, m *manifest.Manifest) error {
 	}
 	defer gz.Close()
 	reader := tar.NewReader(gz)
-	prefix := "node-v" + r.NodeVersion + "-darwin-arm64/"
+	prefix := "node-v" + r.NodeVersion + "-" + suffix + "/"
 	found := map[string]bool{}
 	for {
 		header, err := reader.Next()
@@ -85,7 +115,7 @@ func PrepareNode(cache, assets string, m *manifest.Manifest) error {
 		var id string
 		switch header.Name {
 		case prefix + "bin/node":
-			id = r.Node
+			id = targetInfo.Node
 		case prefix + "LICENSE":
 			id = "node-notice"
 		default:
@@ -125,7 +155,7 @@ func PrepareNode(cache, assets string, m *manifest.Manifest) error {
 			return err
 		}
 		mode := os.FileMode(0o644)
-		if id == r.Node {
+		if id == targetInfo.Node {
 			mode = 0o755
 		}
 		err = tmp.Chmod(mode)
@@ -141,7 +171,7 @@ func PrepareNode(cache, assets string, m *manifest.Manifest) error {
 			return err
 		}
 	}
-	if !found[r.Node] || !found["node-notice"] {
+	if !found[targetInfo.Node] || !found["node-notice"] {
 		return errors.New("Node archive missing binary or license")
 	}
 	return nil
