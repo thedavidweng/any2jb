@@ -98,7 +98,7 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 	flags := flag.NewFlagSet("check", flag.ContinueOnError)
 	flags.SetOutput(out)
 	reference := flags.String("reference-root", "", "explicit pinned mac2jb checkout (read-only)")
-	assets := flags.String("runtime-assets", "resources/darwin-arm64", "merged runtime assets containing the verified pinned Node")
+	assets := flags.String("runtime-assets", "resources", "runtime assets directory containing the verified pinned Node")
 	skipPayload := flags.String("skip-payload-reason", "", "record why Zig 0.15.2 payload rebuild cannot run")
 	zig := flags.String("zig", "", "Zig 0.15.2 executable (default: the mise-managed install, then PATH)")
 	if err := flags.Parse(args); err != nil {
@@ -129,8 +129,16 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		return err
 	}
 	s := &suite{out: out}
-	s.check("Go tests (real engine TCP + simulated engine controller; not hardware)", func() error {
-		cmd := exec.CommandContext(ctx, "go", "test", "-v", "./...")
+	const liveParityPattern = "^Test(HIDOutputMatchesMac2jb|GuidedTextMatchesMac2jb|EncoderAcceptsExactlyMac2jbBytes|EngineOutputMatchesMac2jbAndNs2jb)$"
+	s.check("Go tests (real engine TCP + simulated engine controller + offline parity digests; not hardware)", func() error {
+		cmd := exec.CommandContext(ctx, "go", "test", "-v", "-skip", liveParityPattern, "./...")
+		cmd.Env = append(os.Environ(), "ANY2JB_REFERENCE_ROOT="+root, "ANY2JB_RUNTIME_ASSETS="+runtimeAssets)
+		cmd.Stdout, cmd.Stderr = out, out
+		cmd.WaitDelay = time.Second
+		return cmd.Run()
+	})
+	s.check("mac2jb/ns2jb differential output parity (HID + guided + 3-way engine wire; not hardware)", func() error {
+		cmd := exec.CommandContext(ctx, "go", "test", "-v", "-run", liveParityPattern, "./transport", "./engine")
 		cmd.Env = append(os.Environ(), "ANY2JB_REFERENCE_ROOT="+root, "ANY2JB_RUNTIME_ASSETS="+runtimeAssets)
 		cmd.Stdout, cmd.Stderr = out, out
 		cmd.WaitDelay = time.Second

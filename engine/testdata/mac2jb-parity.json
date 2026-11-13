@@ -1,0 +1,45 @@
+{
+  "format": "any2jb-engine-parity-v1",
+  "profiles": {
+    "BermTheSequel": {
+      "startCommand": "V=START(39380,127,0,0,1)",
+      "packets": 36,
+      "wireBytes": 1184256,
+      "wireSha256": "48bb0a8e49d37904dc41dcd17904497d1a472ee9bfbf38d7203ba2e88982b6c8",
+      "copiedEngineSha256": "26cb91253baff3febf94b7a5d4414825f78104b401803fccbf4a2baf52854521",
+      "transcriptSha256": "f0bdedcd42397e24c62ac3c892ef065b5557a95a6d4ef5735e079ac4456cad2a"
+    },
+    "astral": {
+      "startCommand": "V=START(39380,127,0,0,1)",
+      "packets": 36,
+      "wireBytes": 1184256,
+      "wireSha256": "1a7140fa1ac6492b47ba65c38bfd22f365f5dffe986651d2936769d4b5be9e60",
+      "copiedEngineSha256": "7f0dd9a4150bfc763faeb06365bafb1ee069ed3e8d30d175bc8b49198f2ab787",
+      "transcriptSha256": "b89085bfabac5a002af45cc6c7a1ae3f2186a8b9c2f48a343bf15a660d91cd9f"
+    },
+    "cellenseres": {
+      "startCommand": "V=START(39380,127,0,0,1)",
+      "packets": 36,
+      "wireBytes": 1184256,
+      "wireSha256": "5c514d1f458de4808611d7a3b60edbda939722e131391bd74456789375f5914b",
+      "copiedEngineSha256": "55e2cea0261221705351884d71bd769aaa7d05e96a5968c73df7ff2ce57d6baa",
+      "transcriptSha256": "f823aefaaff78f7689b45c27a8bbb2150124fb79e158061eca7abd74e01e1d2a"
+    },
+    "kurumuz": {
+      "startCommand": "V=START(39380,127,0,0,1)",
+      "packets": 36,
+      "wireBytes": 1184256,
+      "wireSha256": "9444ff7726e43e9267a48df86b63f9dd8fe68c79ae7cb11c5bac34623b74fd8d",
+      "copiedEngineSha256": "1511779e5becf52754299e4b4e53ab2f440512335ffed0daacb997fecdf458e7",
+      "transcriptSha256": "8107d5a8f26ff953ee08d12278f44bb81e7866b6712878ab9b5f6a0e8239f7c5"
+    },
+    "pepsipu": {
+      "startCommand": "V=START(39380,127,0,0,1,271592530212492,267874470444634,69493441607456,72752368200318)",
+      "packets": 34,
+      "wireBytes": 1118464,
+      "wireSha256": "b0737ca0710c5441b7a288ecf218f82dd8bda52c29ecd622b7973d61b8041c54",
+      "copiedEngineSha256": "668d193a4687bc22be52097fc8c546bbf81e2b6446e3801c1c2782ee0ee353c1",
+      "transcriptSha256": "1435c6fa95a92c15e68ebeb2f545b99c08e70ccc9eecc25118102124545a3353"
+    }
+  }
+}

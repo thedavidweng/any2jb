@@ -93,7 +93,7 @@ func (d *Darwin) send(ctx context.Context, run session.Run, action session.Input
 		if action == session.Launch && i < 3 {
 			_, timing := d.settings()
 			wait := []int{timing.LoadMS, timing.RunMS, timing.RemoveMS}[i]
-			if err := pause(ctx, wait); err != nil {
+			if err := sleep(ctx, wait); err != nil {
 				return err
 			}
 		}
@@ -197,6 +197,9 @@ func bootstrapPlan(text string) ([][][8]byte, int, error) {
 	return plan, total, nil
 }
 
+// sleep is every keyboard wait; parity tests replace it with a virtual clock.
+var sleep = pause
+
 func pause(ctx context.Context, ms int) error {
 	if ms == 0 {
 		return ctx.Err()
@@ -229,17 +232,17 @@ func (d *Darwin) stroke(ctx context.Context, k *Keyboard, report [8]byte) error 
 	if err := k.Send(ctx, report); err != nil {
 		return err
 	}
-	if err := pause(ctx, timing.HoldMS); err != nil {
+	if err := sleep(ctx, timing.HoldMS); err != nil {
 		return err
 	}
 	if err := k.Send(ctx, [8]byte{}); err != nil {
 		return err
 	}
-	if err := pause(ctx, timing.GapMS); err != nil {
+	if err := sleep(ctx, timing.GapMS); err != nil {
 		return err
 	}
 	if report[2] == 40 {
-		return pause(ctx, timing.EnterMS)
+		return sleep(ctx, timing.EnterMS)
 	}
 	return nil
 }

@@ -6,10 +6,13 @@ From the repository root, run:
 go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb
 ```
 
-This one command runs `go test -v ./...`, the Node manifest/bridge tests,
-all six canonical host profile checksum/source/bootstrap checks, pepsipu's
-existing upstream tests and its reproducible payload check. The explicit
-reference root must contain the revision and files pinned in
+This one command runs `go test -v ./...`, the
+[differential output parity suite](mac2jb-parity.md) against `mac2jb` and
+upstream `ns2jb` (USB HID reports + virtual timing, guided manual prompts, and
+three-way engine TCP wire streams across all supported profiles), the Node
+manifest/bridge tests, all six canonical host profile checksum/source/bootstrap
+checks, pepsipu's existing upstream tests and its reproducible payload check.
+The explicit reference root must contain the revision and files pinned in
 `manifest/profiles.json`. No clone or dependency installation is automatic.
 The command finds the prepared Zig 0.15.2 compiler itself, so a run on a
 machine with the pinned toolchain needs no extra argument.
