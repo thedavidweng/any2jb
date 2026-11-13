@@ -7,7 +7,7 @@ prerequisites. Applying a
 host change never carries readiness or a different host's saved-bootstrap proof
 forward. A trustworthy matching record skips first-time setup, not readiness.
 
-The default comes from `manifest/profiles.json` (`kurumuz`). Developer Options
+The default comes from `internal/manifest/profiles.json` (`kurumuz`). Developer Options
 exposes all six pinned host IDs, the editions each supports, its START argument
 count, port and save name. The `manifest.Profile.SessionProfile()` projection
 supplies these values to the session controller. It does not format commands,
@@ -58,14 +58,14 @@ global START arity, port or save name.
 
 ## Host profile tests
 
-- `manifest/session_test.go`: six-profile capability, edition, arity, port and
+- `internal/manifest/session_test.go`: six-profile capability, edition, arity, port and
   save-name matrix against known pinned contracts.
-- `session/profile_test.go`: unsupported editions, unconfirmed launch rejection,
+- `internal/session/profile_test.go`: unsupported editions, unconfirmed launch rejection,
   cross-profile saved-bootstrap rejection and invalidation, including hosts
   sharing the same bootstrap digest.
-- `preferences_test.go`: default selection, validated save/reload and fresh
+- `internal/app/preferences_test.go`: default selection, validated save/reload and fresh
   controller configuration, without restoring readiness.
-- `profile_view_test.go`: progressive disclosure, accessible disabled controls,
+- `internal/ui/profile_view_test.go`: progressive disclosure, accessible disabled controls,
   explanations, stable controls across extra frames and unapplied-host launch
   prevention.
 

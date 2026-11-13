@@ -69,7 +69,7 @@ user types in Recovery Terminal.
 
 ## Consequences and evidence
 
-`flow_view_test.go` covers the four rows from fake checks (SIP enabled, SIP
+`internal/ui/flow_view_test.go` covers the four rows from fake checks (SIP enabled, SIP
 disabled, ready, restart pending, blocked driver gate, unsupported platform)
 in English and Simplified Chinese, the method Continue applies, the reason it
 is disabled, the manual link, the Apple guide URLs for each language, the

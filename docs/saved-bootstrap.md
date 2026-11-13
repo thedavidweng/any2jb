@@ -41,13 +41,13 @@ Only the structured host result can verify the exploit.
 
 ## Evidence
 
-- `bootstrap_test.go`: confirmed setup, saved identity reload, fresh readiness,
+- `internal/app/bootstrap_test.go`: confirmed setup, saved identity reload, fresh readiness,
   profile invalidation and saved launch without repeating setup.
-- `bootstrap_view_test.go`: explicit reuse and overwrite permission.
-- `transport/saved_bootstrap_test.go`: literal full/demo SAVE reports for every
+- `internal/ui/bootstrap_view_test.go`: explicit reuse and overwrite permission.
+- `internal/transport/saved_bootstrap_test.go`: literal full/demo SAVE reports for every
   supported profile, one Enter only and no overwrite acceptance.
-- `transport/typing_test.go`: LOAD prompt and command ordering.
-- `manual_view_test.go`: native UI with the structured fake-engine fixture.
+- `internal/transport/typing_test.go`: LOAD prompt and command ordering.
+- `internal/ui/manual_view_test.go`: native UI with the structured fake-engine fixture.
 
 No console saves, USB enumeration or exploit execution have been hardware
 verified. These tests use fakes and offline fixtures only.

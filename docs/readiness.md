@@ -98,20 +98,20 @@ bputil, changes security, or adds an unsatisfiable check to the launch contract.
 
 ## Evidence
 
-- [Adapter fixtures](../readiness/readiness_test.go) test default-route
+- [Adapter fixtures](../internal/readiness/readiness_test.go) test default-route
   recommendation and explicit overrides.
-- [Individual blocker tests](../readiness/blockers_test.go) assert exact next
+- [Individual blocker tests](../internal/readiness/blockers_test.go) assert exact next
   actions, including unknown inspection states and a pending restart.
-- [Native command-output fixtures](../readiness/native_darwin_test.go) cover
+- [Native command-output fixtures](../internal/readiness/native_darwin_test.go) cover
   attached-controller parsing, exact driver identity and restart timing.
-- [Controller tests](../session/readiness_test.go) cover automatic selection,
+- [Controller tests](../internal/session/readiness_test.go) cover automatic selection,
   refresh, stale-address rejection before host launch, and transport gates.
-- [Windowless readiness tests](../readiness_view_test.go) cover the raw checks
+- [Windowless readiness tests](../internal/ui/readiness_view_test.go) cover the raw checks
   and all three evidence labels in Diagnostics, the override in Settings, and
-  the reference prerequisites; [first-stage tests](../flow_view_test.go) cover
+  the reference prerequisites; [first-stage tests](../internal/ui/flow_view_test.go) cover
   the four steps.
 
-`ANY2JB_READINESS_INSPECTION=1 go test ./readiness -run TestReadOnlySystemInspection -v`
+`ANY2JB_READINESS_INSPECTION=1 go test ./internal/readiness -run TestReadOnlySystemInspection -v`
 opts into inspecting the current machine. It logs no local addresses or raw
 command output. This is not hardware acceptance.
 

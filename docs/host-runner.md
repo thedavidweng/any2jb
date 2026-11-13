@@ -66,7 +66,7 @@ a lease whose matching owner PID is proven dead. No stale session is adopted.
 `NewProtocolRunner(support, CommandFactory)` is the explicit trusted-process test
 seam. It does not perform production engine authorization and is never used by
 the app entrypoint. Ticket 07's harness can launch
-`engine/testdata/fake-engine.cjs <scenario> <run-id> <workspace>` with a test Node.
+`internal/engine/testdata/fake-engine.cjs <scenario> <run-id> <workspace>` with a test Node.
 Use LAN `192.0.2.1`, port `39380`, five START arguments. This fixture emits the
 same structured protocol, not a console/exploit emulator.
 
@@ -82,13 +82,13 @@ SIGTERM), `held-verified`, `held-dead-rpc`, `held-wrong-session` and
 ```sh
 go test ./...
 CGO_ENABLED=0 go test ./...
-go test -race ./engine ./session
-node --test engine/*.test.cjs manifest/profiles.test.cjs
+go test -race ./internal/engine ./internal/session
+node --test internal/engine/*.test.cjs internal/manifest/profiles.test.cjs
 go tool mygo vet .
 sh scripts/check-platforms.sh
 ANY2JB_REFERENCE_ROOT=/path/to/pinned/mac2jb \
 ANY2JB_RUNTIME_ASSETS="$PWD/resources/darwin-arm64" \
-go test ./engine -run TestPinnedDeveloperHostListening -v
+go test ./internal/engine -run TestPinnedDeveloperHostListening -v
 ```
 
 The opt-in test stages the real verified Node and pepsipu sources, listens only on

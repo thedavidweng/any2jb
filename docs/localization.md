@@ -14,18 +14,21 @@ detection, no app code needed.
 - `TestNoHardcodedUIStrings` rejects string literals passed to UI widget
   constructors, `Label` and `Placeholder`: new view text goes through the
   catalog.
-- Text produced by the session, readiness, driver, retained, diagnostics and
-  manifest adapters is mapped segment-wise in `localize.go`
-  (`dynamicSegments`). Add one entry per adapter sentence, keeping `source`
-  byte-identical to the adapter's English literal;
-  `TestDynamicSegmentsMatchSourceCatalog` fails on drift. Entries are sorted
-  longest-first at init, so a sentence matches its longest source.
-- `TestAdapterMessagesAreLocalized` reads the adapters' own literals — every
-  `Check` message and next action, and the errors `Availability`,
-  `Unavailable` and `CivSwitchUnavailable` return — and requires each to be a
-  segment or to be built from segments around its format verbs. Adapter text
-  that the views pass through `localize` therefore cannot fall through in
-  English.
+- Adapter-produced readiness checks, distribution decisions, and availability
+  errors carry structured `locales.Text` values (`locales.Key`,
+  `locales.Format`, `locales.Join`, `locales.WrapError`, and
+  `locales.DistributionReason` in `locales/text.go`). `session.Check` keeps
+  deterministic English in `Message` and `NextAction` for JSON snapshots, logs,
+  and diagnostic bundles while carrying `MessageText` and `NextActionText` for
+  localized GUI and CLI presentation without English substring replacement.
+- `TestManifestDistributionsMatchCatalog` verifies that every profile and
+  component in `internal/manifest/profiles.json` maps to a catalog entry whose source
+  text matches `distribution.reason` and whose `zh-CN` translation is present.
+- `TestAdapterMessagesAreLocalized` walks non-test source files to verify that
+  every `locales.Key`, `locales.Format`, and `locales.WrapError` literal exists
+  and is translated, that `session.Check` literals pair `Message`/`NextAction`
+  with `MessageText`/`NextActionText`, and that availability methods return
+  structured catalog errors rather than raw English strings.
 
 Apple's UI names follow Apple's own pages in each language (for example
 “启动安全性实用工具”, “降低安全性”, “正在加载启动选项”). A catalog may carry a

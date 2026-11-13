@@ -1,6 +1,6 @@
 # Accessibility rules
 
-Every view follows these rules; `accessibility_test.go` enforces them on the
+Every view follows these rules; `internal/ui/accessibility_test.go` enforces them on the
 main session flow and, screen by screen, on Advanced Tools, SaveKit,
 Diagnostics, Driver and CivSwitch. New views extend that table.
 
@@ -42,7 +42,7 @@ Diagnostics, Driver and CivSwitch. New views extend that table.
 - The keyboard forwarding capture is the only raw-input control; Escape stops
   forwarding and Tab leaves it, so the panel stays keyboard-navigable.
 - Test tab traversal with `tt.Key(0, ui.KeyTab)` and `tt.AccessAll()`, and
-  accessible names with `tt.AccessByRole`, as in `accessibility_test.go`.
+  accessible names with `tt.AccessByRole`, as in `internal/ui/accessibility_test.go`.
 
 ## Motion
 

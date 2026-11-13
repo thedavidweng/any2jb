@@ -96,15 +96,15 @@ the window closes. No worker keeps a Context or frame-scoped element.
 
 Tests:
 
-- `transport/manual_test.go`, `transport/launch_test.go`: setup acknowledgements,
+- `internal/transport/manual_test.go`, `internal/transport/launch_test.go`: setup acknowledgements,
   exact full/demo commands for every profile, pairing refusal and stale acknowledgements.
-- `manual_view_test.go`: actual native MyGo views with the supervised
-  `engine/testdata/fake-engine.cjs` structured-process fixture, including setup,
+- `internal/ui/manual_view_test.go`: actual native MyGo views with the supervised
+  `internal/engine/testdata/fake-engine.cjs` structured-process fixture, including setup,
   complete verification, incomplete verification, exact clipboard text, Cancel,
   Stop and Finish. The fixture does not emulate console exploit behavior.
-- `session/changes_test.go`, `session_refresh_test.go`: background completion
+- `internal/session/changes_test.go`, `internal/app/session_refresh_test.go`: background completion
   wakes the window and the refresh watcher ends on close.
-- `session/recovery_test.go`, `restart_view_test.go`, `session/civswitch_test.go`:
+- `internal/session/recovery_test.go`, `internal/ui/restart_view_test.go`, `internal/session/civswitch_test.go`:
   explicit restart confirmation, stale lease refusal/error display and shared recovery.
 
 Console, USB and actual exploit execution: **not verified, awaiting hardware**.

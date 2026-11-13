@@ -47,7 +47,7 @@ controller's retained adapter and its tool runner:
 | `ouncecake-webdav` | Pinned OunceCake engine modules | The console's own service at `http://<console>:2121/` |
 | `ouncecake-ftp` | OunceCake plus mac2jb's FTP bridge | Binds `127.0.0.1` on this Mac only |
 | `sd-browser` | Pinned Super File Bros. modules | The console's FTP service, `/sd` only, `ftp://<console>:2122-2199/sd/` |
-| `savekit-read` | Pinned ns2-savekit read-only entrypoints through `retained/savekit-host.cjs` | Read-only: accounts, titles, archive inventory, inspect, verified backup export and timestamps |
+| `savekit-read` | Pinned ns2-savekit read-only entrypoints through `internal/retained/savekit-host.cjs` | Read-only: accounts, titles, archive inventory, inspect, verified backup export and timestamps |
 | `savekit` | Pinned ns2-savekit write/delete entrypoints through the same host | The selected archive only: gated write, restore and delete, plus the read-only live-vs-export compare |
 
 Save writes and launcher-save installs use the gated SaveKit path. Mod
@@ -94,7 +94,7 @@ The `savekit` mutation gate runs, in order, per operation:
 
 A launcher save replaces a game's own startup code, so the installers are the
 gated SaveKit write and nothing else: there is no second write path. Each
-package is recorded in [`manifest/profiles.json`](../manifest/profiles.json)
+package is recorded in [`internal/manifest/profiles.json`](../internal/manifest/profiles.json)
 with its upstream, revision, SHA-256, file count, console title and core file
 names, and all ten are bundled (`decision: "may-ship", bundled: true`) and
 staged offline from packaged `Assets` with SHA-256 verification before any
@@ -102,13 +102,13 @@ preview or write.
 
 One install runs, in order:
 
-1. **Restrictions.** `launcher.Validate` accepts a package only for the game,
+1. **Restrictions.** `retained.ValidateLauncher` accepts a package only for the game,
    edition and version it supports: the demo packages only for their own demo
    title, the full-game Seedsow patch only for the full-game title, Balatro only
    after the user states the physical Switch 1 cartridge in Switch 2
    compatibility mode (the native Switch 2 edition is unsupported), and Gravity
    Circuit only for game version 1.0.0 or 1.2.1.
-2. **Package verification and preview.** `launcher.Prepare` re-verifies the
+2. **Package verification and preview.** `retained.PrepareLauncherArchive` re-verifies the
    recorded source files and the archive digest, refuses an archive whose paths,
    entry types, sizes or file count differ from the record or whose own save
    metadata names another title, unpacks it into a private folder off the UI
@@ -122,7 +122,7 @@ One install runs, in order:
    backup, single write and post-write verification are ticket 18's gate,
    unchanged. The manager prepares the package again at run time, so the digest
    binds the confirmation to the files that are actually written.
-5. **Existing launcher.** `launcher.CheckExisting` compares the live save
+5. **Existing launcher.** `retained.CheckExistingLauncher` compares the live save
    against the package's recorded core files. No core file present means a fresh
    install; all of them matching the pinned package means an upgrade; anything
    else (unrecognised or partial core files) is refused before any change, with
@@ -188,13 +188,13 @@ its three modules and `homebrew-runtime`) are recorded with `may-ship` and
 installer. Before they are downloaded, each launcher states its recorded reason
 and **Advanced Tools** offers **Download & prepare Homebrew** (`any2jb tool
 install-homebrew` on the CLI), which downloads the pinned upstream archive,
-verifies every file against `manifest/profiles.json` SHA-256 digests, prepares
+verifies every file against `internal/manifest/profiles.json` SHA-256 digests, prepares
 the IZlauncher and portable runtimes, and restores verified components across
 app restarts.
 ## Modloader and custom homebrew (experimental)
 
 Both start only from a verified lease and check the user's folder in Go
-(`session/folders.go`) before anything spawns; the tool host checks it again
+(`internal/retained/validate.go`) before anything spawns; the tool host checks it again
 before any transfer. An invalid folder is refused with `invalid_configuration`
 and the session stays `retained_rpc`. Nothing game- or mod-related is bundled.
 Each action requires explicit code consent. The checkbox resets when its folder
@@ -233,10 +233,11 @@ consent when its optional user app folder is supplied.
 `integrations/ns2jb-modloader` and a `blocked` decision (GPL v2 obligations
 for its prebuilt native artifacts are unresolved); custom homebrew needs the
 blocked `mintbrew` and `homebrew-runtime` stages. Tests:
-`session/modloader_test.go` (capability gate, folder layouts, lease kept),
-`retained/modloader_test.go` (recorded reasons, completion lock, retry-safe
+`internal/retained/request_validation_test.go` and `internal/session/retained_test.go`
+(capability gate, folder layouts, lease kept),
+`internal/retained/modloader_test.go` (recorded reasons, completion lock, retry-safe
 and unverified failures), the modloader and custom homebrew fixtures in
-`retained/toolhost.test.cjs`, and `modloader_view_test.go`. No modloader or
+`internal/retained/toolhost.test.cjs`, and `internal/ui/modloader_view_test.go`. No modloader or
 custom homebrew run against a console; hardware behavior is not verified.
 
 ## Code-launch consent audit
@@ -265,9 +266,9 @@ validation remain unchanged. No hardware execution was verified.
 
 ## Distribution and local developer staging
 
-`resources/darwin-arm64/runtime/toolhost.cjs` is original any2jb code, recorded
+`resources/runtime/toolhost.cjs` is original any2jb code, recorded
 as `tool-host` and bundled. The tool implementations are not: `ouncecake` and
-`sd-browser` are recorded in [`manifest/profiles.json`](../manifest/profiles.json)
+`sd-browser` are recorded in [`internal/manifest/profiles.json`](../internal/manifest/profiles.json)
 with their upstream, revision, inventory digest and `blocked` decision, and the
 system-code capture lives inside the blocked host profiles. A packaged app
 stages none of them, and every Advanced Tools entry shows
@@ -288,60 +289,59 @@ recorded reason; it is never silently repaired.
 
 ## Tests
 
-- `retained/manager_test.go` drives the structured engine fixture's
+- `internal/retained/manager_test.go` drives the structured engine fixture's
   `held-verified` scenario on loopback: a tool without a lease, a tool after the
   lease closed, the single-owner refusal, attach versus launch, detach leaving
   the host running, a lost attachment, an endpoint outside the stated boundary,
   a capture refused inside the workspace, and the offered-game rule.
-- `retained/stage_test.go` checks that a verified copy is staged, that a changed
+- `internal/retained/stage_test.go` checks that a verified copy is staged, that a changed
   pinned source is refused and its stale stage removed, and that packaged
   startup stages nothing.
-- `retained/toolhost.test.cjs` checks the tool host's own held proof (finished,
+- `internal/retained/toolhost.test.cjs` checks the tool host's own held proof (finished,
   public and foreign sessions are refused) and that the SD wrapper has no write
   operation. Its loopback homebrew fixtures run the full MintBrew and
   IZlauncher lifecycles against a fake bridge and staged tree: proven cleanup
   releasing the marker, a second owner refused, a retry-safe early failure,
   an unproven shutdown keeping the marker, module validation and the process
   qualification gate.
-- `retained/homebrew_test.go` covers the manager-side contract: recorded
+- `internal/retained/homebrew_test.go` covers the manager-side contract: recorded
   reasons per launcher, the second-owner refusal, stop-then-switch and the
   unproven-cleanup block.
-- `session/homebrew_test.go` covers launch input validation (module ids, the
+- `internal/retained/request_validation_test.go` covers launch input validation (module ids, the
   SD folder shape, the Mac app folder).
-- `homebrew_view_test.go` exercises the gated reasons, single-active
+- `internal/ui/homebrew_view_test.go` exercises the gated reasons, single-active
   switching, module selection and folder inputs through MyGo's windowless
   Tester.
   operation.
-- `retained/savekit_test.go` drives the fixture host module through the manager:
+- `internal/retained/savekit_test.go` drives the fixture host module through the manager:
   the lease requirement, the read-only list, inspect and verified-backup flow,
-  and the single-owner refusal in both directions. `retained/savekit-host.test.cjs`
+  and the single-owner refusal in both directions. `internal/retained/savekit-host.test.cjs`
   covers the request schema (unknown fields rejected, mutations needing the
   confirmation flag), the argv builder and the inventory parsers.
-- `retained/launcher_test.go` drives one install through the fixture host: the
+- `internal/retained/launcher_test.go` drives one install through the fixture host: the
   gate order (`accounts`, backup, write, read-back), the refusal of an
   unrecognised existing launcher before any change, and the recorded reason for
-  every packaged installer. `launcher/launcher_test.go` covers the per-package
-  restrictions and the rights gate, `launcher/prepare_test.go` the digest
-  refusal, unsafe archives and the existing-launcher rule, and
-  `launcher_view_test.go` the gated reason, stated side effects, per-install
-  preview and confirmation and the account rule through MyGo's Tester. The
-  opt-in `ANY2JB_REFERENCE_ROOT` check in `launcher/reference_test.go` prepares
-  every pinned package from the mac2jb clone.
-- `retained/savekit_write_test.go` drives the write gate on the same fixture:
+  every packaged installer. `internal/retained/launcher_archive_test.go` covers the per-package
+  restrictions, the rights gate, the digest
+  refusal, unsafe archives, the existing-launcher rule, and the opt-in
+  `ANY2JB_REFERENCE_ROOT` check preparing every pinned package from the mac2jb
+  clone, and `internal/ui/launcher_view_test.go` covers the gated reason, stated side effects, per-install
+  preview and confirmation and the account rule through MyGo's Tester.
+- `internal/retained/savekit_write_test.go` drives the write gate on the same fixture:
   the backup/write/read-back order, backup-failure abort with its session
   block, target-validation abort that stays correctable, the replacement and
   restore guards, a post-write verification failure with no retry, the
   read-only compare, and the single-owner refusal between read and write.
-  `savekit/client_mutation_test.go` covers the mutation result schema and
-  `savekit/mutation_gate_test.go` the previews, digests, limits and compares.
-- `savekit/` validates requests, runs the host module's one-request protocol and
-  verifies every export: `savekit/export_test.go` refuses a tampered or partial
+  `internal/savekit/client_mutation_test.go` covers the mutation result schema and
+  `internal/savekit/mutation_gate_test.go` the previews, digests, limits and compares.
+- `internal/savekit/` validates requests, runs the host module's one-request protocol and
+  verifies every export: `internal/savekit/export_test.go` refuses a tampered or partial
   export, an unrecorded file and an escaping path. A verified backup is kept
   under `savekit-exports` and never retried.
- `manifest/tools_test.go` and the opt-in
+ `internal/manifest/tools_test.go` and the opt-in
   `ANY2JB_REFERENCE_ROOT` inventory test check the recorded tool sources,
   including against the pinned mac2jb clone.
-- `advanced_tools_view_test.go` exercises the gated reasons, the one-owner
+- `internal/ui/advanced_tools_view_test.go` exercises the gated reasons, the one-owner
   disabled states, the lost-lease message and the attach/detach distinction
   through MyGo's windowless Tester.
 

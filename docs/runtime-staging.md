@@ -116,11 +116,11 @@ remain **not verified**. Nothing here clears an engine's redistribution blocker.
 
 ```sh
 go test ./...
-node --test engine/bridge.test.cjs manifest/profiles.test.cjs
+node --test internal/engine/bridge.test.cjs internal/manifest/profiles.test.cjs
 go run ./cmd/prepare-runtime
 go run ./cmd/check-package
-ANY2JB_RUNTIME_ASSETS="$PWD/resources/darwin-arm64" go test ./engine -run TestBundledNodeRuntime -v
-ANY2JB_REFERENCE_ROOT=/path/to/pinned/mac2jb go test ./engine -run TestPinnedDeveloperStaging -v
+ANY2JB_RUNTIME_ASSETS="$PWD/resources/darwin-arm64" go test ./internal/engine -run TestBundledNodeRuntime -v
+ANY2JB_REFERENCE_ROOT=/path/to/pinned/mac2jb go test ./internal/engine -run TestPinnedDeveloperStaging -v
 ```
 
 The Node check is opt-in, local Apple Silicon integration: stage the verified

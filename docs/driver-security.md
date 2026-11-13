@@ -10,7 +10,7 @@ has not been verified. Signing or notarizing any2jb does not approve the kext.
 - It inspects state through the [read-only readiness adapter](readiness.md).
   It never runs `csrutil`, `spctl`, `nvram`, `bputil`, `sudo` or a
   security-policy change. A static test,
-  [`driver/static_test.go`](../driver/static_test.go), fails if non-test app
+  [`internal/driver/static_test.go`](../internal/driver/static_test.go), fails if non-test app
   code names one of these commands or uses `kmutil` beyond `showloaded`.
 - Recovery and Startup Security Utility steps are shown as text for the user to
   perform in the first stage's **Allow the USB driver** step, with links to
@@ -25,7 +25,7 @@ has not been verified. Signing or notarizing any2jb does not approve the kext.
   It records `csrutil status` diagnostically and does not change SIP.
 - Before the prompt, `driver.Gate.Install` verifies the SHA-256 of the kext
   binary, its `Info.plist`, `drivers/SHA256SUMS` and the installer against
-  [`manifest/profiles.json`](../manifest/profiles.json), and rejects any extra
+  [`internal/manifest/profiles.json`](../internal/manifest/profiles.json), and rejects any extra
   or linked bundle file. A mismatch never reaches the administrator boundary.
 - Every attempted install, including one whose load request fails afterwards,
   reports `RestartRequired`. The panel then re-runs readiness. The installer's
@@ -58,7 +58,7 @@ it as developer-supplied.
 - `driver.New(driver.Options{Assets, DeveloperSourceRoot, Manifest,
   Administrator})`; `Administrator` defaults to the osascript prompt and is
   injected as a fake in tests.
-- `main` sets `app.driverPanel.gate` from `productionDriverGate`, using the
+- `internal/ui` sets `app.driverPanel.gate` from `app.ProductionDriverGate`, using the
   merged MyGo resource root and no developer source. Tests verify it reports
   the canonical blocker.
 - The panel opens from **Install…** in the first stage's **Install the USB
@@ -70,9 +70,9 @@ it as developer-supplied.
 
 ## Evidence
 
-[Gate tests](../driver/gate_test.go) cover declined approval, the canonical
+[Gate tests](../internal/driver/gate_test.go) cover declined approval, the canonical
 blocker, digest mismatch, unexpected bundle files and restart after a failed
-load. [Panel tests](../driver_view_test.go) cover the disclosure, the disabled
+load. [Panel tests](../internal/ui/driver_view_test.go) cover the disclosure, the disabled
 blocked action, decline, the manual route and the second confirmation, all with
 a fake administrator. No real installer, administrator prompt, kext load or
 security change was run. Driver loading, approval on real macOS and USB input

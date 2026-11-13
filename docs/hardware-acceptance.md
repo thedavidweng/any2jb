@@ -7,7 +7,7 @@ sequence below and files one evidence log per combination in
 passing steps to parity ledger rows and advances their evidence column.
 Agents never run these steps: no USB, driver or console operation is
 performed by the tooling, and no row may claim `hardware-verified` without a
-matching validated log (`go test . -run TestHardwareEvidenceMatchesLedger`
+matching validated log (`go test ./internal/ui -run TestHardwareEvidenceMatchesLedger`
 fails otherwise). Absent evidence reads as `not verified`.
 
 Current status: **no evidence logs exist; everything hardware is not
@@ -35,7 +35,7 @@ Every log records the exact combination under test in its `combination`
 object (see the templates). P1a requires: Mac model, macOS version, startup
 security (USB transports), host profile, console system version, SmileBASIC
 edition and version, the pinned bootstrap SHA-256 (checked against
-`manifest/profiles.json`), transport, observed USB controller, cable/power
+`internal/manifest/profiles.json`), transport, observed USB controller, cable/power
 direction and LAN topology. CivSwitch replaces host profile and bootstrap
 with console generation, cartridge version and system language.
 

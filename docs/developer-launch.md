@@ -32,14 +32,14 @@ must not be committed or shared in diagnostics.
 Launch on Apple Silicon macOS or Linux (`linux/amd64` / `linux/arm64`):
 
 ```sh
-ANY2JB_DEVELOPER_CONFIG=/absolute/path/to/developer.json go run .
+ANY2JB_DEVELOPER_CONFIG=/absolute/path/to/developer.json go run ./cmd/any2jb
 ```
 
-`main` is the only reader of `ANY2JB_DEVELOPER_CONFIG`, through
-`internal/devlaunch`. It reads it only when `mygo.IsDev()` is true **and**
+The GUI and CLI entrypoints are the only readers of `ANY2JB_DEVELOPER_CONFIG`, through
+`internal/devlaunch`. They read it only when `mygo.IsDev()` is true **and**
 `mygo.App.IsPackaged()` is false. A production binary or any packaged bundle
-ignores the option, including malformed paths. `developer_launch_test.go` builds
-the probe in `testdata/devlaunch` both ways and checks both outcomes.
+ignores the option, including malformed paths. `internal/app/developer_launch_test.go` builds
+the probe in `internal/app/testdata/devlaunch` both ways and checks both outcomes.
 No adapter reads an environment variable to authorize itself.
 
 The UI visibly labels the entire launch **developer-staged, not redistributable**.

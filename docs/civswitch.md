@@ -141,28 +141,28 @@ typing. Preparation never installs a driver, uses sudo, or changes security.
 
 ## Evidence and limits
 
-- [Controller tests](../session/civswitch_test.go): separate prerequisites,
+- [Controller tests](../internal/session/civswitch_test.go): separate prerequisites,
   composite refusal, partial-transfer stop/release, loader failure/recheck,
   separate attach, and no retained RPC.
-- [Adapter tests](../civswitch/adapter_test.go): local shell subprocess fixtures,
+- [Adapter tests](../internal/civswitch/adapter_test.go): local shell subprocess fixtures,
   measured estimate parsing, completed-line progress, SIGTERM cancellation,
   unconfirmed release, integrity refusal, and packaged distribution refusal.
   These are fake helpers, not USB hardware.
-- [Probe tests](../civswitch/probe_test.go): loopback TCP fixtures prove that
+- [Probe tests](../internal/civswitch/probe_test.go): loopback TCP fixtures prove that
   missing nonce or execution confirmation is refused. No console is contacted.
-- [UI test](../civswitch_view_test.go): unavailable reason, disabled actions,
+- [UI test](../internal/ui/civswitch_view_test.go): unavailable reason, disabled actions,
   separate prerequisites, and no SmileBASIC controls.
-- [Persistence tests](../civswitch/persistence_test.go): consent refused before
+- [Persistence tests](../internal/civswitch/persistence_test.go): consent refused before
   any connection, a corrupt or incomplete backup blocking the installer, the
   installer's exact argument list, and hostile save names stored literally.
-- [Code tests](../civswitch/code_test.go): consent refusal, file validation,
+- [Code tests](../internal/civswitch/code_test.go): consent refusal, file validation,
   the exact chosen bytes sent, refused payload errors, and JSON-encoded staging
   chunks that reassemble to the chosen file.
-- [Control Center tests](../civswitch/control_test.go): a read-only session that
+- [Control Center tests](../internal/civswitch/control_test.go): a read-only session that
   sends no further code, a verified export retained through user cleanup,
   refused unverified exports, and a deliberate stop.
-- [Gate tests](../session/civswitch_actions_test.go) and
-  [panel tests](../civswitch_view_test.go): a verified loader and a staged
+- [Gate tests](../internal/session/civswitch_actions_test.go) and
+  [panel tests](../internal/ui/civswitch_view_test.go): a verified loader and a staged
   writer are required, confirmations are per action, a failed install keeps its
   backup and requires a console restart, and the read-only session stops
   without being reported as a failure.

@@ -49,7 +49,7 @@ verify it personally in Recovery. No security-changing operation is permitted.
 
 Only controls needed for the current stage render. Existing adapters and tool
 panels remain reused behind the same controller gates. English and Simplified
-Chinese catalogs carry all new text. `flow_view_test.go` exercises stage
+Chinese catalogs carry all new text. `internal/ui/flow_view_test.go` exercises stage
 isolation, method gates, trusted-record reuse, focus and corner access through
 MyGo Tester; readiness fixtures cover SIP states. Hardware behavior remains
 not verified. The static security scan permits exactly one fixed status call in

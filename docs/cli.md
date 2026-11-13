@@ -180,7 +180,7 @@ These excerpts came from the packaged `build/darwin-arm64/any2jb.app` on
 2026-11-11. Its recovery report was caused by the former app-owner lock sharing
 the host's `session.lock` filename, not evidence of a real interrupted console
 run. The locks now use separate filenames. Recovery behavior is covered by the
-simulated environment in `cli_test.go`.
+simulated environment in `internal/cli/cli_test.go`.
 
 ```text
 $ any2jb status
@@ -221,7 +221,7 @@ The script stopped at `launch`, so `settings get` never ran. The `...` marks
 lines trimmed from the `status` output above.
 
 A complete guided setup and launch is covered against the simulated session
-environment, not a console, in `cli_test.go`. For example, this script reaches
+environment, not a console, in `internal/cli/cli_test.go`. For example, this script reaches
 a finished session there:
 
 ```text

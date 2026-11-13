@@ -27,7 +27,7 @@ The ~100 MB+ optional GPU/Python homebrew components remain unbundled (`may-ship
 Build on Apple Silicon macOS with Go **1.27.3** and the MyGo library/CLI revision
 in `go.mod`, currently `a4b6734f7715c9f73709092f7bae80d861572c03`.
 Node **24.22.1** is fetched as an official prebuilt archive by the build hook;
-its archive, binary and notice digests live only in `manifest/profiles.json`.
+its archive, binary and notice digests live only in `internal/manifest/profiles.json`.
 Neither a system Node nor Bun is used to build or run the native app.
 Xcode Command Line Tools provide `codesign`, `iconutil` and `hdiutil`.
 The local validation toolchain was Xcode **27.2**, build **27B52**.
@@ -127,7 +127,7 @@ requires review in the canonical manifest. Never fetch an upstream branch
 automatically. Existing immutable per-version runtime stages are not replaced
 in place.
 
-`go test . -run TestMyGoUpdateSignatureBoundary -v` builds an isolated temporary
+`go test ./internal/app -run TestMyGoUpdateSignatureBoundary -v` builds an isolated temporary
 test `.app` with a throwaway Ed25519 key, serves local fixture bytes through
 MyGo's `UpdateSource`, and exercises the real `Check` / `Install` boundary.
 Wrong-key and modified archives fail authentication; an unsigned manifest is
@@ -166,7 +166,7 @@ On an arm64 Mac with the toolchain above:
 - `CGO_ENABLED=0 go test ./...` passed, also with
   `ANY2JB_PACKAGED_RESOURCES` set to the built app's resource directory.
 - MyGo i18n/vet and `go vet ./...` passed.
-- Bundled Node ran `engine/bridge.test.cjs` and `manifest/profiles.test.cjs`:
+- Bundled Node ran `internal/engine/bridge.test.cjs` and `internal/manifest/profiles.test.cjs`:
   3 tests passed.
 - The full `cmd/check` harness passed with Zig 0.15.2, including all six
   source/bootstrap inventories, the real-engine loopback partial-reply test,

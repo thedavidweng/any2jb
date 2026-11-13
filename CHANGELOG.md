@@ -2,15 +2,25 @@
 
 ## 0.1.0
 
-- Native MyGo development app for Apple Silicon macOS 14+.
-- Bundle pinned Node 24.22.1 and the integrity-checked any2jb engine bridge.
-- Keep engines, bootstraps, USB helpers and drivers out of distribution until
-  their release gates are cleared.
-- Retained RPC lease with read-only tools: live status, connecting to an
-  existing verified session, the system-code capture and the OunceCake and
-  `/sd` exports, with one owner at a time and no console write path.
-- Record OunceCake and the SD browser as pinned tool sources that only a
-  developer may stage locally; packaged entries state their recorded reason.
+- Native MyGo desktop app and Cobra CLI (`cmd/any2jb`) for Apple Silicon macOS
+  14+ (`darwin/arm64`) and Linux (`linux/amd64`, `linux/arm64` via GTK3 without
+  WebKitGTK), with full English and Simplified Chinese structured catalog
+  localization.
+- Bundle pinned Node `24.22.1`, the integrity-checked `any2jb` engine bridge and
+  tool host, five SHA-256-verified `ns2jb` host profiles and bootstraps, Darwin
+  `usbgadget.kext` + USB HID helpers, Linux ConfigFS `usb_f_hid` keyboard and
+  composite gadget support, SaveKit, launcher save packages, and `ns2jb-modloader`,
+  with optional Homebrew (`MintBrew`, `Native HBLauncher`, `IZlauncher`)
+  downloaded and SHA-256-verified on demand; `browser-research` and `izmysh`
+  remain excluded/refused with recorded reasons.
+- Organize all orchestration, adapter, UI, and CLI packages under `internal/*`
+  behind a pure standard-library `internal/session` state machine, shared
+  `internal/procgroup` child-process supervision, and `internal/readiness`
+  first-stage setup projection.
+- Retained RPC lease with single-flight tool ownership: live status, connecting
+  to an existing verified session without taking host ownership, system-code
+  capture, OunceCake WebDAV/FTP exports, `/sd` export, SaveKit backups/mutations,
+  and verified launcher/homebrew workflows.
 - Gate the CivSwitch boot trigger, JavaScript send, Payload Mode staging and
   Control Center behind a rechecked loader, explicit per-action confirmation and
   a disk-verified save backup, with read-only exports retained outside sessions.

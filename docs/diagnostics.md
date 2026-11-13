@@ -82,12 +82,12 @@ assets, retained redacted diagnostics and support bundles are kept.
 
 ## Evidence and limits
 
-`diagnostics/*_test.go` checks every recognized sensitive field, unknown JSON
+`internal/diagnostics/*_test.go` checks every recognized sensitive field, unknown JSON
 fields, malformed fragments, source separation, bounded following, symlink
 refusal, backup-preserving cleanup, dead/mismatched/live owner recovery and
-stale artifact detection. `engine/diagnostics_test.go` uses the real supervised
-Node fixture to check retained evidence and backups. `session/recovery_test.go`
-checks that stale state cannot launch. `diagnostics_view_test.go` exercises source
+stale artifact detection. `internal/engine/diagnostics_test.go` uses the real supervised
+Node fixture to check retained evidence and backups. `internal/session/recovery_test.go`
+checks that stale state cannot launch. `internal/ui/diagnostics_view_test.go` exercises source
 selection, following and cleanup confirmation through MyGo Tester.
 
 These are synthetic process/UI fixtures, not console or USB hardware evidence.

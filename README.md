@@ -37,8 +37,8 @@ without WebKitGTK). Console and physical USB hardware behavior remains
   small.
 - Click **Download & prepare Homebrew** inside **Advanced Tools** (or run
   `any2jb tool install-homebrew`) to fetch the pinned upstream archive into app
-  support and verify every file against `manifest/profiles.json` SHA-256
-  digests before launch.
+  support and verify every file against `internal/manifest/profiles.json`
+  SHA-256 digests before launch.
 
 ### Not included
 
@@ -170,10 +170,11 @@ runtime is used. MyGo is pinned in `go.mod` to
 Upstream third-party bundles and Node binaries are not committed to Git. During
 the build, `cmd/prepare-runtime` fetches the pinned Node `24.22.1` release
 archive and the pinned `cpypwn/mac2jb` reference archive into `.cache/`,
-verifies every SHA-256 digest against `manifest/profiles.json`, compiles
-`libusbd.dylib` and the four USB HID helpers on `darwin/arm64`, and stages
-`resources/`. `cmd/check-package` then enforces the manifest inventory, binary
-architectures, and third-party license notices before and after packaging.
+verifies every SHA-256 digest against `internal/manifest/profiles.json`,
+compiles `libusbd.dylib` and the four USB HID helpers on `darwin/arm64`, and
+stages `resources/`. `cmd/check-package` then enforces the manifest inventory,
+binary architectures, and third-party license notices before and after
+packaging.
 
 ```sh
 # Stage verified runtime and bundled assets into resources/
@@ -185,7 +186,7 @@ go tool mygo dev
 
 # Run Go & Node tests, i18n/vet checks, and build a local package
 go test ./...
-node --test manifest/profiles.test.cjs retained/savekit-host.test.cjs retained/toolhost.test.cjs engine/*.test.cjs
+node --test internal/manifest/profiles.test.cjs internal/retained/savekit-host.test.cjs internal/retained/toolhost.test.cjs internal/engine/*.test.cjs
 go tool mygo i18n check && go tool mygo vet . && go vet ./...
 go tool mygo build -platform darwin/arm64 -sign - -skip-notarize
 go run ./cmd/check-package -platform darwin-arm64 -merged build/darwin-arm64/any2jb.app/Contents/Resources
@@ -203,6 +204,38 @@ go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb
 See [regression checks](docs/regression-checks.md) and
 [packaging and updates](docs/releases.md).
 
+## Repository Layout
+
+```text
+cmd/
+  any2jb/           Application entrypoint (native MyGo GUI, Cobra CLI, Linux USB helper)
+  prepare-runtime/  Fetches, builds, and SHA-256-verifies Node and bundled sidecars
+  check-package/    Pre- and post-package resource and license inventory gate
+  check/            Offline upstream regression and differential parity suite
+  evidence/         Hardware acceptance evidence validator and ledger updater
+internal/
+  app/              Shared preferences, bootstrap state, and production adapter composition
+  ui/               Native MyGo views, keyboard forwarding, and windowless UI tests
+  cli/              Cobra CLI commands and session shell
+  session/          Pure Go session state machine and controller seam
+  readiness/        Read-only LAN, driver, SIP, and UDC readiness checks + setup projection
+  transport/        Guided manual input and Darwin/Linux USB HID keyboard transports
+  usbgadget/        Linux ConfigFS usb_f_hid keyboard and composite HID helper
+  engine/           Node runtime staging, workspace isolation, and supervised host bridge
+  retained/         Retained RPC lease, tool host, SaveKit, homebrew, and launcher saves
+  savekit/          SaveKit protocol client, export verifier, and mutation preview gate
+  civswitch/        CivSwitch composite HID adapter, TCP 9026 probe, and Control Center
+  driver/           macOS usbgadget.kext SHA-256 verification and admin install gate
+  diagnostics/      Redacted log store, support bundle export, and stale-run cleanup
+  manifest/         Canonical profiles.json schema, SHA-256 verifier, and package gate
+  procgroup/        Supervised child process-group lifecycle and bounded NDJSON reader
+  parity/           Differential output parity harness and GUI/CLI control extractor
+locales/            English and Simplified Chinese catalogs + generated MyGo accessors
+resources/          Bundled licenses and build-staged platform overlays (gitignored binaries)
+docs/               Architecture decisions (docs/adr/), parity ledgers, and subsystem specs
+scripts/            Cross-platform compile gate (check-platforms.sh)
+```
+
 ## UI Strings and Localization
 
 Add every app-visible string to `locales/en.json` and its translation to
@@ -219,3 +252,5 @@ generation. See [localization](docs/localization.md) and
 - [Retained RPC lease and tools](docs/retained-tools.md)
 - [Direct Go orchestration over upstream engines](docs/adr/0001-direct-go-orchestration-over-upstream-engines.md)
 - [Phase 1 release boundaries](docs/adr/0002-split-phase1-release-into-p1a-and-p1b.md)
+- [Staged flow, first-stage Mac check, and Switch checklist](docs/adr/0005-prepare-the-switch-checklist.md)
+- [Internal package layout and structured localization](docs/adr/0006-internal-package-layout-and-structured-localization.md)

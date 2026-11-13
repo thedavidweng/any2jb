@@ -4,8 +4,8 @@ Every outside project any2jb builds with, ships, stages or reimplements, with
 the exact version it is pinned to. Use this page to review what the app
 depends on.
 
-The sources of truth are [`manifest/profiles.json`](../manifest/profiles.json)
-and [`go.mod`](../go.mod). `go test ./manifest -run TestExternalProjects` fails
+The sources of truth are [`internal/manifest/profiles.json`](../internal/manifest/profiles.json)
+and [`go.mod`](../go.mod). `go test ./internal/manifest -run TestExternalProjects` fails
 when a pinned upstream, revision or Go module in either is missing here.
 License findings and release blockers are in the
 [redistribution assessment](redistribution.md). This page is not legal clearance.

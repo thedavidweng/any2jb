@@ -13,7 +13,7 @@ three-way engine TCP wire streams across all supported profiles), the Node
 manifest/bridge tests, all six canonical host profile checksum/source/bootstrap
 checks, pepsipu's existing upstream tests and its reproducible payload check.
 The explicit reference root must contain the revision and files pinned in
-`manifest/profiles.json`. No clone or dependency installation is automatic.
+`internal/manifest/profiles.json`. No clone or dependency installation is automatic.
 The command finds the prepared Zig 0.15.2 compiler itself, so a run on a
 machine with the pinned toolchain needs no extra argument.
 
@@ -31,7 +31,7 @@ must reject that partial reply. This does not emulate exploit execution or
 claim console verification.
 
 The **simulated engine** controller suite uses the real
-`engine.NewProtocolRunner` and the shared `engine/testdata/fake-engine.cjs`
+`engine.NewProtocolRunner` and the shared `internal/engine/testdata/fake-engine.cjs`
 process fixture. It checks fresh pairing delivered to input, 4/4 verification,
 live held RPC, Finish, input release, process removal and private
 workspace/lease removal. Disconnect, incomplete restoration and cleanup errors
@@ -45,7 +45,7 @@ scenario on loopback with a structured tool-process fixture. It checks the lease
 requirement, the single owner, attach versus launch, detach leaving the host
 running, a lost attachment, refused endpoints and a refused capture destination,
 plus developer tool staging and the tool host's own held proof
-(`node --test retained/toolhost.test.cjs`). See
+(`node --test internal/retained/toolhost.test.cjs`). See
 [retained tools](retained-tools.md); these are not console or hardware evidence.
 
 On Darwin arm64 the command force-rebuilds libusbd in a disposable copy,

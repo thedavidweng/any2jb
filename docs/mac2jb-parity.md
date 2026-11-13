@@ -11,7 +11,7 @@ and the pinned upstream `ns2jb` hosts without physical Switch or USB hardware.
 
 ## Covered output seams
 
-1. **USB HID report & virtual timing stream (`transport/mac2jb_parity_test.go`, `internal/parity/hid.go`)**
+1. **USB HID report & virtual timing stream (`internal/transport/mac2jb_parity_test.go`, `internal/parity/hid.go`)**
    - Compiles `mac2jb`'s `sender.c`, `commands.c` and `keyboard.c` (`-DMAC2JB_GUI=1`)
      with `internal/parity/mock_libusbd.h` force-included so `libusbd_*` and
      `clock_gettime`/`nanosleep`/`sleep` record `<virtual_ns> <8-byte-hid-report>`
@@ -30,7 +30,7 @@ and the pinned upstream `ns2jb` hosts without physical Switch or USB hardware.
      and the pinned `bootstrap.bas` payloads across all profiles, editions and
      actions.
 
-3. **Three-way engine TCP wire & workspace comparison (`engine/mac2jb_parity_test.go`, `internal/parity/console.go`)**
+3. **Three-way engine TCP wire & workspace comparison (`internal/engine/mac2jb_parity_test.go`, `internal/parity/console.go`)**
    - Runs three hosts sequentially against the same deterministic loopback
      protocol-v1 fake console (`parity.ServeConsole`):
      1. Upstream `ns2jb` (`run.cjs` / `run.cjs --rpc 127.0.0.1`)
@@ -55,8 +55,8 @@ Redistribution-blocked upstream files (`bootstrap.bas`, `engine/**`) are never
 committed to this repository. Instead, normalized transcript SHA-256 digests are
 stored in:
 
-- `transport/testdata/mac2jb-parity.json` (72 HID and guided-prompt digests)
-- `engine/testdata/mac2jb-parity.json` (5 engine profile wire/workspace/transcript records)
+- `internal/transport/testdata/mac2jb-parity.json` (72 HID and guided-prompt digests)
+- `internal/engine/testdata/mac2jb-parity.json` (5 engine profile wire/workspace/transcript records)
 
 This supports two execution modes:
 
@@ -65,7 +65,7 @@ This supports two execution modes:
   ```sh
   ANY2JB_REFERENCE_ROOT=/absolute/path/to/pinned/mac2jb \
   ANY2JB_RUNTIME_ASSETS="$PWD/resources/darwin-arm64" \
-  go test -v ./transport ./engine
+  go test -v ./internal/transport ./internal/engine
   ```
   Also runs automatically inside `go run ./cmd/check -reference-root ...`.
 - **Offline / cross-platform digest mode** (CI, Windows, or checkouts without
@@ -77,7 +77,7 @@ This supports two execution modes:
   committed profile digest records without needing C POSIX headers or upstream
   checkouts. Future Windows and Linux transport adapters can validate their
   output against the exact same `Transcript.State()` digests in
-  `transport/testdata/mac2jb-parity.json`.
+  `internal/transport/testdata/mac2jb-parity.json`.
 
 To regenerate committed digests after an intentional manifest or transport
 change, run against the verified reference checkout:
@@ -85,7 +85,7 @@ change, run against the verified reference checkout:
 ```sh
 ANY2JB_REFERENCE_ROOT=/absolute/path/to/pinned/mac2jb \
 ANY2JB_RUNTIME_ASSETS="$PWD/resources/darwin-arm64" \
-go test ./transport ./engine -update-parity
+go test ./internal/transport ./internal/engine -update-parity
 ```
 
 ## Intentional difference whitelist

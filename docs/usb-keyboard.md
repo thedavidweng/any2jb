@@ -153,15 +153,15 @@ including before displaying manual instructions that a user could partly type.
 
 ## Evidence
 
-- `transport/typing_test.go`: exact command order, observed LOAD prompt,
+- `internal/transport/typing_test.go`: exact command order, observed LOAD prompt,
   inherited-indent reports, actual line progress, deduplicated starts and Stop.
-- `transport/keyboard_test.go`: raw report acknowledgements, focus/close neutral
+- `internal/transport/keyboard_test.go`: raw report acknowledgements, focus/close neutral
   release, stalled Send interruption, controller exclusivity, no signal before
   the acknowledged neutral report, and late acknowledgements never counted as release.
-- `transport/owner_test.go`: abrupt fake-owner death produces helper EOF cleanup.
-- `session/keyboard_test.go`, `session/usb_test.go`: authoritative lifecycle and
+- `internal/transport/owner_test.go`: abrupt fake-owner death produces helper EOF cleanup.
+- `internal/session/keyboard_test.go`, `internal/session/usb_test.go`: authoritative lifecycle and
   selected-controller-only promotion.
-- `usb_view_test.go`: native prompt acknowledgement, blocked helpers, physical
+- `internal/ui/usb_view_test.go`: native prompt acknowledgement, blocked helpers, physical
   Shift+A forwarding and focus/window-close cleanup through MyGo Tester.
 
 `cmd/check` builds the real libusbd/helpers and uses only sender/commands/

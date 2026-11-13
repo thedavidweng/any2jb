@@ -48,7 +48,7 @@ app cannot detect. The wizard is five stages; the heading status label reads
 
 ## Consequences and evidence
 
-`prepare_view_test.go` covers each route's item set, the Continue gate and its
+`internal/ui/prepare_view_test.go` covers each route's item set, the Continue gate and its
 reason, that an item is never a status, the 90dns link, the CivSwitch items
 reaching `StartCivSwitch` with launch still blocked when one is unticked, and
 that nothing survives reopening the app or reaches the preferences file, in

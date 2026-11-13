@@ -6,7 +6,7 @@ another distributor's permission is not a redistribution grant to any2jb.
 
 ## Canonical inventory
 
-[`manifest/profiles.json`](../manifest/profiles.json) records each component's
+[`internal/manifest/profiles.json`](../internal/manifest/profiles.json) records each component's
 origin, exact revision, digest, supplied license/notice, `bundled` flag, decision,
 and reason. [External projects](external-projects.md) lists each origin with
 links for review. Profile `sourceSha256` covers the source inventory;
@@ -53,7 +53,7 @@ Current inventory:
 Node 24.22.1 darwin-arm64 and the original any2jb structured profile bridge
 are bundled. Node's complete release license is retained in
 `resources/licenses/node.txt`. Its archive and binary digests are pinned in
-`manifest/profiles.json`; the build downloads into an ignored cache and fails
+`internal/manifest/profiles.json`; the build downloads into an ignored cache and fails
 closed on changed bytes. The binary itself is not committed to Git.
 
 No host, bootstrap, USB binary, driver, launcher save, ROM or

@@ -49,11 +49,11 @@ input independent of driver/controller facts. See [readiness](readiness.md).
 - `PlatformServices` supplies observed readiness, redacted diagnostics and
   stale-lease release. Neither preferences nor snapshots hold account secrets.
 - `ToolRunner` owns single-flight tool work. Only tools explicitly enabled in the
-  verified profile may run. Tool-specific consent and backup gates belong to its
-  adapter; a profile capability is not consent to write user data.
-  `ParameterizedToolRunner` additionally accepts a validated console address
-  through `RunToolWith`; `StopTool` ends the running tool without ending the
-  session. See [retained tools](retained-tools.md).
+  verified profile may run. Tool-specific consent, folder validation and backup
+  gates belong to `ToolRunner.Validate` and `ToolRunner.RunWith`; a profile
+  capability is not consent to write user data. `RunToolWith` supplies tool
+  parameters such as a validated console address; `StopTool` ends the running
+  tool without ending the session. See [retained tools](retained-tools.md).
 - `RetainedAdapter` discovers and attaches to a verified held session this
   machine still holds. `AttachRetained` reaches `retained_rpc` without
   preparing a host or sending input and marks `Snapshot.Attached`;
@@ -94,7 +94,7 @@ Start still requires observed, verified readiness checks.
 
 `sessiontest.NewFakeEnvironment` provides deterministic outcomes, blocking gates
 and an observable action trace for tests. It lives in the test-only
-`session/sessiontest` package, so production binaries never link it. Configure
+`internal/session/sessiontest` package, so production binaries never link it. Configure
 it before constructing a controller; do not mutate outcomes during a run. The
 production entrypoint does not inject this environment.
 
