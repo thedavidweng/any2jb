@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/thedavidweng/any2jb/diagnostics"
+	"github.com/thedavidweng/any2jb/internal/diagnostics"
 )
 
 func TestOneOwnerAndRelease(t *testing.T) {

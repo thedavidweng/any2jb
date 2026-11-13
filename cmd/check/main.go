@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/thedavidweng/any2jb/internal/manifest"
 	"github.com/thedavidweng/any2jb/internal/nativehelper"
-	"github.com/thedavidweng/any2jb/manifest"
 )
 
 func main() {
@@ -138,19 +138,19 @@ func run(ctx context.Context, args []string, out io.Writer) error {
 		return cmd.Run()
 	})
 	s.check("mac2jb/ns2jb differential output parity (HID + guided + 3-way engine wire; not hardware)", func() error {
-		cmd := exec.CommandContext(ctx, "go", "test", "-v", "-run", liveParityPattern, "./transport", "./engine")
+		cmd := exec.CommandContext(ctx, "go", "test", "-v", "-run", liveParityPattern, "./internal/transport", "./internal/engine")
 		cmd.Env = append(os.Environ(), "ANY2JB_REFERENCE_ROOT="+root, "ANY2JB_RUNTIME_ASSETS="+runtimeAssets)
 		cmd.Stdout, cmd.Stderr = out, out
 		cmd.WaitDelay = time.Second
 		return cmd.Run()
 	})
 	s.check("Node manifest/bridge tests", func() error {
-		tests, err := filepath.Glob("engine/*.test.cjs")
+		tests, err := filepath.Glob("internal/engine/*.test.cjs")
 		if err != nil {
 			return err
 		}
 		return command(ctx, out, "", "node",
-			append([]string{"--test", "manifest/profiles.test.cjs", "retained/toolhost.test.cjs"}, tests...)...)
+			append([]string{"--test", "internal/manifest/profiles.test.cjs", "internal/retained/toolhost.test.cjs", "internal/retained/savekit-host.test.cjs"}, tests...)...)
 	})
 	pepsipuVerified := false
 	for _, p := range m.Profiles {

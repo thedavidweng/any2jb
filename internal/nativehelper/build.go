@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/internal/manifest"
 )
 
 func command(ctx context.Context, out io.Writer, dir, name string, args ...string) error {

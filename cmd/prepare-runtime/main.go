@@ -7,8 +7,8 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/thedavidweng/any2jb/engine"
-	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/internal/engine"
+	"github.com/thedavidweng/any2jb/internal/manifest"
 )
 
 func main() {

@@ -1,0 +1,21 @@
+package transport_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/thedavidweng/any2jb/internal/session"
+	"github.com/thedavidweng/any2jb/internal/transport"
+)
+
+func TestPlatformStubsNeverPretendInputWasSent(t *testing.T) {
+	for _, input := range []transport.InputTransport{transport.NewDarwin(transport.DarwinOptions{}), transport.NewLinux(), transport.NewWindows()} {
+		err := input.Send(context.Background(), session.Run{Edition: "full"}, session.Bootstrap, session.PreparedHost{}, func(session.Progress) { t.Fatal("stub reported progress") })
+		if err == nil {
+			t.Fatal("unimplemented transport claimed delivery")
+		}
+		if err := input.Release(context.Background(), session.Run{}); err != nil {
+			t.Fatal(err)
+		}
+	}
+}

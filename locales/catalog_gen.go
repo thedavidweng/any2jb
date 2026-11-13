@@ -3278,21 +3278,21 @@ func (msgs Messages) DynNetCheckAccess() string {
 	return Catalog.Format(msgs.locale, "dynNetCheckAccess", nil)
 }
 
-// DynNetAssignedPrefix says "Assigned LAN IPv4 addresses: "
+// DynNetAssigned says "Assigned LAN IPv4 addresses: {addresses}."
 // in the language the app shows.
-func DynNetAssignedPrefix() string { return In(i18n.Locale()).DynNetAssignedPrefix() }
+func DynNetAssigned(addresses string) string { return In(i18n.Locale()).DynNetAssigned(addresses) }
 
-// DynNetAssignedPrefix says "Assigned LAN IPv4 addresses: "
+// DynNetAssigned says "Assigned LAN IPv4 addresses: {addresses}."
 // in the language of msgs.
-func (msgs Messages) DynNetAssignedPrefix() string {
-	return Catalog.Format(msgs.locale, "dynNetAssignedPrefix", nil)
+func (msgs Messages) DynNetAssigned(addresses string) string {
+	return Catalog.Format(msgs.locale, "dynNetAssigned", map[string]any{"addresses": addresses})
 }
 
-// DynNetNoSelection says " No unambiguous address is selected."
+// DynNetNoSelection says "No unambiguous address is selected."
 // in the language the app shows.
 func DynNetNoSelection() string { return In(i18n.Locale()).DynNetNoSelection() }
 
-// DynNetNoSelection says " No unambiguous address is selected."
+// DynNetNoSelection says "No unambiguous address is selected."
 // in the language of msgs.
 func (msgs Messages) DynNetNoSelection() string {
 	return Catalog.Format(msgs.locale, "dynNetNoSelection", nil)
@@ -3308,44 +3308,24 @@ func (msgs Messages) DynNetChooseAddress() string {
 	return Catalog.Format(msgs.locale, "dynNetChooseAddress", nil)
 }
 
-// DynNetRecommendedPrefix says " Recommended address: "
+// DynNetRecommended says "Recommended address: {ip} (available but not verified for console connectivity)."
 // in the language the app shows.
-func DynNetRecommendedPrefix() string { return In(i18n.Locale()).DynNetRecommendedPrefix() }
+func DynNetRecommended(ip string) string { return In(i18n.Locale()).DynNetRecommended(ip) }
 
-// DynNetRecommendedPrefix says " Recommended address: "
+// DynNetRecommended says "Recommended address: {ip} (available but not verified for console connectivity)."
 // in the language of msgs.
-func (msgs Messages) DynNetRecommendedPrefix() string {
-	return Catalog.Format(msgs.locale, "dynNetRecommendedPrefix", nil)
+func (msgs Messages) DynNetRecommended(ip string) string {
+	return Catalog.Format(msgs.locale, "dynNetRecommended", map[string]any{"ip": ip})
 }
 
-// DynNetRecommendedSuffix says " (available but not verified for console connectivity)"
+// DynNetSelected says "Selected: {ip}. Local assignment verified; console connectivity is not verified."
 // in the language the app shows.
-func DynNetRecommendedSuffix() string { return In(i18n.Locale()).DynNetRecommendedSuffix() }
+func DynNetSelected(ip string) string { return In(i18n.Locale()).DynNetSelected(ip) }
 
-// DynNetRecommendedSuffix says " (available but not verified for console connectivity)"
+// DynNetSelected says "Selected: {ip}. Local assignment verified; console connectivity is not verified."
 // in the language of msgs.
-func (msgs Messages) DynNetRecommendedSuffix() string {
-	return Catalog.Format(msgs.locale, "dynNetRecommendedSuffix", nil)
-}
-
-// DynNetSelectedPrefix says " Selected: "
-// in the language the app shows.
-func DynNetSelectedPrefix() string { return In(i18n.Locale()).DynNetSelectedPrefix() }
-
-// DynNetSelectedPrefix says " Selected: "
-// in the language of msgs.
-func (msgs Messages) DynNetSelectedPrefix() string {
-	return Catalog.Format(msgs.locale, "dynNetSelectedPrefix", nil)
-}
-
-// DynNetSelectedSuffix says ". Local assignment verified; console connectivity is not verified."
-// in the language the app shows.
-func DynNetSelectedSuffix() string { return In(i18n.Locale()).DynNetSelectedSuffix() }
-
-// DynNetSelectedSuffix says ". Local assignment verified; console connectivity is not verified."
-// in the language of msgs.
-func (msgs Messages) DynNetSelectedSuffix() string {
-	return Catalog.Format(msgs.locale, "dynNetSelectedSuffix", nil)
+func (msgs Messages) DynNetSelected(ip string) string {
+	return Catalog.Format(msgs.locale, "dynNetSelected", map[string]any{"ip": ip})
 }
 
 // DynNetConnectConsole says "Connect the console by Ethernet on the reachable LAN; host listening and console connection are checked during launch."
@@ -3608,14 +3588,16 @@ func (msgs Messages) DynUsbVerifyEnumeration() string {
 	return Catalog.Format(msgs.locale, "dynUsbVerifyEnumeration", nil)
 }
 
-// DynUsbControllerSuffix says ": attached gadget controller, available but not verified."
+// DynUsbController says "{controller}: attached gadget controller, available but not verified."
 // in the language the app shows.
-func DynUsbControllerSuffix() string { return In(i18n.Locale()).DynUsbControllerSuffix() }
+func DynUsbController(controller string) string {
+	return In(i18n.Locale()).DynUsbController(controller)
+}
 
-// DynUsbControllerSuffix says ": attached gadget controller, available but not verified."
+// DynUsbController says "{controller}: attached gadget controller, available but not verified."
 // in the language of msgs.
-func (msgs Messages) DynUsbControllerSuffix() string {
-	return Catalog.Format(msgs.locale, "dynUsbControllerSuffix", nil)
+func (msgs Messages) DynUsbController(controller string) string {
+	return Catalog.Format(msgs.locale, "dynUsbController", map[string]any{"controller": controller})
 }
 
 // DynUsbConnectCable says "Connect a USB-C data cable so the Mac receives power from the console; verify keyboard enumeration before sending input."
@@ -3738,14 +3720,14 @@ func (msgs Messages) DynToolHostUnavailable() string {
 	return Catalog.Format(msgs.locale, "dynToolHostUnavailable", nil)
 }
 
-// DynToolStageFailedSuffix says " A local developer stage was attempted and failed its integrity check."
+// DynToolStageFailed says "A local developer stage was attempted and failed its integrity check."
 // in the language the app shows.
-func DynToolStageFailedSuffix() string { return In(i18n.Locale()).DynToolStageFailedSuffix() }
+func DynToolStageFailed() string { return In(i18n.Locale()).DynToolStageFailed() }
 
-// DynToolStageFailedSuffix says " A local developer stage was attempted and failed its integrity check."
+// DynToolStageFailed says "A local developer stage was attempted and failed its integrity check."
 // in the language of msgs.
-func (msgs Messages) DynToolStageFailedSuffix() string {
-	return Catalog.Format(msgs.locale, "dynToolStageFailedSuffix", nil)
+func (msgs Messages) DynToolStageFailed() string {
+	return Catalog.Format(msgs.locale, "dynToolStageFailed", nil)
 }
 
 // DynToolNotInManifest says "This component is not recorded in the canonical manifest."
@@ -3778,24 +3760,14 @@ func (msgs Messages) DynCivManifestUnavailable() string {
 	return Catalog.Format(msgs.locale, "dynCivManifestUnavailable", nil)
 }
 
-// DynCivUnavailablePrefix says "CivSwitch unavailable: "
+// DynCivUnavailable says "CivSwitch unavailable: {reason} Developer staging is required; no payload or composite helper is bundled."
 // in the language the app shows.
-func DynCivUnavailablePrefix() string { return In(i18n.Locale()).DynCivUnavailablePrefix() }
+func DynCivUnavailable(reason string) string { return In(i18n.Locale()).DynCivUnavailable(reason) }
 
-// DynCivUnavailablePrefix says "CivSwitch unavailable: "
+// DynCivUnavailable says "CivSwitch unavailable: {reason} Developer staging is required; no payload or composite helper is bundled."
 // in the language of msgs.
-func (msgs Messages) DynCivUnavailablePrefix() string {
-	return Catalog.Format(msgs.locale, "dynCivUnavailablePrefix", nil)
-}
-
-// DynCivStagingRequiredSuffix says " Developer staging is required; no payload or composite helper is bundled."
-// in the language the app shows.
-func DynCivStagingRequiredSuffix() string { return In(i18n.Locale()).DynCivStagingRequiredSuffix() }
-
-// DynCivStagingRequiredSuffix says " Developer staging is required; no payload or composite helper is bundled."
-// in the language of msgs.
-func (msgs Messages) DynCivStagingRequiredSuffix() string {
-	return Catalog.Format(msgs.locale, "dynCivStagingRequiredSuffix", nil)
+func (msgs Messages) DynCivUnavailable(reason string) string {
+	return Catalog.Format(msgs.locale, "dynCivUnavailable", map[string]any{"reason": reason})
 }
 
 // DynCivRootAbsolute says "CivSwitch developer root must be absolute"
@@ -3858,14 +3830,16 @@ func (msgs Messages) DynDrvUnexpectedFile() string {
 	return Catalog.Format(msgs.locale, "dynDrvUnexpectedFile", nil)
 }
 
-// DynDrvInstallIncompletePrefix says "driver installation did not complete; refresh readiness before retrying: "
+// DynDrvInstallIncomplete says "driver installation did not complete; refresh readiness before retrying: {detail}"
 // in the language the app shows.
-func DynDrvInstallIncompletePrefix() string { return In(i18n.Locale()).DynDrvInstallIncompletePrefix() }
+func DynDrvInstallIncomplete(detail string) string {
+	return In(i18n.Locale()).DynDrvInstallIncomplete(detail)
+}
 
-// DynDrvInstallIncompletePrefix says "driver installation did not complete; refresh readiness before retrying: "
+// DynDrvInstallIncomplete says "driver installation did not complete; refresh readiness before retrying: {detail}"
 // in the language of msgs.
-func (msgs Messages) DynDrvInstallIncompletePrefix() string {
-	return Catalog.Format(msgs.locale, "dynDrvInstallIncompletePrefix", nil)
+func (msgs Messages) DynDrvInstallIncomplete(detail string) string {
+	return Catalog.Format(msgs.locale, "dynDrvInstallIncomplete", map[string]any{"detail": detail})
 }
 
 // DynDrvMissingManifest says "missing driver manifest"
@@ -3948,66 +3922,6 @@ func (msgs Messages) DynFakeSimulatedReadiness() string {
 	return Catalog.Format(msgs.locale, "dynFakeSimulatedReadiness", nil)
 }
 
-// DynDistNs2jb says "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
-// in the language the app shows.
-func DynDistNs2jb() string { return In(i18n.Locale()).DynDistNs2jb() }
-
-// DynDistNs2jb says "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
-// in the language of msgs.
-func (msgs Messages) DynDistNs2jb() string {
-	return Catalog.Format(msgs.locale, "dynDistNs2jb", nil)
-}
-
-// DynDistMITSourceOnly says "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and depende…"
-// in the language the app shows.
-func DynDistMITSourceOnly() string { return In(i18n.Locale()).DynDistMITSourceOnly() }
-
-// DynDistMITSourceOnly says "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and depende…"
-// in the language of msgs.
-func (msgs Messages) DynDistMITSourceOnly() string {
-	return Catalog.Format(msgs.locale, "dynDistMITSourceOnly", nil)
-}
-
-// DynDistCivPayload says "CivSwitch payload distribution is blocked pending derived-payload and dependency notice review."
-// in the language the app shows.
-func DynDistCivPayload() string { return In(i18n.Locale()).DynDistCivPayload() }
-
-// DynDistCivPayload says "CivSwitch payload distribution is blocked pending derived-payload and dependency notice review."
-// in the language of msgs.
-func (msgs Messages) DynDistCivPayload() string {
-	return Catalog.Format(msgs.locale, "dynDistCivPayload", nil)
-}
-
-// DynDistMITLoader says "MIT permits redistribution with its copyright and permission notice. Source record only; it runs on the console throu…"
-// in the language the app shows.
-func DynDistMITLoader() string { return In(i18n.Locale()).DynDistMITLoader() }
-
-// DynDistMITLoader says "MIT permits redistribution with its copyright and permission notice. Source record only; it runs on the console throu…"
-// in the language of msgs.
-func (msgs Messages) DynDistMITLoader() string {
-	return Catalog.Format(msgs.locale, "dynDistMITLoader", nil)
-}
-
-// DynDistTriggerInstaller says "Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No i…"
-// in the language the app shows.
-func DynDistTriggerInstaller() string { return In(i18n.Locale()).DynDistTriggerInstaller() }
-
-// DynDistTriggerInstaller says "Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No i…"
-// in the language of msgs.
-func (msgs Messages) DynDistTriggerInstaller() string {
-	return Catalog.Format(msgs.locale, "dynDistTriggerInstaller", nil)
-}
-
-// DynDistControlCenter says "Control Center distribution is blocked pending review of the complete separately authored release inventory and its n…"
-// in the language the app shows.
-func DynDistControlCenter() string { return In(i18n.Locale()).DynDistControlCenter() }
-
-// DynDistControlCenter says "Control Center distribution is blocked pending review of the complete separately authored release inventory and its n…"
-// in the language of msgs.
-func (msgs Messages) DynDistControlCenter() string {
-	return Catalog.Format(msgs.locale, "dynDistControlCenter", nil)
-}
-
 // DynDistBrowserResearch says "Unavailable: the research probe set has no redistribution grant for any2jb. Permission reported for mac2jb does not a…"
 // in the language the app shows.
 func DynDistBrowserResearch() string { return In(i18n.Locale()).DynDistBrowserResearch() }
@@ -4066,106 +3980,6 @@ func DynDistOriginalTools() string { return In(i18n.Locale()).DynDistOriginalToo
 // in the language of msgs.
 func (msgs Messages) DynDistOriginalTools() string {
 	return Catalog.Format(msgs.locale, "dynDistOriginalTools", nil)
-}
-
-// DynDistOunceCake says "Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are…"
-// in the language the app shows.
-func DynDistOunceCake() string { return In(i18n.Locale()).DynDistOunceCake() }
-
-// DynDistOunceCake says "Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are…"
-// in the language of msgs.
-func (msgs Messages) DynDistOunceCake() string {
-	return Catalog.Format(msgs.locale, "dynDistOunceCake", nil)
-}
-
-// DynDistSDBrowser says "Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A devel…"
-// in the language the app shows.
-func DynDistSDBrowser() string { return In(i18n.Locale()).DynDistSDBrowser() }
-
-// DynDistSDBrowser says "Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A devel…"
-// in the language of msgs.
-func (msgs Messages) DynDistSDBrowser() string {
-	return Catalog.Format(msgs.locale, "dynDistSDBrowser", nil)
-}
-
-// DynDistMintbrew says "Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolv…"
-// in the language the app shows.
-func DynDistMintbrew() string { return In(i18n.Locale()).DynDistMintbrew() }
-
-// DynDistMintbrew says "Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolv…"
-// in the language of msgs.
-func (msgs Messages) DynDistMintbrew() string {
-	return Catalog.Format(msgs.locale, "dynDistMintbrew", nil)
-}
-
-// DynDistMintbrewNative says "Unavailable: the MIT native HBLauncher fork still stages MintBrew sources whose rights review is unresolved. A develo…"
-// in the language the app shows.
-func DynDistMintbrewNative() string { return In(i18n.Locale()).DynDistMintbrewNative() }
-
-// DynDistMintbrewNative says "Unavailable: the MIT native HBLauncher fork still stages MintBrew sources whose rights review is unresolved. A develo…"
-// in the language of msgs.
-func (msgs Messages) DynDistMintbrewNative() string {
-	return Catalog.Format(msgs.locale, "dynDistMintbrewNative", nil)
-}
-
-// DynDistIZLauncher says "Unavailable: the IZlauncher's GPL-2.0-or-later scope and inherited rights are unresolved for any2jb. A developer may …"
-// in the language the app shows.
-func DynDistIZLauncher() string { return In(i18n.Locale()).DynDistIZLauncher() }
-
-// DynDistIZLauncher says "Unavailable: the IZlauncher's GPL-2.0-or-later scope and inherited rights are unresolved for any2jb. A developer may …"
-// in the language of msgs.
-func (msgs Messages) DynDistIZLauncher() string {
-	return Catalog.Format(msgs.locale, "dynDistIZLauncher", nil)
-}
-
-// DynDistIZBlitbun says "Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may…"
-// in the language the app shows.
-func DynDistIZBlitbun() string { return In(i18n.Locale()).DynDistIZBlitbun() }
-
-// DynDistIZBlitbun says "Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may…"
-// in the language of msgs.
-func (msgs Messages) DynDistIZBlitbun() string {
-	return Catalog.Format(msgs.locale, "dynDistIZBlitbun", nil)
-}
-
-// DynDistIZShell says "Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A deve…"
-// in the language the app shows.
-func DynDistIZShell() string { return In(i18n.Locale()).DynDistIZShell() }
-
-// DynDistIZShell says "Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A deve…"
-// in the language of msgs.
-func (msgs Messages) DynDistIZShell() string {
-	return Catalog.Format(msgs.locale, "dynDistIZShell", nil)
-}
-
-// DynDistIZVacootube says "Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer m…"
-// in the language the app shows.
-func DynDistIZVacootube() string { return In(i18n.Locale()).DynDistIZVacootube() }
-
-// DynDistIZVacootube says "Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer m…"
-// in the language of msgs.
-func (msgs Messages) DynDistIZVacootube() string {
-	return Catalog.Format(msgs.locale, "dynDistIZVacootube", nil)
-}
-
-// DynDistHomebrewRuntime says "Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notice…"
-// in the language the app shows.
-func DynDistHomebrewRuntime() string { return In(i18n.Locale()).DynDistHomebrewRuntime() }
-
-// DynDistHomebrewRuntime says "Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notice…"
-// in the language of msgs.
-func (msgs Messages) DynDistHomebrewRuntime() string {
-	return Catalog.Format(msgs.locale, "dynDistHomebrewRuntime", nil)
-}
-
-// DynDistUSBDriver says "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligati…"
-// in the language the app shows.
-func DynDistUSBDriver() string { return In(i18n.Locale()).DynDistUSBDriver() }
-
-// DynDistUSBDriver says "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligati…"
-// in the language of msgs.
-func (msgs Messages) DynDistUSBDriver() string {
-	return Catalog.Format(msgs.locale, "dynDistUSBDriver", nil)
 }
 
 // HbCustomTitle says "Custom homebrew (experimental)"
@@ -4276,16 +4090,6 @@ func ModInstalled() string { return In(i18n.Locale()).ModInstalled() }
 // in the language of msgs.
 func (msgs Messages) ModInstalled() string {
 	return Catalog.Format(msgs.locale, "modInstalled", nil)
-}
-
-// DynDistModloader says "Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts,…"
-// in the language the app shows.
-func DynDistModloader() string { return In(i18n.Locale()).DynDistModloader() }
-
-// DynDistModloader says "Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts,…"
-// in the language of msgs.
-func (msgs Messages) DynDistModloader() string {
-	return Catalog.Format(msgs.locale, "dynDistModloader", nil)
 }
 
 // LauncherSection says "Launcher saves (experimental)"
@@ -4546,36 +4350,6 @@ func LauncherGravityCircuit() string { return In(i18n.Locale()).LauncherGravityC
 // in the language of msgs.
 func (msgs Messages) LauncherGravityCircuit() string {
 	return Catalog.Format(msgs.locale, "launcherGravityCircuit", nil)
-}
-
-// DynDistLauncherArtemis says "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled."
-// in the language the app shows.
-func DynDistLauncherArtemis() string { return In(i18n.Locale()).DynDistLauncherArtemis() }
-
-// DynDistLauncherArtemis says "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled."
-// in the language of msgs.
-func (msgs Messages) DynDistLauncherArtemis() string {
-	return Catalog.Format(msgs.locale, "dynDistLauncherArtemis", nil)
-}
-
-// DynDistLauncherArchive says "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bun…"
-// in the language the app shows.
-func DynDistLauncherArchive() string { return In(i18n.Locale()).DynDistLauncherArchive() }
-
-// DynDistLauncherArchive says "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bun…"
-// in the language of msgs.
-func (msgs Messages) DynDistLauncherArchive() string {
-	return Catalog.Format(msgs.locale, "dynDistLauncherArchive", nil)
-}
-
-// DynDistSaveKit says "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, whi…"
-// in the language the app shows.
-func DynDistSaveKit() string { return In(i18n.Locale()).DynDistSaveKit() }
-
-// DynDistSaveKit says "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, whi…"
-// in the language of msgs.
-func (msgs Messages) DynDistSaveKit() string {
-	return Catalog.Format(msgs.locale, "dynDistSaveKit", nil)
 }
 
 // DeveloperStagingFailed says "Developer staging failed, so the app continued without the staged helpers: {reason}"
@@ -7204,14 +6978,96 @@ func (msgs Messages) DynLinuxControllersMultipleAction() string {
 	return Catalog.Format(msgs.locale, "dynLinuxControllersMultipleAction", nil)
 }
 
-// DynLinuxControllerSuffix says ": Linux UDC controller, available but not verified."
+// DynLinuxAccessBusy says "UDC {udc} is already bound to another gadget ({owner}); any2jb will not clobber it."
 // in the language the app shows.
-func DynLinuxControllerSuffix() string { return In(i18n.Locale()).DynLinuxControllerSuffix() }
+func DynLinuxAccessBusy(udc string, owner string) string {
+	return In(i18n.Locale()).DynLinuxAccessBusy(udc, owner)
+}
 
-// DynLinuxControllerSuffix says ": Linux UDC controller, available but not verified."
+// DynLinuxAccessBusy says "UDC {udc} is already bound to another gadget ({owner}); any2jb will not clobber it."
 // in the language of msgs.
-func (msgs Messages) DynLinuxControllerSuffix() string {
-	return Catalog.Format(msgs.locale, "dynLinuxControllerSuffix", nil)
+func (msgs Messages) DynLinuxAccessBusy(udc string, owner string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessBusy", map[string]any{"udc": udc, "owner": owner})
+}
+
+// DynLinuxAccessBusyAction says "Unbind the existing gadget yourself if intended, then refresh readiness; or choose guided manual input."
+// in the language the app shows.
+func DynLinuxAccessBusyAction() string { return In(i18n.Locale()).DynLinuxAccessBusyAction() }
+
+// DynLinuxAccessBusyAction says "Unbind the existing gadget yourself if intended, then refresh readiness; or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxAccessBusyAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessBusyAction", nil)
+}
+
+// DynLinuxControllersSingleBusy says "{udc} is already bound to {owner}; any2jb will not overwrite it."
+// in the language the app shows.
+func DynLinuxControllersSingleBusy(udc string, owner string) string {
+	return In(i18n.Locale()).DynLinuxControllersSingleBusy(udc, owner)
+}
+
+// DynLinuxControllersSingleBusy says "{udc} is already bound to {owner}; any2jb will not overwrite it."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersSingleBusy(udc string, owner string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersSingleBusy", map[string]any{"udc": udc, "owner": owner})
+}
+
+// DynLinuxControllersSingleBusyAction says "Unbind {owner} yourself if intended, or choose guided manual input."
+// in the language the app shows.
+func DynLinuxControllersSingleBusyAction(owner string) string {
+	return In(i18n.Locale()).DynLinuxControllersSingleBusyAction(owner)
+}
+
+// DynLinuxControllersSingleBusyAction says "Unbind {owner} yourself if intended, or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersSingleBusyAction(owner string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersSingleBusyAction", map[string]any{"owner": owner})
+}
+
+// DynLinuxControllersOne says "One Linux UDC ({udc}) is available. Keyboard enumeration and console input are not verified."
+// in the language the app shows.
+func DynLinuxControllersOne(udc string) string { return In(i18n.Locale()).DynLinuxControllersOne(udc) }
+
+// DynLinuxControllersOne says "One Linux UDC ({udc}) is available. Keyboard enumeration and console input are not verified."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersOne(udc string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersOne", map[string]any{"udc": udc})
+}
+
+// DynLinuxControllerBusy says "{controller}: bound to existing gadget {owner}; unavailable to avoid clobbering."
+// in the language the app shows.
+func DynLinuxControllerBusy(controller string, owner string) string {
+	return In(i18n.Locale()).DynLinuxControllerBusy(controller, owner)
+}
+
+// DynLinuxControllerBusy says "{controller}: bound to existing gadget {owner}; unavailable to avoid clobbering."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllerBusy(controller string, owner string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllerBusy", map[string]any{"controller": controller, "owner": owner})
+}
+
+// DynLinuxControllerBusyAction says "Unbind {owner} yourself if intended, or select another free UDC."
+// in the language the app shows.
+func DynLinuxControllerBusyAction(owner string) string {
+	return In(i18n.Locale()).DynLinuxControllerBusyAction(owner)
+}
+
+// DynLinuxControllerBusyAction says "Unbind {owner} yourself if intended, or select another free UDC."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllerBusyAction(owner string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllerBusyAction", map[string]any{"owner": owner})
+}
+
+// DynLinuxController says "{controller}: Linux UDC controller, available but not verified."
+// in the language the app shows.
+func DynLinuxController(controller string) string {
+	return In(i18n.Locale()).DynLinuxController(controller)
+}
+
+// DynLinuxController says "{controller}: Linux UDC controller, available but not verified."
+// in the language of msgs.
+func (msgs Messages) DynLinuxController(controller string) string {
+	return Catalog.Format(msgs.locale, "dynLinuxController", map[string]any{"controller": controller})
 }
 
 // DynLinuxConnectCable says "Connect a USB data cable between the UDC port and the console; verify keyboard enumeration before sending input."
@@ -7522,4 +7378,54 @@ func DynDistBundledLauncherSave() string { return In(i18n.Locale()).DynDistBundl
 // in the language of msgs.
 func (msgs Messages) DynDistBundledLauncherSave() string {
 	return Catalog.Format(msgs.locale, "dynDistBundledLauncherSave", nil)
+}
+
+// DynDistBundledCivPayload says "Pinned CivSwitch bootstrap payload bundled with retained MIT notices."
+// in the language the app shows.
+func DynDistBundledCivPayload() string { return In(i18n.Locale()).DynDistBundledCivPayload() }
+
+// DynDistBundledCivPayload says "Pinned CivSwitch bootstrap payload bundled with retained MIT notices."
+// in the language of msgs.
+func (msgs Messages) DynDistBundledCivPayload() string {
+	return Catalog.Format(msgs.locale, "dynDistBundledCivPayload", nil)
+}
+
+// DynDistUsbgadgetBinary says "Apple Silicon macOS USB gadget kext binary bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
+// in the language the app shows.
+func DynDistUsbgadgetBinary() string { return In(i18n.Locale()).DynDistUsbgadgetBinary() }
+
+// DynDistUsbgadgetBinary says "Apple Silicon macOS USB gadget kext binary bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
+// in the language of msgs.
+func (msgs Messages) DynDistUsbgadgetBinary() string {
+	return Catalog.Format(msgs.locale, "dynDistUsbgadgetBinary", nil)
+}
+
+// DynDistUsbgadgetInfo says "Apple Silicon macOS USB gadget kext Info.plist bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
+// in the language the app shows.
+func DynDistUsbgadgetInfo() string { return In(i18n.Locale()).DynDistUsbgadgetInfo() }
+
+// DynDistUsbgadgetInfo says "Apple Silicon macOS USB gadget kext Info.plist bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
+// in the language of msgs.
+func (msgs Messages) DynDistUsbgadgetInfo() string {
+	return Catalog.Format(msgs.locale, "dynDistUsbgadgetInfo", nil)
+}
+
+// DynDistUsbgadgetChecksums says "Apple Silicon macOS USB gadget kext SHA256SUMS bundled in darwin-arm64."
+// in the language the app shows.
+func DynDistUsbgadgetChecksums() string { return In(i18n.Locale()).DynDistUsbgadgetChecksums() }
+
+// DynDistUsbgadgetChecksums says "Apple Silicon macOS USB gadget kext SHA256SUMS bundled in darwin-arm64."
+// in the language of msgs.
+func (msgs Messages) DynDistUsbgadgetChecksums() string {
+	return Catalog.Format(msgs.locale, "dynDistUsbgadgetChecksums", nil)
+}
+
+// DynDistDriverInstaller says "Apple Silicon macOS administrator kext installer script bundled in darwin-arm64."
+// in the language the app shows.
+func DynDistDriverInstaller() string { return In(i18n.Locale()).DynDistDriverInstaller() }
+
+// DynDistDriverInstaller says "Apple Silicon macOS administrator kext installer script bundled in darwin-arm64."
+// in the language of msgs.
+func (msgs Messages) DynDistDriverInstaller() string {
+	return Catalog.Format(msgs.locale, "dynDistDriverInstaller", nil)
 }

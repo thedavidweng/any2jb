@@ -1,0 +1,211 @@
+package ui
+
+import (
+	"context"
+	"fmt"
+	"slices"
+	"strings"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/internal/retained"
+	"github.com/thedavidweng/any2jb/internal/savekit"
+	"github.com/thedavidweng/any2jb/internal/session"
+	"github.com/thedavidweng/any2jb/locales"
+)
+
+// launcherPanel is the launcher-installer section's own ephemeral state. The
+// prepared package lives in a private folder the manager prepares again at run
+// time; the preview digest binds this confirmation to exactly those files.
+type launcherPanel struct {
+	pkg          string
+	account      string
+	version      string
+	physical     bool
+	exportFolder string
+	preview      *savekit.Preview
+	previewed    string
+	busy         bool
+	failed       bool
+	confirm      bool
+	update       func(func())
+}
+
+// launcherLabel names one pinned package. The ids come from the canonical
+// manifest, so an unrecorded id has no label and no control.
+func launcherLabel(id string) (string, bool) {
+	switch id {
+	case "launcher-seedsow-demo":
+		return locales.LauncherSeedsowDemo(), true
+	case "launcher-seedsow-full":
+		return locales.LauncherSeedsowFull(), true
+	case "launcher-nora2-demo":
+		return locales.LauncherNora2Demo(), true
+	case "launcher-nora1-demo":
+		return locales.LauncherNora1Demo(), true
+	case "launcher-hamidashi-demo":
+		return locales.LauncherHamidashiDemo(), true
+	case "launcher-lua-editor":
+		return locales.LauncherLuaEditor(), true
+	case "launcher-lua-editor-pro":
+		return locales.LauncherLuaEditorPro(), true
+	case "launcher-balatro":
+		return locales.LauncherBalatro(), true
+	case "launcher-balatro-showcase":
+		return locales.LauncherBalatroShowcase(), true
+	case "launcher-gravity-circuit":
+		return locales.LauncherGravityCircuit(), true
+	default:
+		return "", false
+	}
+}
+
+// launcherSection renders the gated launcher installers. Every install is one
+// SaveKit write: the pinned package is digest-verified and previewed, the
+// supported game, edition, version and account are validated, and the write
+// gate takes and verifies a backup before anything changes.
+func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.State, ready bool) {
+	p := &a.launcherPanel
+	sectionTitle(c, locales.LauncherSection())
+	ui.Text(c, locales.LauncherIntro()).TextColor(c.Theme().TextMuted)
+	ui.Text(c, locales.LauncherRestrictions()).TextColor(c.Theme().TextMuted)
+	ui.Text(c, locales.LauncherSideEffects())
+	ui.Text(c, locales.LauncherExistingUntouched()).TextColor(c.Theme().TextMuted)
+
+	labels := make([]string, 0, len(retained.LauncherIDs(a.Manifest)))
+	ids := map[string]string{}
+	for _, id := range retained.LauncherIDs(a.Manifest) {
+		label, ok := launcherLabel(id)
+		if !ok {
+			continue
+		}
+		labels = append(labels, label)
+		ids[label] = id
+	}
+	if len(labels) == 0 {
+		return
+	}
+	if p.pkg == "" {
+		p.pkg = labels[0]
+	}
+	ui.Select(c.Key("launcher-package"), &p.pkg, labels).Label(locales.LauncherPackage())
+	id := ids[p.pkg]
+	component, err := a.Manifest.ToolComponent(id)
+	if err != nil || component.Launcher == nil {
+		return
+	}
+
+	reason := ""
+	if a.Tools != nil {
+		reason = a.Tools.UnavailableText(id, s.Profile.ID).Local()
+	}
+	if reason != "" {
+		ui.Text(c.Key("launcher-reason"), reason).TextColor(c.Theme().TextMuted)
+	}
+
+	if len(component.Launcher.Versions) > 0 {
+		ui.Select(c.Key("launcher-version"), &p.version, component.Launcher.Versions).
+			Label(locales.LauncherVersion())
+	}
+	if component.Launcher.PhysicalCompatibility {
+		ui.Checkbox(c.Key("launcher-physical"), &p.physical, locales.LauncherPhysicalCartridge())
+	}
+	if component.Launcher.FullGame {
+		ui.Text(c, locales.LauncherFullGameHint()).TextColor(c.Theme().TextMuted)
+		ui.TextInput(c.Key("launcher-fullgame-export"), &p.exportFolder).
+			Label(locales.LauncherFullGameExport())
+	}
+
+	ui.Text(c, locales.LauncherAccountHint()).TextColor(c.Theme().TextMuted)
+	accounts := launcherAccounts(state)
+	if !slices.Contains(accounts, p.account) {
+		p.account = ""
+	}
+	if len(accounts) == 1 {
+		// One console account owns every save, so there is nothing to choose.
+		p.account = accounts[0]
+	}
+	if len(accounts) > 0 {
+		ui.Select(c.Key("launcher-account"), &p.account, accounts).Label(locales.LauncherAccount())
+	}
+
+	request := retained.LauncherRequest{ID: id, Version: p.version,
+		PhysicalCompatibility: p.physical, BackupFolder: strings.TrimSpace(p.exportFolder)}
+	target := savekit.Request{TitleID: component.Launcher.TitleID, UID: p.account}
+	// A changed package, account, declaration or export folder invalidates both
+	// the prepared preview and the confirmation it was made for.
+	selection := fmt.Sprintf("%s:%s:%s:%t:%s", id, p.account, p.version, p.physical, request.BackupFolder)
+	if p.previewed != selection {
+		p.preview, p.confirm, p.previewed = nil, false, selection
+	}
+	usable := ready && reason == "" && !p.busy && a.Tools != nil && p.update != nil &&
+		retained.ValidateLauncher(request, component, target) == nil
+	if component.Launcher.FullGame && request.BackupFolder == "" {
+		usable = false
+	}
+	if inline(ui.Button(c.Key("launcher-preview"), locales.LauncherPreview())).Disabled(!usable).Clicked() {
+		a.previewLauncher(request, target, selection)
+	}
+	if p.failed {
+		ui.Text(c.Key("launcher-failed"), locales.LauncherPreviewFailed()).Role(ui.RoleStatus)
+	}
+	if p.preview != nil {
+		ui.Text(c, locales.SaveKitPreviewFiles(fmt.Sprint(len(p.preview.Files)),
+			fmt.Sprint(p.preview.Bytes)))
+		for _, file := range p.preview.Files {
+			ui.Text(c, file.Path+"  "+fmt.Sprint(file.Size)).Selectable()
+		}
+		ui.Text(c, locales.SaveKitWriteTarget(target.TitleID, target.UID, "1", "1", "0", "0")).Selectable()
+		ui.Checkbox(c.Key("launcher-confirm"), &p.confirm, locales.LauncherConfirm())
+	}
+	write := savekit.Request{Action: "write", TitleID: target.TitleID, UID: target.UID,
+		AllowReplace: true, Confirm: p.confirm}
+	if p.preview != nil {
+		write.PreviewDigest = p.preview.Digest
+	}
+	if inline(ui.Button(c.Key("launcher-install"), locales.LauncherInstall())).
+		Disabled(!usable || write.ValidateLauncherWrite() != nil).Clicked() {
+		a.installLauncher(write, request)
+	}
+}
+
+// launcherAccounts offers the console accounts the read-only listing reported.
+func launcherAccounts(state retained.State) []string {
+	if state.SaveKit == nil {
+		return nil
+	}
+	return state.SaveKit.Users
+}
+
+// previewLauncher prepares the pinned package off the UI thread: it verifies
+// recorded digests, unpacks into a private folder and hashes every file.
+func (a *app) previewLauncher(request retained.LauncherRequest, target savekit.Request, selection string) {
+	p := &a.launcherPanel
+	if p.busy || p.update == nil || a.Tools == nil {
+		return
+	}
+	p.busy, p.failed, p.preview, p.confirm = true, false, nil, false
+	tools, update := a.Tools, p.update
+	go func() {
+		preview, err := tools.PreviewLauncher(context.Background(), request, target)
+		update(func() {
+			p.busy = false
+			if p.previewed != selection {
+				return
+			}
+			p.failed = err != nil
+			if err == nil {
+				p.preview = &preview
+			}
+		})
+	}()
+}
+
+// installLauncher runs the install as one gated SaveKit write. The manager
+// prepares the package again and rebinds the confirmed preview to it.
+func (a *app) installLauncher(write savekit.Request, request retained.LauncherRequest) {
+	write.Launcher = &request
+	a.command(a.Controller.RunToolWith(session.ToolRequest{Tool: "savekit", Save: &write}))
+	p := &a.launcherPanel
+	p.failed = a.commandRejected
+	p.confirm, p.preview = false, nil
+}

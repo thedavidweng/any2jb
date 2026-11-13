@@ -9,7 +9,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/internal/manifest"
 )
 
 func main() {

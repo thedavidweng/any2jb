@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/thedavidweng/any2jb/internal/hwevidence"
-	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/internal/manifest"
 )
 
 func writeLog(t *testing.T, dir string) string {

@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thedavidweng/any2jb/manifest"
+	"github.com/thedavidweng/any2jb/internal/manifest"
 )
 
 const Schema = "any2jb/hardware-evidence@1"

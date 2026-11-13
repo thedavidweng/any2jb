@@ -14,8 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/thedavidweng/any2jb/readiness"
-	"github.com/thedavidweng/any2jb/session"
+	"github.com/thedavidweng/any2jb/internal/session"
 )
 
 const (
@@ -195,7 +194,7 @@ func runKeyboardHelper(roots Roots, args []string, in io.Reader, out io.Writer) 
 		return 0
 	}
 
-	if !readiness.ValidLinuxUDCName(controller) || strings.HasPrefix(controller, "usb-drd") {
+	if !ValidUDCName(controller) || strings.HasPrefix(controller, "usb-drd") {
 		return 2
 	}
 
@@ -332,7 +331,7 @@ func runCivSwitchHelper(roots Roots, sleepMS func(context.Context, int) error, a
 			return 2
 		}
 	}
-	if payloadPath == "" || !filepath.IsAbs(payloadPath) || !readiness.ValidLinuxUDCName(controller) || strings.HasPrefix(controller, "usb-drd") {
+	if payloadPath == "" || !filepath.IsAbs(payloadPath) || !ValidUDCName(controller) || strings.HasPrefix(controller, "usb-drd") {
 		return 2
 	}
 

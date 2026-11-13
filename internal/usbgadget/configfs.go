@@ -12,11 +12,9 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/thedavidweng/any2jb/readiness"
 )
 
-const GadgetDirName = readiness.OwnGadgetPrefix + "hid"
+const GadgetDirName = OwnGadgetPrefix + "hid"
 
 // Endpoint abstracts an opened /dev/hidgN character device.
 type Endpoint interface {
@@ -89,7 +87,7 @@ func checkUDCConflict(gadgetRoot, udcRoot, controller string) error {
 			if bound != controller {
 				continue
 			}
-			if strings.HasPrefix(entry.Name(), readiness.OwnGadgetPrefix) {
+			if strings.HasPrefix(entry.Name(), OwnGadgetPrefix) {
 				ownBound = true
 				continue
 			}
@@ -98,7 +96,7 @@ func checkUDCConflict(gadgetRoot, udcRoot, controller string) error {
 	}
 	if !ownBound {
 		if raw, err := os.ReadFile(filepath.Join(udcRoot, controller, "function")); err == nil {
-			if fn := strings.TrimSpace(string(raw)); fn != "" && !strings.HasPrefix(fn, readiness.OwnGadgetPrefix) {
+			if fn := strings.TrimSpace(string(raw)); fn != "" && !strings.HasPrefix(fn, OwnGadgetPrefix) {
 				return fmt.Errorf("UDC %s is already active (%s); refusing to clobber", controller, fn)
 			}
 		}
@@ -206,7 +204,7 @@ func resolveHIDGPath(roots Roots, fnDir string, index int) (string, error) {
 // verifying no foreign gadget owns the UDC, opens /dev/hidgN, and waits up to
 // enumerationTimeout for initial neutral report delivery on every interface.
 func Open(ctx context.Context, roots Roots, spec Spec, enumerationTimeout time.Duration) (*Gadget, error) {
-	if !readiness.ValidLinuxUDCName(spec.Controller) || strings.HasPrefix(spec.Controller, "usb-drd") {
+	if !ValidUDCName(spec.Controller) || strings.HasPrefix(spec.Controller, "usb-drd") {
 		return nil, fmt.Errorf("invalid Linux UDC controller %q", spec.Controller)
 	}
 	if roots.OpenEndpoint == nil {

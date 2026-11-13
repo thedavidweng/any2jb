@@ -1,0 +1,114 @@
+package ui
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/thedavidweng/any2jb/internal/session"
+	"github.com/thedavidweng/any2jb/internal/session/sessiontest"
+)
+
+func waitBootstrap(t *testing.T, c *session.SessionController) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if !c.Snapshot().Busy {
+			return
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatalf("session remained busy: %+v", c.Snapshot())
+}
+
+func TestExistingBootstrapRequiresDeliberateIdentityConfirmation(t *testing.T) {
+	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	a.driverPanel.gate = blockedDriverGate(a.Manifest)
+	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
+	tt := ui.NewTester(a.view, 640, 900)
+	clickManual(t, tt, "Check again")
+	uiStage(t, a, tt, session.Ready)
+	clickManual(t, tt, "Type the commands yourself instead")
+	waitIdle(t, a, tt)
+	passPrepare(t, a, tt)
+	if err := tt.Click("Use saved bootstrap"); err != nil {
+		t.Fatal(err)
+	}
+	if a.Controller.Snapshot().BootstrapSaved {
+		t.Fatal("opening confirmation trusted a console save")
+	}
+	if !slices.Contains(tt.Texts(), "I confirm this exact saved bootstrap") {
+		t.Fatal(tt.Texts())
+	}
+	if err := tt.Click("I confirm this exact saved bootstrap"); err != nil {
+		t.Fatal(err)
+	}
+	if !a.Controller.Snapshot().BootstrapSaved {
+		t.Fatal("explicit confirmation did not enable reuse")
+	}
+}
+
+func TestBootstrapSaveRequiresExplicitOverwritePermission(t *testing.T) {
+	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	a.driverPanel.gate = blockedDriverGate(a.Manifest)
+	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
+	a.Controller.Inspect()
+	waitBootstrap(t, a.Controller)
+	a.Controller.PrepareBootstrap()
+	waitBootstrap(t, a.Controller)
+	tt := ui.NewTester(a.view, 640, 900)
+	save, ok := tt.AccessByRole(ui.RoleButton, "Submit SAVE")
+	if !ok || !save.Disabled {
+		t.Fatal("SAVE offered without explicit overwrite permission")
+	}
+	clickManual(t, tt, "I authorize replacing this saved program if it already exists")
+	save, ok = tt.AccessByRole(ui.RoleButton, "Submit SAVE")
+	if !ok || save.Disabled {
+		t.Fatal("explicit permission did not enable SAVE")
+	}
+	clickManual(t, tt, "Submit SAVE")
+	waitBootstrap(t, a.Controller)
+	if !a.Controller.Snapshot().SaveSubmitted || a.Controller.Snapshot().BootstrapSaved {
+		t.Fatal("submission must not assume the console accepted its save prompt")
+	}
+}
+
+// The confirmation must name the save, host and edition the user is vouching
+// for, in the catalog's order, and the recorded identity must match it.
+func TestBootstrapIdentityConfirmationNamesTheConfirmedIdentity(t *testing.T) {
+	a, _ := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+	a.driverPanel.gate = blockedDriverGate(a.Manifest)
+	a.initializeSession(sessiontest.NewFakeEnvironment().Environment())
+	tt := ui.NewTester(a.view, 640, 900)
+	clickManual(t, tt, "Check again")
+	uiStage(t, a, tt, session.Ready)
+	clickManual(t, tt, "Type the commands yourself instead")
+	waitIdle(t, a, tt)
+	passPrepare(t, a, tt)
+	if err := tt.Click("Use saved bootstrap"); err != nil {
+		t.Fatal(err)
+	}
+	const want = "Confirm the console already contains NS2 for kurumuz (full), revision "
+	if !slices.ContainsFunc(tt.Texts(), func(text string) bool { return strings.HasPrefix(text, want) }) {
+		t.Fatalf("confirmation does not name NS2 for kurumuz (full): %q", tt.Texts())
+	}
+	if err := tt.Click("I confirm this exact saved bootstrap"); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(a.BootstrapPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var record session.BootstrapRecord
+	if err := json.Unmarshal(data, &record); err != nil {
+		t.Fatal(err)
+	}
+	if record.SaveName != "NS2" || record.ProfileID != "kurumuz" || record.Edition != "full" || !record.Confirmed {
+		t.Fatalf("stored identity %+v", record)
+	}
+}

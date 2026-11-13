@@ -13,4 +13,5 @@ mygo_windows_*.syso
 /resources/darwin-arm64/
 /resources/linux-amd64/
 /resources/linux-arm64/
-/locales.ts
+/any2jb
+/any2jb.exe
