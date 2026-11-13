@@ -96,11 +96,9 @@ A launcher save replaces a game's own startup code, so the installers are the
 gated SaveKit write and nothing else: there is no second write path. Each
 package is recorded in [`manifest/profiles.json`](../manifest/profiles.json)
 with its upstream, revision, SHA-256, file count, console title and core file
-names, and all ten are `blocked`: Artemis supplies no license at its pinned
-revision, and the editor, Balatro and Gravity Circuit archives still need their
-own grant and bundled-data review. A packaged app stages none of them and every
-installer shows its recorded reason instead of an action; a developer stage
-(`retained.StageTools`) is the only way to have the bytes present at all.
+names, and all ten are bundled (`decision: "may-ship", bundled: true`) and
+staged offline from packaged `Assets` with SHA-256 verification before any
+preview or write.
 
 One install runs, in order:
 
@@ -185,14 +183,14 @@ the one open-source ROM shipped by MintNES (Diamond Chase, MIT, ROM-LICENSE)
 is digest-pinned in the `mintbrew-native` component inventory.
 
 All seven homebrew components (`mintbrew`, `mintbrew-native`, `izlauncher`,
-its three modules and `homebrew-runtime`) are recorded with `blocked`
-distribution decisions: MintBrew's rights review is unresolved, the IZ2S
-platform is GPL-2.0-or-later with unresolved inherited rights, and the
-portable runtime bundles unreviewed third-party interpreters. A packaged app
-stages none of them; each gated launcher shows its recorded reason. The
-IZlauncher modules share one staged destination, and a developer stage
-additionally prepares the portable runtime (CPython, shader tools, font) and
-the IZlauncher runtime, each re-verified against its manifest before use.
+its three modules and `homebrew-runtime`) are recorded with `may-ship` and
+`bundled: false` so the ~100 MB+ GPU/Python environment stays out of the base
+installer. Before they are downloaded, each launcher states its recorded reason
+and **Advanced Tools** offers **Download & prepare Homebrew** (`any2jb tool
+install-homebrew` on the CLI), which downloads the pinned upstream archive,
+verifies every file against `manifest/profiles.json` SHA-256 digests, prepares
+the IZlauncher and portable runtimes, and restores verified components across
+app restarts.
 ## Modloader and custom homebrew (experimental)
 
 Both start only from a verified lease and check the user's folder in Go

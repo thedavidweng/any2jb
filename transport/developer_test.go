@@ -81,6 +81,14 @@ func TestPinnedDeveloperHelpersAreIntegrityCheckedWithoutUSB(t *testing.T) {
 	if _, _, err := h.CompositeHelper(); err == nil {
 		t.Fatal("removed composite helper remained authorized")
 	}
+	packaged := transport.NewDarwin(transport.DarwinOptions{
+		Controller: "usb-drd0",
+		Timing:     transport.DefaultTiming(),
+		Runtime:    engine.Options{Assets: assets, Support: support, Version: "packaged", Manifest: m},
+	})
+	if err := packaged.Check(context.Background(), run); err != nil {
+		t.Fatalf("packaged Darwin USB helpers rejected: %v", err)
+	}
 	// This test never calls Send/OpenKeyboard. Compiling and integrity checks
 	// cannot initialize a gadget or send keys.
 }

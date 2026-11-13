@@ -37,7 +37,7 @@ func (a *Adapter) ControlCenter(ctx context.Context, address string, observe ses
 	if err != nil {
 		return err
 	}
-	script, err := a.options.Manifest.Read(a.options.DeveloperSourceRoot, controlCenterComponent)
+	script, err := a.options.Manifest.Read(a.sourceRoot(), controlCenterComponent)
 	if err != nil {
 		return err
 	}

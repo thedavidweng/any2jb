@@ -25,10 +25,13 @@ async function writableCopy(source, destination) {
 async function launch(manifestPath, profile, workspace, runID, host) {
   const root = path.dirname(manifestPath);
   const record = JSON.parse(await fsp.readFile(path.join(root, 'stage.json'), 'utf8'));
-  if (record.source !== 'developer-staged' || record.redistributable !== false ||
-      record.profileID !== profile.id || record.revision !== profile.revision ||
-      record.sourceSha256 !== profile.sourceSha256)
-    throw Error('Engine launch requires a matching developer stage');
+  const developerStage = record.source === 'developer-staged' && record.redistributable === false &&
+    record.profileID === profile.id && record.revision === profile.revision &&
+    record.sourceSha256 === profile.sourceSha256;
+  const bundledStage = record.source === 'bundled' && record.redistributable === true &&
+    profile.distribution?.decision === 'may-ship' && profile.distribution?.bundled === true;
+  if (!developerStage && !bundledStage)
+    throw Error('Engine launch requires a matching developer or bundled stage');
   if (profile.engine === 'izmysh') throw Error('IZMYSH requires its separate native qualification adapter');
   const source = path.join(root, profile.sourceDirectory);
   const {listen, pairingCode} = require(path.join(source, 'engine/lib/connection.cjs'));

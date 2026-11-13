@@ -22,7 +22,13 @@ import (
 
 type Options struct {
 	Manifest *manifest.Manifest
-	// Never populated by packaged startup. No upstream payload is bundled.
+	// Assets is the packaged or prepared resource root containing bundled
+	// CivSwitch payloads and notices when DeveloperSourceRoot is empty.
+	Assets string
+	// StagedRuntimeRoot is the verified immutable runtime directory containing
+	// runtime/civswitch-hid and runtime/vendor/libusbd/libusbd.dylib on Darwin.
+	StagedRuntimeRoot string
+	// Explicit local source root for developer mode.
 	DeveloperSourceRoot string
 	// Explicit digest of the developer-built binary, not redistribution clearance.
 	DeveloperHelperSHA256 string
@@ -31,8 +37,8 @@ type Options struct {
 	// Support is the app support directory. Verified save backups and read-only
 	// save exports are retained there, outside every session workspace.
 	Support string
-	// DeveloperInstallerPython runs the pinned upstream trigger installer. No
-	// interpreter is bundled and PATH is never searched for one.
+	// DeveloperInstallerPython runs the pinned upstream trigger installer when
+	// explicitly supplied; otherwise any2jb runs its verified pure-Go installer.
 	DeveloperInstallerPython string
 	Inspector                *readiness.Inspector
 	// LinuxHelperCommand is a test seam for trusted Linux ConfigFS helper fixtures.
@@ -55,6 +61,13 @@ func New(options Options) *Adapter {
 	return &Adapter{options: options}
 }
 
+func (a *Adapter) sourceRoot() string {
+	if a.options.DeveloperSourceRoot != "" {
+		return a.options.DeveloperSourceRoot
+	}
+	return a.options.Assets
+}
+
 func (a *Adapter) Availability() error {
 	if a.options.Manifest == nil {
 		return errors.New("CivSwitch manifest is unavailable")
@@ -63,10 +76,19 @@ func (a *Adapter) Availability() error {
 	if err != nil {
 		return err
 	}
-	if d.Decision == "excluded" || a.options.DeveloperSourceRoot == "" {
+	if a.options.DeveloperSourceRoot != "" {
+		if d.Decision == "excluded" {
+			return fmt.Errorf("CivSwitch unavailable: %s Developer staging is required; no payload or composite helper is bundled.", d.Reason)
+		}
+		if !filepath.IsAbs(a.options.DeveloperSourceRoot) {
+			return errors.New("CivSwitch developer root must be absolute")
+		}
+		return nil
+	}
+	if !d.Available() || a.options.Assets == "" {
 		return fmt.Errorf("CivSwitch unavailable: %s Developer staging is required; no payload or composite helper is bundled.", d.Reason)
 	}
-	if !filepath.IsAbs(a.options.DeveloperSourceRoot) {
+	if !filepath.IsAbs(a.options.Assets) {
 		return errors.New("CivSwitch developer root must be absolute")
 	}
 	return nil
@@ -76,15 +98,19 @@ func (a *Adapter) verifySource() error {
 	if err := a.Availability(); err != nil {
 		return err
 	}
-	info, err := os.Lstat(a.options.DeveloperSourceRoot)
+	root := a.sourceRoot()
+	info, err := os.Lstat(root)
 	if err != nil {
 		return err
 	}
 	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return errors.New("CivSwitch developer root is not a real directory")
 	}
-	for _, id := range []string{"civswitch-payload", "civswitch-hid.c"} {
-		if err := a.options.Manifest.Verify(a.options.DeveloperSourceRoot, id); err != nil {
+	if err := a.options.Manifest.Verify(root, "civswitch-payload"); err != nil {
+		return err
+	}
+	if a.options.DeveloperSourceRoot != "" {
+		if err := a.options.Manifest.Verify(root, "civswitch-hid.c"); err != nil {
 			return err
 		}
 	}
@@ -116,6 +142,15 @@ func (a *Adapter) verify() error {
 	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
 		return errors.New("CivSwitch composite HID requires Apple Silicon macOS or Linux with ConfigFS UDC")
 	}
+	if a.options.DeveloperSourceRoot == "" {
+		if !filepath.IsAbs(a.options.StagedRuntimeRoot) {
+			return errors.New("CivSwitch staged runtime root must be absolute")
+		}
+		if err := a.options.Manifest.Verify(a.options.StagedRuntimeRoot, "civswitch-hid"); err != nil {
+			return err
+		}
+		return a.options.Manifest.Verify(a.options.StagedRuntimeRoot, "libusbd-dylib")
+	}
 	// A locally built helper has no release digest. Require the developer's
 	// explicit digest, then use the same symlink-safe verifier as other assets.
 	path := a.helperPath()
@@ -127,6 +162,9 @@ func (a *Adapter) verify() error {
 }
 
 func (a *Adapter) helperPath() string {
+	if a.options.DeveloperSourceRoot == "" {
+		return filepath.Join(a.options.StagedRuntimeRoot, "runtime/civswitch-hid")
+	}
 	if a.options.DeveloperHelperPath != "" {
 		return a.options.DeveloperHelperPath
 	}
@@ -136,7 +174,7 @@ func (a *Adapter) helperPath() string {
 func (a *Adapter) payload() string {
 	for _, c := range a.options.Manifest.Components {
 		if c.ID == "civswitch-payload" {
-			return filepath.Join(a.options.DeveloperSourceRoot, c.Path)
+			return filepath.Join(a.sourceRoot(), c.Path)
 		}
 	}
 	return ""

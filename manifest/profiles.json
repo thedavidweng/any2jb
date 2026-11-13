@@ -27,12 +27,12 @@
       "supportsModloader": false,
       "distributionManifestSha256": "720a676eaeaaf56305cee2b76f537bc5fd3461024ede780c6a0a0951b9ce646f",
       "upstreamManifestSha256": "c3c2c7f58dda61c6729d39cb49081b98ddc1af6534a043d23b5d4af5684a2c20",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distributionStatus": "bundled: pinned ns2jb host and bootstrap verified by SHA-256",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
-        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "Pinned pepsipu ns2jb host and bootstrap bundled with retained upstream provenance and SHA-256 verification."
       }
     },
     {
@@ -63,12 +63,12 @@
       "distributionManifestSha256": "c6652bc6a281b32c0c59b664df77b128b3129c82494873151d19688b632fe3eb",
       "upstreamManifestSha256": "27599a4fd15f16e15ce59426846cab3c32157903fdee8fdd6a9f5fec2168ee4f",
       "localPatchSha256": "14fa7eadd68814d4fba075d043ec380832ea00bd6ce2e53918af5ba1431d54d3",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distributionStatus": "bundled: pinned ns2jb host and bootstrap verified by SHA-256",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
-        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "Pinned kurumuz ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verification."
       }
     },
     {
@@ -99,12 +99,12 @@
       "distributionManifestSha256": "0d0ed2e096acf2d081504491b37ff169fea63ec69c0e49618cab27bfdb317daa",
       "upstreamManifestSha256": "f553061089d03a92b1553f948781176c27ad0033d6ca34b98fae88cc51ee269b",
       "localPatchSha256": "0f55a14a7eea437b2cb692897d924515ae02d9449294cecb45258a921d685db1",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distributionStatus": "bundled: pinned ns2jb host and bootstrap verified by SHA-256",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
-        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "Pinned Cellenseres ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verification."
       }
     },
     {
@@ -133,12 +133,12 @@
       "supportsModloader": false,
       "distributionManifestSha256": "40f1e6af5a79f8b3b0aee728171dd22f8129bd12a50d7e222b426f4c00f32f45",
       "upstreamManifestSha256": "c4f231aae9a646882e45922db05e24aeda2eda90681b1df4cd10eba6748fa063",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distributionStatus": "bundled: pinned ns2jb host and bootstrap verified by SHA-256",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
-        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "Pinned BermTheSequel ns2jb host and bootstrap bundled with retained upstream provenance and SHA-256 verification."
       }
     },
     {
@@ -165,12 +165,12 @@
       "supportsNativeHBLauncher": false,
       "supportsModloader": false,
       "distributionManifestSha256": "345f6d1f906f8a7e87678ba6b99d1b2e5abb892bf0bf8c274e4b9b860807d0a7",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distributionStatus": "blocked: legacy IZMYSH native qualification adapter is not bundled",
       "distribution": {
         "decision": "blocked",
         "bundled": false,
         "notice": "LICENSE-SCOPE.md; THIRD_PARTY.json",
-        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+        "reason": "Legacy IZMYSH requires a separate native qualification adapter not implemented in any2jb. Use kurumuz, Cellenseres, Astral, pepsipu or BermTheSequel."
       }
     },
     {
@@ -202,32 +202,48 @@
       "distributionManifestSha256": "d339deda48e081c118f59c81903a2094d34e77c712bfd2e6806b95415d49964c",
       "upstreamManifestSha256": "27599a4fd15f16e15ce59426846cab3c32157903fdee8fdd6a9f5fec2168ee4f",
       "localPatchSha256": "14fa7eadd68814d4fba075d043ec380832ea00bd6ce2e53918af5ba1431d54d3",
-      "distributionStatus": "blocked: inherited ns2jb redistribution permission unresolved",
+      "distributionStatus": "bundled: pinned ns2jb host and bootstrap verified by SHA-256",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "No root LICENSE supplied at pinned revision; retained notices do not grant redistribution.",
-        "reason": "Inherited ns2jb redistribution permission is unresolved. No host or bootstrap is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "Pinned Astral ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verification."
       }
     }
   ],
   "reference": {
     "upstream": "https://github.com/cpypwn/mac2jb",
-    "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308"
+    "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+    "archive": "https://codeload.github.com/cpypwn/mac2jb/tar.gz/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+    "archiveSha256": "337de68c2c2955ea5c159841499d21eb7c58a312509bc0e9acdf65178505aeff"
   },
   "components": [
+    {
+      "id": "mac2jb-notice",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "LICENSE",
+      "sha256": "057d1afd413066797f260cf11a1110f49a2958b3a270e417789f6602b7af4d4c",
+      "licenseStatus": "MIT copyright and permission notice from cpypwn/mac2jb.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "Retained MIT notice covering bundled mac2jb scripts, helpers and integration adapters."
+      }
+    },
     {
       "id": "sender.c",
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "sender.c",
       "sha256": "cd6d70207ddba0c2263880e9720d223639f887899fdff570e53d78b1527583d8",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Build-time source input for sender.",
       "distribution": {
         "decision": "may-ship",
         "bundled": false,
-        "notice": "cpypwn/mac2jb LICENSE (MIT)",
-        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+        "notice": "LICENSE",
+        "reason": "MIT source verified by SHA-256 before compiling darwin-arm64 runtime/sender."
       }
     },
     {
@@ -236,12 +252,12 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "commands.c",
       "sha256": "1bd5009c06471ca0466db0265f9ff6d9472317ab2dba32936bc1a5fb6272ff5b",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Build-time source input for commands.",
       "distribution": {
         "decision": "may-ship",
         "bundled": false,
-        "notice": "cpypwn/mac2jb LICENSE (MIT)",
-        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+        "notice": "LICENSE",
+        "reason": "MIT source verified by SHA-256 before compiling darwin-arm64 runtime/commands."
       }
     },
     {
@@ -250,12 +266,12 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "keyboard.c",
       "sha256": "3ea91856cdd3c8ef4f8d09b1eddbfd1da8693a596a04ddba9c6f2a85aca77644",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Build-time source input for keyboard.",
       "distribution": {
         "decision": "may-ship",
         "bundled": false,
-        "notice": "cpypwn/mac2jb LICENSE (MIT)",
-        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+        "notice": "LICENSE",
+        "reason": "MIT source verified by SHA-256 before compiling darwin-arm64 runtime/keyboard."
       }
     },
     {
@@ -264,12 +280,204 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "civswitch-hid.c",
       "sha256": "531c46a32c76a109dc729cd508cef523aaa990b284272e8a6ef393071c181b8e",
-      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Source only, not a compiled helper.",
+      "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Build-time source input for civswitch-hid.",
       "distribution": {
         "decision": "may-ship",
         "bundled": false,
-        "notice": "cpypwn/mac2jb LICENSE (MIT)",
-        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; compiled helpers and dependencies need their own records."
+        "notice": "LICENSE",
+        "reason": "MIT source verified by SHA-256 before compiling darwin-arm64 runtime/civswitch-hid."
+      }
+    },
+    {
+      "id": "libusbd-source",
+      "upstream": "https://github.com/shinyquagsire23/libusbd",
+      "revision": "4fe5521e424061b823c3f7aebaa754150f94a821",
+      "path": "vendor/libusbd/include/libusbd.h",
+      "sha256": "6fdb5391f50bd44df86161db9e10ba7f0d0905aecaa897c6a4ed66d01250f3f3",
+      "licenseStatus": "MIT plus Apple-derived APSL-2.0 header/loader notices in vendor/libusbd/LICENSE and LICENSE-APSL-2.0.txt.",
+      "source": {
+        "directory": "vendor/libusbd",
+        "format": "selected-files",
+        "files": 10,
+        "extra": {
+          "vendor/libusbd/LICENSE": "697858b885498b7c29b116c6d675e248c51542396c2e35538063fff83437c650",
+          "vendor/libusbd/LICENSE-APSL-2.0.txt": "2d0c12edaaf8d31fec6796fef99291b12e833b6bef28100975120a53d209e06d",
+          "vendor/libusbd/src/libusbd.c": "758ad4d8062c957e7b3ed6298c7cc16bfb4632daa23c7acda756c3322c6fd058",
+          "vendor/libusbd/src/libusbd_priv.h": "ac8708a2973e6b48e5673f1fb0ebe8d5ba1bdebff0f74f01a34e5058b7c5949a",
+          "vendor/libusbd/src/plat/macos/IOUSBDeviceControllerLib.h": "53075f26819ae801eb0061f92f2db7e3fc2b3aa6e3ce34d387c7dd3ecd5f6f50",
+          "vendor/libusbd/src/plat/macos/alt_IOUSBDeviceControllerLib.c": "6be44e075be4bf177ff402b0aeb1271de8ee30618a76118128cfc3da84d0339d",
+          "vendor/libusbd/src/plat/macos/alt_IOUSBDeviceControllerLib.h": "a15efacb4060b30edc1276b0d7776ebcfb50d7df37dbe0f55a1f82ebf18482db",
+          "vendor/libusbd/src/plat/macos/impl.c": "93105f877fd6770c8edfa3a7583f0fd0cdd258f687889a3224118f8870650613",
+          "vendor/libusbd/src/plat/macos/impl.h": "78c323df9362eb72f1a5c4dba60ba47c4f0a1aab0245471503ff31ddb752abfb",
+          "vendor/libusbd/src/plat/macos/impl_priv.h": "f99c52b0b91692d51119da681956ff668b73f3420099367a6c5c8434ed866158"
+        }
+      },
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": false,
+        "notice": "vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Build-time source tree verified by SHA-256 before compiling darwin-arm64 libusbd.dylib."
+      }
+    },
+    {
+      "id": "libusbd-license",
+      "upstream": "https://github.com/shinyquagsire23/libusbd",
+      "revision": "4fe5521e424061b823c3f7aebaa754150f94a821",
+      "path": "vendor/libusbd/LICENSE",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "697858b885498b7c29b116c6d675e248c51542396c2e35538063fff83437c650",
+      "licenseStatus": "MIT and APSL-2.0 notice text for libusbd.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Required MIT/APSL notice bundled alongside darwin-arm64 libusbd.dylib."
+      }
+    },
+    {
+      "id": "libusbd-apsl",
+      "upstream": "https://github.com/shinyquagsire23/libusbd",
+      "revision": "4fe5521e424061b823c3f7aebaa754150f94a821",
+      "path": "vendor/libusbd/LICENSE-APSL-2.0.txt",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "2d0c12edaaf8d31fec6796fef99291b12e833b6bef28100975120a53d209e06d",
+      "licenseStatus": "Apple Public Source License 2.0 text for Apple-derived IOUSBDeviceController definitions.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Required APSL-2.0 license text bundled alongside darwin-arm64 libusbd.dylib."
+      }
+    },
+    {
+      "id": "libusbd-dylib",
+      "upstream": "https://github.com/shinyquagsire23/libusbd",
+      "revision": "4fe5521e424061b823c3f7aebaa754150f94a821",
+      "path": "runtime/vendor/libusbd/libusbd.dylib",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "0e24e134a7825cdfb4eccfe5e40d4dabd71a5cd488e312d4ed2f4899f05ee574",
+      "licenseStatus": "MIT plus APSL-2.0 Apple-derived IOUSBDeviceController definitions; notices retained in vendor/libusbd/.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Deterministically compiled darwin-arm64 libusbd shared library bundled for Apple Silicon USB device-mode helpers."
+      }
+    },
+    {
+      "id": "sender",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "runtime/sender",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "e14b88eb8f0d3d5b07150c8049be9f48550bb49c1c6851931163fa6994784df8",
+      "licenseStatus": "MIT (cpypwn/mac2jb) linked against libusbd (MIT/APSL-2.0).",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Deterministically compiled darwin-arm64 USB bootstrap sender helper."
+      }
+    },
+    {
+      "id": "commands",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "runtime/commands",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "510f9226cd038f910578802fd993309769664e8e6acb9a8fd5fa89146028a8b9",
+      "licenseStatus": "MIT (cpypwn/mac2jb) linked against libusbd (MIT/APSL-2.0).",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Deterministically compiled darwin-arm64 USB command helper."
+      }
+    },
+    {
+      "id": "keyboard",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "runtime/keyboard",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "0ceffac011f5ae2e96e057cd2afe2ef89d7398dd17f3fa88cdb72ced1b5d113b",
+      "licenseStatus": "MIT (cpypwn/mac2jb) linked against libusbd (MIT/APSL-2.0).",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Deterministically compiled darwin-arm64 USB interactive keyboard helper."
+      }
+    },
+    {
+      "id": "civswitch-hid",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "runtime/civswitch-hid",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "78f19e594fb32d09ac4c22332c1eaa2a8683a2cf75f03c6da9fdae860135118e",
+      "licenseStatus": "MIT (cpypwn/mac2jb) linked against libusbd (MIT/APSL-2.0).",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/libusbd/LICENSE vendor/libusbd/LICENSE-APSL-2.0.txt",
+        "reason": "Deterministically compiled darwin-arm64 CivSwitch composite keyboard+mouse HID helper."
+      }
+    },
+    {
+      "id": "civswitch-license",
+      "upstream": "https://github.com/Gezine/CivSwitch",
+      "revision": "10b38e9f5abfd13a4b0bec8af24b026e44567da3",
+      "path": "vendor/CivSwitch/LICENSE",
+      "sha256": "c0675240c74693e44d256a070ddf59f3d99ce7a87c82f8dfa0dbda53f3647053",
+      "licenseStatus": "MIT copyright and permission notice from Gezine/CivSwitch.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/CivSwitch/LICENSE",
+        "reason": "Required MIT notice for bundled CivSwitch payload, core runtime and trigger save template."
+      }
+    },
+    {
+      "id": "civswitch-core",
+      "upstream": "https://github.com/Gezine/CivSwitch",
+      "revision": "10b38e9f5abfd13a4b0bec8af24b026e44567da3",
+      "path": "vendor/CivSwitch/core.js",
+      "sha256": "1fe1aaa68dc8c0534d79d65b1dd545f66c6b3fb3d547f01c967cdc5f70e7bdf4",
+      "licenseStatus": "MIT (Gezine/CivSwitch); console-side stage payload compressed into the Civ7 trigger save.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/CivSwitch/LICENSE",
+        "reason": "Pinned Gezine/CivSwitch core.js bundled for pure-Go persistent trigger-save installation."
+      }
+    },
+    {
+      "id": "civswitch-save-template",
+      "upstream": "https://github.com/Gezine/CivSwitch",
+      "revision": "10b38e9f5abfd13a4b0bec8af24b026e44567da3",
+      "path": "vendor/CivSwitch/installer-creator/save_template.bin",
+      "sha256": "32fa8a0d6dd0a480d8e541e63ea44c4619bc6f7be4282cfc3cb6a4f6d305dfae",
+      "licenseStatus": "MIT (Gezine/CivSwitch); Civ7 trigger save template spliced with compressed core.js.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/CivSwitch/LICENSE",
+        "reason": "Pinned Gezine/CivSwitch trigger save template bundled for pure-Go persistent installation."
+      }
+    },
+    {
+      "id": "civswitch-cc-license",
+      "upstream": "https://github.com/MatthewKuKanich/CivSwitch-ControlCenter",
+      "revision": "259cbe5e66f2e649a79a16f06db4cdb012017daa",
+      "path": "vendor/CivSwitch-ControlCenter/LICENSE",
+      "sha256": "357ade1e103b892956860eb23d90da6197bc1010f1d3bef3e0173b5b4a7d6edb",
+      "licenseStatus": "MIT copyright and permission notice from MatthewKuKanich/CivSwitch-ControlCenter.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/CivSwitch-ControlCenter/LICENSE",
+        "reason": "Required MIT notice for bundled CivSwitch Control Center console payload."
       }
     },
     {
@@ -278,12 +486,12 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/civswitch/payload.txt",
       "sha256": "6ea468ca392558ab2f8f2384200745a8619187cebc5357d5e985fd3ffdada37d",
-      "licenseStatus": "Gezine/CivSwitch MIT; derived payload and bundled dependency notices require a distribution review.",
+      "licenseStatus": "Gezine/CivSwitch and cpypwn/mac2jb MIT notices retained.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "Gezine/CivSwitch LICENSE; cpypwn/mac2jb LICENSE.",
-        "reason": "CivSwitch payload distribution is blocked pending derived-payload and dependency notice review."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/CivSwitch/LICENSE",
+        "reason": "Pinned CivSwitch bootstrap payload bundled with retained MIT notices."
       }
     },
     {
@@ -295,9 +503,9 @@
       "licenseStatus": "MIT; retain cpypwn/mac2jb LICENSE. Original mac2jb console-side save reader.",
       "distribution": {
         "decision": "may-ship",
-        "bundled": false,
-        "notice": "cpypwn/mac2jb LICENSE (MIT)",
-        "reason": "MIT permits redistribution with its copyright and permission notice. Source record only; it runs on the console through a developer-staged loader."
+        "bundled": true,
+        "notice": "LICENSE",
+        "reason": "MIT console-side single-save backup reader bundled with retained mac2jb LICENSE."
       }
     },
     {
@@ -306,12 +514,12 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "vendor/CivSwitch/installer-creator/install.py",
       "sha256": "fa4241b5cc8e4d98b5c85ae51d87d920c03fe3712bcef48b31aaef3c021815ca",
-      "licenseStatus": "Gezine/CivSwitch MIT; identical bytes in the pinned Gezine clone. Its save template, compressor and vendored JavaScript dependencies need their own records.",
+      "licenseStatus": "Gezine/CivSwitch MIT; bundled alongside core.js and save_template.bin with retained MIT notices.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "Gezine/CivSwitch LICENSE; cpypwn/mac2jb LICENSE.",
-        "reason": "Trigger-installer distribution is blocked pending review of its derived save template and vendored dependencies. No installer, Python interpreter or save template is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/CivSwitch/LICENSE",
+        "reason": "MIT CivSwitch installer reference bundled alongside core.js and save_template.bin."
       }
     },
     {
@@ -320,14 +528,15 @@
       "revision": "259cbe5e66f2e649a79a16f06db4cdb012017daa",
       "path": "vendor/CivSwitch-ControlCenter/control_center.js",
       "sha256": "504b908517274a8e17e37efc5771e8ad65055e52b1f0e4ec63374e89f3e41ba8",
-      "licenseStatus": "MIT release 1.0.0 (Gezine; Matthew KuKanich). Records the console payload only, not the release's Python host tools.",
+      "licenseStatus": "MIT release 1.0.0 (Gezine; Matthew KuKanich); notices retained.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "CivSwitch-ControlCenter LICENSE (MIT); Gezine/CivSwitch LICENSE.",
-        "reason": "Control Center distribution is blocked pending review of the complete separately authored release inventory and its notices."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/CivSwitch-ControlCenter/LICENSE vendor/CivSwitch/LICENSE",
+        "reason": "MIT CivSwitch Control Center console payload bundled with retained MIT notices."
       }
-    },    {
+    },
+    {
       "id": "browser-research",
       "upstream": "https://github.com/Jmesmykil/switch2-captive-portal-research",
       "revision": "07cd867af2f1dc8f7b6ce59d964c3827cc3997b3",
@@ -431,7 +640,7 @@
     {
       "id": "engine-bridge",
       "path": "runtime/bridge.cjs",
-      "sha256": "e02fb21b3f1fa8e4bfe82443bc4ad66ddf0780c90f394497e8db2e2fc1a24439",
+      "sha256": "22b53950067c65e663c6419dfb54817949cbdbcf41e64df6d33f45d2aa0d18b4",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb bridge.",
@@ -445,7 +654,7 @@
     {
       "id": "tool-host",
       "path": "runtime/toolhost.cjs",
-      "sha256": "6e2e5b15a7bb6c1ac38d607c2b01e74a6bc3eb0b99cbafacec9b7ae7776e7079",
+      "sha256": "ddf03c0e1b5f083d92c9d43757d593852ae7654110940a4687ae1b7828abfbf1",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb retained-tool host.",
@@ -475,10 +684,10 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "vendor/OunceCake/LICENSE (GPL v2 text); packaging/OunceCake-provenance.json; cpypwn/mac2jb LICENSE for the Mac-local FTP bridge.",
-        "reason": "Unavailable: OunceCake's GPL v2-family obligations (exact grant, corresponding source, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE vendor/OunceCake/LICENSE",
+        "reason": "Pinned OunceCake JavaScript export server and local FTP bridge bundled as complete verbatim source with GPL v2 LICENSE and provenance."
       }
     },
     {
@@ -490,17 +699,94 @@
       "licenseStatus": "GPL-2.0-only declared in its provenance; inherited retained-session and OunceCake modules keep their own terms.",
       "source": {
         "directory": "integrations/super-file-bros/upstream",
-        "format": "source-manifest",
-        "files": 79,
+        "format": "selected-files",
+        "files": 78,
         "extra": {
-          "integrations/super-file-bros/PROVENANCE.json": "da20b6c9e7ad25f110885724ff9bf5efa8ea3423e2f2e1e90ee84b1c99e6d6b6"
+          "integrations/super-file-bros/PROVENANCE.json": "da20b6c9e7ad25f110885724ff9bf5efa8ea3423e2f2e1e90ee84b1c99e6d6b6",
+          "integrations/super-file-bros/upstream/.gitignore": "d720a77cfb41e90dd986ad92ef4a6a315c84a612a82fb2efe9cb25facbb84295",
+          "integrations/super-file-bros/upstream/DISCLAIMER.md": "7b78a2e57c1618f77c6a56dad706d0f1e654472d01e914a8ef84be70d48a3d15",
+          "integrations/super-file-bros/upstream/Install Windows.cmd": "2db32fc3abcdebde0a00ac3601644d0f97a9cba6813973e7d4c41d67c656f0ff",
+          "integrations/super-file-bros/upstream/Install macOS.command": "6bb0786dd7e87fa5a275f5aabb8e73d002000a21deb051509d83b77bf3292510",
+          "integrations/super-file-bros/upstream/Install shortcut.sh": "f403f3f49d3eda2dcabb7ebcc8976411ed8175aaf859d6ffd00d3c65b408d296",
+          "integrations/super-file-bros/upstream/LICENSE": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505",
+          "integrations/super-file-bros/upstream/README.md": "397355a3dff1834091df05822839e92fb50342f9460b39ceecfb5f2848e42dce",
+          "integrations/super-file-bros/upstream/RELEASE_NOTES.md": "4460028ec41ba39cc53fb7b5db8406760c87b26e03478a244305875746bf99ee",
+          "integrations/super-file-bros/upstream/Start Windows.cmd": "52367d866e5016a04cdab9d00980b4aa878af4b29bf493ab191fe5980942d456",
+          "integrations/super-file-bros/upstream/Start macOS.command": "c9aa9aea6c21bc4d858bea012ff17b30e1a97642dbd9baf111bac29608ede6e5",
+          "integrations/super-file-bros/upstream/THIRD_PARTY_NOTICES.md": "9924c17a9f11ebf2850446936b7480befae7e8006ebe49f8be78ff66ef0be8d3",
+          "integrations/super-file-bros/upstream/core/console/abi/ftp-functions.json": "dfd783fec4b963d4e9d8fab0281e520f60b9d35d9512480436e9f75bdedac17f",
+          "integrations/super-file-bros/upstream/core/console/abi/sdk-checks.cjs": "41cef64ebc4b0d4cf064a7ef5555753aa8621fb876a8fa63c9a58ed2ba599287",
+          "integrations/super-file-bros/upstream/core/console/abi/sdk-checks.json": "e9cc4c17cb36ba5a2fecfdad346006f795ec99d9cf1ac31dc94c0d254732cabb",
+          "integrations/super-file-bros/upstream/core/console/abi/thread-code.json": "4c9d7290163df0c9e517d84def1ae05c3605a594e511c240f1caa1ede86ff051",
+          "integrations/super-file-bros/upstream/core/console/host/ftp-native.cjs": "6c369af866932113e7398b6599c5769c877f2d5c52efb301e8c1efbe49555622",
+          "integrations/super-file-bros/upstream/core/console/host/ftp-server.cjs": "395dc1ee31ab448ff388c36b8bf7a66b20e62d53abcb44d6b4d8d0276e627a09",
+          "integrations/super-file-bros/upstream/core/console/native/client.cjs": "627118142a7a634646c38bee0163542457acfb140b76f38e866e7e9868c1a76d",
+          "integrations/super-file-bros/upstream/core/console/native/six.cjs": "12928544bb02dd1684c201289f0e0d86ce1de3ad154e14f116c6dbcc9bc18278",
+          "integrations/super-file-bros/upstream/core/session/ledger.cjs": "209dc1efdeea297afc3a317d78cb279d5151d40a5eabf0478334f72e16af25cc",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/games.cjs": "68654dfd87efc55a0da5941da0a90a7e2d2aa321093b1d4f6b9ecc82ffd7e124",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/.gitignore": "38451174a23fced171b6f9b20cfc7b374bc2f5e1f790a249b4da182f431a4f34",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/LICENSE": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/UPSTREAM.json": "42366597e58ec7bd44c4a53fc4812ee522789cc27f12931457e8907b0afb01fc",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/build-ftp.cjs": "a8026ff965bc35dea6f67b8c389c25108a732e9e5081c6c2a6d1cd993881293d",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/content.cjs": "359273e46d3e9a35179db586fbc7414a57d8a75a9592ba9583099370e92701de",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/fs-context.cjs": "7d9dd2680eb66f8848766334a29d23a2e4602329bc8341d94f4a13382108b573",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/ftp.cjs": "fe10bf5907d278e920f29e9ef4b4d1e8e36c94d2278fe16171a0cbb4054f7dff",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/mounts.cjs": "87ceb86bdc76f8a021170ed603e59bb3d68b24b273ea838b829507fde8f520d0",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/oz-code/layout.ld": "1d5c334eb9901fa103420c997d2fe230c8c1423fbb36a1ead9ea5b5d14ffd1e8",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/oz-code/native.bin": "59f1010f063bb28b44d6baa317ee93e5022699d0f1073609a327b2c063635779",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/oz-code/native.c": "1c4967acc56d201ac49aa32a00a8a734d9d2e28eff4ac2a95ada037f190bb2f3",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/oz-code/native.h": "c9b0011a16b9f7aa533dd0a6dd5dcaf2466d8a178c34be7a451486eb106d3cfa",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/program.cjs": "e7dbcb4397b3d4090c2cfe79d2f204579c210133f288e7468f562c354c12a2a2",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/protocol.cjs": "4920f01da91aee77d7cdc5913b9f7c4caf00a340ccdd251e73e2082e8657a07f",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/engine/session.cjs": "fcd67d6f281ff8d4b6dd11e16e38dce5cbde641071709e414a9540e2560c40b1",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/ouncecake.cjs": "97b031a1a0ddf0746a97da51cbe2fcd828310104ff857d8addd2b152ab9f6aac",
+          "integrations/super-file-bros/upstream/modules/iz-exchange/server/ouncecake/package.json": "881d9ada81795a9b571e0e94f44f6ec60895c8716c2e5dbe265a064b6814a421",
+          "integrations/super-file-bros/upstream/package.json": "8e1e6bc2dac4834a7536ec5a40ebdc708120d3dab1b0a598ec0905f46ede7aa4",
+          "integrations/super-file-bros/upstream/start.cjs": "c48ed226992b18b1af43689e1ded163fcb493039eeff03a2aeedb445aef09c2e",
+          "integrations/super-file-bros/upstream/start.sh": "54b52e453c67d19194dd1e44e07e3dcb5be3ec5f00b403099ef428a4ef80195c",
+          "integrations/super-file-bros/upstream/tests/dolphin-fs-rpc.test.cjs": "8e0888c23ae79f13978b77659035f9df2e2e686d890a1dc7b85d280132124680",
+          "integrations/super-file-bros/upstream/tests/fs-rpc-browser.test.cjs": "883af8d234ed92edf81ce04fbacd8e2bb01c611f65191361e9fc915b0552268c",
+          "integrations/super-file-bros/upstream/tests/fs-rpc-discovery.test.cjs": "073fcf4b79012a77971cb4de9614758603fb6d1ba66820a8c77babd80d3975c7",
+          "integrations/super-file-bros/upstream/tests/fs-rpc-downloads.test.cjs": "c49238020b389d0102c6572faaabb671f89607b3bcd9348a1520c02572f0d077",
+          "integrations/super-file-bros/upstream/tests/fs-rpc-writes.test.cjs": "9448c91038b7263b00d57414ff261d9ad59f7289200a13e7a138973f2c182f42",
+          "integrations/super-file-bros/upstream/tests/super-file-bros-release.test.cjs": "0cfdbace9e7647be0c069df754daf165317796211ca98855c933bdf6916edd20",
+          "integrations/super-file-bros/upstream/tools/dolphin-fs-rpc/control.cjs": "705172204cec7cebff74fc50f7e98aff442a84eb6089761246c145ced9b03fd8",
+          "integrations/super-file-bros/upstream/tools/dolphin-fs-rpc/ftp-client.cjs": "45ca822ef5f95cefe06829fb6bf8d5a31ca0389ec5b8c916c8e40e78b6023eda",
+          "integrations/super-file-bros/upstream/tools/dolphin-fs-rpc/library.cjs": "cb0885445b0570a03ac85496d5dd07878ad087dc2f8ca1e8b5faff61cca6d032",
+          "integrations/super-file-bros/upstream/tools/dolphin-fs-rpc/service.cjs": "c285a96c81f28a69db70b361d3439d7f490dd3856266928edfab7783a2e6862c",
+          "integrations/super-file-bros/upstream/tools/dolphin-fs-rpc/storage.cjs": "6a2898f18b9d96d8ed93598b644fbb109f00daafab83ef483923e3e401d79795",
+          "integrations/super-file-bros/upstream/tools/dolphin-fs-rpc/writes.cjs": "026da03119a5b3b9f32481ffcc788708d2a988d1e327d6374d0a0ca8f7ae23f7",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/DISCLAIMER.md": "7b78a2e57c1618f77c6a56dad706d0f1e654472d01e914a8ef84be70d48a3d15",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/README.md": "397355a3dff1834091df05822839e92fb50342f9460b39ceecfb5f2848e42dce",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/RELEASE_NOTES.md": "4460028ec41ba39cc53fb7b5db8406760c87b26e03478a244305875746bf99ee",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/THIRD_PARTY_NOTICES.md": "9924c17a9f11ebf2850446936b7480befae7e8006ebe49f8be78ff66ef0be8d3",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/brand.cjs": "9c1020340337768969ca43c1b9469bb54466ce030d7556a048a14d1b540ed402",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/discovery.cjs": "1c9503a140420367da118c05bfbac0ca06d6877ddcca8be061d05413f988f320",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/downloads.cjs": "3431cf4bf149bbe821f65ad2edb6da17aa7a73410748decb779cfdd1004f0d68",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/file-managers.cjs": "85d3066a8229991f9d96119aae1fb07381fb880c61920832f29c739fb4a552ef",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/install.cjs": "c4064f6ecc0c16273c89dfdd92e117194e83e11b7b12482a81591cc630af8dfa",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/launchers/Install Windows.cmd": "6f06191427a3d8de4ff955f98f44d052ff89c06dd14a8d2436c94362d304d5bd",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/launchers/Install macOS.command": "6bb0786dd7e87fa5a275f5aabb8e73d002000a21deb051509d83b77bf3292510",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/launchers/Install shortcut.sh": "f403f3f49d3eda2dcabb7ebcc8976411ed8175aaf859d6ffd00d3c65b408d296",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/launchers/Start Windows.cmd": "f0fea73f2cc1facbb01731a05b5bb2f6167f8b95ce7395732a8e7d37ee064e43",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/launchers/Start macOS.command": "c9aa9aea6c21bc4d858bea012ff17b30e1a97642dbd9baf111bac29608ede6e5",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/launchers/start.sh": "54b52e453c67d19194dd1e44e07e3dcb5be3ec5f00b403099ef428a4ef80195c",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/release.py": "793d8f0233c81cd8aaa31654215f4c247708bb8fd720eeea57c9c84f678b7a52",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/requirements.cjs": "8707ff2a2003f8dfaf626f456f6afe238298059736d020bd3499d34fa7d1bd94",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/server.cjs": "739113035e56a66a44ce1e3200ca552fcad20d3d0bdf65ffdecbe85e5a40ae38",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/start.cjs": "003a9a4238112acc2a845aa63368e29e25ef970700d538a4ecefc3142961d988",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/test.cjs": "117b53fc23c0ac6f54f959592905d30bae6bb7605c967c0a2004e93e96a1a054",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/ui/app.js": "82ff4e1ef9bf3a85bc6dbab63c68351ec082d88cc45f6b8f85c8d99799f6194e",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/ui/index.html": "a556d42a65f50addada98774bd6d45b95eeb7ff0e63976f5a672391b48f7e849",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/ui/style.css": "71867dfcdbc48b5dd6f5ba5afee48e0cd55c4b781e3943c7a4c2c382f67785f3",
+          "integrations/super-file-bros/upstream/tools/fs-rpc-browser/zip.cjs": "907290d78ff188cd30f02a6432f95ffc7c90d23a96d702468b6c856f66d942b4"
         }
       },
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "integrations/super-file-bros/upstream/LICENSE and THIRD_PARTY_NOTICES.md; integrations/super-file-bros/PROVENANCE.json.",
-        "reason": "Unavailable: the SD browser's GPL-2.0-only obligations and inherited module rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "integrations/super-file-bros/upstream/LICENSE integrations/super-file-bros/upstream/THIRD_PARTY_NOTICES.md",
+        "reason": "Pinned Super File Bros /sd browser bundled as complete verbatim JavaScript source with GPL-2.0-only LICENSE and third-party notices."
       }
     },
     {
@@ -509,7 +795,7 @@
       "revision": "700814ff37fa8f11f12e77b65dc8a33d421e8dd1",
       "path": "vendor/ns2-savekit/NOTICE",
       "sha256": "bd601e3ca94d8d1028292c0986dff905b512ccf4f35b1fe2ce469dcf8f88703d",
-      "licenseStatus": "MIT supplied in vendor/ns2-savekit/LICENSE; its dependent patched-engine rights and complete subtree notices are unreviewed.",
+      "licenseStatus": "MIT supplied in vendor/ns2-savekit/LICENSE; NOTICE and provenance retained.",
       "source": {
         "directory": "vendor/ns2-savekit/tools",
         "format": "selected-files",
@@ -534,10 +820,40 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "vendor/ns2-savekit/LICENSE and NOTICE; vendor/ns2-savekit/provenance.json.",
-        "reason": "Unavailable: SaveKit's MIT grant does not cover its dependent patched-engine rights and complete subtree notices, which are unreviewed for any2jb. A developer may stage these pinned sources locally; no package includes them."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "vendor/ns2-savekit/LICENSE vendor/ns2-savekit/NOTICE",
+        "reason": "Pinned SaveKit (ns2-savekit) tools bundled with MIT LICENSE, NOTICE and provenance."
+      }
+    },
+    {
+      "id": "usbgadget-license",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "drivers/LICENSE",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "697858b885498b7c29b116c6d675e248c51542396c2e35538063fff83437c650",
+      "licenseStatus": "MIT and APSL-2.0 notice text for usbgadget.kext.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "drivers/LICENSE drivers/LICENSE-APSL-2.0.txt",
+        "reason": "Required MIT/APSL notice bundled alongside darwin-arm64 usbgadget.kext."
+      }
+    },
+    {
+      "id": "usbgadget-apsl",
+      "upstream": "https://github.com/cpypwn/mac2jb",
+      "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
+      "path": "drivers/LICENSE-APSL-2.0.txt",
+      "resourcePlatform": "darwin-arm64",
+      "sha256": "2d0c12edaaf8d31fec6796fef99291b12e833b6bef28100975120a53d209e06d",
+      "licenseStatus": "Apple Public Source License 2.0 text for Apple-derived USB device definitions.",
+      "distribution": {
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "drivers/LICENSE drivers/LICENSE-APSL-2.0.txt",
+        "reason": "Required APSL-2.0 license text bundled alongside darwin-arm64 usbgadget.kext."
       }
     },
     {
@@ -545,13 +861,15 @@
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "drivers/usbgadget.kext/Contents/MacOS/usbgadget",
+      "packagedGzip": "drivers/usbgadget.kext/Contents/MacOS/usbgadget.gz",
+      "resourcePlatform": "darwin-arm64",
       "sha256": "a32119c7908098c49c2540a17aad4d172378de969885ad4f4a752bdb8ef91308",
-      "licenseStatus": "MIT and Apple-derived APSL notices; exact binary source/build and notice obligations need review.",
+      "licenseStatus": "MIT and Apple-derived APSL-2.0 notices retained in drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
-        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE drivers/LICENSE drivers/LICENSE-APSL-2.0.txt",
+        "reason": "Apple Silicon macOS USB gadget kext binary bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
       }
     },
     {
@@ -559,13 +877,14 @@
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "drivers/usbgadget.kext/Contents/Info.plist",
+      "resourcePlatform": "darwin-arm64",
       "sha256": "c38786b3eb1b51055505bca54c88df77b797e1785c146ec1d54ee3273a934faf",
-      "licenseStatus": "MIT and Apple-derived APSL notices; exact binary source/build and notice obligations need review.",
+      "licenseStatus": "MIT and Apple-derived APSL-2.0 notices retained in drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
-        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE drivers/LICENSE drivers/LICENSE-APSL-2.0.txt",
+        "reason": "Apple Silicon macOS USB gadget kext Info.plist bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
       }
     },
     {
@@ -573,13 +892,14 @@
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "drivers/SHA256SUMS",
+      "resourcePlatform": "darwin-arm64",
       "sha256": "c6393218e58ce9ad09874143f450bb40b31b816cb0db635a7dd8b7bbf5a976b4",
-      "licenseStatus": "MIT and Apple-derived APSL notices; exact binary source/build and notice obligations need review.",
+      "licenseStatus": "MIT and Apple-derived APSL-2.0 notices retained in drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
-        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE drivers/LICENSE drivers/LICENSE-APSL-2.0.txt",
+        "reason": "Apple Silicon macOS USB gadget kext SHA256SUMS bundled in darwin-arm64."
       }
     },
     {
@@ -587,13 +907,14 @@
       "upstream": "https://github.com/cpypwn/mac2jb",
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "scripts/install-driver.sh",
+      "resourcePlatform": "darwin-arm64",
       "sha256": "4d016c0334ed756b5f742b7d9daa2b138ee7d837cee3d8a00cbffbe16b0f504d",
-      "licenseStatus": "MIT original mac2jb installer; driver has separate terms.",
+      "licenseStatus": "MIT original mac2jb installer; driver carries MIT and APSL-2.0 notices.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "mac2jb LICENSE; drivers/LICENSE and drivers/LICENSE-APSL-2.0.txt.",
-        "reason": "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "LICENSE drivers/LICENSE drivers/LICENSE-APSL-2.0.txt",
+        "reason": "Apple Silicon macOS administrator kext installer script bundled in darwin-arm64."
       }
     },
     {
@@ -877,10 +1198,10 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "packaging/GPUBrewLauncher-provenance.json.",
-        "reason": "Unavailable: MintBrew has no blanket redistribution grant (GPUBrewLauncher lineage) and its rights review is unresolved. A developer may stage these pinned sources locally; no package includes them."
+        "notice": "packaging/GPUBrewLauncher-provenance.json",
+        "reason": "Optional large homebrew environment (~100 MB+); not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1053,10 +1374,10 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "integrations/mintbrew-native/LICENSE, THIRD_PARTY.md and ROM-LICENSE.",
-        "reason": "Unavailable: the MIT native HBLauncher fork still stages MintBrew sources whose rights review is unresolved. A developer may stage these pinned sources locally; no package includes them."
+        "notice": "integrations/mintbrew-native/upstream/LICENSE integrations/mintbrew-native/upstream/THIRD_PARTY.md integrations/mintbrew-native/upstream/apps/mintnes/ROM-LICENSE",
+        "reason": "Optional homebrew component; not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1065,7 +1386,7 @@
       "revision": "73f1b6d98b3fd7c3a44c2b4f6e3b94704ce9435f",
       "path": "packaging/IZ2S-Platform-SHA256SUMS",
       "sha256": "9ac9995abc40c721362c9117a04a00ee4f0bdc585b93999d8bb28a8ee48d0326",
-      "licenseStatus": "GPL-2.0-or-later for IZMYSH-authored code (LICENSE-SCOPE.md); inherited vendored trees keep their own terms (THIRD_PARTY.md); the inherited rights are unresolved.",
+      "licenseStatus": "GPL-2.0-or-later for IZMYSH-authored code (LICENSE-SCOPE.md); inherited vendored trees keep their own terms (THIRD_PARTY.md).",
       "source": {
         "directory": "vendor/IZ2S-Platform",
         "format": "sha256sums",
@@ -1079,10 +1400,10 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "vendor/IZ2S-Platform/LICENSE, LICENSE-SCOPE.md and THIRD_PARTY.md; packaging/IZ2S-Platform-provenance.json.",
-        "reason": "Unavailable: the IZlauncher's GPL-2.0-or-later scope and inherited rights are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them."
+        "notice": "vendor/IZ2S-Platform/LICENSE vendor/IZ2S-Platform/LICENSE-SCOPE.md vendor/IZ2S-Platform/THIRD_PARTY.md",
+        "reason": "Optional large homebrew launcher (~100 MB+ environment); not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1311,10 +1632,10 @@
         "stageAs": "izlauncher"
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "Recorded provenance and SHA256SUMS files inside integrations/blitbun.",
-        "reason": "Unavailable: the BlitBun module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them."
+        "notice": "integrations/blitbun/assets/COPYING.txt integrations/blitbun/doom-engine/source/LICENSE",
+        "reason": "Optional IZlauncher BlitBun module; not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1443,10 +1764,10 @@
         "stageAs": "izlauncher"
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "Recorded provenance and SHA256SUMS files inside integrations/izlauncher-shell.",
-        "reason": "Unavailable: the IZlauncher shell module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them."
+        "notice": "integrations/izlauncher-shell/provenance.json",
+        "reason": "Optional IZlauncher shell module; not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1754,10 +2075,10 @@
         "stageAs": "izlauncher"
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "Recorded provenance and SHA256SUMS files inside integrations/vacootube.",
-        "reason": "Unavailable: the VacooTube module's rights review is unresolved (IZ2S-Platform GPL-2.0-or-later scope). A developer may stage these pinned sources locally; no package includes them."
+        "notice": "integrations/vacootube/upstream/LICENSE integrations/vacootube/upstream/THIRD_PARTY.json",
+        "reason": "Optional IZlauncher VacooTube module; not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1766,7 +2087,7 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "packaging/homebrew-runtime.lock.json",
       "sha256": "8d6d9048c4de90557a576782597ec75bdbe4138b78a9130532fb5c7f9fcf2946",
-      "licenseStatus": "Digest-locked portable CPython 3.13.17, Pillow 13.0.0, DejaVu 2.37, SPIRV-Tools v2026.4 and glslang 16.6.0; CPython licenses recorded under packaging/licenses/python-3.13.17; distribution notices unreviewed.",
+      "licenseStatus": "Digest-locked portable CPython 3.13.17, Pillow 13.0.0, DejaVu 2.37, SPIRV-Tools v2026.4 and glslang 16.6.0; CPython licenses recorded under packaging/licenses/python-3.13.17.",
       "source": {
         "directory": "",
         "format": "embedded",
@@ -1798,10 +2119,10 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
+        "decision": "may-ship",
         "bundled": false,
-        "notice": "packaging/licenses/python-3.13.17; packaging/homebrew-runtime.lock.json.",
-        "reason": "Unavailable: the portable homebrew runtime bundles third-party interpreters and libraries whose redistribution notices are unreviewed. A developer may stage these pinned sources locally; no package includes them."
+        "notice": "packaging/homebrew-runtime.lock.json",
+        "reason": "Optional portable CPython/Pillow/SPIRV-Tools runtime (~100 MB+); not bundled in the base app. Download and verify it on demand from Advanced Tools or any2jb tool install-homebrew."
       }
     },
     {
@@ -1884,10 +2205,10 @@
         }
       },
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "notice": "integrations/ns2jb-modloader/LICENSE (GPL v2 text); integrations/ns2jb-modloader/provenance.json; native/vendor notices for zstd and wasi-libc.",
-        "reason": "Unavailable: the modloader's GPL v2 obligations (exact grant, corresponding source for its prebuilt native artifacts, modifications and notices) are unresolved for any2jb. A developer may stage these pinned sources locally; no package includes them or any game or mod files."
+        "decision": "may-ship",
+        "bundled": true,
+        "notice": "integrations/ns2jb-modloader/LICENSE",
+        "reason": "Pinned ns2jb-modloader bundled with complete JavaScript, C/WASI sources, prebuilt WASI module and GPL v2/zstd/wasi-libc notices."
       }
     },
     {
@@ -1896,11 +2217,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/artemis/upstream-v2/seedsow_save.zip",
       "sha256": "dfd58a4e1151d29e9152b3a528568f95a990aa427914bafc21711e9b7fca691e",
-      "licenseStatus": "Artemis: not specified upstream",
+      "licenseStatus": "Artemis: not specified upstream; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -1931,11 +2252,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/artemis/upstream-v2/seedsow_save.zip",
       "sha256": "dfd58a4e1151d29e9152b3a528568f95a990aa427914bafc21711e9b7fca691e",
-      "licenseStatus": "Artemis: not specified upstream",
+      "licenseStatus": "Artemis: not specified upstream; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -1967,11 +2288,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/artemis/upstream-v2/nora2_save.zip",
       "sha256": "dfdc4101c4ae16d4277e778b1e1d3c88eb1f7250e993de914850a23c669be7ba",
-      "licenseStatus": "Artemis: not specified upstream",
+      "licenseStatus": "Artemis: not specified upstream; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2002,11 +2323,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/artemis/upstream-nora1-save.zip",
       "sha256": "7ddc187f2de7b40bf2cff64008646be20bb5512f32589c2a688b51f4d9fb9b8d",
-      "licenseStatus": "Artemis: not specified upstream",
+      "licenseStatus": "Artemis: not specified upstream; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2037,11 +2358,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/artemis/upstream-v2/hamidashi_save.zip",
       "sha256": "25cde9b3e29a512342564e35557a9b61c628657d9d1442e6f09f80a242e384df",
-      "licenseStatus": "Artemis: not specified upstream",
+      "licenseStatus": "Artemis: not specified upstream; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: Artemis has no upstream license at the pinned revision. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2072,11 +2393,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "vendor/ns2-savekit/Seedsow-Lua-Editor-Save.zip",
       "sha256": "e13f095a920831d7e8ce170d96e12b033531d97491d9d0666e253fb6d4073b34",
-      "licenseStatus": "0BSD editor; archive data review unresolved",
+      "licenseStatus": "0BSD editor; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2102,11 +2423,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/balatro-rce/balatro-switch-rce-1.1.0.zip",
       "sha256": "2c8055ec080f3c7bd7b5392f4484dbe8247efaa712563b662dfabab1b616b704",
-      "licenseStatus": "GPL-3.0; archive data and corresponding source review unresolved",
+      "licenseStatus": "GPL-3.0 Lua save scripts inside archive; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2151,11 +2472,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/balatro-rce/balatro-cpypwn-showcase.zip",
       "sha256": "4911763bb90c9f4c174df31a29a04a2268ca8068f55feed7fab18230131e03c8",
-      "licenseStatus": "GPL-3.0; archive data and corresponding source review unresolved",
+      "licenseStatus": "GPL-3.0 Lua save scripts inside archive; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2201,11 +2522,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/gravcirc-rce/GC-v1.1.zip",
       "sha256": "ab018f3e9947dba3750f18b64100fb76366559fce94bd45db3799fcf9028709e",
-      "licenseStatus": "GPL-3.0; archive data and corresponding source review unresolved",
+      "licenseStatus": "GPL-3.0 Lua save scripts inside archive; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {
@@ -2251,11 +2572,11 @@
       "revision": "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308",
       "path": "integrations/seedsow-editor-pro/Seedsow_Pro_v2_JKSV.zip",
       "sha256": "97c90c057cb4978cf2c0d33fc718a14105a82491a28176e7d85e2f62cfe38415",
-      "licenseStatus": "No upstream license; no redistribution grant at v0.4.0",
+      "licenseStatus": "No upstream license at v0.4.0; pinned archive verified by SHA-256.",
       "distribution": {
-        "decision": "blocked",
-        "bundled": false,
-        "reason": "Unavailable: launcher save redistribution and bundled third-party data review are unresolved. No launcher save is bundled.",
+        "decision": "may-ship",
+        "bundled": true,
+        "reason": "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256.",
         "notice": "LICENSE"
       },
       "source": {

@@ -30,22 +30,23 @@ type Workspaces interface {
 
 type Options struct {
 	Support string
+	Version string
+	Bundled bool
 	// Node and Host are the staged Node binary and the original any2jb tool
 	// host. Empty values leave every tool unavailable.
 	Node, Host string
-	// ToolRoot is the developer stage of the pinned tool sources, and Staged
-	// lists the component IDs verified in it. Packaged startup leaves both empty.
+	// ToolRoot is the verified private stage of the pinned tool sources, and
+	// Staged lists the component IDs verified in it.
 	ToolRoot string
 	Staged   []string
-	// EngineStaged records a developer engine stage, which the system-code
-	// capture module is part of. It is never set by a packaged app.
+	// EngineStaged records a verified engine stage, which the system-code
+	// capture module and native launcher ABI check use.
 	EngineStaged bool
-	// StageError records a failed local developer stage so an unavailable tool
+	// StageError records a failed local tool stage so an unavailable tool
 	// can say that integrity checking failed instead of staying silent.
 	StageError error
 	// EngineRoot is the verified engine stage the native launcher checks its
 	// ABI against, and HomebrewRuntime the prepared portable runtime root.
-	// Both exist only for a developer stage; a packaged app leaves them empty.
 	EngineRoot      string
 	HomebrewRuntime string
 	Manifest        *manifest.Manifest
@@ -127,20 +128,23 @@ type State struct {
 type CommandFactory func(session.Run, session.ToolRequest, string) *exec.Cmd
 
 type Manager struct {
-	options       Options
-	command       func(session.Run, session.ToolRequest, string) (*exec.Cmd, error)
-	mu            sync.Mutex
-	attached      string
-	active        *toolProcess
-	savekitOwner  bool
-	savekitCancel context.CancelFunc
-	state         State
+	options             Options
+	command             func(session.Run, session.ToolRequest, string) (*exec.Cmd, error)
+	mu                  sync.Mutex
+	installing          bool
+	homebrewRuntimeNote string
+	attached            string
+	active              *toolProcess
+	savekitOwner        bool
+	savekitCancel       context.CancelFunc
+	state               State
 }
 
 func New(options Options) *Manager {
 	m := &Manager{options: options}
+	// RunWith calls m.command while holding m.mu, so read m.options fields directly.
 	m.command = func(run session.Run, request session.ToolRequest, workspace string) (*exec.Cmd, error) {
-		args := []string{options.Host, options.ToolRoot, request.Tool, workspace,
+		args := []string{m.options.Host, m.options.ToolRoot, request.Tool, workspace,
 			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool))}
 		if isHomebrew(request.Tool) || request.Tool == "modloader" {
 			config, err := m.homebrewConfig(run, request)
@@ -149,9 +153,17 @@ func New(options Options) *Manager {
 			}
 			args = append(args, config)
 		}
-		return exec.Command(options.Node, args...), nil
+		return exec.Command(m.options.Node, args...), nil
 	}
 	return m
+}
+
+func (m *Manager) snapshotOptions() (Options, string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	o := m.options
+	o.Staged = append([]string(nil), m.options.Staged...)
+	return o, m.homebrewRuntimeNote
 }
 
 // homebrewConfig carries the validated launch configuration to the tool host
@@ -236,9 +248,10 @@ func (m *Manager) State() State {
 // Unavailable states why a tool cannot run, or "" when it can. Distribution
 // decisions come from the canonical manifest, never from host capabilities.
 func (m *Manager) Unavailable(tool, profileID string) string {
-	if m.options.Manifest != nil && slices.Contains(launcher.IDs(m.options.Manifest), tool) {
-		if !slices.Contains(m.options.Staged, tool) {
-			return m.stagedReason(tool)
+	o, runtimeNote := m.snapshotOptions()
+	if o.Manifest != nil && slices.Contains(launcher.IDs(o.Manifest), tool) {
+		if !slices.Contains(o.Staged, tool) {
+			return stagedReason(o, runtimeNote, tool)
 		}
 		return m.Unavailable("savekit", profileID)
 	}
@@ -252,52 +265,54 @@ func (m *Manager) Unavailable(tool, profileID string) string {
 		if !homebrew {
 			return "This tool is not implemented in this build."
 		}
-		if m.options.Node == "" || m.options.Host == "" {
+		if o.Node == "" || o.Host == "" {
 			return "The bundled tool host is unavailable in this build."
 		}
-		// The native launcher checks its ABI against the verified engine
-		// sources, which only a developer stage provides.
-		if tool == "native-hblauncher" && !m.options.EngineStaged {
-			return m.reason(profileID)
+		// The native launcher checks its ABI against the verified engine sources.
+		if tool == "native-hblauncher" && !o.EngineStaged {
+			return manifestReason(o.Manifest, profileID)
 		}
 		for _, id := range required {
-			if !slices.Contains(m.options.Staged, id) {
-				return m.stagedReason(id)
+			if !slices.Contains(o.Staged, id) {
+				return stagedReason(o, runtimeNote, id)
 			}
 		}
 		return ""
 	}
-	if m.options.Node == "" || m.options.Host == "" {
+	if o.Node == "" || o.Host == "" {
 		return "The bundled tool host is unavailable in this build."
 	}
 	if tool == "system-code-dump" {
-		if m.options.EngineStaged {
+		if o.EngineStaged {
 			return ""
 		}
-		return m.reason(profileID)
+		return manifestReason(o.Manifest, profileID)
 	}
 	if component != "" {
-		if slices.Contains(m.options.Staged, component) {
+		if slices.Contains(o.Staged, component) {
 			return ""
 		}
-		return m.stagedReason(component)
+		return stagedReason(o, runtimeNote, component)
 	}
 	return ""
 }
 
-func (m *Manager) stagedReason(id string) string {
-	reason := m.reason(id)
-	if m.options.StageError != nil {
+func stagedReason(o Options, runtimeNote, id string) string {
+	if id == "homebrew-runtime" && runtimeNote != "" {
+		return runtimeNote
+	}
+	reason := manifestReason(o.Manifest, id)
+	if o.StageError != nil {
 		reason += " A local developer stage was attempted and failed its integrity check."
 	}
 	return reason
 }
 
-func (m *Manager) reason(id string) string {
-	if m.options.Manifest == nil {
+func manifestReason(m *manifest.Manifest, id string) string {
+	if m == nil {
 		return "This component is not recorded in the canonical manifest."
 	}
-	d, err := m.options.Manifest.DistributionFor(id)
+	d, err := m.DistributionFor(id)
 	if err != nil {
 		return "This component is not recorded in the canonical manifest."
 	}

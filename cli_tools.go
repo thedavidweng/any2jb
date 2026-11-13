@@ -44,6 +44,24 @@ func (c *commandLine) addTools(root *cobra.Command) {
 		}
 		return c.print(c.app.tools.State())
 	})
+	c.command(tools, "install-homebrew", locales.HbInstall(), false, func(*cobra.Command, []string) error {
+		installer, ok := c.app.tools.(homebrewInstaller)
+		if !ok {
+			return cliFail(exitBlocked, locales.ToolsNeedLease())
+		}
+		if err := installer.InstallHomebrew(context.Background()); err != nil {
+			msg := localize(err.Error())
+			if c.json {
+				return c.print(struct {
+					Status string `json:"status"`
+				}{Status: msg})
+			}
+			return cliFail(exitBlocked, msg)
+		}
+		return c.print(struct {
+			Status string `json:"status"`
+		}{Status: locales.HbInstallReady()})
+	})
 	var request session.ToolRequest
 	var consent string
 	run := c.command(tools, "run TOOL", locales.ToolsTitle(), true, func(_ *cobra.Command, args []string) error {

@@ -13,11 +13,14 @@ embeds no update feed or key, reports updates disabled and rejects `Check` with
 `ErrUpdatesDisabled`. There is no unsigned update or source-download route.
 Do not use a dummy valid public key or a test key in a production package.
 
-All engines, bootstraps, USB binaries and drivers remain absent. The only
-runtime payload is the pinned official Node binary and any2jb bridge. Notices
-for Node (including its bundled libraries) and MyGo are included. The Go module
-dependency notice inventory remains a release requirement, as does the
-[redistribution review](redistribution.md).
+The package bundles the official Node 24.22.1 runtime, `any2jb`'s bridge and
+tool host, the five `ns2jb` host profiles and bootstraps, the `darwin-arm64`
+USB gadget kext/installer/`libusbd.dylib`/HID helpers (on macOS builds), the
+CivSwitch payloads and pure-Go trigger installer, and the offline session tools
+and launcher save packages, together with their recorded third-party notices.
+The ~100 MB+ optional GPU/Python homebrew components remain unbundled (`may-ship`,
+`bundled: false`) and are downloaded and SHA-256-verified on demand via
+**Advanced Tools** or `any2jb tool install-homebrew`.
 
 ## Reproduce a local package
 
@@ -41,7 +44,7 @@ go tool mygo i18n check
 go tool mygo vet .
 go vet ./...
 go tool mygo build -platform darwin/arm64 -sign - -skip-notarize
-go run ./cmd/check-package -merged build/darwin-arm64/any2jb.app/Contents/Resources
+go run ./cmd/check-package -platform darwin-arm64 -merged build/darwin-arm64/any2jb.app/Contents/Resources
 build/darwin-arm64/any2jb.app/Contents/MacOS/any2jb --self-test
 codesign --verify --deep --strict build/darwin-arm64/any2jb.app
 codesign -d --entitlements - build/darwin-arm64/any2jb.app/Contents/Resources/runtime/node

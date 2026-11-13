@@ -3,7 +3,10 @@ package transport
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"slices"
 	"sync"
 
@@ -61,14 +64,24 @@ type Darwin struct {
 	controller         string
 	timing             Timing
 	enumerated         string
+	stagedRoot         string
 	workspaces         map[string]string
 }
 
 func NewDarwin(options DarwinOptions) *Darwin {
 	d := &Darwin{options: options, controller: options.Controller, timing: options.Timing}
 	d.command = func(name string, args ...string) *exec.Cmd {
-		// Authorization is checked again in start before constructing a command.
-		return exec.Command(d.options.Helpers.path(name), args...)
+		// Authorization is checked again in start/send before constructing a command.
+		if d.options.Helpers != nil {
+			return exec.Command(d.options.Helpers.path(name), args...)
+		}
+		d.configMu.RLock()
+		root := d.stagedRoot
+		d.configMu.RUnlock()
+		if root == "" {
+			return nil
+		}
+		return exec.Command(filepath.Join(root, "runtime", name), args...)
 	}
 	return d
 }
@@ -115,38 +128,53 @@ func (d *Darwin) Send(ctx context.Context, run session.Run, action session.Input
 	return d.send(ctx, run, action, host, report)
 }
 
-func (d *Darwin) authorize(run session.Run) error {
+func (d *Darwin) authorize(run session.Run) (string, error) {
 	if d.trusted {
-		return nil
+		return "", nil
 	}
 	o := d.options.Runtime
-	if o.Manifest == nil || o.DeveloperSourceRoot == "" || o.DeveloperProfileID != run.Profile.ID {
-		return errors.New("USB input requires explicit developer staging for the selected profile")
+	if o.Manifest == nil {
+		return "", errors.New("missing USB runtime manifest")
 	}
 	p, err := o.Manifest.Profile(run.Profile.ID)
 	if err != nil {
-		return err
+		return "", err
+	}
+	developerMode := o.DeveloperSourceRoot != "" || o.DeveloperProfileID != ""
+	if developerMode {
+		if o.DeveloperSourceRoot == "" || o.DeveloperProfileID != run.Profile.ID {
+			return "", errors.New("USB input requires explicit developer staging for the selected profile")
+		}
+	} else if !p.Distribution.Available() {
+		return "", fmt.Errorf("USB input unavailable for profile %s: %s", p.ID, p.Distribution.Reason)
 	}
 	if run.Profile.CivSwitch || p.Revision != run.Profile.Revision || p.SourceSHA256 != run.Profile.SourceSHA256 ||
 		p.BootstrapSHA256 != run.Profile.BootstrapSHA256 || p.SaveName != run.Profile.SaveName ||
 		p.StartArgumentCount != run.Profile.StartArgumentCount || p.StartPort != run.Profile.StartPort ||
 		!slices.Contains(p.SessionProfile().Editions, run.Edition) {
-		return errors.New("USB profile or edition identity mismatch")
+		return "", errors.New("USB profile or edition identity mismatch")
 	}
 	root, err := engine.Stage(o)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return o.Manifest.VerifyProfile(root, p.ID)
+	if err := o.Manifest.VerifyProfile(root, p.ID); err != nil {
+		return "", err
+	}
+	d.configMu.Lock()
+	d.stagedRoot = root
+	d.configMu.Unlock()
+	return root, nil
 }
 
-// Check verifies development provenance, bytes and settings without executing a
-// helper or initializing USB. It is not enumeration or hardware evidence.
+// Check verifies bundled or developer provenance, bytes and settings without
+// executing a helper or initializing USB. It is not enumeration or hardware evidence.
 func (d *Darwin) Check(ctx context.Context, run session.Run) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := d.authorize(run); err != nil {
+	root, err := d.authorize(run)
+	if err != nil {
 		return err
 	}
 	if _, err := d.environment(); err != nil {
@@ -159,7 +187,16 @@ func (d *Darwin) Check(ctx context.Context, run session.Run) error {
 		return d.options.Helpers.verify()
 	}
 	if !d.trusted {
-		return errors.New("USB helpers require explicit developer staging; redistribution is blocked")
+		if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
+			return errors.New("Darwin USB helpers require Apple Silicon macOS")
+		}
+		if d.options.Runtime.DeveloperSourceRoot != "" {
+			return errors.New("developer USB helpers require BuildDeveloperHelpers")
+		}
+		if err := engine.VerifyUSB(root, d.options.Runtime.Manifest); err != nil {
+			return err
+		}
+		return d.options.Runtime.Manifest.Verify(root, "libusbd-dylib")
 	}
 	return nil
 }

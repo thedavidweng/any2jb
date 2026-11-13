@@ -142,13 +142,31 @@ func TestDistributionAvailability(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"pepsipu", "kurumuz", "cellenseres", "BermTheSequel", "izmysh", "astral", "browser-research"} {
+	for _, id := range []string{"pepsipu", "kurumuz", "cellenseres", "BermTheSequel", "astral"} {
+		gate, err := m.DistributionFor(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !gate.Available() || !gate.Bundled || gate.Notice == "" || gate.Reason == "" {
+			t.Fatalf("%s must be bundled with notice and reason: %+v", id, gate)
+		}
+	}
+	for _, id := range []string{"izmysh", "browser-research"} {
 		gate, err := m.DistributionFor(id)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if gate.Available() || gate.Bundled || gate.Reason == "" {
 			t.Fatalf("%s must be unavailable with a reason: %+v", id, gate)
+		}
+	}
+	for _, id := range []string{"mintbrew", "mintbrew-native", "izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"} {
+		gate, err := m.DistributionFor(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if gate.Decision != "may-ship" || gate.Bundled || gate.Available() || gate.Reason == "" {
+			t.Fatalf("%s must be on-demand (may-ship, bundled=false): %+v", id, gate)
 		}
 	}
 	if _, err := m.DistributionFor("unknown"); err == nil {
@@ -199,27 +217,75 @@ func TestCanonicalResourcesPassDistributionGate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Ordinary tests stay offline. A source checkout has no generated Node
-	// binaries until prepare-runtime runs; the build gate must reject that state.
-	missingAny := false
-	for _, platform := range []string{"darwin-arm64", "linux-amd64", "linux-arm64"} {
-		if _, err := os.Stat(filepath.Join("../resources", platform, "runtime/node")); os.IsNotExist(err) {
-			missingAny = true
+	// Ordinary tests stay offline. A source checkout has no generated runtime or
+	// upstream vendor files until prepare-runtime runs; the build gate must
+	// reject that unpopulated state while still verifying all committed files.
+	committed := map[string]bool{
+		"placeholder-icon": true,
+		"mygo-notice":      true,
+		"engine-bridge":    true,
+		"tool-host":        true,
+	}
+	missingGenerated := false
+	for _, p := range m.Profiles {
+		if !p.Distribution.Bundled {
+			continue
+		}
+		if _, err := os.Stat(filepath.Join("../resources", filepath.FromSlash(p.Bootstrap))); os.IsNotExist(err) {
+			missingGenerated = true
 		}
 	}
-	if missingAny {
-		if err := m.CheckPackage("../resources"); !errors.Is(err, os.ErrNotExist) {
-			t.Fatalf("missing generated Node accepted: %v", err)
-		}
-		for i := range m.Components {
-			if m.Runtime.IsNodeComponent(m.Components[i].ID) {
-				if _, err := os.Stat(filepath.Join("../resources", m.Components[i].ResourcePlatform, "runtime/node")); os.IsNotExist(err) {
-					m.Components[i].Distribution.Bundled = false
-				}
+	hasGenerated := func(c manifest.Component) bool {
+		for _, p := range []string{c.Path, c.PackagedGzip} {
+			if p == "" {
+				continue
+			}
+			rel := p
+			if c.ResourcePlatform != "" {
+				rel = c.ResourcePlatform + "/" + rel
+			}
+			if _, err := os.Stat(filepath.Join("../resources", filepath.FromSlash(rel))); err == nil {
+				return true
 			}
 		}
+		return false
 	}
-	if err := m.CheckPackage("../resources"); err != nil {
+	for _, c := range m.Components {
+		if !c.Distribution.Bundled || committed[c.ID] {
+			continue
+		}
+		if !hasGenerated(c) {
+			missingGenerated = true
+		}
+	}
+	if missingGenerated {
+		if err := m.CheckPackage("../resources"); !errors.Is(err, os.ErrNotExist) {
+			t.Fatalf("missing generated resources accepted: %v", err)
+		}
+		unmarked := *m
+		unmarked.Profiles = append([]manifest.Profile(nil), m.Profiles...)
+		unmarked.Components = append([]manifest.Component(nil), m.Components...)
+		for i := range unmarked.Profiles {
+			if !unmarked.Profiles[i].Distribution.Bundled {
+				continue
+			}
+			if _, err := os.Stat(filepath.Join("../resources", filepath.FromSlash(unmarked.Profiles[i].Bootstrap))); os.IsNotExist(err) {
+				unmarked.Profiles[i].Distribution.Bundled = false
+			}
+		}
+		for i := range unmarked.Components {
+			c := &unmarked.Components[i]
+			if !c.Distribution.Bundled || committed[c.ID] {
+				continue
+			}
+			if !hasGenerated(*c) {
+				c.Distribution.Bundled = false
+			}
+		}
+		if err := unmarked.CheckPackage("../resources"); err != nil {
+			t.Fatal(err)
+		}
+	} else if err := m.CheckPackage("../resources"); err != nil {
 		t.Fatal(err)
 	}
 	for _, p := range m.Profiles {

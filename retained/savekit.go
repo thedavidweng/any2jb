@@ -18,20 +18,22 @@ import (
 //go:embed savekit-host.cjs
 var savekitHost []byte
 
-// savekitModule resolves the host module path: the explicit fixture module, or
-// the embedded original module written under the private support root.
-func (m *Manager) savekitModule() (string, error) {
-	if m.options.SaveKitModule != "" {
-		return m.options.SaveKitModule, nil
+// savekitClient resolves the host module and staged tool root: the explicit
+// fixture module in tests, or the embedded original module paired with the
+// verified tool stage under the private support root.
+func (m *Manager) savekitClient() (savekit.Client, error) {
+	o, _ := m.snapshotOptions()
+	if o.SaveKitModule != "" {
+		return savekit.Client{Node: o.Node, Module: o.SaveKitModule, Scenario: o.SaveKitScenario}, nil
 	}
-	if m.options.Support == "" {
-		return "", errors.New("no private support directory for the SaveKit host")
+	if o.Support == "" {
+		return savekit.Client{}, errors.New("no private support directory for the SaveKit host")
 	}
-	module := filepath.Join(m.options.Support, "savekit-host.cjs")
+	module := filepath.Join(o.Support, "savekit-host.cjs")
 	if err := os.WriteFile(module, savekitHost, 0o600); err != nil {
-		return "", err
+		return savekit.Client{}, err
 	}
-	return module, nil
+	return savekit.Client{Node: o.Node, Module: module, StagedRoot: o.ToolRoot}, nil
 }
 
 // acquireSaveKit takes the SaveKit owner slot for one synchronous operation
@@ -105,7 +107,7 @@ func (m *Manager) runSaveKit(ctx context.Context, run session.Run, request sessi
 		return err
 	}
 	defer release()
-	module, err := m.savekitModule()
+	client, err := m.savekitClient()
 	if err != nil {
 		return err
 	}
@@ -120,7 +122,6 @@ func (m *Manager) runSaveKit(ctx context.Context, run session.Run, request sessi
 		destination = folder
 	}
 	report(session.Progress{SideEffect: true})
-	client := savekit.Client{Node: m.options.Node, Module: module, Scenario: m.options.SaveKitScenario}
 	result, err := client.Run(ctx, workspace, destination, *request.SaveKit)
 	if err != nil {
 		return err

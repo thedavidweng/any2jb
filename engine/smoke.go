@@ -27,6 +27,12 @@ func SelfTest(ctx context.Context, assets, version string, m *manifest.Manifest)
 		if !c.Distribution.Available() {
 			return fmt.Errorf("bundled component %s is not permitted", c.ID)
 		}
+		if c.Source != nil {
+			if err := m.VerifyToolSource(assets, c.ID); err != nil {
+				return err
+			}
+			continue
+		}
 		rel := assetRelPath(assets, c, true)
 		if _, err := m.ReadAt(assets, c.ID, rel); err != nil {
 			return err
@@ -38,6 +44,13 @@ func SelfTest(ctx context.Context, assets, version string, m *manifest.Manifest)
 			}
 			if info.Mode().Perm()&0o111 == 0 {
 				return errors.New("packaged Node is not executable")
+			}
+		}
+	}
+	for _, p := range m.Profiles {
+		if p.Distribution.Available() {
+			if err := m.VerifyProfile(assets, p.ID); err != nil {
+				return err
 			}
 		}
 	}

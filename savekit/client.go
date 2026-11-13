@@ -16,7 +16,7 @@ import (
 // must echo the requested action exactly: protocol drift, including a host
 // claiming an action it was not asked for, is refused.
 type Client struct {
-	Node, Module string
+	Node, Module, StagedRoot string
 	// Scenario selects the structured fixture's behavior. It is a test seam and
 	// stays empty in production.
 	Scenario string
@@ -50,9 +50,13 @@ func (c Client) Run(ctx context.Context, runDir, destination string, request Req
 	if err != nil {
 		return Result{}, err
 	}
-	args := []string{c.Module, runDir, "-"}
+	dest := "-"
 	if destination != "" {
-		args[2] = destination
+		dest = destination
+	}
+	args := []string{c.Module, runDir, dest}
+	if c.StagedRoot != "" {
+		args = []string{c.Module, c.StagedRoot, runDir, dest}
 	}
 	if c.Scenario != "" {
 		args = append(args, c.Scenario)

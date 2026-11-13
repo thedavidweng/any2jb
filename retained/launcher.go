@@ -29,10 +29,11 @@ func (m *Manager) PrepareLauncher(ctx context.Context, r launcher.Request, targe
 	if reason := m.Unavailable(r.ID, ""); reason != "" {
 		return "", savekit.Preview{}, errors.New(reason)
 	}
-	if m.options.Manifest == nil {
+	o, _ := m.snapshotOptions()
+	if o.Manifest == nil {
 		return "", savekit.Preview{}, errors.New("launcher package is not recorded")
 	}
-	c, err := m.options.Manifest.ToolComponent(r.ID)
+	c, err := o.Manifest.ToolComponent(r.ID)
 	if err != nil {
 		return "", savekit.Preview{}, err
 	}
@@ -51,7 +52,7 @@ func (m *Manager) PrepareLauncher(ctx context.Context, r launcher.Request, targe
 			return "", savekit.Preview{}, errors.New("the full-game export belongs to a different account")
 		}
 	}
-	parent := filepath.Join(m.options.Support, "launcher-previews")
+	parent := filepath.Join(o.Support, "launcher-previews")
 	if err := os.MkdirAll(parent, 0700); err != nil {
 		return "", savekit.Preview{}, err
 	}
@@ -60,7 +61,7 @@ func (m *Manager) PrepareLauncher(ctx context.Context, r launcher.Request, targe
 		return "", savekit.Preview{}, err
 	}
 	folder := filepath.Join(dir, "save")
-	preview, err := launcher.Prepare(ctx, m.options.Manifest, c, filepath.Join(m.options.ToolRoot, "tools", r.ID), folder, m.options.Node, r.BackupFolder)
+	preview, err := launcher.Prepare(ctx, o.Manifest, c, filepath.Join(o.ToolRoot, "tools", r.ID), folder, o.Node, r.BackupFolder)
 	if err != nil {
 		return "", savekit.Preview{}, errors.Join(err, os.RemoveAll(dir))
 	}

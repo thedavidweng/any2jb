@@ -1,6 +1,7 @@
 package retained
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -93,14 +94,23 @@ func VerifyHomebrewRuntime(dir, lockSHA256, adapterSHA256 string) error {
 	return nil
 }
 
-// StageHomebrewRuntime prepares the pinned portable runtime from the staged
-// homebrew-runtime inputs, unless the prepared output already verifies against
-// them. It returns the prepared root, or "" without a developer stage. The
-// preparation needs python3, network access and Xcode tools; that is why it is
-// a developer-only local stage and never part of a packaged app.
-func StageHomebrewRuntime(o StageOptions, toolRoot string, staged []string) (string, error) {
-	if o.SourceRoot == "" || !slices.Contains(staged, "homebrew-runtime") {
-		return "", nil
+// CheckHomebrewRuntime verifies an already-prepared portable homebrew runtime
+// against the staged homebrew-runtime lock and font adapter without invoking
+// python3 or touching the network. It returns "" when absent or unverified.
+func CheckHomebrewRuntime(toolRoot string) string {
+	out, lock, adapter, err := homebrewRuntimePaths(toolRoot)
+	if err != nil {
+		return ""
+	}
+	if VerifyHomebrewRuntime(out, lock, adapter) != nil {
+		return ""
+	}
+	return out
+}
+
+func homebrewRuntimePaths(toolRoot string) (out, lock, adapter string, err error) {
+	if toolRoot == "" {
+		return "", "", "", errors.New("missing tool root")
 	}
 	inputs := filepath.Join(toolRoot, "tools", "homebrew-runtime")
 	digest := func(name string) (string, error) {
@@ -111,16 +121,36 @@ func StageHomebrewRuntime(o StageOptions, toolRoot string, staged []string) (str
 		sum := sha256.Sum256(data)
 		return hex.EncodeToString(sum[:]), nil
 	}
-	lock, err := digest("packaging/homebrew-runtime.lock.json")
+	lock, err = digest("packaging/homebrew-runtime.lock.json")
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
-	adapter, err := digest("packaging/homebrew/sitecustomize.py")
+	adapter, err = digest("packaging/homebrew/sitecustomize.py")
 	if err != nil {
-		return "", err
+		return "", "", "", err
 	}
 	versionRoot := filepath.Dir(toolRoot)
-	out := filepath.Join(versionRoot, "homebrew-runtime", "homebrew")
+	out = filepath.Join(versionRoot, "homebrew-runtime", "homebrew")
+	return out, lock, adapter, nil
+}
+
+// StageHomebrewRuntime prepares the pinned portable runtime from the staged
+// homebrew-runtime inputs, unless the prepared output already verifies against
+// them. It returns the prepared root, or "" without a source stage.
+func StageHomebrewRuntime(o StageOptions, toolRoot string, staged []string) (string, error) {
+	return StageHomebrewRuntimeContext(context.Background(), o, toolRoot, staged)
+}
+
+// StageHomebrewRuntimeContext prepares the pinned portable runtime with
+// cancellation support for on-demand installation.
+func StageHomebrewRuntimeContext(ctx context.Context, o StageOptions, toolRoot string, staged []string) (string, error) {
+	if o.SourceRoot == "" || !slices.Contains(staged, "homebrew-runtime") {
+		return "", nil
+	}
+	out, lock, adapter, err := homebrewRuntimePaths(toolRoot)
+	if err != nil {
+		return "", err
+	}
 	if VerifyHomebrewRuntime(out, lock, adapter) == nil {
 		return out, nil
 	}
@@ -131,11 +161,13 @@ func StageHomebrewRuntime(o StageOptions, toolRoot string, staged []string) (str
 	if err := os.RemoveAll(out); err != nil {
 		return "", err
 	}
+	inputs := filepath.Join(toolRoot, "tools", "homebrew-runtime")
+	versionRoot := filepath.Dir(toolRoot)
 	downloads := filepath.Join(versionRoot, "homebrew-runtime", "downloads")
 	if err := os.MkdirAll(downloads, 0o700); err != nil {
 		return "", err
 	}
-	prepare := exec.Command(python, filepath.Join(inputs, "scripts", "prepare-homebrew-runtime.py"),
+	prepare := exec.CommandContext(ctx, python, filepath.Join(inputs, "scripts", "prepare-homebrew-runtime.py"),
 		"--output", out, "--downloads", downloads)
 	if err := prepare.Run(); err != nil {
 		return "", fmt.Errorf("the staged homebrew runtime preparation failed: %w", err)
@@ -144,6 +176,16 @@ func StageHomebrewRuntime(o StageOptions, toolRoot string, staged []string) (str
 		return "", err
 	}
 	return out, nil
+}
+
+// CheckIZLauncher verifies an already-prepared IZlauncher runtime without
+// rebuilding it.
+func CheckIZLauncher(node, dest string) error {
+	if node == "" || dest == "" {
+		return errors.New("missing node or IZlauncher destination")
+	}
+	script := filepath.Join(dest, "scripts", "prepare-izlauncher.cjs")
+	return exec.Command(node, script, "--check", dest).Run()
 }
 
 // StageIZLauncher builds the pinned prepared IZlauncher runtime from the

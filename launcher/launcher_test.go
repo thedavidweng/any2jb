@@ -57,8 +57,8 @@ func TestLauncherRestrictions(t *testing.T) {
 			t.Fatalf("%s accepted wrong game/edition", id)
 		}
 		d, _ := m.DistributionFor(id)
-		if d.Available() || d.Bundled || d.Reason == "" {
-			t.Fatalf("%s bypassed rights gate", id)
+		if !d.Available() || !d.Bundled || d.Reason == "" {
+			t.Fatalf("%s is not marked bundled and available with a reason", id)
 		}
 	}
 	c, _ := m.ToolComponent("launcher-balatro")

@@ -23,6 +23,30 @@ type Manifest struct {
 	Components []Component     `json:"components"`
 }
 
+// ReferenceSource pins the upstream reference repository and archive used to
+// stage verified bundled assets and optional on-demand homebrew components.
+type ReferenceSource struct {
+	Upstream      string `json:"upstream"`
+	Revision      string `json:"revision"`
+	Archive       string `json:"archive"`
+	ArchiveSHA256 string `json:"archiveSha256"`
+}
+
+// ReferenceInfo decodes the canonical reference block from the manifest.
+func (m *Manifest) ReferenceInfo() (ReferenceSource, error) {
+	var ref ReferenceSource
+	if len(m.Reference) == 0 {
+		return ref, fmt.Errorf("missing reference block in manifest")
+	}
+	if err := json.Unmarshal(m.Reference, &ref); err != nil {
+		return ref, err
+	}
+	if ref.Upstream == "" || ref.Revision == "" {
+		return ref, fmt.Errorf("incomplete reference block in manifest")
+	}
+	return ref, nil
+}
+
 // RuntimeTarget pins the official Node sidecar archive and component for one platform.
 type RuntimeTarget struct {
 	Node              string `json:"node"`
@@ -153,6 +177,7 @@ type Profile struct {
 type Component struct {
 	Launcher         *LauncherSave `json:"launcher,omitempty"`
 	ResourcePlatform string        `json:"resourcePlatform,omitempty"`
+	PackagedGzip     string        `json:"packagedGzip,omitempty"`
 	Source           *ToolSource   `json:"source,omitempty"`
 	Distribution     Distribution  `json:"distribution"`
 	ID               string        `json:"id"`

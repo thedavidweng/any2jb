@@ -1,6 +1,8 @@
 package driver_test
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -146,19 +148,131 @@ func TestPackagedDriverBlockedWithCanonicalReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	d, err := m.DistributionFor("usbgadget-binary")
-	if err != nil {
-		t.Fatal(err)
+	blocked := *m
+	blocked.Components = append([]manifest.Component(nil), m.Components...)
+	const blocker = "USB driver distribution is blocked in this test fixture."
+	for i := range blocked.Components {
+		if blocked.Components[i].ID == "usbgadget-binary" {
+			blocked.Components[i].Distribution = manifest.Distribution{Decision: "blocked", Reason: blocker}
+		}
 	}
 	called := false
-	g := driver.New(driver.Options{Manifest: m, Administrator: func(context.Context, string) error {
+	g := driver.New(driver.Options{Manifest: &blocked, Administrator: func(context.Context, string) error {
 		called = true
 		return nil
 	}})
-	if err := g.Availability(); err == nil || !strings.Contains(err.Error(), d.Reason) {
+	if err := g.Availability(); err == nil || !strings.Contains(err.Error(), blocker) {
 		t.Fatalf("missing canonical blocker: %v", err)
 	}
 	if _, err := g.Install(context.Background(), true); err == nil || called {
 		t.Fatalf("blocked package invoked administrator: %v, called=%v", err, called)
+	}
+	missingAssets := driver.New(driver.Options{Manifest: m, Assets: t.TempDir(), Administrator: func(context.Context, string) error {
+		called = true
+		return nil
+	}})
+	if err := missingAssets.Availability(); err == nil {
+		t.Fatal("missing bundled driver files accepted")
+	}
+}
+
+func TestPackagedDriverInstallVerifiesBundledAndOverlayAssets(t *testing.T) {
+	root, m := fixture(t)
+	for i := range m.Components {
+		m.Components[i].Distribution = manifest.Distribution{Decision: "may-ship", Bundled: true}
+	}
+	overlay := t.TempDir()
+	for _, c := range m.Components {
+		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(c.Path)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		dst := filepath.Join(overlay, "darwin-arm64", filepath.FromSlash(c.Path))
+		if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(dst, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, assets := range []string{root, overlay} {
+		called := false
+		g := driver.New(driver.Options{Manifest: m, Assets: assets, Administrator: func(_ context.Context, installer string) error {
+			called = true
+			if !strings.HasSuffix(filepath.ToSlash(installer), "/scripts/install-driver.sh") {
+				t.Fatalf("unexpected installer path: %q", installer)
+			}
+			return nil
+		}})
+		if err := g.Availability(); err != nil {
+			t.Fatalf("bundled driver unavailable for %s: %v", assets, err)
+		}
+		result, err := g.Install(context.Background(), true)
+		if err != nil || !called || !result.Attempted || !result.RestartRequired || result.DeveloperSource {
+			t.Fatalf("packaged driver install failed: %+v %v", result, err)
+		}
+	}
+}
+
+func TestPackagedGzipDriverInstallMaterializesVerifiedKext(t *testing.T) {
+	root, m := fixture(t)
+	wantBinary, err := os.ReadFile(filepath.Join(root, "drivers/usbgadget.kext/Contents/MacOS/usbgadget"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assets := t.TempDir()
+	for i := range m.Components {
+		m.Components[i].Distribution = manifest.Distribution{Decision: "may-ship", Bundled: true}
+		if m.Components[i].ID == "usbgadget-binary" {
+			m.Components[i].PackagedGzip = "drivers/usbgadget.kext/Contents/MacOS/usbgadget.gz"
+			var buf bytes.Buffer
+			gz := gzip.NewWriter(&buf)
+			if _, err := gz.Write(wantBinary); err != nil {
+				t.Fatal(err)
+			}
+			if err := gz.Close(); err != nil {
+				t.Fatal(err)
+			}
+			dst := filepath.Join(assets, filepath.FromSlash(m.Components[i].PackagedGzip))
+			if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(dst, buf.Bytes(), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(m.Components[i].Path)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		dst := filepath.Join(assets, filepath.FromSlash(m.Components[i].Path))
+		if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(dst, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	called := false
+	g := driver.New(driver.Options{Manifest: m, Assets: assets, Administrator: func(_ context.Context, installer string) error {
+		called = true
+		stage := filepath.Dir(filepath.Dir(installer))
+		got, err := os.ReadFile(filepath.Join(stage, "drivers/usbgadget.kext/Contents/MacOS/usbgadget"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, wantBinary) {
+			t.Fatalf("staged kext bytes %q != %q", got, wantBinary)
+		}
+		info, err := os.Stat(filepath.Join(stage, "drivers/usbgadget.kext/Contents/MacOS/usbgadget"))
+		if err != nil || info.Mode().Perm()&0o111 == 0 {
+			t.Fatalf("staged kext missing executable mode: %v", err)
+		}
+		return nil
+	}})
+	result, err := g.Install(context.Background(), true)
+	if err != nil || !called || !result.Attempted || !result.RestartRequired || result.DeveloperSource {
+		t.Fatalf("packaged gzip driver install failed: %+v %v", result, err)
 	}
 }

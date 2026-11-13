@@ -25,6 +25,8 @@ import (
 const (
 	backupPayloadComponent = "civswitch-backup-payload"
 	installerComponent     = "civswitch-installer"
+	coreComponent          = "civswitch-core"
+	saveTemplateComponent  = "civswitch-save-template"
 	controlCenterComponent = "civswitch-control-center"
 	installConfirmation    = "INSTALL DONE - reboot, Load Game"
 	backupFramePrefix      = "MAC2JB_CIV_BACKUP "
@@ -39,8 +41,9 @@ func (a *Adapter) dependentLoader(ctx context.Context, address string, component
 	if err := a.verifySource(); err != nil {
 		return "", err
 	}
+	root := a.sourceRoot()
 	for _, id := range components {
-		if err := a.options.Manifest.Verify(a.options.DeveloperSourceRoot, id); err != nil {
+		if err := a.options.Manifest.Verify(root, id); err != nil {
 			return "", err
 		}
 	}
@@ -71,9 +74,10 @@ func (a *Adapter) retainedDirectory(kind string) (string, error) {
 }
 
 func (a *Adapter) componentPath(id string) (string, error) {
+	root := a.sourceRoot()
 	for _, c := range a.options.Manifest.Components {
 		if c.ID == id {
-			return filepath.Join(a.options.DeveloperSourceRoot, c.Path), nil
+			return filepath.Join(root, c.Path), nil
 		}
 	}
 	return "", errors.New("unrecorded CivSwitch component " + id)
@@ -91,11 +95,17 @@ func (a *Adapter) InstallBootTrigger(ctx context.Context, address string, confir
 	if err != nil {
 		return "", err
 	}
-	endpoint, err := a.dependentLoader(ctx, address, backupPayloadComponent, installerComponent)
+	required := []string{backupPayloadComponent}
+	if a.options.DeveloperInstallerPython != "" {
+		required = append(required, installerComponent)
+	} else {
+		required = append(required, coreComponent, saveTemplateComponent)
+	}
+	endpoint, err := a.dependentLoader(ctx, address, required...)
 	if err != nil {
 		return "", err
 	}
-	payload, err := a.options.Manifest.Read(a.options.DeveloperSourceRoot, backupPayloadComponent)
+	payload, err := a.options.Manifest.Read(a.sourceRoot(), backupPayloadComponent)
 	if err != nil {
 		return "", err
 	}
@@ -105,7 +115,7 @@ func (a *Adapter) InstallBootTrigger(ctx context.Context, address string, confir
 	}
 	// Reading the saves is read-only; the installer is the first console write.
 	report(session.Progress{SideEffect: true})
-	if err := a.runInstaller(ctx, address); err != nil {
+	if err := a.runInstaller(ctx, endpoint, address); err != nil {
 		return backup, err
 	}
 	return backup, nil
@@ -124,9 +134,13 @@ func (a *Adapter) backupSingleSaves(ctx context.Context, endpoint, address, back
 	return receiver.commit()
 }
 
-// The installer is the pinned upstream script, run with a fixed argument list
-// and no shell. Console or loader output never becomes part of a command.
-func (a *Adapter) runInstaller(ctx context.Context, address string) error {
+// The installer runs either the verified pure-Go stage/template uploader or,
+// when explicitly requested in developer mode, the pinned upstream Python
+// script with a fixed argument list and no shell.
+func (a *Adapter) runInstaller(ctx context.Context, endpoint, address string) error {
+	if a.options.DeveloperInstallerPython == "" {
+		return a.runNativeInstaller(ctx, endpoint)
+	}
 	if !filepath.IsAbs(a.options.DeveloperInstallerPython) {
 		return errors.New("the CivSwitch trigger installer needs an explicit Python 3 interpreter path; none is bundled")
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"strings"
 
 	"github.com/egoist/mygo/ui"
@@ -8,6 +9,11 @@ import (
 	"github.com/thedavidweng/any2jb/retained"
 	"github.com/thedavidweng/any2jb/session"
 )
+
+type homebrewInstaller interface {
+	HomebrewInstallable(session.Profile) bool
+	InstallHomebrew(context.Context) error
+}
 
 // homebrewPanel is the homebrew launcher's ephemeral input. The session
 // controller validates every field again before a launch.
@@ -18,6 +24,8 @@ type homebrewPanel struct {
 	consentedModsFolder                           string
 	customConsent, nativeConsent                  bool
 	consentedCustomFolder, consentedAppFolder     string
+	installing                                    bool
+	installNotice                                 string
 }
 
 // homebrewView offers the pinned homebrew launchers. Gating is the same
@@ -26,15 +34,29 @@ type homebrewPanel struct {
 func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.State) {
 	p := &a.homebrewPanel
 	leased := s.Leased()
+	installer, ok := a.tools.(homebrewInstaller)
+	canInstall := ok && installer.HomebrewInstallable(s.Profile)
 	mintbrew, mintbrewReason := a.toolGate(s, state, "mintbrew")
 	native, nativeReason := a.toolGate(s, state, "native-hblauncher")
 	iz, izReason := a.toolGate(s, state, "izlauncher")
 	custom, customReason := a.toolGate(s, state, "custom-homebrew")
-	if mintbrewReason != "" && nativeReason != "" && izReason != "" && customReason != "" {
+	if mintbrewReason != "" && nativeReason != "" && izReason != "" && customReason != "" &&
+		!canInstall && !p.installing && p.installNotice == "" {
 		return
 	}
 	sectionTitle(c, locales.HbTitle())
 	ui.Text(c, locales.HbNote()).TextColor(c.Theme().TextMuted)
+	if canInstall || p.installing {
+		ui.Text(c, locales.HbInstallNote()).TextColor(c.Theme().TextMuted)
+		if inline(ui.Button(c.Key("hb-install"), locales.HbInstall())).Disabled(s.Busy || p.installing || state.Tool != "" || a.toolsPanel.update == nil).Clicked() {
+			a.installHomebrew(installer)
+		}
+	}
+	if p.installing {
+		ui.Text(c.Key("hb-install-status"), locales.HbInstalling()).Role(ui.RoleStatus)
+	} else if p.installNotice != "" {
+		ui.Text(c.Key("hb-install-status"), p.installNotice).Role(ui.RoleStatus)
+	}
 	if mintbrewReason == "" {
 		if inline(ui.Button(c.Key("hb-mintbrew"), locales.HbMintbrew())).Disabled(mintbrew).Clicked() {
 			a.runHomebrew("mintbrew")
@@ -133,4 +155,25 @@ func (a *app) runHomebrew(tool string) {
 		}
 	}
 	a.command(a.controller.RunToolWith(request))
+}
+
+func (a *app) installHomebrew(installer homebrewInstaller) {
+	p := &a.homebrewPanel
+	update := a.toolsPanel.update
+	if installer == nil || p.installing || update == nil {
+		return
+	}
+	p.installing = true
+	p.installNotice = ""
+	go func() {
+		err := installer.InstallHomebrew(context.Background())
+		update(func() {
+			p.installing = false
+			if err != nil {
+				p.installNotice = localize(err.Error())
+			} else {
+				p.installNotice = locales.HbInstallReady()
+			}
+		})
+	}()
 }

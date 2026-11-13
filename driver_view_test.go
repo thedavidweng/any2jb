@@ -27,7 +27,7 @@ func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
 	if _, err := a.controller.Inspect(); err != nil {
 		t.Fatal(err)
 	}
-	a.driverPanel.gate = driver.New(driver.Options{Manifest: a.manifest})
+	a.driverPanel.gate = blockedDriverGate(a.manifest)
 	tt := ui.NewTester(a.view, 900, 2200)
 	uiStage(t, a, tt, session.Ready)
 	before := a.controller.Snapshot()
@@ -36,8 +36,8 @@ func TestDriverPanelBlockedAndDeclinePreservesSession(t *testing.T) {
 	if err := tt.Click("Review USB driver setup"); err != nil {
 		t.Fatal(err)
 	}
-	d, _ := a.manifest.DistributionFor("usbgadget-binary")
-	for _, message := range []string{d.Reason, "USB driver and startup security", "This driver is unsigned. It requires reduced startup security and user-approved kernel extensions. Re-enabling full protection with this driver has not been verified."} {
+	const blockedReason = "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled."
+	for _, message := range []string{blockedReason, "USB driver and startup security", "This driver is unsigned. It requires reduced startup security and user-approved kernel extensions. Re-enabling full protection with this driver has not been verified."} {
 		if !tt.HasText(message) {
 			t.Fatalf("missing disclosure %q: %v", message, tt.Texts())
 		}

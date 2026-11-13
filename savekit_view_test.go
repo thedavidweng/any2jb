@@ -118,7 +118,7 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 	// The refusal follows the app language like every other adapter reason.
 	withLocale(t, "zh-CN")
 	tt.Frame()
-	if !tt.HasText(locales.DynDistSaveKit()) || tt.HasText(d.Reason) {
+	if !tt.HasText(locales.DynDistBundledSaveKit()) || tt.HasText(d.Reason) {
 		t.Fatalf("the refusal is not localized: %q", tt.Texts())
 	}
 }

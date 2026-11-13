@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -108,6 +109,12 @@ func copyDeveloperProfile(source, dest string, p manifest.Profile) error {
 			return err
 		}
 		target := filepath.Join(dest, filepath.FromSlash(name))
+		if existing, err := os.ReadFile(target); err == nil {
+			if bytes.Equal(existing, data) {
+				continue
+			}
+			return fmt.Errorf("conflicting staged profile file %q", name)
+		}
 		if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
 			return err
 		}

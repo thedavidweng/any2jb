@@ -4,7 +4,13 @@
 /.mygo/
 mygo_windows_*.syso
 /.cache/
-/resources/darwin-arm64/runtime/node
-/resources/linux-amd64/runtime/node
-/resources/linux-arm64/runtime/node
+/resources/LICENSE
+/resources/assets/
+/resources/integrations/
+/resources/packaging/
+/resources/scripts/
+/resources/vendor/
+/resources/darwin-arm64/
+/resources/linux-amd64/
+/resources/linux-arm64/
 /locales.ts

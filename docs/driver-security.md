@@ -38,17 +38,20 @@ has not been verified. Signing or notarizing any2jb does not approve the kext.
 
 ## Distribution status
 
-The four components `usbgadget-binary`, `usbgadget-info`, `usbgadget-checksums`
-and `driver-installer` are recorded at mac2jb `ce1ce5f` as `blocked`, not
-bundled, pending review of the exact binary's source/build materials and its
-MIT/APSL notices. While blocked, `Gate.Availability()` returns the canonical
-manifest reason, the panel shows it, and the approve action stays disabled.
+The six components `usbgadget-binary`, `usbgadget-info`, `usbgadget-checksums`,
+`usbgadget-license`, `usbgadget-apsl` and `driver-installer` are recorded at
+mac2jb `ce1ce5f` as `may-ship` (`bundled: true`, `resourcePlatform:
+"darwin-arm64"`). `cmd/prepare-runtime` stages them into
+`resources/darwin-arm64/` with retained MIT and APSL-2.0 notices, and
+`cmd/check-package` verifies their SHA-256 digests and license notices in
+`darwin-arm64` packages while ensuring no macOS kext files enter Linux packages.
+If a build is missing its driver files, `Gate.Availability()` refuses
+installation and the panel disables the approve action.
 
-A developer can opt in through the API only:
+A developer can also supply an explicit local source tree through the API:
 `driver.New(driver.Options{Manifest: m, DeveloperSourceRoot: <absolute pinned
 mac2jb clone>})`. That path still verifies every digest, and the panel marks
-it as developer-supplied and not cleared for redistribution. There is no
-environment variable or UI import route.
+it as developer-supplied.
 
 ## Integration
 

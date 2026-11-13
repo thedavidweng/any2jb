@@ -2,6 +2,7 @@ package manifest_test
 
 import (
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/thedavidweng/any2jb/manifest"
@@ -32,6 +33,9 @@ func TestPinnedSourceInventory(t *testing.T) {
 					t.Fatal(err)
 				}
 			})
+			continue
+		}
+		if slices.Contains(m.Runtime.Helpers, c.ID) || c.ID == "libusbd-dylib" {
 			continue
 		}
 		if c.Upstream != "https://github.com/cpypwn/mac2jb" && c.ID != "browser-research" {

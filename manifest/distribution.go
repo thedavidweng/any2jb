@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -38,6 +39,10 @@ type Distribution struct {
 // Available is the distribution capability gate, independent of host features.
 func (d Distribution) Available() bool { return d.Decision == "may-ship" && d.Bundled }
 
+// Permitted reports whether a component may be distributed (bundled or
+// verified on demand), rejecting blocked and excluded entries.
+func (d Distribution) Permitted() bool { return d.Decision == "may-ship" }
+
 // DistributionFor supplies the reason to show for an unavailable UI entry.
 func (m *Manifest) DistributionFor(id string) (Distribution, error) {
 	for _, p := range m.Profiles {
@@ -57,20 +62,54 @@ func (m *Manifest) DistributionFor(id string) (Distribution, error) {
 // allowlist. Unknown files, denied components, symlinks and changed bytes fail.
 // It does not check the app executable, signing, or legal obligations.
 func (m *Manifest) CheckPackage(root string) error {
-	// MyGo merges platform directories into the packaged resource root.
-	// This gate checks the source resources tree before that merge.
+	return m.CheckPackageForPlatform(root, "")
+}
+
+// CheckPackageForPlatform checks the source resources tree before MyGo merges
+// platform directories. When platform is non-empty, shared resources and that
+// target's overlay are required; other platform overlays, if already prepared
+// on disk, must still match recorded available components.
+func (m *Manifest) CheckPackageForPlatform(root, platform string) error {
+	if platform != "" && !slices.Contains(supportedResourcePlatforms, platform) {
+		return fmt.Errorf("unsupported resource platform %q", platform)
+	}
 	source := *m
-	source.Components = append([]Component(nil), m.Components...)
-	for i := range source.Components {
-		c := &source.Components[i]
+	source.Components = nil
+	otherOverlay := make(map[string]Component)
+	for _, c := range m.Components {
 		if c.ResourcePlatform != "" {
 			if !slices.Contains(supportedResourcePlatforms, c.ResourcePlatform) {
 				return fmt.Errorf("unsupported resource platform %q", c.ResourcePlatform)
 			}
 			c.Path = c.ResourcePlatform + "/" + c.Path
+			if c.PackagedGzip != "" {
+				c.PackagedGzip = c.ResourcePlatform + "/" + c.PackagedGzip
+			}
+			if platform != "" && c.ResourcePlatform != platform {
+				otherOverlay[c.Path] = c
+				if c.PackagedGzip != "" {
+					otherOverlay[c.PackagedGzip] = c
+				}
+				continue
+			}
 		}
+		source.Components = append(source.Components, c)
 	}
-	return source.checkPackage(root, func(string) bool { return false })
+	return source.checkPackage(root, func(name string) bool {
+		if platform == "" {
+			return false
+		}
+		c, ok := otherOverlay[name]
+		if !ok || !c.Distribution.Available() || c.Source != nil {
+			return false
+		}
+		if c.PackagedGzip != "" && name == c.PackagedGzip {
+			_, err := verifyGzipFile(root, c.ID, name, c.SHA256)
+			return err == nil
+		}
+		_, err := verifyFile(root, c.ID, name, c.SHA256)
+		return err == nil
+	})
 }
 
 // CheckPackageMerged checks an assembled macOS app's Contents/Resources, where
@@ -112,6 +151,42 @@ func (m *Manifest) CheckPackageMergedForPlatform(root, platform string) error {
 }
 
 func (m *Manifest) checkPackage(root string, generated func(string) bool) error {
+	checkNotice := func(id, notice string) error {
+		notice = strings.TrimSpace(notice)
+		if notice == "" {
+			return fmt.Errorf("bundled component %s has no third-party notice", id)
+		}
+		for _, name := range strings.Fields(notice) {
+			for _, n := range m.Components {
+				if (n.Path == name || stripOverlayPrefix(n.Path) == name) && !n.Distribution.Bundled {
+					return fmt.Errorf("bundled component %s names notice file %s, which is not bundled", id, name)
+				}
+			}
+		}
+		return nil
+	}
+	allowed := make(map[string]bool)
+	for _, p := range m.Profiles {
+		if !p.Distribution.Bundled {
+			continue
+		}
+		if !p.Distribution.Available() {
+			return fmt.Errorf("profile %s is bundled but %s", p.ID, p.Distribution.Decision)
+		}
+		if p.DistributionManifest == "" {
+			continue
+		}
+		if err := checkNotice(p.ID, p.Distribution.Notice); err != nil {
+			return err
+		}
+		files, err := m.ProfileFiles(root, p.ID)
+		if err != nil {
+			return err
+		}
+		for _, f := range files {
+			allowed[f] = true
+		}
+	}
 	// A bundled component must record its notice, and a notice that names a
 	// packaged file must ship it. The reference is the packaged path, which no
 	// platform prefix changes.
@@ -119,42 +194,68 @@ func (m *Manifest) checkPackage(root string, generated func(string) bool) error 
 		if !c.Distribution.Bundled {
 			continue
 		}
-		notice := strings.TrimSpace(c.Distribution.Notice)
-		if notice == "" {
-			return fmt.Errorf("bundled component %s has no third-party notice", c.ID)
-		}
-		for _, name := range strings.Fields(notice) {
-			for _, n := range m.Components {
-				if n.Path == name && !n.Distribution.Bundled {
-					return fmt.Errorf("bundled component %s names notice file %s, which is not bundled", c.ID, name)
-				}
-			}
+		if err := checkNotice(c.ID, c.Distribution.Notice); err != nil {
+			return err
 		}
 	}
 	for _, c := range m.Components {
-		if c.Distribution.Bundled {
-			if !c.Distribution.Available() {
-				return fmt.Errorf("component %s is bundled but %s", c.ID, c.Distribution.Decision)
+		if !c.Distribution.Bundled {
+			continue
+		}
+		if !c.Distribution.Available() {
+			return fmt.Errorf("component %s is bundled but %s", c.ID, c.Distribution.Decision)
+		}
+		if c.Source != nil {
+			if c.ResourcePlatform != "" {
+				return fmt.Errorf("tool source %s cannot use resourcePlatform", c.ID)
 			}
-			data, err := verifyFile(root, c.ID, c.Path, c.SHA256)
+			files, err := m.ToolSourceFiles(root, c.ID)
 			if err != nil {
 				return err
 			}
-			if m.Runtime.IsNodeComponent(c.ID) || slices.Contains(m.Runtime.Helpers, c.ID) {
-				platform := c.ResourcePlatform
-				if platform == "" {
-					platform = m.Runtime.Platform
-				}
-				if err := VerifyBinaryArchitecture(platform, data); err != nil {
-					return fmt.Errorf("%s: %w", c.ID, err)
-				}
-				info, err := os.Stat(filepath.Join(root, filepath.FromSlash(c.Path)))
-				if err != nil {
-					return err
-				}
-				if info.Mode().Perm()&0o111 == 0 {
-					return fmt.Errorf("%s: packaged executable bits missing", c.ID)
-				}
+			for _, f := range files {
+				allowed[f] = true
+			}
+			continue
+		}
+		var (
+			data       []byte
+			err        error
+			actualPath = c.Path
+			gzipped    bool
+		)
+		if c.PackagedGzip != "" {
+			data, err = verifyGzipFile(root, c.ID, c.PackagedGzip, c.SHA256)
+			if err == nil {
+				actualPath = c.PackagedGzip
+				gzipped = true
+			} else if errors.Is(err, os.ErrNotExist) {
+				data, err = verifyFile(root, c.ID, c.Path, c.SHA256)
+			}
+		} else {
+			data, err = verifyFile(root, c.ID, c.Path, c.SHA256)
+		}
+		if err != nil {
+			return err
+		}
+		allowed[actualPath] = true
+		isBinary := m.Runtime.IsNodeComponent(c.ID) || slices.Contains(m.Runtime.Helpers, c.ID) || c.ID == "libusbd-dylib"
+		if isBinary || c.ID == "usbgadget-binary" && gzipped {
+			platform := c.ResourcePlatform
+			if platform == "" {
+				platform = m.Runtime.Platform
+			}
+			if err := VerifyBinaryArchitecture(platform, data); err != nil {
+				return fmt.Errorf("%s: %w", c.ID, err)
+			}
+		}
+		if !gzipped && (isBinary || c.ID == "driver-installer" || c.ID == "usbgadget-binary") {
+			info, err := os.Stat(filepath.Join(root, filepath.FromSlash(actualPath)))
+			if err != nil {
+				return err
+			}
+			if info.Mode().Perm()&0o111 == 0 {
+				return fmt.Errorf("%s: packaged executable bits missing", c.ID)
 			}
 		}
 	}
@@ -177,14 +278,23 @@ func (m *Manifest) checkPackage(root string, generated func(string) bool) error 
 			}
 		}
 		for _, c := range m.Components {
-			if c.Path != name {
+			if c.Path != name && (c.PackagedGzip == "" || c.PackagedGzip != name) {
 				continue
 			}
 			if !c.Distribution.Available() {
 				return fmt.Errorf("package contains %s: %s (%s)", c.ID, c.Distribution.Decision, c.Distribution.Reason)
 			}
-			_, err := verifyFile(root, c.ID, name, c.SHA256)
-			return err
+			if c.Source == nil {
+				if c.PackagedGzip != "" && name == c.PackagedGzip {
+					_, err := verifyGzipFile(root, c.ID, name, c.SHA256)
+					return err
+				}
+				_, err := verifyFile(root, c.ID, name, c.SHA256)
+				return err
+			}
+		}
+		if allowed[name] {
+			return nil
 		}
 		if generated(name) {
 			return nil

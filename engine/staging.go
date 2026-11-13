@@ -37,13 +37,32 @@ func resolveRuntimeTarget(r manifest.Runtime) (string, manifest.RuntimeTarget, e
 	return platform, target, nil
 }
 
+func isRuntimeBinary(r manifest.Runtime, c manifest.Component) bool {
+	if r.IsNodeComponent(c.ID) {
+		return true
+	}
+	for _, h := range r.Helpers {
+		if c.ID == h {
+			return true
+		}
+	}
+	return strings.HasSuffix(c.Path, ".dylib") || strings.HasSuffix(c.Path, ".so")
+}
+
 func assetRelPath(root string, c manifest.Component, allowOverlay bool) string {
+	candidates := []string{c.Path}
+	if c.PackagedGzip != "" {
+		candidates = append(candidates, c.PackagedGzip)
+	}
 	if allowOverlay && c.ResourcePlatform != "" {
-		if _, err := os.Lstat(filepath.Join(root, filepath.FromSlash(c.Path))); os.IsNotExist(err) {
-			overlay := c.ResourcePlatform + "/" + c.Path
-			if _, err := os.Lstat(filepath.Join(root, filepath.FromSlash(overlay))); err == nil {
-				return overlay
-			}
+		candidates = append(candidates, c.ResourcePlatform+"/"+c.Path)
+		if c.PackagedGzip != "" {
+			candidates = append(candidates, c.ResourcePlatform+"/"+c.PackagedGzip)
+		}
+	}
+	for _, rel := range candidates {
+		if _, err := os.Lstat(filepath.Join(root, filepath.FromSlash(rel))); err == nil {
+			return rel
 		}
 	}
 	return c.Path
@@ -118,10 +137,24 @@ func Stage(o Options) (string, error) {
 	if profile != nil {
 		dest = filepath.Join(parent, profile.ID)
 	}
+	var bundledProfiles []manifest.Profile
+	if profile == nil {
+		for _, p := range o.Manifest.Profiles {
+			if p.Distribution.Available() {
+				bundledProfiles = append(bundledProfiles, p)
+			}
+		}
+	}
 	if _, err := os.Lstat(dest); err == nil {
 		err := verify(dest, platform, o.Manifest, components, false)
 		if err == nil && profile != nil {
 			err = o.Manifest.VerifyProfile(dest, profile.ID)
+		}
+		for _, p := range bundledProfiles {
+			if err != nil {
+				break
+			}
+			err = o.Manifest.VerifyProfile(dest, p.ID)
 		}
 		if err == nil {
 			err = verifySealed(dest, o.Manifest, record)
@@ -135,6 +168,11 @@ func Stage(o Options) (string, error) {
 	}
 	if err := verify(o.Assets, platform, o.Manifest, components, true); err != nil {
 		return "", err
+	}
+	for _, p := range bundledProfiles {
+		if err := o.Manifest.VerifyProfile(o.Assets, p.ID); err != nil {
+			return "", err
+		}
 	}
 	tmp, err := os.MkdirTemp(parent, ".stage-")
 	if err != nil {
@@ -151,9 +189,9 @@ func Stage(o Options) (string, error) {
 		if err := os.MkdirAll(filepath.Dir(target), 0o700); err != nil {
 			return "", err
 		}
-		mode := fs.FileMode(0o500)
-		if c.ID == r.Bridge || c.ID == r.ToolHost {
-			mode = 0o400
+		mode := fs.FileMode(0o400)
+		if isRuntimeBinary(r, c) {
+			mode = 0o500
 		}
 		if err := os.WriteFile(target, data, mode); err != nil {
 			return "", err
@@ -164,6 +202,14 @@ func Stage(o Options) (string, error) {
 			return "", err
 		}
 		if err := o.Manifest.VerifyProfile(tmp, profile.ID); err != nil {
+			return "", err
+		}
+	}
+	for _, p := range bundledProfiles {
+		if err := copyDeveloperProfile(o.Assets, tmp, p); err != nil {
+			return "", err
+		}
+		if err := o.Manifest.VerifyProfile(tmp, p.ID); err != nil {
 			return "", err
 		}
 	}
@@ -271,7 +317,7 @@ func verify(root, platform string, m *manifest.Manifest, components []manifest.C
 		if err != nil {
 			return err
 		}
-		if c.ID == m.Runtime.Bridge || c.ID == m.Runtime.ToolHost {
+		if !isRuntimeBinary(m.Runtime, c) {
 			continue
 		}
 		if err := manifest.VerifyBinaryArchitecture(platform, data); err != nil {

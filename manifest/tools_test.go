@@ -180,24 +180,46 @@ func TestCanonicalToolSourcesAreRecordedAndBlocked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"ouncecake", "sd-browser", "savekit", "mintbrew", "mintbrew-native",
-		"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime", "modloader",
+	bundledTools := []string{
+		"ouncecake", "sd-browser", "savekit", "modloader",
 		"launcher-seedsow-demo", "launcher-seedsow-full", "launcher-nora2-demo", "launcher-nora1-demo",
 		"launcher-hamidashi-demo", "launcher-lua-editor", "launcher-lua-editor-pro",
-		"launcher-balatro", "launcher-balatro-showcase", "launcher-gravity-circuit"} {
+		"launcher-balatro", "launcher-balatro-showcase", "launcher-gravity-circuit",
+	}
+	for _, id := range bundledTools {
 		c, err := m.ToolComponent(id)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if c.Distribution.Available() || c.Distribution.Bundled {
-			t.Fatalf("%s is packaged without a resolved grant", id)
+		if !c.Distribution.Available() || !c.Distribution.Bundled {
+			t.Fatalf("%s must be bundled in packages: %+v", id, c.Distribution)
 		}
 		if c.Revision == "" || c.Upstream == "" || c.SHA256 == "" || c.Source.Files == 0 {
 			t.Fatalf("%s is not pinned: %+v", id, c)
 		}
 		d, err := m.DistributionFor(id)
 		if err != nil || d.Reason == "" || d.Notice == "" {
-			t.Fatalf("%s has no user-facing reason: %+v %v", id, d, err)
+			t.Fatalf("%s has no user-facing reason or notice: %+v %v", id, d, err)
+		}
+	}
+	onDemandTools := []string{
+		"mintbrew", "mintbrew-native", "izlauncher", "izlauncher-blitbun",
+		"izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime",
+	}
+	for _, id := range onDemandTools {
+		c, err := m.ToolComponent(id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if c.Distribution.Decision != "may-ship" || c.Distribution.Bundled || c.Distribution.Available() {
+			t.Fatalf("%s must be on-demand (may-ship, bundled=false): %+v", id, c.Distribution)
+		}
+		if c.Revision == "" || c.Upstream == "" || c.SHA256 == "" || c.Source.Files == 0 {
+			t.Fatalf("%s is not pinned: %+v", id, c)
+		}
+		d, err := m.DistributionFor(id)
+		if err != nil || d.Reason == "" || d.Notice == "" {
+			t.Fatalf("%s has no user-facing reason or notice: %+v %v", id, d, err)
 		}
 	}
 	host, err := m.DistributionFor("tool-host")

@@ -1,27 +1,28 @@
-// prepare-runtime fetches and verifies the pinned, redistributable Node sidecars.
+// prepare-runtime fetches, builds, and verifies all pinned runtime sidecars and bundled assets.
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"runtime"
 
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/manifest"
 )
 
 func main() {
-	platform := flag.String("platform", "", "prepare only one platform target (default: all pinned targets)")
+	platform := flag.String("platform", "", "prepare only one platform target (default: all pinned targets on Apple Silicon macOS, or host target on Linux)")
 	flag.Parse()
+	target := *platform
+	if target == "" && runtime.GOOS == "linux" {
+		target = runtime.GOOS + "-" + runtime.GOARCH
+	}
 	m, err := manifest.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if *platform != "" {
-		err = engine.PrepareNodeForPlatform(".cache", "resources", *platform, m)
-	} else {
-		err = engine.PrepareNode(".cache", "resources", m)
-	}
-	if err != nil {
+	if err := engine.PrepareRuntime(context.Background(), ".cache", "resources", target, m); err != nil {
 		log.Fatal(err)
 	}
 }

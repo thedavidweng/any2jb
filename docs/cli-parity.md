@@ -75,6 +75,7 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | hb-custom | `tool run` |
 | hb-custom-consent | `tool run --consent` |
 | hb-custom-folder | `tool run --custom-folder` |
+| hb-install | `tool install-homebrew` |
 | hb-izlauncher | `tool run` |
 | hb-mintbrew | `tool run` |
 | hb-mod-blitbun | `tool run --modules` |

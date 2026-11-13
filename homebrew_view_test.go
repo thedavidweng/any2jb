@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"slices"
+	"sync"
 	"testing"
 	"time"
 
@@ -159,5 +161,75 @@ func TestHomeShowsTheRunningToolOwner(t *testing.T) {
 	home.Frame()
 	if home.HasText(locales.ToolRunning("mintbrew")) {
 		t.Fatal("a stopped tool is still shown as running")
+	}
+}
+
+type fakeHomebrewInstaller struct {
+	*fakeToolAdapter
+	mu          sync.Mutex
+	installable bool
+	calls       int
+}
+
+func (f *fakeHomebrewInstaller) Unavailable(tool, profileID string) string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.fakeToolAdapter.Unavailable(tool, profileID)
+}
+
+func (f *fakeHomebrewInstaller) HomebrewInstallable(session.Profile) bool {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.installable
+}
+
+func (f *fakeHomebrewInstaller) InstallHomebrew(context.Context) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls++
+	f.installable = false
+	delete(f.reasons, "mintbrew")
+	delete(f.reasons, "native-hblauncher")
+	return nil
+}
+
+func TestHomebrewOnDemandInstallAction(t *testing.T) {
+	f := sessiontest.NewFakeEnvironment()
+	base := &fakeToolAdapter{reasons: map[string]string{
+		"mintbrew":          "Optional large homebrew environment",
+		"native-hblauncher": "Optional homebrew component",
+	}}
+	installer := &fakeHomebrewInstaller{fakeToolAdapter: base, installable: true}
+	a := retainedApp(t, f, base, []string{"mintbrew", "native-hblauncher"})
+	a.tools = installer
+	updates := make(chan func(), 1)
+	a.toolsPanel.update = func(apply func()) { updates <- apply }
+	tt := ui.NewTester(a.advancedToolsView, 720, 1600)
+	if _, err := a.controller.Inspect(); err != nil {
+		t.Fatal(err)
+	}
+	uiStage(t, a, tt, session.Ready)
+	if _, err := a.controller.Start(); err != nil {
+		t.Fatal(err)
+	}
+	uiStage(t, a, tt, session.RetainedRPC)
+	if err := tt.Click(locales.HbInstall()); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case apply := <-updates:
+		apply()
+		tt.Frame()
+	case <-time.After(2 * time.Second):
+		t.Fatalf("on-demand install did not report completion: %q", tt.Texts())
+	}
+	if !tt.HasText(locales.HbInstallReady()) {
+		t.Fatalf("on-demand install did not report ready: %q", tt.Texts())
+	}
+	if installer.calls != 1 {
+		t.Fatalf("expected 1 install call, got %d", installer.calls)
+	}
+	if _, ok := tt.AccessByRole(ui.RoleButton, locales.HbMintbrew()); !ok {
+		t.Fatalf("MintBrew launch button did not appear after on-demand install: %q", tt.Texts())
 	}
 }

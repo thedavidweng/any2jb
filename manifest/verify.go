@@ -1,15 +1,20 @@
 package manifest
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
 	"strings"
 )
+
+const maxDecompressedComponentBytes = 64 << 20
 
 // IntegrityError identifies the component that must not be executed or sent.
 // Unwrap preserves filesystem errors, including os.ErrNotExist.
@@ -30,7 +35,13 @@ func (e *IntegrityError) Unwrap() error { return e.Err }
 func (m *Manifest) Read(root, componentID string) ([]byte, error) {
 	for _, c := range m.Components {
 		if c.ID == componentID {
-			return verifyFile(root, componentID, c.Path, c.SHA256)
+			data, err := verifyFile(root, componentID, c.Path, c.SHA256)
+			if err != nil && c.PackagedGzip != "" && errors.Is(err, os.ErrNotExist) {
+				if gzData, gzErr := verifyGzipFile(root, componentID, c.PackagedGzip, c.SHA256); gzErr == nil || !errors.Is(gzErr, os.ErrNotExist) {
+					return gzData, gzErr
+				}
+			}
+			return data, err
 		}
 	}
 	return nil, &IntegrityError{Component: componentID, Err: errors.New("component is not recorded")}
@@ -41,6 +52,9 @@ func (m *Manifest) Read(root, componentID string) ([]byte, error) {
 func (m *Manifest) ReadAt(root, componentID, relPath string) ([]byte, error) {
 	for _, c := range m.Components {
 		if c.ID == componentID {
+			if c.PackagedGzip != "" && (relPath == c.PackagedGzip || c.ResourcePlatform != "" && relPath == c.ResourcePlatform+"/"+c.PackagedGzip) {
+				return verifyGzipFile(root, componentID, relPath, c.SHA256)
+			}
 			return verifyFile(root, componentID, relPath, c.SHA256)
 		}
 	}
@@ -57,16 +71,48 @@ func (m *Manifest) Verify(root, componentID string) error {
 func verifyFile(root, component, name, digest string) ([]byte, error) {
 	data, err := readFile(root, name)
 	if err == nil {
-		want, decodeErr := hex.DecodeString(digest)
-		got := sha256.Sum256(data)
-		if decodeErr != nil || len(want) != sha256.Size || digest != hex.EncodeToString(got[:]) {
-			err = errors.New("SHA-256 mismatch or missing digest")
-		}
+		err = checkDigest(data, digest)
 	}
 	if err != nil {
 		return nil, &IntegrityError{Component: component, Path: name, Err: err}
 	}
 	return data, nil
+}
+
+func verifyGzipFile(root, component, name, digest string) ([]byte, error) {
+	raw, err := readFile(root, name)
+	var data []byte
+	if err == nil {
+		var gz *gzip.Reader
+		gz, err = gzip.NewReader(bytes.NewReader(raw))
+		if err == nil {
+			gz.Multistream(false)
+			data, err = io.ReadAll(io.LimitReader(gz, maxDecompressedComponentBytes+1))
+			closeErr := gz.Close()
+			if err == nil && len(data) > maxDecompressedComponentBytes {
+				err = errors.New("compressed artifact exceeds size limit")
+			}
+			if err == nil {
+				err = closeErr
+			}
+		}
+	}
+	if err == nil {
+		err = checkDigest(data, digest)
+	}
+	if err != nil {
+		return nil, &IntegrityError{Component: component, Path: name, Err: err}
+	}
+	return data, nil
+}
+
+func checkDigest(data []byte, digest string) error {
+	want, decodeErr := hex.DecodeString(digest)
+	got := sha256.Sum256(data)
+	if decodeErr != nil || len(want) != sha256.Size || digest != hex.EncodeToString(got[:]) {
+		return errors.New("SHA-256 mismatch or missing digest")
+	}
+	return nil
 }
 
 func readFile(root, name string) ([]byte, error) {

@@ -7223,3 +7223,303 @@ func DynLinuxConnectCable() string { return In(i18n.Locale()).DynLinuxConnectCab
 func (msgs Messages) DynLinuxConnectCable() string {
 	return Catalog.Format(msgs.locale, "dynLinuxConnectCable", nil)
 }
+
+// HbInstall says "Download & prepare Homebrew"
+// in the language the app shows.
+func HbInstall() string { return In(i18n.Locale()).HbInstall() }
+
+// HbInstall says "Download & prepare Homebrew"
+// in the language of msgs.
+func (msgs Messages) HbInstall() string {
+	return Catalog.Format(msgs.locale, "hbInstall", nil)
+}
+
+// HbInstallNote says "Large optional GPU and Python homebrew components (~100 MB+) are not bundled in the base app; download and SHA-256 ve…"
+// in the language the app shows.
+func HbInstallNote() string { return In(i18n.Locale()).HbInstallNote() }
+
+// HbInstallNote says "Large optional GPU and Python homebrew components (~100 MB+) are not bundled in the base app; download and SHA-256 ve…"
+// in the language of msgs.
+func (msgs Messages) HbInstallNote() string {
+	return Catalog.Format(msgs.locale, "hbInstallNote", nil)
+}
+
+// HbInstalling says "Downloading and verifying pinned Homebrew components..."
+// in the language the app shows.
+func HbInstalling() string { return In(i18n.Locale()).HbInstalling() }
+
+// HbInstalling says "Downloading and verifying pinned Homebrew components..."
+// in the language of msgs.
+func (msgs Messages) HbInstalling() string {
+	return Catalog.Format(msgs.locale, "hbInstalling", nil)
+}
+
+// HbInstallReady says "Homebrew components verified and ready."
+// in the language the app shows.
+func HbInstallReady() string { return In(i18n.Locale()).HbInstallReady() }
+
+// HbInstallReady says "Homebrew components verified and ready."
+// in the language of msgs.
+func (msgs Messages) HbInstallReady() string {
+	return Catalog.Format(msgs.locale, "hbInstallReady", nil)
+}
+
+// CliCmdToolInstallHomebrew says "Download and verify the optional Homebrew components on demand."
+// in the language the app shows.
+func CliCmdToolInstallHomebrew() string { return In(i18n.Locale()).CliCmdToolInstallHomebrew() }
+
+// CliCmdToolInstallHomebrew says "Download and verify the optional Homebrew components on demand."
+// in the language of msgs.
+func (msgs Messages) CliCmdToolInstallHomebrew() string {
+	return Catalog.Format(msgs.locale, "cliCmdToolInstallHomebrew", nil)
+}
+
+// DynRtBundledEngine says "Bundled host profile and bootstrap integrity verified."
+// in the language the app shows.
+func DynRtBundledEngine() string { return In(i18n.Locale()).DynRtBundledEngine() }
+
+// DynRtBundledEngine says "Bundled host profile and bootstrap integrity verified."
+// in the language of msgs.
+func (msgs Messages) DynRtBundledEngine() string {
+	return Catalog.Format(msgs.locale, "dynRtBundledEngine", nil)
+}
+
+// DynDrvBundledMissing says "Bundled USB driver files are missing from this build."
+// in the language the app shows.
+func DynDrvBundledMissing() string { return In(i18n.Locale()).DynDrvBundledMissing() }
+
+// DynDrvBundledMissing says "Bundled USB driver files are missing from this build."
+// in the language of msgs.
+func (msgs Messages) DynDrvBundledMissing() string {
+	return Catalog.Format(msgs.locale, "dynDrvBundledMissing", nil)
+}
+
+// DynCivStagedRootAbsolute says "CivSwitch staged runtime root must be absolute"
+// in the language the app shows.
+func DynCivStagedRootAbsolute() string { return In(i18n.Locale()).DynCivStagedRootAbsolute() }
+
+// DynCivStagedRootAbsolute says "CivSwitch staged runtime root must be absolute"
+// in the language of msgs.
+func (msgs Messages) DynCivStagedRootAbsolute() string {
+	return Catalog.Format(msgs.locale, "dynCivStagedRootAbsolute", nil)
+}
+
+// DynHbRuntimeDarwinOnly says "The portable GPU homebrew runtime requires Apple Silicon macOS; Native HBLauncher is ready."
+// in the language the app shows.
+func DynHbRuntimeDarwinOnly() string { return In(i18n.Locale()).DynHbRuntimeDarwinOnly() }
+
+// DynHbRuntimeDarwinOnly says "The portable GPU homebrew runtime requires Apple Silicon macOS; Native HBLauncher is ready."
+// in the language of msgs.
+func (msgs Messages) DynHbRuntimeDarwinOnly() string {
+	return Catalog.Format(msgs.locale, "dynHbRuntimeDarwinOnly", nil)
+}
+
+// DynHbRuntimeNeedsTools says "Portable GPU homebrew runtime preparation requires python3, cmake, and Xcode Command Line Tools on Apple Silicon macO…"
+// in the language the app shows.
+func DynHbRuntimeNeedsTools() string { return In(i18n.Locale()).DynHbRuntimeNeedsTools() }
+
+// DynHbRuntimeNeedsTools says "Portable GPU homebrew runtime preparation requires python3, cmake, and Xcode Command Line Tools on Apple Silicon macO…"
+// in the language of msgs.
+func (msgs Messages) DynHbRuntimeNeedsTools() string {
+	return Catalog.Format(msgs.locale, "dynHbRuntimeNeedsTools", nil)
+}
+
+// DynHbInstallRunning says "Homebrew download and preparation is already running."
+// in the language the app shows.
+func DynHbInstallRunning() string { return In(i18n.Locale()).DynHbInstallRunning() }
+
+// DynHbInstallRunning says "Homebrew download and preparation is already running."
+// in the language of msgs.
+func (msgs Messages) DynHbInstallRunning() string {
+	return Catalog.Format(msgs.locale, "dynHbInstallRunning", nil)
+}
+
+// DynHbStopActiveTool says "Stop the running session tool before downloading or preparing Homebrew."
+// in the language the app shows.
+func DynHbStopActiveTool() string { return In(i18n.Locale()).DynHbStopActiveTool() }
+
+// DynHbStopActiveTool says "Stop the running session tool before downloading or preparing Homebrew."
+// in the language of msgs.
+func (msgs Messages) DynHbStopActiveTool() string {
+	return Catalog.Format(msgs.locale, "dynHbStopActiveTool", nil)
+}
+
+// DynDistIzmyshLegacy says "Legacy IZMYSH requires a separate native qualification adapter not implemented in any2jb. Use kurumuz, Cellenseres, A…"
+// in the language the app shows.
+func DynDistIzmyshLegacy() string { return In(i18n.Locale()).DynDistIzmyshLegacy() }
+
+// DynDistIzmyshLegacy says "Legacy IZMYSH requires a separate native qualification adapter not implemented in any2jb. Use kurumuz, Cellenseres, A…"
+// in the language of msgs.
+func (msgs Messages) DynDistIzmyshLegacy() string {
+	return Catalog.Format(msgs.locale, "dynDistIzmyshLegacy", nil)
+}
+
+// DynDistKurumuz says "Pinned kurumuz ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verif…"
+// in the language the app shows.
+func DynDistKurumuz() string { return In(i18n.Locale()).DynDistKurumuz() }
+
+// DynDistKurumuz says "Pinned kurumuz ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verif…"
+// in the language of msgs.
+func (msgs Messages) DynDistKurumuz() string {
+	return Catalog.Format(msgs.locale, "dynDistKurumuz", nil)
+}
+
+// DynDistCellenseres says "Pinned Cellenseres ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 v…"
+// in the language the app shows.
+func DynDistCellenseres() string { return In(i18n.Locale()).DynDistCellenseres() }
+
+// DynDistCellenseres says "Pinned Cellenseres ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 v…"
+// in the language of msgs.
+func (msgs Messages) DynDistCellenseres() string {
+	return Catalog.Format(msgs.locale, "dynDistCellenseres", nil)
+}
+
+// DynDistAstral says "Pinned Astral ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verifi…"
+// in the language the app shows.
+func DynDistAstral() string { return In(i18n.Locale()).DynDistAstral() }
+
+// DynDistAstral says "Pinned Astral ns2jb host, ABI3 range patch and bootstrap bundled with retained upstream provenance and SHA-256 verifi…"
+// in the language of msgs.
+func (msgs Messages) DynDistAstral() string {
+	return Catalog.Format(msgs.locale, "dynDistAstral", nil)
+}
+
+// DynDistPepsipu says "Pinned pepsipu ns2jb host and bootstrap bundled with retained upstream provenance and SHA-256 verification."
+// in the language the app shows.
+func DynDistPepsipu() string { return In(i18n.Locale()).DynDistPepsipu() }
+
+// DynDistPepsipu says "Pinned pepsipu ns2jb host and bootstrap bundled with retained upstream provenance and SHA-256 verification."
+// in the language of msgs.
+func (msgs Messages) DynDistPepsipu() string {
+	return Catalog.Format(msgs.locale, "dynDistPepsipu", nil)
+}
+
+// DynDistBerm says "Pinned BermTheSequel ns2jb host and bootstrap bundled with retained upstream provenance and SHA-256 verification."
+// in the language the app shows.
+func DynDistBerm() string { return In(i18n.Locale()).DynDistBerm() }
+
+// DynDistBerm says "Pinned BermTheSequel ns2jb host and bootstrap bundled with retained upstream provenance and SHA-256 verification."
+// in the language of msgs.
+func (msgs Messages) DynDistBerm() string {
+	return Catalog.Format(msgs.locale, "dynDistBerm", nil)
+}
+
+// DynDistOptMintbrew says "Optional large homebrew environment (~100 MB+); not bundled in the base app. Download and verify it on demand from Ad…"
+// in the language the app shows.
+func DynDistOptMintbrew() string { return In(i18n.Locale()).DynDistOptMintbrew() }
+
+// DynDistOptMintbrew says "Optional large homebrew environment (~100 MB+); not bundled in the base app. Download and verify it on demand from Ad…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptMintbrew() string {
+	return Catalog.Format(msgs.locale, "dynDistOptMintbrew", nil)
+}
+
+// DynDistOptMintbrewNative says "Optional homebrew component; not bundled in the base app. Download and verify it on demand from Advanced Tools or any…"
+// in the language the app shows.
+func DynDistOptMintbrewNative() string { return In(i18n.Locale()).DynDistOptMintbrewNative() }
+
+// DynDistOptMintbrewNative says "Optional homebrew component; not bundled in the base app. Download and verify it on demand from Advanced Tools or any…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptMintbrewNative() string {
+	return Catalog.Format(msgs.locale, "dynDistOptMintbrewNative", nil)
+}
+
+// DynDistOptIZLauncher says "Optional large homebrew launcher (~100 MB+ environment); not bundled in the base app. Download and verify it on deman…"
+// in the language the app shows.
+func DynDistOptIZLauncher() string { return In(i18n.Locale()).DynDistOptIZLauncher() }
+
+// DynDistOptIZLauncher says "Optional large homebrew launcher (~100 MB+ environment); not bundled in the base app. Download and verify it on deman…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptIZLauncher() string {
+	return Catalog.Format(msgs.locale, "dynDistOptIZLauncher", nil)
+}
+
+// DynDistOptIZBlitbun says "Optional IZlauncher BlitBun module; not bundled in the base app. Download and verify it on demand from Advanced Tools…"
+// in the language the app shows.
+func DynDistOptIZBlitbun() string { return In(i18n.Locale()).DynDistOptIZBlitbun() }
+
+// DynDistOptIZBlitbun says "Optional IZlauncher BlitBun module; not bundled in the base app. Download and verify it on demand from Advanced Tools…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptIZBlitbun() string {
+	return Catalog.Format(msgs.locale, "dynDistOptIZBlitbun", nil)
+}
+
+// DynDistOptIZShell says "Optional IZlauncher shell module; not bundled in the base app. Download and verify it on demand from Advanced Tools o…"
+// in the language the app shows.
+func DynDistOptIZShell() string { return In(i18n.Locale()).DynDistOptIZShell() }
+
+// DynDistOptIZShell says "Optional IZlauncher shell module; not bundled in the base app. Download and verify it on demand from Advanced Tools o…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptIZShell() string {
+	return Catalog.Format(msgs.locale, "dynDistOptIZShell", nil)
+}
+
+// DynDistOptIZVacootube says "Optional IZlauncher VacooTube module; not bundled in the base app. Download and verify it on demand from Advanced Too…"
+// in the language the app shows.
+func DynDistOptIZVacootube() string { return In(i18n.Locale()).DynDistOptIZVacootube() }
+
+// DynDistOptIZVacootube says "Optional IZlauncher VacooTube module; not bundled in the base app. Download and verify it on demand from Advanced Too…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptIZVacootube() string {
+	return Catalog.Format(msgs.locale, "dynDistOptIZVacootube", nil)
+}
+
+// DynDistOptHomebrewRuntime says "Optional portable CPython/Pillow/SPIRV-Tools runtime (~100 MB+); not bundled in the base app. Download and verify it …"
+// in the language the app shows.
+func DynDistOptHomebrewRuntime() string { return In(i18n.Locale()).DynDistOptHomebrewRuntime() }
+
+// DynDistOptHomebrewRuntime says "Optional portable CPython/Pillow/SPIRV-Tools runtime (~100 MB+); not bundled in the base app. Download and verify it …"
+// in the language of msgs.
+func (msgs Messages) DynDistOptHomebrewRuntime() string {
+	return Catalog.Format(msgs.locale, "dynDistOptHomebrewRuntime", nil)
+}
+
+// DynDistBundledOunceCake says "Pinned OunceCake JavaScript export server and local FTP bridge bundled as complete verbatim source with GPL v2 LICENS…"
+// in the language the app shows.
+func DynDistBundledOunceCake() string { return In(i18n.Locale()).DynDistBundledOunceCake() }
+
+// DynDistBundledOunceCake says "Pinned OunceCake JavaScript export server and local FTP bridge bundled as complete verbatim source with GPL v2 LICENS…"
+// in the language of msgs.
+func (msgs Messages) DynDistBundledOunceCake() string {
+	return Catalog.Format(msgs.locale, "dynDistBundledOunceCake", nil)
+}
+
+// DynDistBundledSDBrowser says "Pinned Super File Bros /sd browser bundled as complete verbatim JavaScript source with GPL-2.0-only LICENSE and third…"
+// in the language the app shows.
+func DynDistBundledSDBrowser() string { return In(i18n.Locale()).DynDistBundledSDBrowser() }
+
+// DynDistBundledSDBrowser says "Pinned Super File Bros /sd browser bundled as complete verbatim JavaScript source with GPL-2.0-only LICENSE and third…"
+// in the language of msgs.
+func (msgs Messages) DynDistBundledSDBrowser() string {
+	return Catalog.Format(msgs.locale, "dynDistBundledSDBrowser", nil)
+}
+
+// DynDistBundledSaveKit says "Pinned SaveKit (ns2-savekit) tools bundled with MIT LICENSE, NOTICE and provenance."
+// in the language the app shows.
+func DynDistBundledSaveKit() string { return In(i18n.Locale()).DynDistBundledSaveKit() }
+
+// DynDistBundledSaveKit says "Pinned SaveKit (ns2-savekit) tools bundled with MIT LICENSE, NOTICE and provenance."
+// in the language of msgs.
+func (msgs Messages) DynDistBundledSaveKit() string {
+	return Catalog.Format(msgs.locale, "dynDistBundledSaveKit", nil)
+}
+
+// DynDistBundledModloader says "Pinned ns2jb-modloader bundled with complete JavaScript, C/WASI sources, prebuilt WASI module and GPL v2/zstd/wasi-li…"
+// in the language the app shows.
+func DynDistBundledModloader() string { return In(i18n.Locale()).DynDistBundledModloader() }
+
+// DynDistBundledModloader says "Pinned ns2jb-modloader bundled with complete JavaScript, C/WASI sources, prebuilt WASI module and GPL v2/zstd/wasi-li…"
+// in the language of msgs.
+func (msgs Messages) DynDistBundledModloader() string {
+	return Catalog.Format(msgs.locale, "dynDistBundledModloader", nil)
+}
+
+// DynDistBundledLauncherSave says "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256."
+// in the language the app shows.
+func DynDistBundledLauncherSave() string { return In(i18n.Locale()).DynDistBundledLauncherSave() }
+
+// DynDistBundledLauncherSave says "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256."
+// in the language of msgs.
+func (msgs Messages) DynDistBundledLauncherSave() string {
+	return Catalog.Format(msgs.locale, "dynDistBundledLauncherSave", nil)
+}

@@ -553,8 +553,9 @@ async function main(args = process.argv.slice(2)) {
   const [stagedRoot, runDirectory, destination = '-'] = args;
   check(args.length === 3, 'usage: savekit-host.cjs <staged-root> <run-directory> <destination|->');
   const record = JSON.parse(await fsp.readFile(path.join(stagedRoot, 'stage.json'), 'utf8'));
-  check(record.source === 'developer-staged' && record.redistributable === false,
-    'SaveKit tools require an explicit developer stage of their pinned sources.');
+  check((record.source === 'developer-staged' && record.redistributable === false) ||
+    (record.source === 'bundled' && record.redistributable === true),
+    'SaveKit tools require a verified stage of their pinned sources.');
   const tools = path.join(stagedRoot, 'tools', 'savekit', 'vendor', 'ns2-savekit', 'tools');
   for (const name of TOOLS) await owned(path.join(tools, name), 'file');
   const parsed = request(await readRequest());

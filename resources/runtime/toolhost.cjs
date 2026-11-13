@@ -874,8 +874,9 @@ async function nativeHBLauncher(toolRoot, workspace, proof, config, run) {
     typeof config.sourceDirectory === 'string' && config.sourceDirectory !== '' &&
     !path.isAbsolute(config.sourceDirectory) &&
     !config.sourceDirectory.split(/[\\/]/).includes('..'),
-  'Native HBLauncher requires the developer-staged engine sources.');
-  const component = path.join(toolRoot, 'native-hblauncher');
+  'Native HBLauncher requires the verified staged engine sources.');
+  const component = fs.existsSync(path.join(toolRoot, 'mintbrew-native')) ?
+    path.join(toolRoot, 'mintbrew-native') : path.join(toolRoot, 'native-hblauncher');
   const host = require(path.join(component, 'integrations/mintbrew-native/host.cjs'));
   const signals = new EventEmitter();
   run.stopped.then(() => signals.emit('SIGTERM'));
@@ -1099,8 +1100,9 @@ async function main(args = process.argv.slice(2)) {
     check(config.codeConsent === true, 'Confirm running user-provided code on the console before this action.');
   }
   const record = JSON.parse(await fsp.readFile(path.join(stagedRoot, 'stage.json'), 'utf8'));
-  check(record.source === 'developer-staged' && record.redistributable === false,
-    'Read-only tools require an explicit developer stage of their pinned sources.');
+  check((record.source === 'developer-staged' && record.redistributable === false) ||
+    (record.source === 'bundled' && record.redistributable === true),
+    'Read-only tools require a verified stage of their pinned sources.');
   const proof = await heldProof(path.resolve(workspace));
   await rpcStatus(proof.connection);
   const owned = proof.workspace;

@@ -18,10 +18,13 @@ test('Node reads the canonical six profiles and their distinct launch contracts'
 });
 
 test('distribution decisions cannot be changed through the Node reader', () => {
-  assert.equal(profileById('kurumuz').distribution.decision, 'blocked');
+  assert.equal(profileById('kurumuz').distribution.decision, 'may-ship');
+  assert.equal(profileById('kurumuz').distribution.bundled, true);
+  assert.equal(profileById('izmysh').distribution.decision, 'blocked');
+  assert.equal(profileById('izmysh').distribution.bundled, false);
   const research = manifest.components.find(c => c.id === 'browser-research');
   assert.equal(research.distribution.decision, 'excluded');
   assert.equal(research.distribution.bundled, false);
   assert.throws(() => { research.distribution.decision = 'may-ship'; }, TypeError);
-  assert.throws(() => { profileById('kurumuz').distribution.bundled = true; }, TypeError);
+  assert.throws(() => { profileById('izmysh').distribution.bundled = true; }, TypeError);
 });

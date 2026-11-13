@@ -48,11 +48,10 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 	if failed && req.Action != "verify" {
 		return errors.New("a previous save operation failed; finish this session and restart the console before another save operation")
 	}
-	module, err := m.savekitModule()
+	client, err := m.savekitClient()
 	if err != nil {
 		return err
 	}
-	client := savekit.Client{Node: m.options.Node, Module: module, Scenario: m.options.SaveKitScenario}
 	var component manifest.Component
 	if request.Launcher != nil {
 		if request.Tool != "savekit" || req.Action != "write" {

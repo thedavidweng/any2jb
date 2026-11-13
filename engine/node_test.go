@@ -13,7 +13,7 @@ import (
 func TestBundledNodeRuntime(t *testing.T) {
 	assets := os.Getenv("ANY2JB_RUNTIME_ASSETS")
 	if assets == "" {
-		t.Skip("set ANY2JB_RUNTIME_ASSETS to prepared darwin-arm64 resources")
+		t.Skip("set ANY2JB_RUNTIME_ASSETS to prepared resources")
 	}
 	o := fixture(t)
 	o.Assets = assets
@@ -32,6 +32,10 @@ func TestBundledNodeRuntime(t *testing.T) {
 		t.Fatalf("bundled Node version: %q %v", output, err)
 	}
 	output, err = exec.Command(node, filepath.Join(root, "runtime/bridge.cjs"), filepath.Join(root, "profiles.json"), "pepsipu").CombinedOutput()
+	if err != nil || string(output) == "" {
+		t.Fatalf("bundled profile rejected: %q %v", output, err)
+	}
+	output, err = exec.Command(node, filepath.Join(root, "runtime/bridge.cjs"), filepath.Join(root, "profiles.json"), "izmysh").CombinedOutput()
 	if err == nil {
 		t.Fatal("blocked profile accepted")
 	}

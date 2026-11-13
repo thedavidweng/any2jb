@@ -49,12 +49,28 @@ type hostProcess struct {
 }
 
 // NewHostRunner is the production constructor. A successful Stage, matching
-// developer provenance and fresh VerifyProfile are mandatory on every launch.
+// bundled or developer provenance, and fresh VerifyProfile are mandatory on
+// every launch.
 func NewHostRunner(options Options) *HostRunner {
 	r := &HostRunner{support: options.Support}
 	r.launch = func(run session.Run, workspace string) (*exec.Cmd, error) {
-		if options.DeveloperSourceRoot == "" || options.DeveloperProfileID != run.Profile.ID {
-			return nil, errors.New("engine launch requires explicit developer staging for the selected profile")
+		if options.Manifest == nil {
+			return nil, errors.New("missing runtime manifest")
+		}
+		profile, err := options.Manifest.Profile(run.Profile.ID)
+		if err != nil {
+			return nil, err
+		}
+		if profile.Engine == "izmysh" {
+			return nil, errors.New("IZMYSH requires its separate native qualification adapter")
+		}
+		developerMode := options.DeveloperSourceRoot != "" || options.DeveloperProfileID != ""
+		if developerMode {
+			if options.DeveloperSourceRoot == "" || options.DeveloperProfileID != run.Profile.ID {
+				return nil, errors.New("engine launch requires explicit developer staging for the selected profile")
+			}
+		} else if !profile.Distribution.Available() {
+			return nil, fmt.Errorf("engine %s unavailable: %s", profile.ID, profile.Distribution.Reason)
 		}
 		root, err := Stage(options)
 		if err != nil {
@@ -64,19 +80,18 @@ func NewHostRunner(options Options) *HostRunner {
 		if err != nil {
 			return nil, err
 		}
-		profile, err := options.Manifest.Profile(run.Profile.ID)
-		if err != nil {
-			return nil, err
-		}
-		if profile.Engine == "izmysh" {
-			return nil, errors.New("IZMYSH requires its separate native qualification adapter")
-		}
-		if record.Source != "developer-staged" || record.Redistributable || record.ProfileID != run.Profile.ID ||
-			record.Revision != profile.Revision || record.SourceSHA256 != profile.SourceSHA256 ||
-			run.Profile.Revision != profile.Revision || run.Profile.SourceSHA256 != profile.SourceSHA256 ||
+		if run.Profile.Revision != profile.Revision || run.Profile.SourceSHA256 != profile.SourceSHA256 ||
 			run.Profile.BootstrapSHA256 != profile.BootstrapSHA256 || run.Profile.StartPort != profile.StartPort ||
 			run.Profile.StartArgumentCount != profile.StartArgumentCount || run.Profile.RetainsRPC != profile.SupportsHeldRPC {
-			return nil, errors.New("developer engine identity mismatch")
+			return nil, errors.New("engine profile identity mismatch")
+		}
+		if developerMode {
+			if record.Source != "developer-staged" || record.Redistributable || record.ProfileID != run.Profile.ID ||
+				record.Revision != profile.Revision || record.SourceSHA256 != profile.SourceSHA256 {
+				return nil, errors.New("developer engine identity mismatch")
+			}
+		} else if record.Source != "bundled" || !record.Redistributable {
+			return nil, errors.New("bundled engine provenance mismatch")
 		}
 		if err := options.Manifest.VerifyProfile(root, profile.ID); err != nil {
 			return nil, err

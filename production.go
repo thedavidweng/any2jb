@@ -61,6 +61,7 @@ func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions tra
 		keyboard = transport.NewDarwin(inputOptions)
 	}
 	civOptions.Manifest, civOptions.Support = options.Manifest, options.Support
+	civOptions.Assets, civOptions.StagedRuntimeRoot = options.Assets, root
 	civOptions.DeveloperSourceRoot = options.DeveloperSourceRoot
 	composite := civswitch.New(civOptions)
 	platform := productionPlatform{root: root, options: options, stageError: stageErr, keyboard: keyboard, composite: composite}
@@ -77,41 +78,85 @@ func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions tra
 	}
 }
 
-// productionTools composes the retained lease and read-only tool adapter. Tool
-// sources are only staged from an explicit developer source root; a packaged app
-// stages nothing and every entry keeps the manifest's unavailable reason.
+// productionTools composes the retained lease and session tool adapter.
+// Developer runs stage every recorded component from DeveloperSourceRoot;
+// packaged runs stage bundled redistributable components offline from Assets
+// and restore any previously SHA-256-verified optional homebrew components.
 func productionTools(root string, stageError error, options engine.Options, host *engine.HostRunner) *retained.Manager {
-	stageOptions := retained.StageOptions{Support: options.Support,
-		Version: options.Version, SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
-		Components: []string{"ouncecake", "sd-browser", "savekit", "mintbrew", "mintbrew-native",
-			"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime", "modloader",
-			"launcher-seedsow-demo", "launcher-seedsow-full", "launcher-nora2-demo", "launcher-nora1-demo",
-			"launcher-hamidashi-demo", "launcher-lua-editor", "launcher-lua-editor-pro",
-			"launcher-balatro", "launcher-balatro-showcase", "launcher-gravity-circuit"}}
-	toolRoot, staged, stageToolsError := retained.StageTools(stageOptions)
+	allDeveloperComponents := []string{"ouncecake", "sd-browser", "savekit", "mintbrew", "mintbrew-native",
+		"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime", "modloader",
+		"launcher-seedsow-demo", "launcher-seedsow-full", "launcher-nora2-demo", "launcher-nora1-demo",
+		"launcher-hamidashi-demo", "launcher-lua-editor", "launcher-lua-editor-pro",
+		"launcher-balatro", "launcher-balatro-showcase", "launcher-gravity-circuit"}
+	var toolRoot string
+	var staged []string
+	var stageToolsError error
+	bundled := false
+	homebrewRuntime := ""
 	node, toolHost := "", ""
 	if stageError == nil {
 		node, toolHost = filepath.Join(root, "runtime/node"), filepath.Join(root, "runtime/toolhost.cjs")
 	}
-	homebrewRuntime := ""
-	if options.DeveloperSourceRoot != "" && slices.Contains(staged, "homebrew-runtime") {
-		// The portable runtime must also be prepared and verified; a failed
-		// preparation keeps the homebrew launchers unavailable with the reason.
-		var err error
-		if homebrewRuntime, err = retained.StageHomebrewRuntime(stageOptions, toolRoot, staged); err != nil {
-			staged = slices.DeleteFunc(staged, func(id string) bool { return id == "homebrew-runtime" })
-			stageToolsError = errors.Join(stageToolsError, err)
+	if options.DeveloperSourceRoot != "" {
+		stageOptions := retained.StageOptions{
+			Support: options.Support, Version: options.Version,
+			SourceRoot: options.DeveloperSourceRoot, Manifest: options.Manifest,
+			Components: allDeveloperComponents,
+		}
+		toolRoot, staged, stageToolsError = retained.StageTools(stageOptions)
+		if slices.Contains(staged, "homebrew-runtime") {
+			// The portable runtime must also be prepared and verified; a failed
+			// preparation keeps the homebrew launchers unavailable with the reason.
+			var err error
+			if homebrewRuntime, err = retained.StageHomebrewRuntime(stageOptions, toolRoot, staged); err != nil {
+				staged = slices.DeleteFunc(staged, func(id string) bool { return id == "homebrew-runtime" })
+				stageToolsError = errors.Join(stageToolsError, err)
+			}
+		}
+		if node != "" && slices.Contains(staged, "izlauncher") {
+			if err := retained.StageIZLauncher(node, filepath.Join(toolRoot, "tools", "izlauncher")); err != nil {
+				staged = slices.DeleteFunc(staged, func(id string) bool { return id == "izlauncher" })
+				stageToolsError = errors.Join(stageToolsError, err)
+			}
+		}
+	} else if stageError == nil && options.Assets != "" && options.Manifest != nil {
+		bundled = true
+		var bundledIDs []string
+		for _, c := range options.Manifest.Components {
+			if c.Source != nil && c.Distribution.Available() {
+				bundledIDs = append(bundledIDs, c.ID)
+			}
+		}
+		if len(bundledIDs) > 0 {
+			toolRoot, staged, stageToolsError = retained.StageTools(retained.StageOptions{
+				Support: options.Support, Version: options.Version,
+				SourceRoot: options.Assets, Bundled: true,
+				Manifest: options.Manifest, Components: bundledIDs,
+			})
+		}
+		if toolRoot != "" {
+			for _, optID := range retained.VerifyStagedComponents(toolRoot, options.Manifest, retained.OptionalHomebrewComponents) {
+				if !slices.Contains(staged, optID) {
+					staged = append(staged, optID)
+				}
+			}
+			if slices.Contains(staged, "homebrew-runtime") {
+				if homebrewRuntime = retained.CheckHomebrewRuntime(toolRoot); homebrewRuntime == "" {
+					staged = slices.DeleteFunc(staged, func(id string) bool { return id == "homebrew-runtime" })
+				}
+			}
+			if node != "" && slices.Contains(staged, "izlauncher") {
+				if retained.CheckIZLauncher(node, filepath.Join(toolRoot, "tools", "izlauncher")) != nil {
+					staged = slices.DeleteFunc(staged, func(id string) bool { return id == "izlauncher" })
+				}
+			}
 		}
 	}
-	if node != "" && slices.Contains(staged, "izlauncher") {
-		if err := retained.StageIZLauncher(node, filepath.Join(toolRoot, "tools", "izlauncher")); err != nil {
-			staged = slices.DeleteFunc(staged, func(id string) bool { return id == "izlauncher" })
-			stageToolsError = errors.Join(stageToolsError, err)
-		}
-	}
-	return retained.New(retained.Options{Support: options.Support, Node: node, Host: toolHost,
+	engineStaged := stageError == nil && ((options.DeveloperSourceRoot != "" && options.DeveloperProfileID != "") || options.DeveloperSourceRoot == "")
+	return retained.New(retained.Options{Support: options.Support, Version: options.Version, Bundled: bundled,
+		Node: node, Host: toolHost,
 		ToolRoot: toolRoot, Staged: staged, StageError: stageToolsError,
-		EngineStaged: options.DeveloperSourceRoot != "" && options.DeveloperProfileID != "",
+		EngineStaged: engineStaged,
 		EngineRoot:   root, HomebrewRuntime: homebrewRuntime,
 		Manifest: options.Manifest, Runs: host})
 }
@@ -148,11 +193,22 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 		return nil, err
 	}
 	state, message, action = session.RequiresAttention, distribution.Reason, "This engine cannot launch from the packaged app."
+	if distribution.Available() && p.stageError != nil {
+		action = "Install an intact app bundle with its matching runtime resources."
+	}
 	if p.stageError == nil && p.options.DeveloperSourceRoot != "" && p.options.DeveloperProfileID == run.Profile.ID {
 		record, err := engine.ReadRecord(p.root)
 		if err == nil && record.Source == "developer-staged" && record.ProfileID == run.Profile.ID &&
 			p.options.Manifest.VerifyProfile(p.root, run.Profile.ID) == nil {
 			state, message, action = session.CheckVerified, "Developer-staged engine, not redistributable.", ""
+		}
+	} else if p.stageError == nil && p.options.DeveloperSourceRoot == "" && distribution.Available() {
+		record, err := engine.ReadRecord(p.root)
+		if err == nil && record.Source == "bundled" && record.Redistributable &&
+			p.options.Manifest.VerifyProfile(p.root, run.Profile.ID) == nil {
+			state, message, action = session.CheckVerified, "Bundled host profile and bootstrap integrity verified.", ""
+		} else {
+			action = "Install an intact app bundle with its matching runtime resources."
 		}
 	}
 	profile, err := p.options.Manifest.Profile(run.Profile.ID)
@@ -177,15 +233,25 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 	if p.stageError == nil && engine.VerifyUSB(p.root, p.options.Manifest) == nil {
 		usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
 	}
-	if runtime.GOOS == "linux" && p.stageError == nil && p.options.DeveloperSourceRoot != "" &&
-		p.options.DeveloperProfileID == run.Profile.ID && p.options.Manifest.VerifyProfile(p.root, run.Profile.ID) == nil {
+	if runtime.GOOS == "linux" && p.stageError == nil &&
+		((p.options.DeveloperSourceRoot != "" && p.options.DeveloperProfileID == run.Profile.ID) ||
+			(p.options.DeveloperSourceRoot == "" && distribution.Available())) &&
+		p.options.Manifest.VerifyProfile(p.root, run.Profile.ID) == nil {
 		if _, err := usbgadget.VerifySelfExecutable(); err == nil {
-			usb.State, usb.Message, usb.NextAction = session.CheckVerified, locales.UsbDeveloperHelpers(), ""
+			if p.options.DeveloperSourceRoot != "" {
+				usb.State, usb.Message, usb.NextAction = session.CheckVerified, locales.UsbDeveloperHelpers(), ""
+			} else {
+				usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
+			}
 		}
 	}
 	keyboardReady := p.stageError == nil && p.keyboard != nil && p.keyboard.Check(ctx, run) == nil
 	if keyboardReady {
-		usb.State, usb.Message, usb.NextAction = session.CheckVerified, locales.UsbDeveloperHelpers(), ""
+		if p.options.DeveloperSourceRoot != "" {
+			usb.State, usb.Message, usb.NextAction = session.CheckVerified, locales.UsbDeveloperHelpers(), ""
+		} else {
+			usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
+		}
 	}
 	input := session.Check{ID: "input-adapter", State: session.RequiresAttention,
 		Message: locales.AutomatedInputUnavailable(), NextAction: locales.SelectGuidedManual()}

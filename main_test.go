@@ -88,10 +88,20 @@ func testApp(t *testing.T, c *session.SessionController) *app {
 		preferencesPath: filepath.Join(t.TempDir(), "preferences.json"), preferences: prefs}
 }
 
-// blockedDriverGate is the packaged build's gate: the driver components are
-// not cleared for redistribution.
+// blockedDriverGate simulates a manifest whose driver components are blocked
+// from redistribution so UI tests cover the blocked-driver disclosure path.
 func blockedDriverGate(m *manifest.Manifest) *driver.Gate {
-	return driver.New(driver.Options{Manifest: m})
+	cloned := *m
+	cloned.Components = append([]manifest.Component(nil), m.Components...)
+	for i := range cloned.Components {
+		if cloned.Components[i].ID == "usbgadget-binary" {
+			cloned.Components[i].Distribution = manifest.Distribution{
+				Decision: "blocked",
+				Reason:   "USB driver distribution is blocked pending review of exact binary source/build materials and MIT/APSL notice obligations. No driver package or installer is bundled.",
+			}
+		}
+	}
+	return driver.New(driver.Options{Manifest: &cloned})
 }
 
 func uiStage(t *testing.T, a *app, tt *ui.Tester, stage session.Stage) {

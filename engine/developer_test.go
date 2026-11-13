@@ -66,13 +66,13 @@ func TestPinnedDeveloperStaging(t *testing.T) {
 				t.Fatal(err)
 			}
 			p, err := staged.Profile(profile.ID)
-			if err != nil || p.Distribution.Available() {
+			if err != nil || p.Distribution != profile.Distribution {
 				t.Fatal("developer staging changed distribution decision")
 			}
 			if _, err := os.Stat(filepath.Join(root, "scripts/gui-host.cjs")); !os.IsNotExist(err) {
 				t.Fatal("copied GUI orchestration")
 			}
-			// A developer-stage record never authorizes packaging its engine.
+			// A developer-stage record never authorizes packaging a blocked engine.
 			bundle := t.TempDir()
 			bootstrap, err := os.ReadFile(filepath.Join(root, profile.Bootstrap))
 			if err != nil {
@@ -85,7 +85,11 @@ func TestPinnedDeveloperStaging(t *testing.T) {
 			if err := os.WriteFile(target, bootstrap, 0o600); err != nil {
 				t.Fatal(err)
 			}
-			gate := &manifest.Manifest{Profiles: canonical.Profiles}
+			blockedProfiles := append([]manifest.Profile(nil), canonical.Profiles...)
+			for i := range blockedProfiles {
+				blockedProfiles[i].Distribution = manifest.Distribution{Decision: "blocked", Reason: "fixture blocked"}
+			}
+			gate := &manifest.Manifest{Profiles: blockedProfiles}
 			if err := gate.CheckPackage(bundle); err == nil || !strings.Contains(err.Error(), "package contains host") {
 				t.Fatalf("developer engine bypassed package gate: %v", err)
 			}
@@ -115,11 +119,38 @@ func TestPinnedDeveloperStaging(t *testing.T) {
 			if _, err := engine.Stage(o); err == nil {
 				t.Fatal("unverified developer source accepted")
 			}
+			for _, bundledProfile := range canonical.Profiles {
+				if !bundledProfile.Distribution.Available() {
+					continue
+				}
+				files, err := canonical.ProfileFiles(source, bundledProfile.ID)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for _, rel := range files {
+					raw, err := os.ReadFile(filepath.Join(source, filepath.FromSlash(rel)))
+					if err != nil {
+						t.Fatal(err)
+					}
+					dst := filepath.Join(o.Assets, filepath.FromSlash(rel))
+					if err := os.MkdirAll(filepath.Dir(dst), 0o700); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.WriteFile(dst, raw, 0o600); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
 			o.Manifest.Profiles = canonical.Profiles
 			o.DeveloperSourceRoot, o.DeveloperProfileID = "", ""
 			bundled, err := engine.Stage(o)
 			if err != nil || bundled == root {
 				t.Fatalf("developer and bundled stage not isolated: %v", err)
+			}
+			if profile.Distribution.Available() {
+				if err := o.Manifest.VerifyProfile(bundled, profile.ID); err != nil {
+					t.Fatalf("bundled profile not staged: %v", err)
+				}
 			}
 		})
 	}
