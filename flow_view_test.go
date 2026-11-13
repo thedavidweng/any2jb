@@ -555,3 +555,68 @@ func TestToolsStageLeadsWithTheSessionState(t *testing.T) {
 	}
 	a.controller.Finish()
 }
+
+func TestLinuxFirstStageHandlesNoUDCAndUDCHosts(t *testing.T) {
+	t.Run("host-only Linux PC without UDC offers guided manual input", func(t *testing.T) {
+		f := sessiontest.NewFakeEnvironment()
+		f.Checks = []session.Check{
+			{ID: "network", State: session.CheckVerified, LANIPv4: "192.168.1.40"},
+			{ID: "runtime", State: session.CheckVerified},
+			{ID: "engine", State: session.CheckVerified},
+			{ID: "input-adapter", State: session.CheckVerified},
+			usbCheck("usb-platform", session.CheckVerified),
+			usbCheck("linux-udc", session.RequiresAttention),
+			usbCheck("linux-configfs", session.RequiresAttention),
+			usbCheck("linux-gadget-access", session.RequiresAttention),
+			usbCheck("usb-controllers", session.RequiresAttention),
+			usbCheck("usb-runtime", session.CheckVerified),
+		}
+		a := testApp(t, session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned"}))
+		tt := ui.NewTester(a.view, 900, 1100)
+		clickManual(t, tt, locales.CheckAgain())
+		uiStage(t, a, tt, session.Ready)
+		if !tt.HasText(locales.FlowDetectionLinux()) || !tt.HasText(locales.LinuxUDCNone()) || !tt.HasText(locales.FlowUsbUnavailable()) {
+			t.Fatalf("unexpected texts for no-UDC Linux host: %v", tt.Texts())
+		}
+		clickManual(t, tt, locales.FlowTypeYourself())
+		uiStage(t, a, tt, session.Ready)
+		if a.flow.stage != flowPrepare {
+			t.Fatalf("guided manual did not advance from Linux Stage 1: stage=%v", a.flow.stage)
+		}
+	})
+
+	t.Run("UDC-capable Linux host advances with ConfigFS keyboard", func(t *testing.T) {
+		f := sessiontest.NewFakeEnvironment()
+		udc := usbCheck("fe980000.usb", session.Available)
+		udc.Controller = "fe980000.usb"
+		f.Checks = []session.Check{
+			{ID: "network", State: session.CheckVerified, LANIPv4: "192.168.1.41"},
+			{ID: "runtime", State: session.CheckVerified},
+			{ID: "engine", State: session.CheckVerified},
+			{ID: "input-adapter", State: session.CheckVerified},
+			usbCheck("usb-platform", session.CheckVerified),
+			usbCheck("linux-udc", session.CheckVerified),
+			usbCheck("linux-configfs", session.CheckVerified),
+			usbCheck("linux-gadget-access", session.CheckVerified),
+			usbCheck("usb-controllers", session.Available),
+			udc,
+			usbCheck("usb-runtime", session.CheckVerified),
+		}
+		a, err := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := a.openSession(f.Environment(), false); err != nil {
+			t.Fatal(err)
+		}
+		tt := ui.NewTester(a.view, 900, 1100)
+		uiStage(t, a, tt, session.Ready)
+		if !tt.HasText(locales.LinuxConfigFSDone()) || disabled(t, tt, locales.FlowNextSelection()) {
+			t.Fatalf("UDC-capable Linux host did not unlock Continue: %v", tt.Texts())
+		}
+		clickManual(t, tt, locales.FlowNextSelection())
+		if a.flow.stage != flowPrepare || a.preferences.Transport != "keyboard" {
+			t.Fatalf("Continue did not select keyboard and advance: stage=%v transport=%q", a.flow.stage, a.preferences.Transport)
+		}
+	})
+}

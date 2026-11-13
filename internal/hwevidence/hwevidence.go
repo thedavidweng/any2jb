@@ -21,6 +21,7 @@ const Schema = "any2jb/hardware-evidence@1"
 
 const (
 	RouteP1A       = "p1a"
+	RouteP2        = "p2"
 	RouteCivSwitch = "civswitch"
 )
 
@@ -56,9 +57,12 @@ type Step struct {
 
 // Combination is the exact hardware/software combination under test.
 type Combination struct {
-	MacModel          string `json:"macModel"`
-	MacOSVersion      string `json:"macosVersion"`
+	MacModel          string `json:"macModel,omitempty"`
+	MacOSVersion      string `json:"macosVersion,omitempty"`
 	StartupSecurity   string `json:"startupSecurity,omitempty"`
+	LinuxDevice       string `json:"linuxDevice,omitempty"`
+	LinuxKernel       string `json:"linuxKernel,omitempty"`
+	PrivilegeBoundary string `json:"privilegeBoundary,omitempty"`
 	HostProfile       string `json:"hostProfile,omitempty"`
 	ConsoleGeneration string `json:"consoleGeneration,omitempty"`
 	ConsoleSystem     string `json:"consoleSystemVersion"`
@@ -150,6 +154,15 @@ func Sequence(route, transport string) ([]StepDef, error) {
 		case TransportGuidedManual:
 			return p1aSteps[usbHIDOnly:], nil
 		}
+	case RouteP2:
+		switch transport {
+		case TransportUSBHID:
+			return p1aSteps, nil
+		case TransportGuidedManual:
+			return p1aSteps[usbHIDOnly:], nil
+		case TransportCompositeHID:
+			return civSteps, nil
+		}
 	case RouteCivSwitch:
 		if transport == TransportCompositeHID {
 			return civSteps, nil
@@ -234,12 +247,20 @@ func (l *Log) Validate() error {
 func (l *Log) validateCombination() error {
 	c := l.Combination
 	required := map[string]string{
-		"macModel":             c.MacModel,
-		"macosVersion":         c.MacOSVersion,
 		"consoleSystemVersion": c.ConsoleSystem,
 		"gameVersion":          c.GameVersion,
 		"cable":                c.Cable,
 		"lanTopology":          c.LANTopology,
+	}
+	if l.Route == RouteP2 {
+		required["linuxDevice"] = c.LinuxDevice
+		required["linuxKernel"] = c.LinuxKernel
+		if strings.TrimSpace(c.MacModel) != "" || strings.TrimSpace(c.MacOSVersion) != "" {
+			return fmt.Errorf("macModel and macosVersion must be omitted for Linux p2 evidence")
+		}
+	} else {
+		required["macModel"] = c.MacModel
+		required["macosVersion"] = c.MacOSVersion
 	}
 	for field, value := range required {
 		if strings.TrimSpace(value) == "" {
@@ -248,15 +269,19 @@ func (l *Log) validateCombination() error {
 	}
 	hid := c.Transport == TransportUSBHID || c.Transport == TransportCompositeHID
 	if hid {
-		if strings.TrimSpace(c.StartupSecurity) == "" {
+		if l.Route == RouteP2 {
+			if strings.TrimSpace(c.PrivilegeBoundary) == "" {
+				return fmt.Errorf("combination.privilegeBoundary is required for Linux USB gadget transports")
+			}
+		} else if strings.TrimSpace(c.StartupSecurity) == "" {
 			return fmt.Errorf("combination.startupSecurity is required for driver-based transports")
 		}
 		if strings.TrimSpace(c.USBController) == "" {
 			return fmt.Errorf("combination.usbController is required for driver-based transports")
 		}
 	}
-	switch l.Route {
-	case RouteP1A:
+	switch {
+	case l.Route == RouteP1A || (l.Route == RouteP2 && c.Transport != TransportCompositeHID):
 		m, err := manifest.Load()
 		if err != nil {
 			return err
@@ -280,7 +305,7 @@ func (l *Log) validateCombination() error {
 		if c.BootstrapSHA256 != p.BootstrapSHA256 {
 			return fmt.Errorf("combination.bootstrapSHA256 does not match the pinned %s bootstrap", c.HostProfile)
 		}
-	case RouteCivSwitch:
+	case l.Route == RouteCivSwitch || (l.Route == RouteP2 && c.Transport == TransportCompositeHID):
 		if strings.TrimSpace(c.ConsoleGeneration) == "" {
 			return fmt.Errorf("combination.consoleGeneration is required (expected Switch 1)")
 		}

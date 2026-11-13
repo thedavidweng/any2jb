@@ -38,17 +38,30 @@ const (
 // HelperCommand is a trusted-process fixture seam, not production authorization.
 type HelperCommand func(string, ...string) *exec.Cmd
 
+// USBKeyboard is the shared built-in USB HID keyboard surface implemented by
+// Darwin (libusbd) and Linux (ConfigFS usb_f_hid).
+type USBKeyboard interface {
+	InputTransport
+	session.KeyboardTransport
+	Configure(controller string, timing Timing) error
+	EnumeratedController() string
+	OpenKeyboard(ctx context.Context, run session.Run, report session.Report) (*Keyboard, error)
+	Check(ctx context.Context, run session.Run) error
+}
+
 type Darwin struct {
-	options    DarwinOptions
-	command    HelperCommand
-	mu         sync.Mutex
-	active     *helperProcess
-	trusted    bool
-	configMu   sync.RWMutex
-	controller string
-	timing     Timing
-	enumerated string
-	workspaces map[string]string
+	options            DarwinOptions
+	command            HelperCommand
+	validateController func(string) error
+	verifyHelper       func() error
+	mu                 sync.Mutex
+	active             *helperProcess
+	trusted            bool
+	configMu           sync.RWMutex
+	controller         string
+	timing             Timing
+	enumerated         string
+	workspaces         map[string]string
 }
 
 func NewDarwin(options DarwinOptions) *Darwin {
@@ -70,7 +83,7 @@ func (d *Darwin) Configure(controller string, timing Timing) error {
 	if err := timing.Validate(); err != nil {
 		return err
 	}
-	if err := ValidateController(controller); err != nil {
+	if err := d.validateControllerName(controller); err != nil {
 		return err
 	}
 	d.mu.Lock()
@@ -138,6 +151,9 @@ func (d *Darwin) Check(ctx context.Context, run session.Run) error {
 	}
 	if _, err := d.environment(); err != nil {
 		return err
+	}
+	if d.verifyHelper != nil {
+		return d.verifyHelper()
 	}
 	if d.options.Helpers != nil {
 		return d.options.Helpers.verify()

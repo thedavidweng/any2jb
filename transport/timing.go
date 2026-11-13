@@ -4,6 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+
+	"github.com/thedavidweng/any2jb/readiness"
 )
 
 // Timing preserves upstream stroke and command waits. The native keyboard's
@@ -28,12 +31,19 @@ func (t Timing) Validate() error {
 	return nil
 }
 
+func (d *Darwin) validateControllerName(c string) error {
+	if d.validateController != nil {
+		return d.validateController(c)
+	}
+	return ValidateController(c)
+}
+
 func (d *Darwin) environment() ([]string, error) {
 	c, t := d.settings()
 	if err := t.Validate(); err != nil {
 		return nil, err
 	}
-	if err := ValidateController(c); err != nil {
+	if err := d.validateControllerName(c); err != nil {
 		return nil, err
 	}
 	return []string{"MAC2JB_CONTROLLER=" + c,
@@ -46,4 +56,18 @@ func ValidateController(c string) error {
 		return errors.New("select an observed usb-drd0..15 controller")
 	}
 	return nil
+}
+
+func ValidateLinuxController(c string) error {
+	if !readiness.ValidLinuxUDCName(c) || strings.HasPrefix(c, "usb-drd") {
+		return errors.New("select an observed Linux UDC controller from /sys/class/udc")
+	}
+	return nil
+}
+
+func ValidateAnyController(c string) error {
+	if ValidateController(c) == nil || ValidateLinuxController(c) == nil {
+		return nil
+	}
+	return errors.New("select an observed USB device controller")
 }

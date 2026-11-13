@@ -10,6 +10,9 @@ func usbChecks(o Observation) []session.Check {
 		return []session.Check{check("usb-platform", "Built-in USB device-mode input is not supported by this platform adapter.",
 			"Choose guided manual input. Ordinary USB-C ports do not establish USB device-mode support.", session.RequiresAttention)}
 	}
+	if o.Linux != nil {
+		return linuxUSBChecks(o, check)
+	}
 	present := check("driver-present", "The USB gadget kext bundle is absent.",
 		"Review driver setup and macOS approval requirements, or choose guided manual input.", session.RequiresAttention)
 	if o.Driver.PresentError != nil {

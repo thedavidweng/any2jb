@@ -90,13 +90,25 @@ func (a *app) syncStage() {
 	a.flow.observed = s.Stage
 }
 
+func isLinuxChecks(checks []session.Check) bool {
+	return findCheck(checks, "linux-udc").ID != ""
+}
+
 func flowTitles() []string {
 	return []string{locales.FlowDetection(), locales.FlowPrepare(), locales.FlowSelection(), locales.FlowLaunch(), locales.FlowTools()}
 }
 
+func flowTitlesFor(checks []session.Check) []string {
+	titles := flowTitles()
+	if isLinuxChecks(checks) {
+		titles[0] = locales.FlowDetectionLinux()
+	}
+	return titles
+}
+
 func (a *app) flowView(c *ui.Context) {
 	s := a.controller.Snapshot()
-	titles := flowTitles()
+	titles := flowTitlesFor(s.Checks)
 	// The sidebar carries the position visually; the heading names the stage
 	// once, and announces the position to assistive technology.
 	ui.Text(c.Key("flow-stage-heading"), titles[a.flow.stage]).FontSize(c.Theme().Rem(1.55)).Bold().
@@ -399,6 +411,21 @@ func (a *app) usbMode() string {
 // usbRoute is unavailable when this Mac or this build cannot use built-in USB
 // input at all, so no step the user takes could make it ready.
 func (a *app) usbRoute(s session.Snapshot) usbRoute {
+	if isLinuxChecks(s.Checks) {
+		udc := findCheck(s.Checks, "linux-udc")
+		cfg := findCheck(s.Checks, "linux-configfs")
+		access := findCheck(s.Checks, "linux-gadget-access")
+		switch {
+		case findCheck(s.Checks, "usb-platform").State == session.RequiresAttention,
+			udc.State == session.RequiresAttention,
+			findCheck(s.Checks, "usb-runtime").State == session.RequiresAttention:
+			return usbUnavailable
+		case cfg.State == session.CheckVerified && access.State == session.CheckVerified &&
+			a.detectionReady(s, a.transportFor(a.usbMode())):
+			return usbReady
+		}
+		return usbPending
+	}
 	loaded, present := findCheck(s.Checks, "driver-loaded"), findCheck(s.Checks, "driver-present")
 	switch {
 	case findCheck(s.Checks, "usb-platform").State == session.RequiresAttention,
@@ -442,7 +469,94 @@ type macStep struct {
 	action                     macAction
 }
 
+func (a *app) linuxSteps(s session.Snapshot) []macStep {
+	steps := []macStep{
+		{key: "mac-network", title: locales.CheckNetwork()},
+		{key: "mac-allow", title: locales.LinuxUDC()},
+		{key: "mac-install", title: locales.LinuxConfigFS()},
+		{key: "mac-connect", title: locales.MacConnect()},
+	}
+	status := locales.MacNotChecked()
+	if s.Stage == session.Inspecting {
+		status = locales.MacChecking()
+	}
+	for i := range steps {
+		steps[i].tone, steps[i].status = toneAvailable, status
+	}
+	if len(s.Checks) == 0 || s.Stage == session.Inspecting {
+		return steps
+	}
+	set := func(step *macStep, k tone, st, detail string, action macAction) {
+		step.tone, step.status, step.detail, step.action = k, st, detail, action
+	}
+	network := findCheck(s.Checks, "network")
+	udc := findCheck(s.Checks, "linux-udc")
+	cfg := findCheck(s.Checks, "linux-configfs")
+	access := findCheck(s.Checks, "linux-gadget-access")
+	controllers := findCheck(s.Checks, "usb-controllers")
+	unsupported := findCheck(s.Checks, "usb-platform").State == session.RequiresAttention
+	unavailable := a.usbRoute(s) == usbUnavailable
+	found := 0
+	for _, check := range s.Checks {
+		if check.Controller != "" {
+			found++
+		}
+	}
+
+	switch {
+	case network.ID == "":
+		steps[0].status = locales.MacNotChecked()
+	case network.State == session.CheckVerified:
+		set(&steps[0], toneVerified, locales.MacDone(), locales.LinuxNetworkDone(network.LANIPv4), noAction)
+	default:
+		set(&steps[0], toneAttention, locales.MacNeedsAction(), locales.LinuxNetworkAction(), noAction)
+	}
+
+	switch {
+	case unsupported:
+		steps[1].status = locales.MacNotAvailable()
+	case udc.State == session.CheckVerified:
+		set(&steps[1], toneVerified, locales.MacDone(), locales.LinuxUDCDone(), noAction)
+	default:
+		set(&steps[1], toneAvailable, locales.MacNotAvailable(), locales.LinuxUDCNone(), noAction)
+	}
+
+	switch {
+	case unsupported || udc.State != session.CheckVerified:
+		set(&steps[2], toneAvailable, locales.MacNotAvailable(), locales.LinuxConfigFSWaiting(), noAction)
+	case unavailable:
+		set(&steps[2], toneAvailable, locales.MacNotAvailable(), locales.MacUsbBlocked(), noAction)
+	case cfg.State == session.CheckVerified && access.State == session.CheckVerified:
+		set(&steps[2], toneVerified, locales.MacDone(), locales.LinuxConfigFSDone(), noAction)
+	case cfg.State != session.CheckVerified:
+		set(&steps[2], toneAttention, locales.MacNeedsAction(), locales.LinuxConfigFSAction(), noAction)
+	default:
+		set(&steps[2], toneAttention, locales.MacNeedsAction(), locales.LinuxAccessAction(), noAction)
+	}
+
+	switch {
+	case unsupported || udc.State != session.CheckVerified:
+		set(&steps[3], toneAvailable, locales.MacNotAvailable(), locales.LinuxConnectNoUDC(), noAction)
+	case unavailable:
+		set(&steps[3], toneAvailable, locales.MacWaiting(), locales.MacConnectWaiting(), noAction)
+	case controllers.State == session.CheckVerified:
+		set(&steps[3], toneVerified, locales.MacDone(), locales.LinuxConnectDone(), noAction)
+	case controllers.State == session.Available:
+		set(&steps[3], toneAvailable, locales.MacFound(), locales.MacConnectFound(), chooseConnection)
+	case cfg.State != session.CheckVerified || access.State != session.CheckVerified:
+		set(&steps[3], toneAvailable, locales.MacWaiting(), locales.LinuxConnectWaiting(), noAction)
+	case found > 1:
+		set(&steps[3], toneAttention, locales.MacNeedsAction(), locales.MacConnectSeveral(), chooseConnection)
+	default:
+		set(&steps[3], toneAttention, locales.MacNeedsAction(), locales.LinuxConnectAction(), noAction)
+	}
+	return steps
+}
+
 func (a *app) macSteps(s session.Snapshot) []macStep {
+	if isLinuxChecks(s.Checks) {
+		return a.linuxSteps(s)
+	}
 	steps := []macStep{
 		{key: "mac-network", title: locales.CheckNetwork()},
 		{key: "mac-allow", title: locales.MacAllow()},
@@ -543,7 +657,11 @@ func (a *app) detectionView(c *ui.Context, s session.Snapshot) {
 	disabled := s.Busy || s.SideEffects || s.Stage == session.Indeterminate
 	t := c.Theme()
 	card(c, func() {
-		muted(c, locales.MacIntro())
+		if isLinuxChecks(s.Checks) {
+			muted(c, locales.LinuxIntro())
+		} else {
+			muted(c, locales.MacIntro())
+		}
 		for _, step := range a.macSteps(s) {
 			ui.Column(c.Key(step.key)).FillWidth().Gap(t.Space(1.5)).Children(func() {
 				ui.Row(c).FillWidth().Wrap().Gap(t.Space(2)).Children(func() {

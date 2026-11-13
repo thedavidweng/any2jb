@@ -14,6 +14,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/thedavidweng/any2jb/internal/usbgadget"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/readiness"
 	"github.com/thedavidweng/any2jb/session"
@@ -34,6 +35,8 @@ type Options struct {
 	// interpreter is bundled and PATH is never searched for one.
 	DeveloperInstallerPython string
 	Inspector                *readiness.Inspector
+	// LinuxHelperCommand is a test seam for trusted Linux ConfigFS helper fixtures.
+	LinuxHelperCommand func(payload, controller string, dryRun bool) (*exec.Cmd, error)
 }
 
 type Adapter struct {
@@ -91,12 +94,27 @@ func (a *Adapter) verifySource() error {
 // Check verifies the staged helper and payload without running a helper or opening USB.
 func (a *Adapter) Check() error { return a.verify() }
 
+func (a *Adapter) useLinuxHelper() bool {
+	if a.options.LinuxHelperCommand != nil {
+		return true
+	}
+	return runtime.GOOS == "linux" && (runtime.GOARCH == "amd64" || runtime.GOARCH == "arm64") &&
+		a.options.DeveloperHelperPath == "" && a.options.DeveloperHelperSHA256 == ""
+}
+
 func (a *Adapter) verify() error {
 	if err := a.verifySource(); err != nil {
 		return err
 	}
+	if a.useLinuxHelper() {
+		if a.options.LinuxHelperCommand != nil {
+			return nil
+		}
+		_, err := usbgadget.VerifySelfExecutable()
+		return err
+	}
 	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
-		return errors.New("CivSwitch composite HID requires Apple Silicon macOS")
+		return errors.New("CivSwitch composite HID requires Apple Silicon macOS or Linux with ConfigFS UDC")
 	}
 	// A locally built helper has no release digest. Require the developer's
 	// explicit digest, then use the same symlink-safe verifier as other assets.
@@ -209,6 +227,7 @@ func (a *Adapter) helper(ctx context.Context, dryRun bool, receive func(helperEv
 		return err
 	}
 	controller := ""
+	found := 0
 	for _, check := range checks {
 		if check.State == session.RequiresAttention {
 			return fmt.Errorf("CivSwitch prerequisite: %s %s", check.Message, check.NextAction)
@@ -216,22 +235,54 @@ func (a *Adapter) helper(ctx context.Context, dryRun bool, receive func(helperEv
 		switch check.ID {
 		case "usb-drd0", "usb-drd1", "usb-drd2", "usb-drd3":
 			controller = check.ID
+			found++
+		default:
+			if a.useLinuxHelper() && check.Controller != "" {
+				controller = check.Controller
+				found++
+			}
 		}
 	}
-	if controller == "" {
+	if found != 1 || controller == "" {
 		return errors.New("CivSwitch requires one discovered USB device controller")
-	}
-	// Avoid the upstream auto parent, which can kill a worker before neutral
-	// reports yet still emit cancelled. Own the single writer directly.
-	args := []string{"--payload", a.payload(), "--controller", controller}
-	if dryRun {
-		args = append(args, "--dry-run")
 	}
 	childCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	cmd := exec.CommandContext(childCtx, a.helperPath(), args...)
-	cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
-	cmd.WaitDelay = 5 * time.Second
+	var cmd *exec.Cmd
+	var stdinCloser func()
+	if a.useLinuxHelper() {
+		builder := usbgadget.CivSwitchHelperCommand
+		if a.options.LinuxHelperCommand != nil {
+			builder = a.options.LinuxHelperCommand
+		}
+		cmd, err = builder(a.payload(), controller, dryRun)
+		if err != nil {
+			return err
+		}
+		stdinPipe, pipeErr := cmd.StdinPipe()
+		if pipeErr != nil {
+			return pipeErr
+		}
+		stdinCloser = func() { _ = stdinPipe.Close() }
+		defer stdinCloser()
+		stopCancel := context.AfterFunc(childCtx, func() {
+			stdinCloser()
+			if cmd.Process != nil {
+				_ = cmd.Process.Signal(syscall.SIGTERM)
+			}
+		})
+		defer stopCancel()
+	} else {
+		// Avoid the upstream auto parent, which can kill a worker before neutral
+		// reports yet still emit cancelled. Own the single writer directly.
+		args := []string{"--payload", a.payload(), "--controller", controller}
+		if dryRun {
+			args = append(args, "--dry-run")
+		}
+		cmd = exec.CommandContext(childCtx, a.helperPath(), args...)
+		cmd.Cancel = func() error { return cmd.Process.Signal(syscall.SIGTERM) }
+		cmd.WaitDelay = 5 * time.Second
+	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err

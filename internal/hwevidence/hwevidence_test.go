@@ -192,3 +192,67 @@ func TestValidateCivSwitchSequence(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestValidateLinuxP2Sequences(t *testing.T) {
+	usbLog := &Log{
+		Schema: Schema,
+		Date:   "2026-11-22",
+		Tester: "david",
+		Route:  RouteP2,
+		Combination: Combination{
+			LinuxDevice:       "Raspberry Pi 5 (arm64, dwc2 OTG)",
+			LinuxKernel:       "6.12.20-rpt-rpi-2712",
+			PrivilegeBoundary: "Polkit pkexec --internal-linux-usb-helper",
+			HostProfile:       "pepsipu",
+			ConsoleSystem:     "23.0.1",
+			GameEdition:       "full",
+			GameVersion:       "4.4.9",
+			BootstrapSHA256:   pepsipuDigest(t),
+			Transport:         TransportUSBHID,
+			USBController:     "fe980000.usb",
+			Cable:             "USB-C OTG data cable",
+			LANTopology:       "Switch 2 and Raspberry Pi 5 on the same LAN",
+		},
+		Steps: validP1A(t).Steps,
+	}
+	if err := usbLog.Validate(); err != nil {
+		t.Fatalf("valid Linux P2 USB HID log rejected: %v", err)
+	}
+
+	usbMissingBoundary := *usbLog
+	usbMissingBoundary.Combination.PrivilegeBoundary = ""
+	if err := usbMissingBoundary.Validate(); err == nil {
+		t.Fatal("expected missing privilegeBoundary failure on Linux USB HID")
+	}
+
+	civLog := &Log{
+		Schema: Schema,
+		Date:   "2026-11-22",
+		Tester: "david",
+		Route:  RouteP2,
+		Combination: Combination{
+			LinuxDevice:       "Steam Deck OLED (amd64, DRD)",
+			LinuxKernel:       "6.11.0-valve",
+			PrivilegeBoundary: "Polkit pkexec --internal-linux-usb-helper",
+			ConsoleGeneration: "Switch 1",
+			ConsoleSystem:     "20.5.0",
+			GameVersion:       "Civilization VII cartridge 1.0.0",
+			SystemLanguage:    "English (US)",
+			Transport:         TransportCompositeHID,
+			USBController:     "dwc3.0.auto",
+			Cable:             "USB-C data cable",
+			LANTopology:       "Switch 1 and Steam Deck on the same LAN",
+		},
+		Steps: []Step{
+			{ID: "civ-prerequisites", Outcome: OutcomePass, Log: "cartridge, language and chat focus confirmed"},
+			{ID: "civ-composite-enumeration", Outcome: OutcomePass, Log: "ConfigFS hid.usb0 + hid.usb1 enumerated"},
+			{ID: "civ-chat-transfer", Outcome: OutcomePass, Log: "87/87 lines"},
+			{ID: "civ-stop-release", Outcome: OutcomePass, Log: "both hidg interfaces released"},
+			{ID: "civ-loader-verify", Outcome: OutcomePass, Log: "nonce verified on TCP 9026"},
+			{ID: "civ-save-backup", Outcome: OutcomePass, Log: "save:/saves/Single backup verified"},
+		},
+	}
+	if err := civLog.Validate(); err != nil {
+		t.Fatalf("valid Linux P2 CivSwitch log rejected: %v", err)
+	}
+}

@@ -48,7 +48,7 @@ func loadApp(path string) (*app, error) {
 
 func (a *app) validatePreferences() error {
 	if a.preferences.USB != nil {
-		if a.preferences.USB.Timing.Validate() != nil || transport.ValidateController(a.preferences.USB.Controller) != nil {
+		if a.preferences.USB.Timing.Validate() != nil || transport.ValidateAnyController(a.preferences.USB.Controller) != nil {
 			return errors.New(locales.UsbInvalidSettings())
 		}
 	}
@@ -139,7 +139,7 @@ func (a *app) initializeSession(env session.Environment) error {
 	}
 	if inputs, ok := env.Input.(*transport.Dispatcher); ok {
 		a.manual = inputs.Manual()
-		a.keyboard.input = inputs.Darwin()
+		a.keyboard.input = inputs.USB()
 	} else {
 		a.manual, _ = env.Input.(*transport.Manual)
 	}

@@ -17,8 +17,10 @@ Create an untracked configuration file outside the repository:
 - `sourceRoot` is the existing mac2jb checkout at the canonical pinned revision,
   including the selected engine and integration assets.
 - `assets` is the prepared runtime resource root. `go run` does not merge MyGo
-  platform overlays; use `resources/darwin-arm64` after preparing the pinned Node
-  runtime with `go run ./cmd/prepare-runtime`.
+  platform overlays; pass `resources/darwin-arm64`, `resources/linux-amd64` or
+  `resources/linux-arm64` after preparing the pinned Node runtime with
+  `go run ./cmd/prepare-runtime` (`Stage` automatically resolves sibling shared
+  scripts in `resources/runtime/`).
 - `installerPython` is optional. When provided it must be an absolute executable
   file. It is passed only to the CivSwitch persistence installer; omitting it
   leaves that action unavailable. No interpreter is searched for on PATH.
@@ -27,7 +29,7 @@ Both required directories and the config file must exist and use absolute paths.
 Invalid/missing paths stop launch visibly. Paths are local configuration and
 must not be committed or shared in diagnostics.
 
-Launch on Apple Silicon macOS:
+Launch on Apple Silicon macOS or Linux (`linux/amd64` / `linux/arm64`):
 
 ```sh
 ANY2JB_DEVELOPER_CONFIG=/absolute/path/to/developer.json go run .
@@ -47,13 +49,15 @@ require successful `Stage`, staged provenance and `VerifyProfile`. Apply another
 profile and relaunch with the same option to stage that profile; switching the
 selection alone never authorizes a different engine.
 
-Startup compiles and seals the USB helpers once through
-`transport.BuildDeveloperHelpers`, which verifies the pinned source and never
-initializes USB. Keyboard input receives that in-memory build authorization.
-CivSwitch receives the same build's composite helper path and digest and checks
-them again before use, alongside its source/payload checks. The driver gate
-receives the explicit source root, but still requires informed consent before
-privileged installation. CivSwitch also receives `DeveloperInstallerPython`.
+On Apple Silicon macOS, startup compiles and seals the `libusbd` C helpers once
+through `transport.BuildDeveloperHelpers`, which verifies the pinned source and
+never initializes USB. On Linux (`linux/amd64` and `linux/arm64`), `BuildDeveloperHelpers`
+is skipped and USB keyboard / CivSwitch composite HID run the verified
+first-party `--internal-linux-usb-helper` ConfigFS transport against the
+developer-staged profile and payload. The macOS driver gate receives the
+explicit source root, still requiring informed consent before privileged
+installation; on Linux no third-party kernel extension is installed. CivSwitch
+also receives `DeveloperInstallerPython`.
 Retained tool staging plugs into the single production composition point using
 the same `engine.Options.DeveloperSourceRoot`, never another launch switch.
 

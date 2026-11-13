@@ -16,22 +16,31 @@ import (
 )
 
 type helperProcess struct {
-	owner    *Darwin
-	run      session.Run
-	cmd      *exec.Cmd
-	input    io.WriteCloser
-	lines    chan string
-	done     chan struct{}
-	err      error
-	mu       sync.Mutex
-	count    int
-	closed   bool
-	closeErr error
-	released bool
-	inflight bool
-	owned    chan struct{}
-	lease    *os.File
-	audit    *usbAudit
+	owner     *Darwin
+	run       session.Run
+	cmd       *exec.Cmd
+	input     io.WriteCloser
+	inputOnce sync.Once
+	inputErr  error
+	lines     chan string
+	done      chan struct{}
+	err       error
+	mu        sync.Mutex
+	count     int
+	closed    bool
+	closeErr  error
+	released  bool
+	inflight  bool
+	owned     chan struct{}
+	lease     *os.File
+	audit     *usbAudit
+}
+
+func (p *helperProcess) closeInput() error {
+	p.inputOnce.Do(func() {
+		p.inputErr = p.input.Close()
+	})
+	return p.inputErr
 }
 
 func (d *Darwin) start(ctx context.Context, run session.Run, workspace string) (*helperProcess, error) {
@@ -119,6 +128,7 @@ func (d *Darwin) start(ctx context.Context, run session.Run, workspace string) (
 	go func() {
 		select {
 		case <-ctx.Done():
+			_ = p.closeInput()
 			terminateHelper(cmd, false)
 		case <-p.done:
 			return
@@ -170,6 +180,14 @@ func (p *helperProcess) close(ctx context.Context) error {
 		terminateHelper(p.cmd, false)
 		select {
 		case <-p.done:
+			return
+		case <-time.After(50 * time.Millisecond):
+			// Across a privilege boundary (e.g. pkexec), SIGTERM returns EPERM;
+			// closing stdin delivers EOF through the kernel pipe immediately.
+			_ = p.closeInput()
+		}
+		select {
+		case <-p.done:
 		case <-time.After(time.Second):
 			terminateHelper(p.cmd, true)
 		}
@@ -197,7 +215,7 @@ func (p *helperProcess) close(ctx context.Context) error {
 		err = p.ack(ctx)
 	}
 	p.released = err == nil
-	p.input.Close()
+	_ = p.closeInput()
 	for range p.lines {
 	}
 	<-p.done

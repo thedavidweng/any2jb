@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/thedavidweng/any2jb/engine"
 	"github.com/thedavidweng/any2jb/internal/devlaunch"
 	"github.com/thedavidweng/any2jb/internal/sessionlock"
+	"github.com/thedavidweng/any2jb/internal/usbgadget"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/manifest"
 	"github.com/thedavidweng/any2jb/session"
@@ -84,7 +86,7 @@ func (a *app) view(c *ui.Context) {
 		// growing past it and pushing the footer out of view.
 		ui.Row(c).FillWidth().Grow(1).MinHeight(0).Children(func() {
 			if flow {
-				sidebar(c, a.flow.stage, flowTitles())
+				sidebar(c, a.flow.stage, flowTitlesFor(a.controller.Snapshot().Checks))
 				ui.Column(c).Width(1).FillHeight().Shrink(0).Background(c.Theme().Border)
 			}
 			ui.Scroll(c).Fill().Children(func() {
@@ -125,6 +127,9 @@ func (a *app) body(c *ui.Context) {
 	}
 }
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == usbgadget.HelperFlag {
+		os.Exit(usbgadget.RunHelper(os.Args[2:], os.Stdin, os.Stdout))
+	}
 	if len(os.Args) == 2 && os.Args[1] == "--self-test" {
 		if err := packagedSelfTest(); err != nil {
 			log.Fatal(err)
@@ -199,7 +204,7 @@ func main() {
 		}
 		go func() {
 			civOptions := civswitch.Options{DeveloperInstallerPython: developer.InstallerPython}
-			if developer.SourceRoot != "" {
+			if developer.SourceRoot != "" && runtime.GOOS == "darwin" {
 				built, err := transport.BuildDeveloperHelpers(context.Background(), developer.SourceRoot, support, a.manifest, io.Discard)
 				if err != nil {
 					win.Update(func() { a.startupError = locales.DeveloperStagingFailed(err.Error()) })

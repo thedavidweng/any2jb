@@ -1,8 +1,9 @@
 # any2jb
 
-A native desktop manager for ns2jb, starting with Apple Silicon macOS 14+.
-This is the development shell only. It does not launch a host, communicate
-with a console, or check hardware readiness.
+A native desktop manager for ns2jb on Apple Silicon macOS 14+ and Linux
+(`linux/amd64` and `linux/arm64`, GTK3 without WebKitGTK).
+Console and USB hardware behavior remains **not verified** until a human files
+real hardware acceptance evidence.
 
 ## Develop
 
@@ -37,8 +38,13 @@ go tool mygo build
 
 On Apple Silicon macOS the build produces an app and DMG in
 `build/darwin-arm64/`. Local builds use ad-hoc signing, not Developer ID
-signing or notarization. Linux and Windows are later product targets.
-Console and USB hardware behavior is **not verified**.
+signing or notarization. On Linux (`linux/amd64` and `linux/arm64`), MyGo
+builds a GTK3 desktop package without WebView (`linux.webview: false`), stages
+the matching official Node 24.22.1 runtime (`node-linux-x64` or
+`node-linux-arm64`), and supports Linux ConfigFS `usb_f_hid` keyboard and
+CivSwitch composite HID on real USB Device Controller (`/sys/class/udc`)
+hardware as well as guided manual input on ordinary host-only PCs. Windows
+remains a later target. Console and USB hardware behavior is **not verified**.
 
 The build runs a fail-closed redistribution check over packaged input resources.
 It first fetches the pinned official Node 24.22.1 arm64 archive into `.cache/`,

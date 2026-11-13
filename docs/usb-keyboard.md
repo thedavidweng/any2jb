@@ -1,7 +1,11 @@
 # Supervised keyboard input
 
-`transport.NewDarwin(DarwinOptions)` implements the session input boundary.
-It is keyboard-only, never a substitute for CivSwitch's composite transport.
+`transport.NewDarwin(DarwinOptions)` and `transport.NewLinux(LinuxOptions)`
+implement the `transport.USBKeyboard` session input boundary on Apple Silicon
+macOS (`libusbd` C helper) and Linux (`usb_f_hid` ConfigFS helper).
+Keyboard mode is never a substitute for CivSwitch's composite transport; on
+Linux, `civswitch.Adapter` uses the separate composite `hid.usb0` + `hid.usb1`
+mode of `--internal-linux-usb-helper`.
 All console/USB hardware behavior remains **not verified**.
 
 ## Authorization and local builds
@@ -28,9 +32,26 @@ used by the manual adapter. Each launch requires successful Stage/VerifyProfile
 and matching revision, source/bootstrap digest, edition, save name, START arity
 and port. Bootstrap text is independently digest-checked before any input.
 
-`Darwin.Check(ctx, run)` verifies provenance, bytes and settings without executing
-a helper. `Configure(controller, timing)` refuses an active writer. Neither
-method proves USB enumeration or console acceptance.
+`Darwin.Check(ctx, run)` and `Linux.Check(ctx, run)` verify provenance, bytes
+and settings without executing a helper. `Configure(controller, timing)` refuses
+an active writer. Neither method proves USB enumeration or console acceptance.
+
+### Linux ConfigFS `usb_f_hid` helper
+
+On `linux/amd64` and `linux/arm64`, `transport.NewLinux` launches the verified
+self-executable in narrow helper mode (`--internal-linux-usb-helper keyboard`),
+directly when `/sys/kernel/config/usb_gadget` is writable or through
+`/usr/bin/pkexec` otherwise. The GUI and Node host stay unprivileged.
+
+`internal/usbgadget` configures `/sys/kernel/config/usb_gadget/any2jb-hid` with
+the exact descriptors and strings of `mac2jb` (`0x1d6b:0x1234`, boot keyboard
+65-byte report descriptor for SmileBASIC; `0x0f0d:0x0092`, 86-byte gamepad +
+63-byte keyboard descriptors for CivSwitch), refuses to bind any UDC owned by a
+foreign gadget, resolves `/dev/hidgN` via `/sys/class/hidg/*/dev` major:minor
+numbers, speaks the identical `MAC2JB_KEYBOARD_*` / `MAC2JB_CIVSWITCH` wire
+protocol, writes neutral release reports on EOF, cancellation, signals or error,
+and unbinds and removes its ConfigFS nodes in reverse order. Differential tests
+verify exact report parity against `mac2jb`'s `keyboard.c` and `civswitch-hid.c`.
 
 ## B8 source compatibility decisions
 

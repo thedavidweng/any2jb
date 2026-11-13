@@ -3818,11 +3818,11 @@ func (msgs Messages) DynCivRootNotDirectory() string {
 	return Catalog.Format(msgs.locale, "dynCivRootNotDirectory", nil)
 }
 
-// DynCivRequiresAppleSilicon says "CivSwitch composite HID requires Apple Silicon macOS"
+// DynCivRequiresAppleSilicon says "CivSwitch composite HID requires Apple Silicon macOS or Linux with ConfigFS UDC"
 // in the language the app shows.
 func DynCivRequiresAppleSilicon() string { return In(i18n.Locale()).DynCivRequiresAppleSilicon() }
 
-// DynCivRequiresAppleSilicon says "CivSwitch composite HID requires Apple Silicon macOS"
+// DynCivRequiresAppleSilicon says "CivSwitch composite HID requires Apple Silicon macOS or Linux with ConfigFS UDC"
 // in the language of msgs.
 func (msgs Messages) DynCivRequiresAppleSilicon() string {
 	return Catalog.Format(msgs.locale, "dynCivRequiresAppleSilicon", nil)
@@ -6766,4 +6766,460 @@ func CliUnavailable() string { return In(i18n.Locale()).CliUnavailable() }
 // in the language of msgs.
 func (msgs Messages) CliUnavailable() string {
 	return Catalog.Format(msgs.locale, "cliUnavailable", nil)
+}
+
+// FlowDetectionLinux says "Check this Linux host"
+// in the language the app shows.
+func FlowDetectionLinux() string { return In(i18n.Locale()).FlowDetectionLinux() }
+
+// FlowDetectionLinux says "Check this Linux host"
+// in the language of msgs.
+func (msgs Messages) FlowDetectionLinux() string {
+	return Catalog.Format(msgs.locale, "flowDetectionLinux", nil)
+}
+
+// LinuxIntro says "any2jb sets up this Linux host to type on the Switch over USB gadget mode or guided manual input."
+// in the language the app shows.
+func LinuxIntro() string { return In(i18n.Locale()).LinuxIntro() }
+
+// LinuxIntro says "any2jb sets up this Linux host to type on the Switch over USB gadget mode or guided manual input."
+// in the language of msgs.
+func (msgs Messages) LinuxIntro() string {
+	return Catalog.Format(msgs.locale, "linuxIntro", nil)
+}
+
+// LinuxNetworkDone says "This Linux host is on a local network ({address})."
+// in the language the app shows.
+func LinuxNetworkDone(address string) string { return In(i18n.Locale()).LinuxNetworkDone(address) }
+
+// LinuxNetworkDone says "This Linux host is on a local network ({address})."
+// in the language of msgs.
+func (msgs Messages) LinuxNetworkDone(address string) string {
+	return Catalog.Format(msgs.locale, "linuxNetworkDone", map[string]any{"address": address})
+}
+
+// LinuxNetworkAction says "Connect this Linux host to the same network as the Switch. If it uses several networks, choose one in Settings."
+// in the language the app shows.
+func LinuxNetworkAction() string { return In(i18n.Locale()).LinuxNetworkAction() }
+
+// LinuxNetworkAction says "Connect this Linux host to the same network as the Switch. If it uses several networks, choose one in Settings."
+// in the language of msgs.
+func (msgs Messages) LinuxNetworkAction() string {
+	return Catalog.Format(msgs.locale, "linuxNetworkAction", nil)
+}
+
+// LinuxUDC says "USB device controller (UDC)"
+// in the language the app shows.
+func LinuxUDC() string { return In(i18n.Locale()).LinuxUDC() }
+
+// LinuxUDC says "USB device controller (UDC)"
+// in the language of msgs.
+func (msgs Messages) LinuxUDC() string {
+	return Catalog.Format(msgs.locale, "linuxUDC", nil)
+}
+
+// LinuxUDCDone says "USB device controller hardware is exposed in /sys/class/udc."
+// in the language the app shows.
+func LinuxUDCDone() string { return In(i18n.Locale()).LinuxUDCDone() }
+
+// LinuxUDCDone says "USB device controller hardware is exposed in /sys/class/udc."
+// in the language of msgs.
+func (msgs Messages) LinuxUDCDone() string {
+	return Catalog.Format(msgs.locale, "linuxUDCDone", nil)
+}
+
+// LinuxUDCNone says "No USB device controller in /sys/class/udc. Ordinary PC USB-C host ports cannot emulate a USB keyboard; use guided ma…"
+// in the language the app shows.
+func LinuxUDCNone() string { return In(i18n.Locale()).LinuxUDCNone() }
+
+// LinuxUDCNone says "No USB device controller in /sys/class/udc. Ordinary PC USB-C host ports cannot emulate a USB keyboard; use guided ma…"
+// in the language of msgs.
+func (msgs Messages) LinuxUDCNone() string {
+	return Catalog.Format(msgs.locale, "linuxUDCNone", nil)
+}
+
+// LinuxUDCError says "Could not inspect /sys/class/udc. Check sysfs access or use guided manual input."
+// in the language the app shows.
+func LinuxUDCError() string { return In(i18n.Locale()).LinuxUDCError() }
+
+// LinuxUDCError says "Could not inspect /sys/class/udc. Check sysfs access or use guided manual input."
+// in the language of msgs.
+func (msgs Messages) LinuxUDCError() string {
+	return Catalog.Format(msgs.locale, "linuxUDCError", nil)
+}
+
+// LinuxConfigFS says "ConfigFS HID gadget & access"
+// in the language the app shows.
+func LinuxConfigFS() string { return In(i18n.Locale()).LinuxConfigFS() }
+
+// LinuxConfigFS says "ConfigFS HID gadget & access"
+// in the language of msgs.
+func (msgs Messages) LinuxConfigFS() string {
+	return Catalog.Format(msgs.locale, "linuxConfigFS", nil)
+}
+
+// LinuxConfigFSDone says "Linux ConfigFS usb_gadget and narrow privilege helper are ready."
+// in the language the app shows.
+func LinuxConfigFSDone() string { return In(i18n.Locale()).LinuxConfigFSDone() }
+
+// LinuxConfigFSDone says "Linux ConfigFS usb_gadget and narrow privilege helper are ready."
+// in the language of msgs.
+func (msgs Messages) LinuxConfigFSDone() string {
+	return Catalog.Format(msgs.locale, "linuxConfigFSDone", nil)
+}
+
+// LinuxConfigFSWaiting says "Not needed without USB device controller hardware."
+// in the language the app shows.
+func LinuxConfigFSWaiting() string { return In(i18n.Locale()).LinuxConfigFSWaiting() }
+
+// LinuxConfigFSWaiting says "Not needed without USB device controller hardware."
+// in the language of msgs.
+func (msgs Messages) LinuxConfigFSWaiting() string {
+	return Catalog.Format(msgs.locale, "linuxConfigFSWaiting", nil)
+}
+
+// LinuxConfigFSAction says "Mount configfs at /sys/kernel/config and load libcomposite and usb_f_hid, then check again."
+// in the language the app shows.
+func LinuxConfigFSAction() string { return In(i18n.Locale()).LinuxConfigFSAction() }
+
+// LinuxConfigFSAction says "Mount configfs at /sys/kernel/config and load libcomposite and usb_f_hid, then check again."
+// in the language of msgs.
+func (msgs Messages) LinuxConfigFSAction() string {
+	return Catalog.Format(msgs.locale, "linuxConfigFSAction", nil)
+}
+
+// LinuxAccessAction says "Install Polkit (pkexec) or grant narrow ConfigFS/hidg access, or unbind any conflicting gadget."
+// in the language the app shows.
+func LinuxAccessAction() string { return In(i18n.Locale()).LinuxAccessAction() }
+
+// LinuxAccessAction says "Install Polkit (pkexec) or grant narrow ConfigFS/hidg access, or unbind any conflicting gadget."
+// in the language of msgs.
+func (msgs Messages) LinuxAccessAction() string {
+	return Catalog.Format(msgs.locale, "linuxAccessAction", nil)
+}
+
+// LinuxConnectNoUDC says "Built-in USB typing is unavailable without UDC hardware; guided manual input remains ready."
+// in the language the app shows.
+func LinuxConnectNoUDC() string { return In(i18n.Locale()).LinuxConnectNoUDC() }
+
+// LinuxConnectNoUDC says "Built-in USB typing is unavailable without UDC hardware; guided manual input remains ready."
+// in the language of msgs.
+func (msgs Messages) LinuxConnectNoUDC() string {
+	return Catalog.Format(msgs.locale, "linuxConnectNoUDC", nil)
+}
+
+// LinuxConnectDone says "The Switch recognized this Linux host as a USB keyboard."
+// in the language the app shows.
+func LinuxConnectDone() string { return In(i18n.Locale()).LinuxConnectDone() }
+
+// LinuxConnectDone says "The Switch recognized this Linux host as a USB keyboard."
+// in the language of msgs.
+func (msgs Messages) LinuxConnectDone() string {
+	return Catalog.Format(msgs.locale, "linuxConnectDone", nil)
+}
+
+// LinuxConnectWaiting says "Finish ConfigFS and access setup before connecting over USB."
+// in the language the app shows.
+func LinuxConnectWaiting() string { return In(i18n.Locale()).LinuxConnectWaiting() }
+
+// LinuxConnectWaiting says "Finish ConfigFS and access setup before connecting over USB."
+// in the language of msgs.
+func (msgs Messages) LinuxConnectWaiting() string {
+	return Catalog.Format(msgs.locale, "linuxConnectWaiting", nil)
+}
+
+// LinuxConnectAction says "Connect a USB data cable between this device's UDC port and the Switch."
+// in the language the app shows.
+func LinuxConnectAction() string { return In(i18n.Locale()).LinuxConnectAction() }
+
+// LinuxConnectAction says "Connect a USB data cable between this device's UDC port and the Switch."
+// in the language of msgs.
+func (msgs Messages) LinuxConnectAction() string {
+	return Catalog.Format(msgs.locale, "linuxConnectAction", nil)
+}
+
+// CheckLinuxUDC says "Linux USB device controller (UDC)"
+// in the language the app shows.
+func CheckLinuxUDC() string { return In(i18n.Locale()).CheckLinuxUDC() }
+
+// CheckLinuxUDC says "Linux USB device controller (UDC)"
+// in the language of msgs.
+func (msgs Messages) CheckLinuxUDC() string {
+	return Catalog.Format(msgs.locale, "checkLinuxUDC", nil)
+}
+
+// CheckLinuxConfigFS says "Linux ConfigFS usb_gadget"
+// in the language the app shows.
+func CheckLinuxConfigFS() string { return In(i18n.Locale()).CheckLinuxConfigFS() }
+
+// CheckLinuxConfigFS says "Linux ConfigFS usb_gadget"
+// in the language of msgs.
+func (msgs Messages) CheckLinuxConfigFS() string {
+	return Catalog.Format(msgs.locale, "checkLinuxConfigFS", nil)
+}
+
+// CheckLinuxAccess says "Linux USB gadget permissions"
+// in the language the app shows.
+func CheckLinuxAccess() string { return In(i18n.Locale()).CheckLinuxAccess() }
+
+// CheckLinuxAccess says "Linux USB gadget permissions"
+// in the language of msgs.
+func (msgs Messages) CheckLinuxAccess() string {
+	return Catalog.Format(msgs.locale, "checkLinuxAccess", nil)
+}
+
+// DynNetConnectLANLinux says "Connect this Linux host to the console LAN, then refresh readiness."
+// in the language the app shows.
+func DynNetConnectLANLinux() string { return In(i18n.Locale()).DynNetConnectLANLinux() }
+
+// DynNetConnectLANLinux says "Connect this Linux host to the console LAN, then refresh readiness."
+// in the language of msgs.
+func (msgs Messages) DynNetConnectLANLinux() string {
+	return Catalog.Format(msgs.locale, "dynNetConnectLANLinux", nil)
+}
+
+// DynLinuxNoUDC says "No USB device controller (UDC) is exposed in /sys/class/udc on this Linux system."
+// in the language the app shows.
+func DynLinuxNoUDC() string { return In(i18n.Locale()).DynLinuxNoUDC() }
+
+// DynLinuxNoUDC says "No USB device controller (UDC) is exposed in /sys/class/udc on this Linux system."
+// in the language of msgs.
+func (msgs Messages) DynLinuxNoUDC() string {
+	return Catalog.Format(msgs.locale, "dynLinuxNoUDC", nil)
+}
+
+// DynLinuxNoUDCAction says "Choose guided manual input or an external Pico HID. Ordinary PC USB-C host ports cannot emulate a USB keyboard."
+// in the language the app shows.
+func DynLinuxNoUDCAction() string { return In(i18n.Locale()).DynLinuxNoUDCAction() }
+
+// DynLinuxNoUDCAction says "Choose guided manual input or an external Pico HID. Ordinary PC USB-C host ports cannot emulate a USB keyboard."
+// in the language of msgs.
+func (msgs Messages) DynLinuxNoUDCAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxNoUDCAction", nil)
+}
+
+// DynLinuxUDCFailed says "Linux /sys/class/udc could not be inspected."
+// in the language the app shows.
+func DynLinuxUDCFailed() string { return In(i18n.Locale()).DynLinuxUDCFailed() }
+
+// DynLinuxUDCFailed says "Linux /sys/class/udc could not be inspected."
+// in the language of msgs.
+func (msgs Messages) DynLinuxUDCFailed() string {
+	return Catalog.Format(msgs.locale, "dynLinuxUDCFailed", nil)
+}
+
+// DynLinuxUDCFailedAction says "Check sysfs access and refresh readiness, or choose guided manual input."
+// in the language the app shows.
+func DynLinuxUDCFailedAction() string { return In(i18n.Locale()).DynLinuxUDCFailedAction() }
+
+// DynLinuxUDCFailedAction says "Check sysfs access and refresh readiness, or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxUDCFailedAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxUDCFailedAction", nil)
+}
+
+// DynLinuxUDCReady says "Linux USB device controller hardware exposed in /sys/class/udc."
+// in the language the app shows.
+func DynLinuxUDCReady() string { return In(i18n.Locale()).DynLinuxUDCReady() }
+
+// DynLinuxUDCReady says "Linux USB device controller hardware exposed in /sys/class/udc."
+// in the language of msgs.
+func (msgs Messages) DynLinuxUDCReady() string {
+	return Catalog.Format(msgs.locale, "dynLinuxUDCReady", nil)
+}
+
+// DynLinuxCfgInactive says "Linux ConfigFS USB gadget subsystem (/sys/kernel/config/usb_gadget) is not active."
+// in the language the app shows.
+func DynLinuxCfgInactive() string { return In(i18n.Locale()).DynLinuxCfgInactive() }
+
+// DynLinuxCfgInactive says "Linux ConfigFS USB gadget subsystem (/sys/kernel/config/usb_gadget) is not active."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgInactive() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgInactive", nil)
+}
+
+// DynLinuxCfgInactiveAction says "Load libcomposite and usb_f_hid or mount configfs, then refresh readiness; or choose guided manual input."
+// in the language the app shows.
+func DynLinuxCfgInactiveAction() string { return In(i18n.Locale()).DynLinuxCfgInactiveAction() }
+
+// DynLinuxCfgInactiveAction says "Load libcomposite and usb_f_hid or mount configfs, then refresh readiness; or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgInactiveAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgInactiveAction", nil)
+}
+
+// DynLinuxCfgNoUDC says "Linux ConfigFS USB gadget setup does not apply without UDC hardware."
+// in the language the app shows.
+func DynLinuxCfgNoUDC() string { return In(i18n.Locale()).DynLinuxCfgNoUDC() }
+
+// DynLinuxCfgNoUDC says "Linux ConfigFS USB gadget setup does not apply without UDC hardware."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgNoUDC() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgNoUDC", nil)
+}
+
+// DynLinuxCfgNoUDCAction says "Choose guided manual input or an external Pico HID."
+// in the language the app shows.
+func DynLinuxCfgNoUDCAction() string { return In(i18n.Locale()).DynLinuxCfgNoUDCAction() }
+
+// DynLinuxCfgNoUDCAction says "Choose guided manual input or an external Pico HID."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgNoUDCAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgNoUDCAction", nil)
+}
+
+// DynLinuxCfgReady says "Linux ConfigFS usb_gadget is mounted and ready."
+// in the language the app shows.
+func DynLinuxCfgReady() string { return In(i18n.Locale()).DynLinuxCfgReady() }
+
+// DynLinuxCfgReady says "Linux ConfigFS usb_gadget is mounted and ready."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgReady() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgReady", nil)
+}
+
+// DynLinuxCfgLoadable says "Linux ConfigFS usb_gadget is not active yet (libcomposite / usb_f_hid not loaded)."
+// in the language the app shows.
+func DynLinuxCfgLoadable() string { return In(i18n.Locale()).DynLinuxCfgLoadable() }
+
+// DynLinuxCfgLoadable says "Linux ConfigFS usb_gadget is not active yet (libcomposite / usb_f_hid not loaded)."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgLoadable() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgLoadable", nil)
+}
+
+// DynLinuxCfgLoadableAction says "Load Linux USB gadget kernel modules with administrator approval, then refresh readiness; or choose guided manual input."
+// in the language the app shows.
+func DynLinuxCfgLoadableAction() string { return In(i18n.Locale()).DynLinuxCfgLoadableAction() }
+
+// DynLinuxCfgLoadableAction says "Load Linux USB gadget kernel modules with administrator approval, then refresh readiness; or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxCfgLoadableAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxCfgLoadableAction", nil)
+}
+
+// DynLinuxAccessUnavailable says "Narrow USB gadget privilege helper (pkexec) is unavailable and ConfigFS is not writable by the current user."
+// in the language the app shows.
+func DynLinuxAccessUnavailable() string { return In(i18n.Locale()).DynLinuxAccessUnavailable() }
+
+// DynLinuxAccessUnavailable says "Narrow USB gadget privilege helper (pkexec) is unavailable and ConfigFS is not writable by the current user."
+// in the language of msgs.
+func (msgs Messages) DynLinuxAccessUnavailable() string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessUnavailable", nil)
+}
+
+// DynLinuxAccessUnavailableAction says "Install Polkit (pkexec) for per-session gadget setup, grant narrow ConfigFS/hidg permissions, or choose guided manual…"
+// in the language the app shows.
+func DynLinuxAccessUnavailableAction() string {
+	return In(i18n.Locale()).DynLinuxAccessUnavailableAction()
+}
+
+// DynLinuxAccessUnavailableAction says "Install Polkit (pkexec) for per-session gadget setup, grant narrow ConfigFS/hidg permissions, or choose guided manual…"
+// in the language of msgs.
+func (msgs Messages) DynLinuxAccessUnavailableAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessUnavailableAction", nil)
+}
+
+// DynLinuxAccessNoUDC says "USB gadget permissions are not needed without a UDC."
+// in the language the app shows.
+func DynLinuxAccessNoUDC() string { return In(i18n.Locale()).DynLinuxAccessNoUDC() }
+
+// DynLinuxAccessNoUDC says "USB gadget permissions are not needed without a UDC."
+// in the language of msgs.
+func (msgs Messages) DynLinuxAccessNoUDC() string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessNoUDC", nil)
+}
+
+// DynLinuxAccessDirect says "Current user has write access to Linux ConfigFS usb_gadget."
+// in the language the app shows.
+func DynLinuxAccessDirect() string { return In(i18n.Locale()).DynLinuxAccessDirect() }
+
+// DynLinuxAccessDirect says "Current user has write access to Linux ConfigFS usb_gadget."
+// in the language of msgs.
+func (msgs Messages) DynLinuxAccessDirect() string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessDirect", nil)
+}
+
+// DynLinuxAccessPolkit says "Polkit (pkexec) is available for narrowly scoped USB gadget setup and teardown."
+// in the language the app shows.
+func DynLinuxAccessPolkit() string { return In(i18n.Locale()).DynLinuxAccessPolkit() }
+
+// DynLinuxAccessPolkit says "Polkit (pkexec) is available for narrowly scoped USB gadget setup and teardown."
+// in the language of msgs.
+func (msgs Messages) DynLinuxAccessPolkit() string {
+	return Catalog.Format(msgs.locale, "dynLinuxAccessPolkit", nil)
+}
+
+// DynLinuxControllersNone says "No USB device controller (UDC) was discovered in /sys/class/udc."
+// in the language the app shows.
+func DynLinuxControllersNone() string { return In(i18n.Locale()).DynLinuxControllersNone() }
+
+// DynLinuxControllersNone says "No USB device controller (UDC) was discovered in /sys/class/udc."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersNone() string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersNone", nil)
+}
+
+// DynLinuxControllersFailed says "Linux UDC discovery could not be completed."
+// in the language the app shows.
+func DynLinuxControllersFailed() string { return In(i18n.Locale()).DynLinuxControllersFailed() }
+
+// DynLinuxControllersFailed says "Linux UDC discovery could not be completed."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersFailed() string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersFailed", nil)
+}
+
+// DynLinuxControllersFailedAction says "Check /sys/class/udc access and refresh readiness, or choose guided manual input."
+// in the language the app shows.
+func DynLinuxControllersFailedAction() string {
+	return In(i18n.Locale()).DynLinuxControllersFailedAction()
+}
+
+// DynLinuxControllersFailedAction says "Check /sys/class/udc access and refresh readiness, or choose guided manual input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersFailedAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersFailedAction", nil)
+}
+
+// DynLinuxControllersMultiple says "Multiple Linux USB device controllers were discovered; the target UDC must be selected."
+// in the language the app shows.
+func DynLinuxControllersMultiple() string { return In(i18n.Locale()).DynLinuxControllersMultiple() }
+
+// DynLinuxControllersMultiple says "Multiple Linux USB device controllers were discovered; the target UDC must be selected."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersMultiple() string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersMultiple", nil)
+}
+
+// DynLinuxControllersMultipleAction says "Select the connected UDC in USB Keyboard settings and verify enumeration before sending input, or choose guided manua…"
+// in the language the app shows.
+func DynLinuxControllersMultipleAction() string {
+	return In(i18n.Locale()).DynLinuxControllersMultipleAction()
+}
+
+// DynLinuxControllersMultipleAction says "Select the connected UDC in USB Keyboard settings and verify enumeration before sending input, or choose guided manua…"
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllersMultipleAction() string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllersMultipleAction", nil)
+}
+
+// DynLinuxControllerSuffix says ": Linux UDC controller, available but not verified."
+// in the language the app shows.
+func DynLinuxControllerSuffix() string { return In(i18n.Locale()).DynLinuxControllerSuffix() }
+
+// DynLinuxControllerSuffix says ": Linux UDC controller, available but not verified."
+// in the language of msgs.
+func (msgs Messages) DynLinuxControllerSuffix() string {
+	return Catalog.Format(msgs.locale, "dynLinuxControllerSuffix", nil)
+}
+
+// DynLinuxConnectCable says "Connect a USB data cable between the UDC port and the console; verify keyboard enumeration before sending input."
+// in the language the app shows.
+func DynLinuxConnectCable() string { return In(i18n.Locale()).DynLinuxConnectCable() }
+
+// DynLinuxConnectCable says "Connect a USB data cable between the UDC port and the console; verify keyboard enumeration before sending input."
+// in the language of msgs.
+func (msgs Messages) DynLinuxConnectCable() string {
+	return Catalog.Format(msgs.locale, "dynLinuxConnectCable", nil)
 }

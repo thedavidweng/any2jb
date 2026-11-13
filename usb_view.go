@@ -17,7 +17,7 @@ type usbPreferences struct {
 }
 
 type keyboardPanel struct {
-	input                                                        *transport.Darwin
+	input                                                        transport.USBKeyboard
 	open, initialized, available, invalid, checkOK               bool
 	controller, gap, hold, enter, enumeration, load, run, remove string
 	completion                                                   chan bool
@@ -106,7 +106,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		if check.GatesTransport == "usb-hid" && check.State == session.RequiresAttention && check.ID != "usb-controllers" {
 			prerequisites = false
 		}
-		if transport.ValidateController(check.ID) == nil && check.State != session.RequiresAttention {
+		if (check.Controller != "" || transport.ValidateAnyController(check.ID) == nil) && check.State != session.RequiresAttention {
 			controllers = append(controllers, check.ID)
 		}
 	}

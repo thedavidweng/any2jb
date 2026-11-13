@@ -37,7 +37,16 @@ security (USB transports), host profile, console system version, SmileBASIC
 edition and version, the pinned bootstrap SHA-256 (checked against
 `manifest/profiles.json`), transport, observed USB controller, cable/power
 direction and LAN topology. CivSwitch replaces host profile and bootstrap
-with console generation, cartridge version and system language. A log whose
+with console generation, cartridge version and system language.
+
+Phase 2 Linux (`route: "p2"`) replaces `macModel`, `macosVersion` and
+`startupSecurity` with `linuxDevice` (SBC, handheld or OTG device model and
+architecture), `linuxKernel` (`uname -r`) and, for `usb-hid` or
+`composite-hid`, `privilegeBoundary` (for example Polkit `pkexec` helper vs
+narrow ConfigFS/hidg permissions) plus the `/sys/class/udc` `usbController`
+identifier. Linux `p2` uses the same ordered step sequences as `p1a` (`usb-hid`
+and `guided-manual`, with step 1 running `--internal-linux-usb-helper`
+`--validate` / `--dry-run`) and `civswitch` (`composite-hid`). A log whose
 combination contradicts the manifest (unknown profile, unsupported edition,
 wrong bootstrap digest) fails validation.
 

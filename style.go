@@ -199,6 +199,12 @@ func checkName(check session.Check) string {
 		return locales.CheckUsbHelpers()
 	case "input-adapter":
 		return locales.CheckTypingMethod()
+	case "linux-udc":
+		return locales.CheckLinuxUDC()
+	case "linux-configfs":
+		return locales.CheckLinuxConfigFS()
+	case "linux-gadget-access":
+		return locales.CheckLinuxAccess()
 	}
 	if check.Controller != "" {
 		return locales.CheckUsbController() + " " + check.Controller

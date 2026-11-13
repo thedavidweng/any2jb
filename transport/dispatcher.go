@@ -11,21 +11,35 @@ import (
 // Inspect is the same read-only prerequisite adapter used by the controller.
 type Dispatcher struct {
 	manual  *Manual
+	usbHost USBKeyboard
 	darwin  *Darwin
+	linux   *Linux
 	inspect func(context.Context, session.Run) ([]session.Check, error)
 }
 
-func NewDispatcher(manual *Manual, darwin *Darwin, inspect func(context.Context, session.Run) ([]session.Check, error)) *Dispatcher {
-	return &Dispatcher{manual: manual, darwin: darwin, inspect: inspect}
+func NewDispatcher(manual *Manual, usbHost USBKeyboard, inspect func(context.Context, session.Run) ([]session.Check, error)) *Dispatcher {
+	d := &Dispatcher{manual: manual, usbHost: usbHost, inspect: inspect}
+	switch v := usbHost.(type) {
+	case *Darwin:
+		d.darwin = v
+	case *Linux:
+		d.linux = v
+	}
+	return d
 }
-func (d *Dispatcher) Manual() *Manual { return d.manual }
-func (d *Dispatcher) Darwin() *Darwin { return d.darwin }
+
+func (d *Dispatcher) Manual() *Manual  { return d.manual }
+func (d *Dispatcher) USB() USBKeyboard { return d.usbHost }
+func (d *Dispatcher) Darwin() *Darwin  { return d.darwin }
+func (d *Dispatcher) Linux() *Linux    { return d.linux }
+
 func keyboardOnly(run session.Run) bool {
 	c := run.Transport.Capabilities
 	return c.Keyboard && !c.Manual && !c.Gamepad && !c.ExternalPico
 }
+
 func (d *Dispatcher) usb(ctx context.Context, run session.Run) error {
-	if !keyboardOnly(run) || d.darwin == nil {
+	if !keyboardOnly(run) || d.usbHost == nil {
 		return errors.New("USB input unavailable: this transport requires its own adapter")
 	}
 	if d.inspect == nil {
@@ -35,11 +49,12 @@ func (d *Dispatcher) usb(ctx context.Context, run session.Run) error {
 	if err != nil {
 		return err
 	}
-	if err := session.KeyboardPrerequisites(checks, d.darwin.SelectedKeyboardController()); err != nil {
+	if err := session.KeyboardPrerequisites(checks, d.usbHost.SelectedKeyboardController()); err != nil {
 		return err
 	}
-	return d.darwin.Check(ctx, run)
+	return d.usbHost.Check(ctx, run)
 }
+
 func (d *Dispatcher) Send(ctx context.Context, run session.Run, action session.InputAction, host session.PreparedHost, report session.Report) error {
 	if run.Transport.Capabilities.Manual {
 		if d.manual == nil {
@@ -50,26 +65,29 @@ func (d *Dispatcher) Send(ctx context.Context, run session.Run, action session.I
 	if err := d.usb(ctx, run); err != nil {
 		return err
 	}
-	return d.darwin.Send(ctx, run, action, host, report)
+	return d.usbHost.Send(ctx, run, action, host, report)
 }
+
 func (d *Dispatcher) Release(ctx context.Context, run session.Run) error {
 	if run.Transport.Capabilities.Manual && d.manual != nil {
 		return d.manual.Release(ctx, run)
 	}
-	if d.darwin != nil {
-		return d.darwin.Release(ctx, run)
+	if d.usbHost != nil {
+		return d.usbHost.Release(ctx, run)
 	}
 	return nil
 }
+
 func (d *Dispatcher) OpenKeyboardSession(ctx context.Context, run session.Run, report session.Report) (session.Keyboard, error) {
 	if err := d.usb(ctx, run); err != nil {
 		return nil, err
 	}
-	return d.darwin.OpenKeyboardSession(ctx, run, report)
+	return d.usbHost.OpenKeyboardSession(ctx, run, report)
 }
+
 func (d *Dispatcher) SelectedKeyboardController() string {
-	if d.darwin == nil {
+	if d.usbHost == nil {
 		return ""
 	}
-	return d.darwin.SelectedKeyboardController()
+	return d.usbHost.SelectedKeyboardController()
 }

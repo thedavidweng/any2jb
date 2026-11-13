@@ -16,6 +16,7 @@ type Address struct {
 }
 
 type Observation struct {
+	Linux            *LinuxGadget
 	SIPStatus        string
 	Addresses        []Address
 	DefaultInterface string
@@ -24,6 +25,16 @@ type Observation struct {
 	Driver           Driver
 	Controllers      []string
 	ControllerError  error
+}
+
+type LinuxGadget struct {
+	BusyControllers   map[string]string
+	ConfigFSMounted   bool
+	ConfigFSReady     bool
+	HIDModuleReady    bool
+	CanLoadModules    bool
+	DirectWriteAccess bool
+	PolkitAvailable   bool
 }
 
 type Driver struct {
@@ -49,10 +60,27 @@ func usable(ip string) bool {
 	return err == nil && a.Is4() && a.IsGlobalUnicast() && !a.IsLinkLocalUnicast() && ip != "255.255.255.255"
 }
 
+func isVirtualInterface(name string) bool {
+	for _, prefix := range []string{
+		"utun", "bridge", "vmnet", "vnic", "awdl", "llw",
+		"docker", "br-", "virbr", "veth", "lxc", "lxd", "podman", "cni", "flannel", "calico",
+		"tun", "tap", "wg", "tailscale",
+	} {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 func networkCheck(o Observation, override string) session.Check {
+	hostNoun := "this Mac"
+	if o.Linux != nil {
+		hostNoun = "this Linux host"
+	}
 	c := session.Check{ID: "network", State: session.RequiresAttention,
 		Message:    "No usable LAN IPv4 address was found.",
-		NextAction: "Connect this Mac to the console LAN, then refresh readiness."}
+		NextAction: "Connect " + hostNoun + " to the console LAN, then refresh readiness."}
 	if o.NetworkError != nil {
 		c.Message = "LAN interface discovery could not be completed."
 		c.NextAction = "Check network interface access, then refresh readiness."
@@ -68,9 +96,7 @@ func networkCheck(o Observation, override string) session.Check {
 			c.LANIPv4 = override
 		}
 		ip, _ := netip.ParseAddr(a.IPv4)
-		if ip.IsPrivate() && !strings.HasPrefix(a.Interface, "utun") && !strings.HasPrefix(a.Interface, "bridge") &&
-			!strings.HasPrefix(a.Interface, "vmnet") && !strings.HasPrefix(a.Interface, "vnic") &&
-			!strings.HasPrefix(a.Interface, "awdl") && !strings.HasPrefix(a.Interface, "llw") {
+		if ip.IsPrivate() && !isVirtualInterface(a.Interface) {
 			candidates = append(candidates, a.IPv4)
 			if a.Interface == o.DefaultInterface {
 				preferred = append(preferred, a.IPv4)

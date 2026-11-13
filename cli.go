@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/egoist/mygo"
@@ -159,7 +160,7 @@ func (c *commandLine) ensure() error {
 		input.Controller, input.Timing = c.app.preferences.USB.Controller, c.app.preferences.USB.Timing
 	}
 	civ := civswitch.Options{DeveloperInstallerPython: developer.InstallerPython}
-	if developer.SourceRoot != "" {
+	if developer.SourceRoot != "" && runtime.GOOS == "darwin" {
 		c.helpers, err = transport.BuildDeveloperHelpers(context.Background(), developer.SourceRoot, c.support, c.app.manifest, io.Discard)
 		if err != nil {
 			return err

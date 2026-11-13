@@ -65,8 +65,27 @@ On Apple Silicon macOS the adapter independently observes:
 
 A discovered controller remains **available but not verified**, even when the
 driver is loaded. Enumeration and accepted console input require later transport
-evidence. Linux, Windows and Intel macOS report built-in USB input unsupported;
+evidence. Windows and Intel macOS report built-in USB input unsupported;
 ordinary USB-C never implies device-mode capability.
+
+On Linux (`linux/amd64` and `linux/arm64`) the adapter independently observes:
+
+- Default-route interface discovery from `/proc/net/route`, excluding common
+  container, bridge and VPN interfaces (`docker*`, `br-*`, `virbr*`, `veth*`,
+  `podman*`, `cni*`, `tun*`, `tap*`, `wg*`, `tailscale*`) from automatic LAN
+  recommendations while keeping explicit IPv4 overrides available.
+- Real USB Device Controller hardware in `/sys/class/udc` (`linux-udc`).
+  Ordinary desktop and laptop PCs with host-only USB-C ports expose no UDC and
+  report built-in USB typing unavailable while keeping guided manual input ready.
+- Linux ConfigFS USB gadget availability at `/sys/kernel/config/usb_gadget`
+  plus `/proc/mounts` and `/proc/modules` (`linux-configfs`).
+- Narrow privilege availability (`linux-gadget-access`), either direct write
+  access to `/sys/kernel/config/usb_gadget` or `/usr/bin/pkexec` running the
+  narrowly scoped `--internal-linux-usb-helper` subcommand. The GUI and Node
+  host never run as root.
+- Non-clobber conflict inspection: any UDC already bound to another ConfigFS or
+  legacy gadget is marked **requires attention** so `any2jb` never overwrites an
+  existing gadget.
 
 ### Startup-security policy is not a SIP observation
 

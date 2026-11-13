@@ -5,12 +5,14 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 
 	"github.com/thedavidweng/any2jb/civswitch"
 	"github.com/thedavidweng/any2jb/diagnostics"
 	"github.com/thedavidweng/any2jb/driver"
 	"github.com/thedavidweng/any2jb/engine"
+	"github.com/thedavidweng/any2jb/internal/usbgadget"
 	"github.com/thedavidweng/any2jb/locales"
 	"github.com/thedavidweng/any2jb/readiness"
 	"github.com/thedavidweng/any2jb/retained"
@@ -46,7 +48,18 @@ func productionEnvironmentWithCivSwitch(options engine.Options, inputOptions tra
 		return string(source), err
 	}
 	inputOptions.Runtime, inputOptions.Bootstrap = options, bootstrap
-	keyboard := transport.NewDarwin(inputOptions)
+	var keyboard transport.USBKeyboard
+	if runtime.GOOS == "linux" {
+		keyboard = transport.NewLinux(transport.LinuxOptions{
+			Runtime:    options,
+			Bootstrap:  bootstrap,
+			Controller: inputOptions.Controller,
+			Timing:     inputOptions.Timing,
+			Confirm:    inputOptions.Confirm,
+		})
+	} else {
+		keyboard = transport.NewDarwin(inputOptions)
+	}
 	civOptions.Manifest, civOptions.Support = options.Manifest, options.Support
 	civOptions.DeveloperSourceRoot = options.DeveloperSourceRoot
 	composite := civswitch.New(civOptions)
@@ -110,7 +123,7 @@ func productionDriverGate(options engine.Options) *driver.Gate {
 
 type productionPlatform struct {
 	composite  *civswitch.Adapter
-	keyboard   *transport.Darwin
+	keyboard   transport.USBKeyboard
 	root       string
 	options    engine.Options
 	stageError error
@@ -150,10 +163,25 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 		state, message, action = session.RequiresAttention, locales.IzmyshUnavailable(), "Choose an ns2jb host with an implemented verifier."
 	}
 	checks = append(checks, session.Check{ID: "engine", State: state, Message: message, NextAction: action})
+	observed, err := readiness.New().Inspect(ctx, run)
+	if err != nil {
+		return nil, err
+	}
+	if runtime.GOOS == "linux" && p.keyboard != nil && p.keyboard.SelectedKeyboardController() == "" {
+		if single := singleFreeController(observed); single != "" {
+			_ = p.keyboard.Configure(single, transport.DefaultTiming())
+		}
+	}
 	usb := session.Check{ID: "usb-runtime", GatesTransport: "usb-hid", State: session.RequiresAttention,
 		Message: "Verified USB helpers are not available.", NextAction: "USB input requires permitted, integrity-verified helper binaries. Guided manual input does not require these helpers."}
 	if p.stageError == nil && engine.VerifyUSB(p.root, p.options.Manifest) == nil {
 		usb.State, usb.Message, usb.NextAction = session.CheckVerified, "USB helper integrity verified; enumeration is not verified.", ""
+	}
+	if runtime.GOOS == "linux" && p.stageError == nil && p.options.DeveloperSourceRoot != "" &&
+		p.options.DeveloperProfileID == run.Profile.ID && p.options.Manifest.VerifyProfile(p.root, run.Profile.ID) == nil {
+		if _, err := usbgadget.VerifySelfExecutable(); err == nil {
+			usb.State, usb.Message, usb.NextAction = session.CheckVerified, locales.UsbDeveloperHelpers(), ""
+		}
 	}
 	keyboardReady := p.stageError == nil && p.keyboard != nil && p.keyboard.Check(ctx, run) == nil
 	if keyboardReady {
@@ -176,14 +204,24 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 		}
 	}
 	checks = append(checks, usb, input)
-	observed, err := readiness.New().Inspect(ctx, run)
-	if err != nil {
-		return nil, err
-	}
 	if keyboardReady {
 		observed = session.ObserveKeyboardEnumeration(observed, run.Transport.Controller, p.keyboard.EnumeratedController())
 	}
 	return append(checks, observed...), nil
+}
+
+func singleFreeController(checks []session.Check) string {
+	found := ""
+	for _, check := range checks {
+		if check.Controller == "" || check.State == session.RequiresAttention {
+			continue
+		}
+		if found != "" {
+			return ""
+		}
+		found = check.Controller
+	}
+	return found
 }
 
 func (p productionPlatform) ExportDiagnostics(ctx context.Context, snapshot session.Snapshot) (string, error) {
