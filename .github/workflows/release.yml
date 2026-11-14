@@ -161,6 +161,7 @@ jobs:
       - name: Assemble checksums.txt and publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
           TAG: ${{ needs.verify.outputs.tag }}
         run: |
           set -euo pipefail
