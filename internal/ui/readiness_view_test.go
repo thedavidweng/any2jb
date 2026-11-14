@@ -89,7 +89,7 @@ func TestRawReadinessEvidenceLivesInDiagnostics(t *testing.T) {
 	for _, text := range []string{
 		"Reference prerequisites, not compatibility guarantees",
 		"Switch 2 firmware 23.0.1 is the reference target. Newer firmware is not assumed compatible.",
-		"Use a USB-C data cable, not a charge-only cable. The Mac must receive power from the console for the required USB data direction.",
+		"Use a USB-C data cable, not a charge-only cable. The computer must receive power from the console for the required USB data direction.",
 	} {
 		if !reference.HasText(text) {
 			t.Fatalf("missing %q", text)

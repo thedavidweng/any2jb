@@ -1002,11 +1002,11 @@ func (msgs Messages) NetworkPrerequisites() string {
 	return Catalog.Format(msgs.locale, "networkPrerequisites", nil)
 }
 
-// CablePrerequisites says "Use a USB-C data cable, not a charge-only cable. The Mac must receive power from the console for the required USB dat…"
+// CablePrerequisites says "Use a USB-C data cable, not a charge-only cable. The computer must receive power from the console for the required US…"
 // in the language the app shows.
 func CablePrerequisites() string { return In(i18n.Locale()).CablePrerequisites() }
 
-// CablePrerequisites says "Use a USB-C data cable, not a charge-only cable. The Mac must receive power from the console for the required USB dat…"
+// CablePrerequisites says "Use a USB-C data cable, not a charge-only cable. The computer must receive power from the console for the required US…"
 // in the language of msgs.
 func (msgs Messages) CablePrerequisites() string {
 	return Catalog.Format(msgs.locale, "cablePrerequisites", nil)
@@ -1072,11 +1072,11 @@ func (msgs Messages) UnsupportedEdition() string {
 	return Catalog.Format(msgs.locale, "unsupportedEdition", nil)
 }
 
-// ChooseTransport says "Select manual, keyboard, composite or external-pico input."
+// ChooseTransport says "Select manual, keyboard or composite input."
 // in the language the app shows.
 func ChooseTransport() string { return In(i18n.Locale()).ChooseTransport() }
 
-// ChooseTransport says "Select manual, keyboard, composite or external-pico input."
+// ChooseTransport says "Select manual, keyboard or composite input."
 // in the language of msgs.
 func (msgs Messages) ChooseTransport() string {
 	return Catalog.Format(msgs.locale, "chooseTransport", nil)
@@ -1202,11 +1202,11 @@ func (msgs Messages) ToolsConsoleAddress() string {
 	return Catalog.Format(msgs.locale, "toolsConsoleAddress", nil)
 }
 
-// ToolsFind says "Find verified sessions on this Mac"
+// ToolsFind says "Find verified sessions on this computer"
 // in the language the app shows.
 func ToolsFind() string { return In(i18n.Locale()).ToolsFind() }
 
-// ToolsFind says "Find verified sessions on this Mac"
+// ToolsFind says "Find verified sessions on this computer"
 // in the language of msgs.
 func (msgs Messages) ToolsFind() string {
 	return Catalog.Format(msgs.locale, "toolsFind", nil)
@@ -1262,11 +1262,11 @@ func (msgs Messages) ToolsDetachNote() string {
 	return Catalog.Format(msgs.locale, "toolsDetachNote", nil)
 }
 
-// ToolsNoSessions says "No verified retained session was found on this Mac."
+// ToolsNoSessions says "No verified retained session was found on this computer."
 // in the language the app shows.
 func ToolsNoSessions() string { return In(i18n.Locale()).ToolsNoSessions() }
 
-// ToolsNoSessions says "No verified retained session was found on this Mac."
+// ToolsNoSessions says "No verified retained session was found on this computer."
 // in the language of msgs.
 func (msgs Messages) ToolsNoSessions() string {
 	return Catalog.Format(msgs.locale, "toolsNoSessions", nil)
@@ -1322,11 +1322,11 @@ func (msgs Messages) ToolsOunceWebdav() string {
 	return Catalog.Format(msgs.locale, "toolsOunceWebdav", nil)
 }
 
-// ToolsOunceFtp says "Start read-only FTP export on this Mac"
+// ToolsOunceFtp says "Start read-only FTP export on this computer"
 // in the language the app shows.
 func ToolsOunceFtp() string { return In(i18n.Locale()).ToolsOunceFtp() }
 
-// ToolsOunceFtp says "Start read-only FTP export on this Mac"
+// ToolsOunceFtp says "Start read-only FTP export on this computer"
 // in the language of msgs.
 func (msgs Messages) ToolsOunceFtp() string {
 	return Catalog.Format(msgs.locale, "toolsOunceFtp", nil)
@@ -1514,11 +1514,11 @@ func (msgs Messages) HbModVacootube() string {
 	return Catalog.Format(msgs.locale, "hbModVacootube", nil)
 }
 
-// HbAppFolder says "Homebrew app folder on this Mac (optional)"
+// HbAppFolder says "Homebrew app folder on this computer (optional)"
 // in the language the app shows.
 func HbAppFolder() string { return In(i18n.Locale()).HbAppFolder() }
 
-// HbAppFolder says "Homebrew app folder on this Mac (optional)"
+// HbAppFolder says "Homebrew app folder on this computer (optional)"
 // in the language of msgs.
 func (msgs Messages) HbAppFolder() string {
 	return Catalog.Format(msgs.locale, "hbAppFolder", nil)
@@ -4006,11 +4006,11 @@ func (msgs Messages) HbCustomNote() string {
 	return Catalog.Format(msgs.locale, "hbCustomNote", nil)
 }
 
-// HbCustomFolder says "Built homebrew folder on this Mac"
+// HbCustomFolder says "Built homebrew folder on this computer"
 // in the language the app shows.
 func HbCustomFolder() string { return In(i18n.Locale()).HbCustomFolder() }
 
-// HbCustomFolder says "Built homebrew folder on this Mac"
+// HbCustomFolder says "Built homebrew folder on this computer"
 // in the language of msgs.
 func (msgs Messages) HbCustomFolder() string {
 	return Catalog.Format(msgs.locale, "hbCustomFolder", nil)
@@ -4056,11 +4056,11 @@ func (msgs Messages) ModNote() string {
 	return Catalog.Format(msgs.locale, "modNote", nil)
 }
 
-// ModFolder says "Mod folder on this Mac (contents/ and exefs_patches/)"
+// ModFolder says "Mod folder on this computer (contents/ and exefs_patches/)"
 // in the language the app shows.
 func ModFolder() string { return In(i18n.Locale()).ModFolder() }
 
-// ModFolder says "Mod folder on this Mac (contents/ and exefs_patches/)"
+// ModFolder says "Mod folder on this computer (contents/ and exefs_patches/)"
 // in the language of msgs.
 func (msgs Messages) ModFolder() string {
 	return Catalog.Format(msgs.locale, "modFolder", nil)
@@ -4468,11 +4468,11 @@ func (msgs Messages) PrepConsole() string {
 	return Catalog.Format(msgs.locale, "prepConsole", nil)
 }
 
-// PrepNetwork says "Switch 2 is on wired Ethernet, on the same network as this Mac"
+// PrepNetwork says "Switch 2 is on wired Ethernet, on the same network as this computer"
 // in the language the app shows.
 func PrepNetwork() string { return In(i18n.Locale()).PrepNetwork() }
 
-// PrepNetwork says "Switch 2 is on wired Ethernet, on the same network as this Mac"
+// PrepNetwork says "Switch 2 is on wired Ethernet, on the same network as this computer"
 // in the language of msgs.
 func (msgs Messages) PrepNetwork() string {
 	return Catalog.Format(msgs.locale, "prepNetwork", nil)
@@ -4508,21 +4508,21 @@ func (msgs Messages) PrepUpdatesLink() string {
 	return Catalog.Format(msgs.locale, "prepUpdatesLink", nil)
 }
 
-// PrepCable says "A USB-C data cable connects the Switch 2 to this Mac"
+// PrepCable says "A USB-C data cable connects the Switch 2 to this computer"
 // in the language the app shows.
 func PrepCable() string { return In(i18n.Locale()).PrepCable() }
 
-// PrepCable says "A USB-C data cable connects the Switch 2 to this Mac"
+// PrepCable says "A USB-C data cable connects the Switch 2 to this computer"
 // in the language of msgs.
 func (msgs Messages) PrepCable() string {
 	return Catalog.Format(msgs.locale, "prepCable", nil)
 }
 
-// PrepCableNote says "The Switch should power the Mac. If the Mac is charging the Switch instead, unplug the cable, wait one second and plu…"
+// PrepCableNote says "The Switch should power the computer. If the computer is charging the Switch instead, unplug the cable, wait one seco…"
 // in the language the app shows.
 func PrepCableNote() string { return In(i18n.Locale()).PrepCableNote() }
 
-// PrepCableNote says "The Switch should power the Mac. If the Mac is charging the Switch instead, unplug the cable, wait one second and plu…"
+// PrepCableNote says "The Switch should power the computer. If the computer is charging the Switch instead, unplug the cable, wait one seco…"
 // in the language of msgs.
 func (msgs Messages) PrepCableNote() string {
 	return Catalog.Format(msgs.locale, "prepCableNote", nil)
@@ -4730,21 +4730,21 @@ func (msgs Messages) FlowTypeYourself() string {
 	return Catalog.Format(msgs.locale, "flowTypeYourself", nil)
 }
 
-// FlowUsbUnavailable says "Automatic input can't be set up on this Mac with this version yet."
+// FlowUsbUnavailable says "Automatic input isn't available on this computer. Type the commands yourself instead."
 // in the language the app shows.
 func FlowUsbUnavailable() string { return In(i18n.Locale()).FlowUsbUnavailable() }
 
-// FlowUsbUnavailable says "Automatic input can't be set up on this Mac with this version yet."
+// FlowUsbUnavailable says "Automatic input isn't available on this computer. Type the commands yourself instead."
 // in the language of msgs.
 func (msgs Messages) FlowUsbUnavailable() string {
 	return Catalog.Format(msgs.locale, "flowUsbUnavailable", nil)
 }
 
-// FlowCheckFirst says "Choose Check again to check this Mac."
+// FlowCheckFirst says "Choose Check again to check this computer."
 // in the language the app shows.
 func FlowCheckFirst() string { return In(i18n.Locale()).FlowCheckFirst() }
 
-// FlowCheckFirst says "Choose Check again to check this Mac."
+// FlowCheckFirst says "Choose Check again to check this computer."
 // in the language of msgs.
 func (msgs Messages) FlowCheckFirst() string {
 	return Catalog.Format(msgs.locale, "flowCheckFirst", nil)
@@ -5410,11 +5410,11 @@ func (msgs Messages) CheckDriverRestart() string {
 	return Catalog.Format(msgs.locale, "checkDriverRestart", nil)
 }
 
-// CheckUsbPort says "USB connection on this Mac"
+// CheckUsbPort says "USB connection on this computer"
 // in the language the app shows.
 func CheckUsbPort() string { return In(i18n.Locale()).CheckUsbPort() }
 
-// CheckUsbPort says "USB connection on this Mac"
+// CheckUsbPort says "USB connection on this computer"
 // in the language of msgs.
 func (msgs Messages) CheckUsbPort() string {
 	return Catalog.Format(msgs.locale, "checkUsbPort", nil)
@@ -5550,11 +5550,11 @@ func (msgs Messages) LaunchSteps() string {
 	return Catalog.Format(msgs.locale, "launchSteps", nil)
 }
 
-// StepHost says "Start the host program on this Mac"
+// StepHost says "Start the host program on this computer"
 // in the language the app shows.
 func StepHost() string { return In(i18n.Locale()).StepHost() }
 
-// StepHost says "Start the host program on this Mac"
+// StepHost says "Start the host program on this computer"
 // in the language of msgs.
 func (msgs Messages) StepHost() string {
 	return Catalog.Format(msgs.locale, "stepHost", nil)
@@ -5732,11 +5732,11 @@ func (msgs Messages) ToolsConsolePlaceholder() string {
 	return Catalog.Format(msgs.locale, "toolsConsolePlaceholder", nil)
 }
 
-// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this M…"
+// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this c…"
 // in the language the app shows.
 func ToolsConsoleHint() string { return In(i18n.Locale()).ToolsConsoleHint() }
 
-// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this M…"
+// ToolsConsoleHint says "Enter the console's IPv4 address for WebDAV and SD exports. If blank, their endpoints are refused. FTP runs on this c…"
 // in the language of msgs.
 func (msgs Messages) ToolsConsoleHint() string {
 	return Catalog.Format(msgs.locale, "toolsConsoleHint", nil)
@@ -6766,11 +6766,11 @@ func (msgs Messages) DynLinuxNoUDC() string {
 	return Catalog.Format(msgs.locale, "dynLinuxNoUDC", nil)
 }
 
-// DynLinuxNoUDCAction says "Choose guided manual input or an external Pico HID. Ordinary PC USB-C host ports cannot emulate a USB keyboard."
+// DynLinuxNoUDCAction says "Choose guided manual input. Ordinary PC USB-C host ports cannot emulate a USB keyboard."
 // in the language the app shows.
 func DynLinuxNoUDCAction() string { return In(i18n.Locale()).DynLinuxNoUDCAction() }
 
-// DynLinuxNoUDCAction says "Choose guided manual input or an external Pico HID. Ordinary PC USB-C host ports cannot emulate a USB keyboard."
+// DynLinuxNoUDCAction says "Choose guided manual input. Ordinary PC USB-C host ports cannot emulate a USB keyboard."
 // in the language of msgs.
 func (msgs Messages) DynLinuxNoUDCAction() string {
 	return Catalog.Format(msgs.locale, "dynLinuxNoUDCAction", nil)
@@ -6836,11 +6836,11 @@ func (msgs Messages) DynLinuxCfgNoUDC() string {
 	return Catalog.Format(msgs.locale, "dynLinuxCfgNoUDC", nil)
 }
 
-// DynLinuxCfgNoUDCAction says "Choose guided manual input or an external Pico HID."
+// DynLinuxCfgNoUDCAction says "Choose guided manual input."
 // in the language the app shows.
 func DynLinuxCfgNoUDCAction() string { return In(i18n.Locale()).DynLinuxCfgNoUDCAction() }
 
-// DynLinuxCfgNoUDCAction says "Choose guided manual input or an external Pico HID."
+// DynLinuxCfgNoUDCAction says "Choose guided manual input."
 // in the language of msgs.
 func (msgs Messages) DynLinuxCfgNoUDCAction() string {
 	return Catalog.Format(msgs.locale, "dynLinuxCfgNoUDCAction", nil)

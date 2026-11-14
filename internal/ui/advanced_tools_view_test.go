@@ -92,7 +92,7 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	if !tt.HasText(ounce.Reason) {
 		t.Fatalf("missing recorded reasons: %q", tt.Texts())
 	}
-	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this Mac"} {
+	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this computer"} {
 		if _, ok := tt.AccessByRole(ui.RoleButton, label); ok {
 			t.Fatalf("gated tool %s remains an action", label)
 		}
@@ -215,7 +215,7 @@ func TestDiscoveryRunsOffTheUIThread(t *testing.T) {
 	f.RetainedSessions = []session.RetainedSession{{ID: "run-abc"}}
 	a := retainedApp(t, f, &fakeToolAdapter{}, []string{"rpc-status"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
-	if find, ok := tt.AccessByRole(ui.RoleButton, "Find verified sessions on this Mac"); !ok || !find.Disabled {
+	if find, ok := tt.AccessByRole(ui.RoleButton, "Find verified sessions on this computer"); !ok || !find.Disabled {
 		t.Fatalf("discovery ran without a main-thread publisher: %+v", find)
 	}
 	done := make(chan struct{})

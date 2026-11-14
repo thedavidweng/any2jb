@@ -150,7 +150,7 @@ func projectLinuxSteps(s session.Snapshot, route USBRoute) []SetupStep {
 	case unsupported || udc.State != session.CheckVerified:
 		set(&steps[3], session.Available, locales.MacNotAvailable(), locales.LinuxConnectNoUDC(), SetupNoAction)
 	case unavailable:
-		set(&steps[3], session.Available, locales.MacWaiting(), locales.MacConnectWaiting(), SetupNoAction)
+		set(&steps[3], session.Available, locales.MacNotAvailable(), locales.MacUsbBlocked(), SetupNoAction)
 	case controllers.State == session.CheckVerified:
 		set(&steps[3], session.CheckVerified, locales.MacDone(), locales.LinuxConnectDone(), SetupNoAction)
 	case controllers.State == session.Available:
