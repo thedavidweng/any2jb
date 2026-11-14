@@ -164,7 +164,7 @@ func (a *app) keyboardView(c *ui.Context) {
 		}
 	})
 	caps := s.Transport.Capabilities
-	if inline(ui.PrimaryButton(c.Key("usb-start-forwarding"), locales.UsbStartForwarding())).Disabled(busy || !p.available || !prerequisites || !caps.Keyboard || caps.Gamepad || caps.ExternalPico || a.Controller == nil).Clicked() {
+	if inline(ui.PrimaryButton(c.Key("usb-start-forwarding"), locales.UsbStartForwarding())).Disabled(busy || !p.available || !prerequisites || !caps.Keyboard || caps.Gamepad || a.Controller == nil).Clicked() {
 		s, err := a.Controller.StartKeyboard()
 		a.command(s, err)
 		if err == nil {

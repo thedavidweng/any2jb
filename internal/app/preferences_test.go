@@ -52,6 +52,12 @@ func TestPreferencesReload(t *testing.T) {
 	if err := b.ApplyPreferences(); err == nil {
 		t.Fatal("IPv6 accepted")
 	}
+	if err := os.WriteFile(path, []byte(`{"profile":"kurumuz","edition":"full","transport":"external-pico"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if c, err := Load(path); err != nil || c.Preferences.Transport != "manual" {
+		t.Fatalf("stored external-pico did not become manual: %+v, %v", c, err)
+	}
 	if err := os.WriteFile(path, []byte(`{"profile":"missing","edition":"full","transport":"manual"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}

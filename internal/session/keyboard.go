@@ -28,7 +28,7 @@ func (c *SessionController) StartKeyboard() (Snapshot, error) {
 	}
 	caps := c.s.Transport.Capabilities
 	input, ok := c.env.Input.(KeyboardTransport)
-	if !ok || !caps.Keyboard || caps.Manual || caps.Gamepad || caps.ExternalPico || c.s.Profile.CivSwitch {
+	if !ok || !caps.Keyboard || caps.Manual || caps.Gamepad || c.s.Profile.CivSwitch {
 		return c.configurationError(KeyboardUnavailable, "Live keyboard forwarding is unavailable: select built-in keyboard HID with a supervised keyboard adapter.")
 	}
 	queue, stop := make(chan [8]byte, 64), make(chan struct{})

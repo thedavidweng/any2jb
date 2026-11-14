@@ -80,15 +80,14 @@ type Profile struct {
 	StartPort          int
 }
 type Capabilities struct {
-	Manual       bool
-	Keyboard     bool
-	Gamepad      bool
-	ExternalPico bool
+	Manual   bool
+	Keyboard bool
+	Gamepad  bool
 }
 
 func (c Capabilities) supports(r Capabilities) bool {
 	return (!r.Manual || c.Manual) && (!r.Keyboard || c.Keyboard) &&
-		(!r.Gamepad || c.Gamepad) && (!r.ExternalPico || c.ExternalPico)
+		(!r.Gamepad || c.Gamepad)
 }
 
 type Transport struct {
@@ -148,7 +147,7 @@ type Check struct {
 
 // AppliesTo reports whether this check governs the selected transport and USB controller.
 func (c Check) AppliesTo(transport Transport) bool {
-	if c.GatesTransport == GateUSBHID && (transport.Capabilities.Manual || transport.Capabilities.ExternalPico) {
+	if c.GatesTransport == GateUSBHID && transport.Capabilities.Manual {
 		return false
 	}
 	if c.Controller != "" && c.Controller != transport.Controller {

@@ -260,7 +260,7 @@ func readinessView(c *ui.Context, s session.Snapshot, show func(session.Check) b
 func routeCheckList(c *ui.Context, transport session.Transport) {
 	muted(c, locales.RouteCheckListTitle())
 	names := []string{locales.CheckRuntime(), locales.CheckHostProgram()}
-	if !transport.Capabilities.Manual && !transport.Capabilities.ExternalPico {
+	if !transport.Capabilities.Manual {
 		names = append(names, locales.CheckUsbHelpers())
 	}
 	ui.Column(c).FillWidth().Gap(c.Theme().Space(1)).Children(func() {

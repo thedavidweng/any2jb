@@ -53,7 +53,7 @@ func (a *app) profileView(c *ui.Context) {
 		ui.Select(c.Key("smilebasic-edition"), &a.Preferences.Edition, editions).Label(locales.SmilebasicEdition()).Disabled(disabled)
 		if a.flow.settings {
 			ui.Text(c, locales.TransportMode())
-			ui.Select(c.Key("transport-mode"), &a.Preferences.Transport, []string{"manual", "keyboard", "composite", "external-pico"}).Label(locales.TransportMode()).Disabled(disabled)
+			ui.Select(c.Key("transport-mode"), &a.Preferences.Transport, []string{"manual", "keyboard", "composite"}).Label(locales.TransportMode()).Disabled(disabled)
 		}
 		ui.Text(c, locales.TransportUnverified()).TextColor(c.Theme().TextMuted)
 		ui.Text(c, fmt.Sprintf("%s · START: %d · TCP: %d", p.SaveName, p.StartArgumentCount, p.StartPort))

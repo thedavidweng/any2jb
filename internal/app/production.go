@@ -260,7 +260,7 @@ func (p productionPlatform) Inspect(ctx context.Context, run session.Run) ([]ses
 		locales.Key("automatedInputUnavailable"), locales.Key("selectGuidedManual"), "")
 	if run.Transport.Capabilities.Manual {
 		input = newCheck(session.CheckInputAdapter, session.CheckVerified, locales.Key("manualInputAvailable"), locales.Text{}, "")
-	} else if keyboardReady && run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Gamepad && !run.Transport.Capabilities.ExternalPico {
+	} else if keyboardReady && run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Gamepad {
 		input = newCheck(session.CheckInputAdapter, session.CheckVerified, locales.Key("usbInputAvailable"), locales.Text{}, "")
 	}
 	if run.Transport.Capabilities.Gamepad && run.Transport.Capabilities.Keyboard {

@@ -40,8 +40,8 @@ gates on USB-only facts. Host/runtime checks are
 shown separately in the route stage and remain authoritative at launch.
 A discovered controller is sufficient for route selection, not for ns2jb Start;
 that command still requires the controller's existing verification contract.
-An external Pico is not proof of
-built-in gadget capability and needs its own transport adapter.
+External HID boards such as a Pico are not supported; a computer without
+USB device-mode hardware uses guided manual input.
 
 On Apple Silicon macOS the adapter independently observes:
 

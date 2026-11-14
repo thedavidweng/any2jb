@@ -182,5 +182,5 @@ func ConsolePrompt(step transport.ConsoleStep) string {
 // StartupSecurityApplies names the built-in USB routes whose driver needs
 // startup security the app can only describe, never observe or change.
 func StartupSecurityApplies(t session.Transport) bool {
-	return !t.Capabilities.Manual && !t.Capabilities.ExternalPico
+	return !t.Capabilities.Manual
 }

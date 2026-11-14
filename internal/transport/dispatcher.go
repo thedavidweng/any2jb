@@ -24,7 +24,7 @@ func (d *Dispatcher) USB() USBKeyboard { return d.usbHost }
 
 func keyboardOnly(run session.Run) bool {
 	c := run.Transport.Capabilities
-	return c.Keyboard && !c.Manual && !c.Gamepad && !c.ExternalPico
+	return c.Keyboard && !c.Manual && !c.Gamepad
 }
 
 func (d *Dispatcher) usb(ctx context.Context, run session.Run) error {

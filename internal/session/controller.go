@@ -323,7 +323,7 @@ func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 		if err := c.stage(ctx, BootstrapSetup, false); err != nil {
 			return err
 		}
-		if run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Manual && !run.Transport.Capabilities.ExternalPico {
+		if run.Transport.Capabilities.Keyboard && !run.Transport.Capabilities.Manual {
 			input, ok := c.env.Input.(KeyboardTransport)
 			if !ok {
 				return errors.New("USB bootstrap adapter is unavailable")
@@ -629,7 +629,7 @@ func (c *SessionController) ConfigureTransport(transport Transport, lanIPv4 stri
 	}
 	ip, err := netip.ParseAddr(lanIPv4)
 	if (lanIPv4 != "" && (err != nil || !ip.Is4() || ip.IsUnspecified() || ip.IsMulticast())) ||
-		transport.Mode == "" || (transport.Capabilities.Manual && (transport.Capabilities.Keyboard || transport.Capabilities.Gamepad || transport.Capabilities.ExternalPico)) ||
+		transport.Mode == "" || (transport.Capabilities.Manual && (transport.Capabilities.Keyboard || transport.Capabilities.Gamepad)) ||
 		(!transport.Capabilities.Manual && !transport.Capabilities.Keyboard) {
 		return c.reject(InvalidConfiguration)
 	}

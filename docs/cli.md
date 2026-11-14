@@ -170,7 +170,7 @@ any2jb                      GUI with no arguments
 ```
 
 `settings set` takes `--profile`, `--edition`, `--input`
-(`manual`, `keyboard`, `composite`, `external-pico`), `--lan` and `--usb` (a
+(`manual`, `keyboard`, `composite`), `--lan` and `--usb` (a
 JSON object with `controller` and `timing`). It validates and applies them
 through the same code as the GUI's Apply.
 

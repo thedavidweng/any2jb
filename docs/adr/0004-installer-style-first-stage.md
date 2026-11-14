@@ -28,7 +28,7 @@ Stage 1, **Check this Mac**, replaces "choose and apply an input method"
 - Exactly four plain rows, each with a state label, at most one sentence and
   at most one action: **Network**, **Allow the USB driver**, **Install the USB
   driver** and **Connect the Switch**. Raw check messages and identifiers move
-  to Diagnostics; the LAN override and the composite / external Pico choice
+  to Diagnostics; the LAN override and the composite choice
   live in Settings.
 - **Allow the USB driver** merges SIP and startup security. It is done only
   when `driver-loaded` is verified, because a running driver is the evidence

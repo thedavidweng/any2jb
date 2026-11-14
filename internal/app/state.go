@@ -111,6 +111,10 @@ func (s *State) Init(path string) error {
 		if err := json.Unmarshal(data, &s.Preferences); err != nil {
 			return err
 		}
+		// 0.1.x offered an external Pico input that never had an adapter.
+		if s.Preferences.Transport == "external-pico" {
+			s.Preferences.Transport = "manual"
+		}
 	}
 	return s.ValidatePreferences()
 }
@@ -129,7 +133,7 @@ func (s *State) ValidatePreferences() error {
 	if !slices.Contains(p.SessionProfile().Editions, s.Preferences.Edition) {
 		return errors.New(locales.UnsupportedEdition())
 	}
-	if !slices.Contains([]string{"manual", "keyboard", "composite", "external-pico"}, s.Preferences.Transport) {
+	if !slices.Contains([]string{"manual", "keyboard", "composite"}, s.Preferences.Transport) {
 		return errors.New(locales.ChooseTransport())
 	}
 	if s.Preferences.LANIPv4 != "" {
@@ -267,7 +271,7 @@ func (s *State) PreferredTransport() session.Transport {
 // controller for the plain USB keyboard.
 func (s *State) TransportFor(mode string) session.Transport {
 	t := PreferredTransport(mode)
-	if s.Preferences.USB != nil && t.Capabilities.Keyboard && !t.Capabilities.Gamepad && !t.Capabilities.ExternalPico {
+	if s.Preferences.USB != nil && t.Capabilities.Keyboard && !t.Capabilities.Gamepad {
 		t.Controller = s.Preferences.USB.Controller
 	}
 	return t
@@ -283,8 +287,6 @@ func PreferredTransport(mode string) session.Transport {
 		c.Keyboard = true
 	case "composite":
 		c.Keyboard, c.Gamepad = true, true
-	case "external-pico":
-		c.Keyboard, c.ExternalPico = true, true
 	}
 	return session.Transport{Mode: mode, Capabilities: c}
 }

@@ -371,12 +371,8 @@ func (a *app) usbRoute(s session.Snapshot) readiness.USBRoute {
 
 // continueMode is the automatic input method Continue applies, or "" while
 // this host is not set up for it. Guided manual input is never chosen for the
-// user. An external Pico chosen in Settings does not use this host's USB port,
-// so the USB steps do not decide it.
+// user.
 func (a *app) continueMode(s session.Snapshot) string {
-	if a.Preferences.Transport == "external-pico" {
-		return "external-pico"
-	}
 	if a.usbRoute(s) == readiness.USBReady {
 		return a.usbMode()
 	}
