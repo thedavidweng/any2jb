@@ -3,14 +3,31 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".github/dependabot.yml"
+      - ".github/workflows/docs-links.yml"
+      - ".github/workflows/workflow-lint.yml"
+      - ".github/workflows/upstream-watch.yml"
+      - ".github/workflows/dependabot-automerge.yml"
   pull_request:
+    paths-ignore:
+      - "*.md"
+      - "docs/**"
+      - ".github/dependabot.yml"
+      - ".github/workflows/docs-links.yml"
+      - ".github/workflows/workflow-lint.yml"
+      - ".github/workflows/upstream-watch.yml"
+      - ".github/workflows/dependabot-automerge.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -24,13 +41,17 @@ jobs:
 
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
 
+      - uses: ./.github/actions/go-cache
+        with:
+          namespace: quality
+
       - name: Install JS devDependencies and download Go modules
         run: |
           bun install --frozen-lockfile
           go mod download
 
       - name: Run quality gates
-        run: mise run check
+        run: mise run ci-check
 
       - name: Verify clean working tree
         run: |
@@ -67,6 +88,10 @@ jobs:
       - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
           install_args: "go"
+
+      - uses: ./.github/actions/go-cache
+        with:
+          namespace: package
 
       - name: Cache verified runtime downloads
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

@@ -17,14 +17,13 @@ bun run fmt
 """
 
 [tasks.fmt-check]
-description = "Verify Go, JS, and JSON formatting"
+description = "Verify Go formatting (JS and JSON are covered by js-check)"
 run = """
 unformatted=$(gofumpt -extra -l cmd internal locales/languages.go)
 if [ -n "$unformatted" ]; then
   printf 'Unformatted Go files (run: mise run fmt):\n%s\n' "$unformatted" >&2
   exit 1
 fi
-bun run fmt:check
 """
 
 [tasks.mod-tidy-check]
@@ -46,10 +45,9 @@ go tool mygo vet .
 """
 
 [tasks.lint]
-description = "Run golangci-lint and Biome lint"
+description = "Run golangci-lint (Biome is covered by js-check)"
 run = """
 golangci-lint run
-bun lint
 """
 
 [tasks.i18n-check]
@@ -96,6 +94,10 @@ done
 description = "Lint GitHub Actions workflows with jactionlint"
 run = "jactionlint --profile default"
 
+[tasks.ci-check]
+description = "Run quality gates; workflow lint runs separately in CI"
+depends = ["fmt-check", "mod-tidy-check", "vet", "lint", "i18n-check", "js-check", "platforms", "test", "conventions"]
+
 [tasks.check]
-description = "Run all read-only quality gates (matches CI)"
-depends = ["fmt-check", "mod-tidy-check", "vet", "lint", "i18n-check", "js-check", "platforms", "test", "conventions", "workflow-lint"]
+description = "Run all read-only quality gates locally and before releases"
+depends = ["ci-check", "workflow-lint"]

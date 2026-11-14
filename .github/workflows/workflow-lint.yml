@@ -5,16 +5,18 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/**"
+      - ".github/actions/**"
   pull_request:
     paths:
       - ".github/workflows/**"
+      - ".github/actions/**"
 
 permissions:
   contents: read
 
 concurrency:
   group: workflow-lint-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: true
 
 jobs:
   jactionlint:

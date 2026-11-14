@@ -10,46 +10,17 @@ on:
         required: false
         type: boolean
         default: false
-  pull_request:
-    paths:
-      - "internal/manifest/profiles.json"
-      - "internal/plugins/**"
-      - "resources/runtime/**"
-      - "docs/parity-ledger.md"
-      - "docs/external-projects.md"
-      - "scripts/check-upstream*"
-      - ".github/workflows/upstream-watch.yml"
 
 permissions:
   contents: read
 
 concurrency:
   group: upstream-watch-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 jobs:
-  verify-pins:
-    name: Verify local upstream pins
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
-        with:
-          install_args: "node bun"
-
-      - name: Verify local manifest & doc pins and run unit tests
-        run: |
-          node scripts/check-upstream.mjs --offline
-          node --test scripts/check-upstream.test.mjs
-
   monitor:
     name: Check upstream cpypwn/mac2jb & ecosystem
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

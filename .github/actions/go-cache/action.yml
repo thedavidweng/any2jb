@@ -1,0 +1,22 @@
+name: Go cache
+description: Cache Go modules and compilation output without managing the toolchain
+inputs:
+  namespace:
+    description: Separate quality checks from native package builds
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Locate Go caches
+      id: paths
+      shell: bash
+      run: |
+        echo "modules=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+        echo "build=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ steps.paths.outputs.modules }}
+          ${{ steps.paths.outputs.build }}
+        key: go-v1-${{ inputs.namespace }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.toml', 'go.sum') }}
