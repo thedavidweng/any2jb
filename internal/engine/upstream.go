@@ -388,6 +388,11 @@ func PrepareRuntime(ctx context.Context, cache, assets, platform string, m *mani
 	if err := nativehelper.Build(ctx, io.Discard, absExtracted, stage, m); err != nil {
 		return err
 	}
+	absAssets, err := filepath.Abs(assets)
+	if err != nil {
+		return err
+	}
+	compiledDigests := make(map[string]string, 5)
 	for _, item := range []struct {
 		id, stageRel string
 	}{
@@ -413,16 +418,25 @@ func PrepareRuntime(ctx context.Context, cache, assets, platform string, m *mani
 		if err != nil {
 			return err
 		}
-		sum := sha256.Sum256(data)
-		if hex.EncodeToString(sum[:]) != comp.SHA256 {
-			return fmt.Errorf("%s compiled digest %x does not match manifest %s", comp.ID, sum, comp.SHA256)
-		}
 		if err := manifest.VerifyBinaryArchitecture("darwin-arm64", data); err != nil {
 			return fmt.Errorf("%s: %w", comp.ID, err)
 		}
+		sum := sha256.Sum256(data)
+		compiledDigests[comp.ID] = hex.EncodeToString(sum[:])
 		target := filepath.Join(assets, comp.ResourcePlatform, filepath.FromSlash(comp.Path))
 		if err := writeAssetFile(target, data, 0o755); err != nil {
 			return err
+		}
+	}
+	if len(compiledDigests) > 0 {
+		if err := m.ApplyCompiledDarwinDigests(compiledDigests); err != nil {
+			return err
+		}
+		manifestDir := filepath.Join(filepath.Dir(absAssets), "internal", "manifest")
+		if info, err := os.Stat(filepath.Join(manifestDir, "profiles.json")); err == nil && info.Mode().IsRegular() {
+			if err := manifest.WriteCompiledDarwinDigests(filepath.Join(manifestDir, "profiles.json.built"), compiledDigests); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

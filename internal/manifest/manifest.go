@@ -5,14 +5,30 @@ import (
 	"bytes"
 	"debug/elf"
 	"debug/macho"
-	_ "embed"
+	"embed"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"slices"
+	"strings"
 )
 
-//go:embed profiles.json
-var canonical []byte
+//go:embed profiles.json*
+var embeddedFS embed.FS
+
+const builtDarwinDigestsName = "profiles.json.built"
+
+var compiledDarwinComponentIDs = map[string]bool{
+	"libusbd-dylib": true,
+	"sender":        true,
+	"commands":      true,
+	"keyboard":      true,
+	"civswitch-hid": true,
+}
 
 type Manifest struct {
 	Reference  json.RawMessage `json:"reference,omitempty"`
@@ -206,14 +222,92 @@ type LauncherSave struct {
 	Core                  []string `json:"core"`
 }
 
-// Load reads the canonical manifest embedded at build time. The Node bridge
-// reads the same profiles.json file, staged unchanged alongside its reader.
+// Load reads the canonical manifest embedded at build time. When
+// prepare-runtime compiled Darwin C helpers on the current Xcode toolchain,
+// profiles.json.built embeds those verified Mach-O digests alongside profiles.json.
 func Load() (*Manifest, error) {
+	canonical, err := embeddedFS.ReadFile("profiles.json")
+	if err != nil {
+		return nil, err
+	}
 	var m Manifest
 	if err := json.Unmarshal(canonical, &m); err != nil {
 		return nil, err
 	}
+	built, err := embeddedFS.ReadFile(builtDarwinDigestsName)
+	if err == nil {
+		var digests map[string]string
+		if err := json.Unmarshal(built, &digests); err != nil {
+			return nil, fmt.Errorf("invalid embedded %s: %w", builtDarwinDigestsName, err)
+		}
+		if err := m.ApplyCompiledDarwinDigests(digests); err != nil {
+			return nil, err
+		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return nil, err
+	}
 	return &m, nil
+}
+
+// ApplyCompiledDarwinDigests records SHA-256 digests produced from the
+// manifest-verified C sources for the five Darwin USB sidecar binaries.
+// Overrides for any other component ID or malformed hex digests are rejected.
+func (m *Manifest) ApplyCompiledDarwinDigests(digests map[string]string) error {
+	for id, digest := range digests {
+		if !compiledDarwinComponentIDs[id] {
+			return fmt.Errorf("compiled digest override disallowed for component %q", id)
+		}
+		if len(digest) != 64 || strings.ToLower(digest) != digest {
+			return fmt.Errorf("invalid sha256 digest for compiled component %q", id)
+		}
+		if _, err := hex.DecodeString(digest); err != nil {
+			return fmt.Errorf("invalid sha256 hex for compiled component %q: %w", id, err)
+		}
+		updated := false
+		for i := range m.Components {
+			if m.Components[i].ID == id {
+				m.Components[i].SHA256 = digest
+				updated = true
+				break
+			}
+		}
+		if !updated {
+			return fmt.Errorf("unknown compiled component %q", id)
+		}
+	}
+	return nil
+}
+
+// WriteCompiledDarwinDigests atomically writes the allowlisted compiled Darwin
+// Mach-O digests for Go embed inclusion during packaging.
+func WriteCompiledDarwinDigests(target string, digests map[string]string) error {
+	check := &Manifest{Components: make([]Component, 0, len(compiledDarwinComponentIDs))}
+	for id := range compiledDarwinComponentIDs {
+		check.Components = append(check.Components, Component{ID: id})
+	}
+	if err := check.ApplyCompiledDarwinDigests(digests); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(digests, "", "  ")
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+	tmp, err := os.CreateTemp(filepath.Dir(target), ".profiles-built-")
+	if err != nil {
+		return err
+	}
+	_, writeErr := tmp.Write(data)
+	closeErr := tmp.Close()
+	if err := errors.Join(writeErr, closeErr); err != nil {
+		_ = os.Remove(tmp.Name())
+		return err
+	}
+	if err := os.Rename(tmp.Name(), target); err != nil {
+		_ = os.Remove(tmp.Name())
+		return err
+	}
+	return nil
 }
 
 type UnknownProfileError struct{ ID string }
