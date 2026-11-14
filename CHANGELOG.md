@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+- Update Cobra to `1.10.2` and synchronize the dependency inventory.
+- Update seven GitHub Actions dependencies, including checkout `7.0.1` and
+  cache `6.1.0`.
+- Fix Linux test gates, CivSwitch process tests, and orphan-process cleanup tests.
+- Record build-time digests for macOS USB helpers across Xcode SDK versions.
+
 ## 0.1.0
 
 - Native MyGo desktop app and Cobra CLI (`cmd/any2jb`) for Apple Silicon macOS
