@@ -38,7 +38,7 @@ func (c *commandLine) addSettings(root *cobra.Command) {
 		}
 		return c.print(c.app.Preferences)
 	}})
-	var profile, edition, input, address, usb string
+	var profile, edition, input, address, usb, langPref string
 	set := &cobra.Command{Use: "set", Short: locales.ApplyPreferences(), Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, _ []string) error {
 		if err := c.load(); err != nil {
 			return err
@@ -58,6 +58,9 @@ func (c *commandLine) addSettings(root *cobra.Command) {
 		}
 		if cmd.Flags().Changed("lan") {
 			c.app.Preferences.LANIPv4 = address
+		}
+		if cmd.Flags().Changed("language") {
+			c.app.Preferences.Language = langPref
 		}
 		if cmd.Flags().Changed("usb") {
 			var prefs app.USBPreferences
@@ -84,6 +87,7 @@ func (c *commandLine) addSettings(root *cobra.Command) {
 	set.Flags().StringVar(&edition, "edition", "", locales.SmilebasicEdition())
 	set.Flags().StringVar(&input, "input", "", locales.TransportMode())
 	set.Flags().StringVar(&address, "lan", "", locales.LanOverride())
+	set.Flags().StringVar(&langPref, "language", "", locales.LanguageLabel())
 	set.Flags().StringVar(&usb, "usb", "", locales.UsbKeyboardTitle())
 	c.static(group, "profiles", locales.HostProfile(), func(*cobra.Command, []string) error { return c.print(c.app.Manifest.Profiles) })
 	c.static(group, "developer", locales.DeveloperOptions(), func(*cobra.Command, []string) error {
@@ -100,9 +104,24 @@ func (c *commandLine) addSettings(root *cobra.Command) {
 		return c.print(result)
 	})
 	language := &cobra.Command{Use: "language", Short: cliMessage("cliLanguage"), Args: cobra.NoArgs, RunE: func(*cobra.Command, []string) error {
+		_ = c.load()
 		return c.print(c.locale())
 	}}
+	language.AddCommand(&cobra.Command{Use: "list", Short: locales.LanguageLabel(), Args: cobra.NoArgs, RunE: func(*cobra.Command, []string) error {
+		type langItem struct {
+			Tag     string `json:"tag"`
+			Autonym string `json:"autonym"`
+		}
+		items := []langItem{{Tag: "system", Autonym: locales.LanguageSystem()}}
+		for _, opt := range locales.Switch2Languages {
+			items = append(items, langItem{Tag: opt.Tag, Autonym: opt.Autonym})
+		}
+		return c.print(items)
+	}})
 	root.AddCommand(language)
+	c.static(root, "about", locales.AboutTitle(), func(*cobra.Command, []string) error {
+		return c.print(locales.AboutMarkdown(mygo.App.Version()))
+	})
 	c.static(root, "usb-defaults", locales.UsbStockDefaults(), func(*cobra.Command, []string) error { return c.print(transport.DefaultTiming()) })
 }
 

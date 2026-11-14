@@ -7,7 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const readline = require('node:readline');
 const {spawn} = require('node:child_process');
-const {heldProof, readOnlySD, TOOLS, ATTEMPT_MARKER} =
+const {heldProof, TOOLS, ATTEMPT_MARKER} =
   require('../../resources/runtime/toolhost.cjs');
 
 const TOOLHOST = path.join(__dirname, '../../resources/runtime/toolhost.cjs');
@@ -41,26 +41,9 @@ test('a finished, public or foreign session is refused', async () => {
   await assert.rejects(heldProof(fs.mkdtempSync(path.join(os.tmpdir(), 'any2jb-empty-'))), /ENOENT/);
 });
 
-test('the SD export exposes only read operations under /sd', () => {
-  const calls = [];
-  const storage = {list: value => (calls.push(value), []), stat: value => (calls.push(value), {type: 'dir'}),
-    openRead: value => (calls.push(value), 1), read: () => Buffer.alloc(0), close: () => {}};
-  const readOnly = readOnlySD(storage);
-  assert.deepEqual(readOnly.list('/'), [{name: 'sd', type: 'dir', size: 0}]);
-  readOnly.list('/sd/games');
-  assert.deepEqual(calls, ['/sd/games']);
-  for (const method of ['list', 'stat', 'openRead']) {
-    assert.throws(() => readOnly[method]('/save'), /Only the SD filesystem is exported/);
-    assert.throws(() => readOnly[method]('/sdcard'), /Only the SD filesystem is exported/);
-  }
-  for (const write of ['write', 'remove', 'mkdir', 'rename', 'openWrite', 'truncate']) {
-    assert.equal(readOnly[write], undefined, write + ' must not exist in a read-only export');
-  }
-});
-
 test('the tool catalog adds no write path beyond the modloader', () => {
-  assert.deepEqual(TOOLS, ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp', 'sd-browser',
-    'mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew', 'modloader']);
+  assert.deepEqual(TOOLS, ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp',
+    'mintbrew', 'native-hblauncher', 'custom-homebrew', 'modloader']);
 });
 
 // ---------- homebrew loopback fixtures ----------
@@ -294,140 +277,24 @@ test('an unproven mintbrew shutdown keeps the marker and blocks re-entry', {time
   assert.ok(fs.existsSync(markerPath(workspace)), 'an unproven cleanup keeps the marker');
 });
 
-// ---------- IZlauncher fixtures ----------
-
-function izStage(stagedRoot) {
-  const izRoot = path.join(stagedRoot, 'tools/izlauncher');
-  const runtime = path.join(izRoot, 'homebrew/IZ2S-Platform');
-  writeScript(path.join(izRoot, 'scripts/prepare-izlauncher.cjs'), `'use strict';
-const path = require('node:path');
-module.exports = {REVISION: 'fixture-revision',
-  verify: root => ({directory: path.join(root, 'homebrew/IZ2S-Platform'),
-    builtIns: {'iz-exchange': {sha256: 'a'.repeat(64), packageBytes: 10}},
-    blitbunSha256: 'b'.repeat(64), blitbunPackageBytes: 10,
-    vacootubeSha256: 'c'.repeat(64), vacootubePackageBytes: 10})};
-`);
-  writeScript(path.join(izRoot, 'scripts/izlauncher-modules.cjs'), `'use strict';
-const validIds = ids => Array.isArray(ids) && ids.length <= 15 && new Set(ids).size === ids.length &&
-  ids.every(id => /^[a-z0-9][a-z0-9-]{0,47}$/.test(id));
-module.exports = {validIds, validate: async (root, ids) => {
-  const known = new Set(['iz-exchange', 'blitbun', 'vacootube']);
-  if (ids.some(id => !known.has(id))) throw Error('The selected IZlauncher module is unavailable on this Mac.');
-}};
-`);
-  writeScript(path.join(izRoot, 'vendor/GPUBrewLauncher/smilebasic/engine/shared/rpc.cjs'), '// frozen\n');
-  for (const name of ['inspect-display', 'inspect-compatibility', 'inspect-input', 'vulkan-copy']) {
-    writeScript(path.join(runtime, 'core/services', name + '.cjs'), stageScript('core/services/' + name + '.cjs'));
-  }
-  writeScript(path.join(runtime, 'shells/izlauncher/server/prepare.cjs'), `'use strict';
-const fs = require('node:fs');
-const path = require('node:path');
-const sessionDir = process.argv[2];
-const session = path.basename(sessionDir);
-const write = (name, value) => fs.writeFileSync(path.join(sessionDir, name), JSON.stringify(value), {mode: 0o600});
-write('launcher-auto.json', {session, ready: true, firstShaderFramePresented: true, scratchRestored: true});
-write('app-runtime.json', {session, catalog: {apps: [{id: 'fixture-app', effects: {click: 'click.pcm'}}]}});
-process.exit(0);
-`);
-  writeScript(path.join(runtime, 'shells/izlauncher/server/check-input.cjs'), `'use strict';
-const fs = require('node:fs');
-const path = require('node:path');
-const sessionDir = process.argv[2];
-fs.writeFileSync(path.join(sessionDir, 'launcher-auto-check.json'),
-  JSON.stringify({session: path.basename(sessionDir), passed: true, scratchRestored: true}), {mode: 0o600});
-process.exit(0);
-`);
-  writeScript(path.join(runtime, 'shells/izlauncher/server/frame-loop.cjs'), `'use strict';
-const fs = require('node:fs');
-const path = require('node:path');
-const sessionDir = process.argv[2];
-const session = path.basename(sessionDir);
-const proof = extra => JSON.stringify({session, continuous: true, frameSha256: 'f'.repeat(64), ...extra});
-console.log('IZ launcher game event source ready.');
-console.log('IZ launcher continuous native frame loop running.');
-fs.writeFileSync(path.join(sessionDir, 'launcher-auto-loop.json'),
-  proof({threadRunning: true, completed: false}), {mode: 0o600});
-process.on('SIGTERM', () => {
-  fs.writeFileSync(path.join(sessionDir, 'launcher-auto-loop.json'),
-    proof({threadRunning: false, completed: true}), {mode: 0o600});
-  process.exit(0);
-});
-setInterval(() => {}, 1000);
-`);
-  writeScript(path.join(runtime, 'core/console/host/ftp-service.cjs'), ownerScript('SDK FTP service ready.'));
-  writeScript(path.join(runtime, 'core/console/audio/game-audio.cjs'),
-    ownerScript('Game sound effects ready.', '',
-      writeProof('game-audio.json', '{session, completed: true}')));
-  writeScript(path.join(runtime, 'core/session/preload.cjs'), `'use strict';
-const fs = require('node:fs');
-const path = require('node:path');
-module.exports = {prepare: async (runtime, ids, apps) => {
-  fs.writeFileSync(path.join(apps, 'preloaded.json'), JSON.stringify({ids}), {mode: 0o600});
-}};
-`);
-}
-
-function izQualification(workspace, programId = '0100c9100b06a000') {
-  const session = path.basename(workspace);
-  const folder = path.join(workspace, 'switch2/process');
-  fs.mkdirSync(folder, {recursive: true, mode: 0o700});
-  fs.writeFileSync(path.join(folder, session + '-qualification-1.json'),
-    JSON.stringify({session, verified: true, cleanup: {finished: true},
-      app: {result: 0, programId}}), {mode: 0o600});
-}
-
-async function izWorld(t, {qualify = true} = {}) {
-  const support = fs.mkdtempSync(path.join(os.tmpdir(), 'any2jb-iz-'));
+test('heldProof accepts verified civ7 and artemis-seedsow sessions', async t => {
+  const support = fs.mkdtempSync(path.join(os.tmpdir(), 'any2jb-targets-'));
   t.after(() => fs.rmSync(support, {recursive: true, force: true}));
-  const bridge = await fakeBridge(t);
-  const workspace = heldWorkspaceAt(support, bridge.port);
-  if (qualify) izQualification(workspace);
-  const stagedRoot = stagedRootFixture(support);
-  izStage(stagedRoot);
-  const config = {supportDir: support, homebrewRuntime: homebrewRuntimeFixture(support), modules: ['blitbun']};
-  return {support, bridge, workspace, stagedRoot, config};
-}
-
-test('izlauncher proves its lifecycle with selected modules', {timeout: 120000}, async t => {
-  const {workspace, stagedRoot, config} = await izWorld(t);
-  const {events, code, stderr} = await runToolhost(
-    [stagedRoot, 'izlauncher', workspace, '-', '-', JSON.stringify(config)]);
-  assert.equal(code, 0, stderr + '\n' + JSON.stringify(events));
-  const stopped = events.find(e => e.type === 'stopped');
-  assert.ok(stopped, JSON.stringify(events));
-  assert.equal(stopped.cleanupVerified, true);
-  assert.match(stopped.attemptMarkerSha256, /^[a-f0-9]{64}$/);
-  assert.equal(fs.existsSync(markerPath(workspace)), false);
-  const sessionDir = fs.readdirSync(path.dirname(workspace))
-    .filter(name => name.startsWith('izlauncher-'))
-    .map(name => path.join(path.dirname(workspace), name))[0];
-  assert.ok(sessionDir, 'the IZlauncher session directory exists');
-  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(sessionDir, 'app-links/preloaded.json'))),
-    {ids: ['blitbun']});
-});
-
-test('izlauncher rejects invalid modules before touching the console', {timeout: 60000}, async t => {
-  const {workspace, stagedRoot, config} = await izWorld(t);
-  const {events, code} = await runToolhost(
-    [stagedRoot, 'izlauncher', workspace, '-', '-', JSON.stringify({...config, modules: ['BAD ID']})],
-    {stop: false});
-  assert.equal(code, 1);
-  const failed = events.find(e => e.type === 'failed');
-  assert.ok(failed, JSON.stringify(events));
-  assert.match(failed.message, /up to 15 distinct compatible IZlauncher modules/);
-  assert.equal(failed.cleanupBlocked, false);
-  assert.equal(fs.existsSync(markerPath(workspace)), false, 'no marker was written');
-});
-
-test('izlauncher requires the current SmileBASIC process qualification', {timeout: 60000}, async t => {
-  const {workspace, stagedRoot, config} = await izWorld(t, {qualify: false});
-  const {events, code} = await runToolhost(
-    [stagedRoot, 'izlauncher', workspace, '-', '-', JSON.stringify(config)], {stop: false});
-  assert.equal(code, 1);
-  const failed = events.find(e => e.type === 'failed');
-  assert.ok(failed, JSON.stringify(events));
-  assert.match(failed.message, /current SmileBASIC process qualification/);
-  assert.equal(fs.existsSync(markerPath(workspace)), false);
+  for (const [prefix, target] of [['civswitch-fs-0123456789abcdef', 'civ7'], ['artemis-fs-0123456789abcdef', 'artemis-seedsow']]) {
+    const workspace = path.join(support, 'runs', prefix, 'port/engine/runs/switch2-abc123');
+    fs.mkdirSync(workspace, {recursive: true, mode: 0o700});
+    const session = path.basename(workspace);
+    fs.writeFileSync(path.join(workspace, 'result.json'), JSON.stringify({
+      target, verified: true,
+      fs: {verified: true, restored: true, retainedEndpoint: {ready: true, session}, cleanup: {deferred: true, donor: {cleanedUp: true}}},
+      rpc: {mode: 'held', state: 'listening'},
+    }), {mode: 0o600});
+    fs.writeFileSync(path.join(workspace, 'connection.json'),
+      JSON.stringify({port: 39999, addresses: {session, target}}), {mode: 0o600});
+    const proof = await heldProof(workspace);
+    assert.equal(proof.target, target);
+    assert.equal(proof.session, session);
+  }
 });
 
 test('native hblauncher rejects an untrusted profile before loading the host', {timeout: 60000}, async t => {

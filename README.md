@@ -1,256 +1,55 @@
 # any2jb
 
-A native desktop and CLI manager for `ns2jb` and `CivSwitch` on Apple Silicon
-macOS 14+ (`darwin/arm64`) and Linux (`linux/amd64` and `linux/arm64`, GTK3
-without WebKitGTK). Console and physical USB hardware behavior remains
-**not verified** until real hardware acceptance logs are recorded.
+Cross-platform fork of [mac2jb](https://github.com/cpypwn/mac2jb) (`v0.8.2` parity) for macOS and Linux, with a native desktop UI, full CLI parity, and on-demand plugin installs.
 
-## What Is Included vs. Downloaded on Demand
+## Features
 
-### Bundled offline in each platform package
+- **macOS and Linux**: Native UI and single-binary CLI on Apple Silicon macOS (`darwin/arm64`) and Linux (`linux/amd64`, `linux/arm64`, GTK3 without WebKitGTK).
+- **No bundled sub-tools**: Ships only the verified `ns2jb` host profiles, Node `24.22.1` runtime, and USB HID helpers. All 29 sub-tools (`SaveKit`, `OunceCake`, `MintBrew`, `HBLauncher`, `Modloader`, `CivSwitch`, `CivHomebrew` and `.civapp` packages, `Artemis` HTTP/FS, `NXFormat`, `NSP-Box`, `NUP`, `DNSwitch`, `Browser Probes`, and launcher saves) install on demand from pinned upstream sources with SHA-256 verification.
+- **Flexible console input**: `usbgadget.kext` on Apple Silicon macOS, ConfigFS `usb_f_hid` on Linux devices with UDC hardware, or Guided Manual typing on any computer without lowering system security.
+- **18 languages**: Follows system language by default and covers all 18 official Nintendo Switch 2 system languages.
 
-- **Runtime**: Official Node `24.22.1` standalone binary (`darwin-arm64`,
-  `linux-x64`, or `linux-arm64`) plus `any2jb`'s local bridge and tool host.
-- **Host profiles & bootstraps**: All five supported `ns2jb` profiles and
-  SmileBASIC bootstraps (`kurumuz` default, `cellenseres`, `astral`, `pepsipu`,
-  and `BermTheSequel`), SHA-256 verified before staging and launch.
-- **Built-in USB device-mode input**:
-  - **Apple Silicon macOS (`darwin/arm64`)**: Bundled `usbgadget.kext`,
-    `install-driver.sh`, `libusbd.dylib`, and the four arm64 Mach-O HID helpers
-    (`sender`, `commands`, `keyboard`, `civswitch-hid`).
-  - **Linux (`linux/amd64`, `linux/arm64`)**: Built-in Go ConfigFS `usb_f_hid`
-    keyboard and CivSwitch composite HID helper for Linux hardware with a USB
-    Device Controller (`/sys/class/udc`), plus Guided Manual input on any PC.
-- **CivSwitch**: Bootstrap payload, Control Center, single-save backup reader,
-  and pure-Go persistent boot-trigger installer (no external Python or Terser
-  needed).
-- **Retained RPC session tools**: Live RPC status, system-code capture,
-  OunceCake read-only WebDAV and local FTP exports, Super File Bros. `/sd`
-  export, SaveKit save inspection/backups/writes, all ten pinned launcher save
-  packages, and `ns2jb-modloader`.
+## Usage
 
-### Downloaded on demand (~100 MB+)
+Run `any2jb` without arguments to open the desktop UI:
 
-- **Optional Homebrew environment**: `MintBrew`, `Native HBLauncher`,
-  `IZlauncher` (`BlitBun`, `Shell`, `VacooTube`), and the portable
-  `homebrew-runtime` are kept out of the base installer to keep package size
-  small.
-- Click **Download & prepare Homebrew** inside **Advanced Tools** (or run
-  `any2jb tool install-homebrew`) to fetch the pinned upstream archive into app
-  support and verify every file against `internal/manifest/profiles.json`
-  SHA-256 digests before launch.
+1. Complete the readiness check, or pick **Type the commands yourself** for Guided Manual mode.
+2. Open **Plugins** in the top bar to install the sub-tools you need.
+3. Choose a route (`SmileBASIC / ns2jb`, `CivSwitch`, or standalone `Utilities`) and follow the session prompts.
 
-### Not included
-
-- `browser-research` (no redistribution grant) and legacy `izmysh` (requires a
-  separate native qualification adapter not implemented in `any2jb`).
-- External microcontroller HID hardware (such as RP2040 / Pico) is not
-  implemented. Use built-in USB device-mode or Guided Manual input.
-
----
-
-## Apple Silicon macOS USB Gadget Driver Setup
-
-Apple Silicon Macs include USB device-mode hardware that lets the Mac act as a
-USB keyboard or composite controller for the Switch 2 over a USB-C data cable.
-Doing so uses the unsigned `usbgadget.kext` kernel extension bundled inside
-`any2jb.app`.
-
-Because `usbgadget.kext` is unsigned, macOS blocks it under default security
-settings. `any2jb` **never** runs `csrutil`, `bputil`, `nvram`, or `spctl` on
-your behalf; you must lower Startup Security for your macOS disk and disable
-System Integrity Protection (SIP) yourself in **macOS Recovery** before
-installing the driver.
-
-If you do not want to change macOS security settings or install a kernel
-extension, select **Guided Manual** input in `any2jb` and enter the displayed
-SmileBASIC bootstrap commands with a standard USB keyboard plugged into the
-Switch 2.
-
-### Step 1: Enter macOS Recovery on Apple Silicon
-
-1. Shut down your Mac completely (**Apple menu -> Shut Down...**) and wait 10
-   seconds.
-2. Press and hold the **Power button (Touch ID)** until the screen displays
-   **Loading startup options**.
-3. Click **Options**, then click **Continue**.
-4. Select your administrator account and enter your Mac password when prompted.
-
-### Step 2: Allow kernel extensions in Startup Security Utility
-
-1. From the top menu bar in macOS Recovery, choose **Utilities -> Startup
-   Security Utility**.
-2. Select your macOS system disk (click **Unlock** first if FileVault is
-   enabled) and click **Security Policy...**.
-3. Select **Reduced Security**, then check **Allow user management of kernel
-   extensions from identified developers**.
-4. Click **OK**, enter your administrator password, and wait for macOS Recovery
-   to apply the policy.
-
-### Step 3: Disable SIP and restart into macOS
-
-1. From the top menu bar in macOS Recovery, choose **Utilities -> Terminal**.
-2. Run:
-
-   ```sh
-   csrutil disable
-   ```
-
-3. Type `y` when prompted, enter your Mac administrator password, and wait for
-   Terminal to print:
-
-   ```text
-   Successfully disabled System Integrity Protection. Please restart the machine for the changes to take effect.
-   ```
-
-4. Choose **Apple menu -> Restart** to boot back into normal macOS.
-
-### Step 4: Install and approve `usbgadget.kext`
-
-1. Open `any2jb.app` (or run `any2jb driver install` from Terminal).
-2. In Stage 1 (**Install the USB driver**) or **Settings -> Review USB driver
-   setup**, click **Approve driver installation**, then click **Install with
-   administrator approval** and enter your Mac password. `any2jb` verifies the
-   SHA-256 digests of `usbgadget.kext` and `install-driver.sh` before invoking
-   the macOS administrator prompt.
-3. Open **System Settings -> Privacy & Security** and scroll down to
-   **Security**. If macOS asks for approval to load system software from
-   `usbgadget`, click **Allow**, enter your password, and let macOS finish
-   rebuilding the kernel collection.
-4. **Restart your Mac** when prompted. `any2jb` keeps the driver restart check
-   blocked until a clean reboot completes after installation.
-5. After your Mac restarts, connect a USB-C data cable directly between a
-   Thunderbolt / USB-C port on the Mac and the Switch 2 (on MacBooks, keep external
-   power on MagSafe or a separate port so the Switch 2 acts as the USB host),
-   then click **Refresh readiness** in `any2jb`.
-
-### Restoring default macOS security later
-
-To remove the USB gadget driver and restore full macOS security when you no
-longer need built-in USB device-mode input:
-
-1. In macOS Terminal, remove the installed kext and restart marker, then rebuild
-   the kernel collection:
-
-   ```sh
-   sudo rm -rf /Library/Extensions/usbgadget.kext /Library/Extensions/.mac2jb-usbgadget-restart-required
-   sudo kmutil clear-staging
-   ```
-
-2. Shut down the Mac, hold the **Power button** to enter **macOS Recovery**,
-   open **Utilities -> Terminal**, and run `csrutil enable`.
-3. Open **Utilities -> Startup Security Utility**, select your macOS disk, click
-   **Security Policy...**, restore **Full Security**, and restart your Mac.
-
----
-
-## Command Line
-
-The same `any2jb` binary runs as a CLI when invoked with arguments:
+Pass arguments to run the CLI:
 
 ```sh
 any2jb detect --json
-any2jb driver install
-any2jb tool list
-any2jb tool install-homebrew
-any2jb session --script steps.txt
+any2jb plugins list
+any2jb plugins install savekit ouncecake civhomebrew
+any2jb about
 ```
 
-See the [CLI guide](docs/cli.md) and [CLI parity table](docs/cli-parity.md).
+See [docs/cli.md](docs/cli.md), [docs/cli-parity.md](docs/cli-parity.md), and [docs/external-projects.md](docs/external-projects.md).
 
----
+### Optional: Apple Silicon macOS USB Driver
 
-## Build and Develop
+Automated USB typing on Apple Silicon macOS uses `usbgadget.kext`. Guided Manual mode works without changing macOS security settings. To use USB device mode:
 
-Install Go **1.27.3** (and Xcode Command Line Tools on Apple Silicon macOS for
-compiling the C USB helpers, code signing, and DMG packaging). No Bun or WebView
-runtime is used. MyGo is pinned in `go.mod` to
-`a4b6734f7715c9f73709092f7bae80d861572c03`.
+1. Shut down the Mac, hold the power button until **Loading startup options**, and open **Options**.
+2. In **Utilities -> Startup Security Utility**, select **Reduced Security** and enable **Allow user management of kernel extensions from identified developers**.
+3. In **Utilities -> Terminal**, run `csrutil disable`, then restart into macOS.
+4. Run `any2jb driver install` (or click **Install...** in the app), approve `usbgadget` in **System Settings -> Privacy & Security**, and restart once more.
 
-Upstream third-party bundles and Node binaries are not committed to Git. During
-the build, `cmd/prepare-runtime` fetches the pinned Node `24.22.1` release
-archive and the pinned `cpypwn/mac2jb` reference archive into `.cache/`,
-verifies every SHA-256 digest against `internal/manifest/profiles.json`,
-compiles `libusbd.dylib` and the four USB HID helpers on `darwin/arm64`, and
-stages `resources/`. `cmd/check-package` then enforces the manifest inventory,
-binary architectures, and third-party license notices before and after
-packaging.
+To restore default security later, run `sudo rm -rf /Library/Extensions/usbgadget.kext /Library/Extensions/.mac2jb-usbgadget-restart-required && sudo kmutil clear-staging`, then re-enable `csrutil enable` and **Full Security** in macOS Recovery.
+
+## Build and Test
+
+Requires Go `1.27.3` (and Xcode Command Line Tools on `darwin/arm64`).
 
 ```sh
-# Stage verified runtime and bundled assets into resources/
 go run ./cmd/prepare-runtime
 go run ./cmd/check-package
-
-# Run native UI in development mode
 go tool mygo dev
-
-# Run Go & Node tests, i18n/vet checks, and build a local package
-go test ./...
-node --test internal/manifest/profiles.test.cjs internal/retained/savekit-host.test.cjs internal/retained/toolhost.test.cjs internal/engine/*.test.cjs
-go tool mygo i18n check && go tool mygo vet . && go vet ./...
-go tool mygo build -platform darwin/arm64 -sign - -skip-notarize
-go run ./cmd/check-package -platform darwin-arm64 -merged build/darwin-arm64/any2jb.app/Contents/Resources
-build/darwin-arm64/any2jb.app/Contents/MacOS/any2jb --self-test
+CGO_ENABLED=0 go test ./...
 ```
 
-For explicit local upstream override staging during development, see
-[developer launch](docs/developer-launch.md). For the hardware-free upstream
-regression suite (including Zig `0.15.2` payload rebuild checks), run:
+## Credits and License
 
-```sh
-go run ./cmd/check -reference-root /absolute/path/to/pinned/mac2jb
-```
-
-See [regression checks](docs/regression-checks.md) and
-[packaging and updates](docs/releases.md).
-
-## Repository Layout
-
-```text
-cmd/
-  any2jb/           Application entrypoint (native MyGo GUI, Cobra CLI, Linux USB helper)
-  prepare-runtime/  Fetches, builds, and SHA-256-verifies Node and bundled sidecars
-  check-package/    Pre- and post-package resource and license inventory gate
-  check/            Offline upstream regression and differential parity suite
-  evidence/         Hardware acceptance evidence validator and ledger updater
-internal/
-  app/              Shared preferences, bootstrap state, and production adapter composition
-  ui/               Native MyGo views, keyboard forwarding, and windowless UI tests
-  cli/              Cobra CLI commands and session shell
-  session/          Pure Go session state machine and controller seam
-  readiness/        Read-only LAN, driver, SIP, and UDC readiness checks + setup projection
-  transport/        Guided manual input and Darwin/Linux USB HID keyboard transports
-  usbgadget/        Linux ConfigFS usb_f_hid keyboard and composite HID helper
-  engine/           Node runtime staging, workspace isolation, and supervised host bridge
-  retained/         Retained RPC lease, tool host, SaveKit, homebrew, and launcher saves
-  savekit/          SaveKit protocol client, export verifier, and mutation preview gate
-  civswitch/        CivSwitch composite HID adapter, TCP 9026 probe, and Control Center
-  driver/           macOS usbgadget.kext SHA-256 verification and admin install gate
-  diagnostics/      Redacted log store, support bundle export, and stale-run cleanup
-  manifest/         Canonical profiles.json schema, SHA-256 verifier, and package gate
-  procgroup/        Supervised child process-group lifecycle and bounded NDJSON reader
-  parity/           Differential output parity harness and GUI/CLI control extractor
-locales/            English and Simplified Chinese catalogs + generated MyGo accessors
-resources/          Bundled licenses and build-staged platform overlays (gitignored binaries)
-docs/               Architecture decisions (docs/adr/), parity ledgers, and subsystem specs
-scripts/            Cross-platform compile gate (check-platforms.sh)
-```
-
-## UI Strings and Localization
-
-Add every app-visible string to `locales/en.json` and its translation to
-`locales/zh-CN.json`, then run `go tool mygo generate`. Commit
-`locales/catalog_gen.go` so plain Go builds and tests run without code
-generation. See [localization](docs/localization.md) and
-[accessibility](docs/accessibility.md).
-
-## Architecture and Terminology
-
-- [Domain glossary](GLOSSARY.md)
-- [External projects](docs/external-projects.md): pinned upstream revisions, digests, and licenses
-- [Driver and startup security gate](docs/driver-security.md)
-- [Retained RPC lease and tools](docs/retained-tools.md)
-- [Direct Go orchestration over upstream engines](docs/adr/0001-direct-go-orchestration-over-upstream-engines.md)
-- [Phase 1 release boundaries](docs/adr/0002-split-phase1-release-into-p1a-and-p1b.md)
-- [Staged flow, first-stage Mac check, and Switch checklist](docs/adr/0005-prepare-the-switch-checklist.md)
-- [Internal package layout and structured localization](docs/adr/0006-internal-package-layout-and-structured-localization.md)
+Built on upstream work by `cpypwn` ([mac2jb](https://github.com/cpypwn/mac2jb)), `pepsipu`, `kurumuz`, `Cellenseres`, `BermTheSequel`, `Gezine`, `shinyquagsire23`, and all plugin authors listed in the in-app **About** view (`any2jb about`) and [docs/external-projects.md](docs/external-projects.md).

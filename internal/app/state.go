@@ -11,8 +11,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/thedavidweng/any2jb/internal/artemis"
+	"github.com/thedavidweng/any2jb/internal/devtools"
 	"github.com/thedavidweng/any2jb/internal/driver"
 	"github.com/thedavidweng/any2jb/internal/manifest"
+	"github.com/thedavidweng/any2jb/internal/plugins"
 	"github.com/thedavidweng/any2jb/internal/retained"
 	"github.com/thedavidweng/any2jb/internal/savekit"
 	"github.com/thedavidweng/any2jb/internal/session"
@@ -34,6 +37,7 @@ type Preferences struct {
 	Edition   string          `json:"edition"`
 	LANIPv4   string          `json:"lanIPv4,omitempty"`
 	Transport string          `json:"transport"`
+	Language  string          `json:"language,omitempty"`
 }
 
 // ToolAdapter exposes staged retained tools and launcher archive previews.
@@ -48,6 +52,18 @@ type ToolAdapter interface {
 type HomebrewInstaller interface {
 	HomebrewInstallable(session.Profile) bool
 	InstallHomebrew(context.Context) error
+}
+
+// PluginManager exposes on-demand plugin status, installation, uninstallation,
+// and resolved runtime paths when ToolAdapter supports them.
+type PluginManager interface {
+	PluginsStatus() []plugins.Status
+	InstallPlugins(ctx context.Context, selectors ...string) ([]string, error)
+	UninstallPlugins(ctx context.Context, ids ...string) ([]string, error)
+	ToolRoot() string
+	NodePath() string
+	HomebrewRuntimeRoot() string
+	SupportRoot() string
 }
 
 // State holds headless runtime configuration, controller state, and adapters
@@ -122,7 +138,43 @@ func (s *State) ValidatePreferences() error {
 			return errors.New(locales.ChooseLANIPv4())
 		}
 	}
+	normalizedLang, ok := locales.NormalizeLanguagePreference(s.Preferences.Language)
+	if !ok {
+		return errors.New(locales.ChooseLanguage())
+	}
+	s.Preferences.Language = normalizedLang
 	return nil
+}
+
+// Plugins returns the PluginManager when Tools supports on-demand plugins.
+func (s *State) Plugins() PluginManager {
+	pm, _ := s.Tools.(PluginManager)
+	return pm
+}
+
+// DevToolsConfig resolves the runtime paths for standalone devtools plugins.
+func (s *State) DevToolsConfig() devtools.Config {
+	cfg := devtools.Config{Manifest: s.Manifest}
+	if pm := s.Plugins(); pm != nil {
+		cfg.ToolRoot = pm.ToolRoot()
+		cfg.Support = pm.SupportRoot()
+		cfg.Node = pm.NodePath()
+		if rt := pm.HomebrewRuntimeRoot(); rt != "" {
+			cfg.HomebrewPython = filepath.Join(rt, "python", "bin", "python3")
+		}
+	}
+	return cfg
+}
+
+// ArtemisClient builds an Artemis HTTP client using the staged SaveKit plugin.
+func (s *State) ArtemisClient(port int) artemis.Client {
+	client := artemis.Client{Manifest: s.Manifest, Port: port}
+	if pm := s.Plugins(); pm != nil {
+		client.Node = artemis.NodeBinary(pm.NodePath())
+		client.ToolRoot = pm.ToolRoot()
+		client.Support = pm.SupportRoot()
+	}
+	return client
 }
 
 // ApplyPreferences validates, pushes Preferences into Controller when idle/safe,

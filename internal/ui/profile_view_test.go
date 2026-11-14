@@ -66,7 +66,7 @@ func TestUnappliedHostChoiceCannotLaunchPreviousHost(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Ready)
-	a.Preferences.Profile = "izmysh"
+	a.Preferences.Profile = "pepsipu"
 	tt.Frame()
 	start, ok := tt.AccessByRole(ui.RoleButton, "Guided manual launch")
 	if !ok || !start.Disabled {
@@ -74,14 +74,14 @@ func TestUnappliedHostChoiceCannotLaunchPreviousHost(t *testing.T) {
 	}
 }
 
-func TestAllSixHostsCanBeSelected(t *testing.T) {
+func TestAllSupportedHostsCanBeSelected(t *testing.T) {
 	a, err := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	a.developer = true
 	tt := ui.NewTester(a.profileView, 720, 1200)
-	for _, id := range []string{"pepsipu", "cellenseres", "BermTheSequel", "izmysh", "astral", "kurumuz"} {
+	for _, id := range []string{"pepsipu", "cellenseres", "BermTheSequel"} {
 		choice, ok := tt.AccessByRole(ui.RolePopUpButton, locales.HostProfile())
 		if !ok {
 			t.Fatal("host profile choice missing", tt.Texts())
@@ -93,17 +93,5 @@ func TestAllSixHostsCanBeSelected(t *testing.T) {
 		if a.Preferences.Profile != id {
 			t.Fatalf("wanted %s, got %s", id, a.Preferences.Profile)
 		}
-	}
-}
-
-func TestIZMYSHQualificationBlockerIsVisible(t *testing.T) {
-	a, err := loadApp(filepath.Join(t.TempDir(), "preferences.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	a.Preferences.Profile = "izmysh"
-	tt := ui.NewTester(a.profileView, 720, 1000)
-	if !tt.HasText("IZMYSH cannot launch yet. Its separate native qualification adapter is not implemented.") {
-		t.Fatal(tt.Texts())
 	}
 }

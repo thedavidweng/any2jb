@@ -15,7 +15,8 @@ import (
 // controller validates every field again before a launch.
 type homebrewPanel struct {
 	sdFolder, appFolder, customFolder, modsFolder string
-	izExchange, blitbun, vacootube                bool
+	stremioQuality, stremioAddons                 string
+	modSource                                     string
 	modsConsent                                   bool
 	consentedModsFolder                           string
 	customConsent, nativeConsent                  bool
@@ -34,9 +35,8 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 	canInstall := ok && installer.HomebrewInstallable(s.Profile)
 	mintbrew, mintbrewReason := a.toolGate(s, state, "mintbrew")
 	native, nativeReason := a.toolGate(s, state, "native-hblauncher")
-	iz, izReason := a.toolGate(s, state, "izlauncher")
 	custom, customReason := a.toolGate(s, state, "custom-homebrew")
-	if mintbrewReason != "" && nativeReason != "" && izReason != "" && customReason != "" &&
+	if mintbrewReason != "" && nativeReason != "" && customReason != "" &&
 		!canInstall && !p.installing && p.installNotice == "" {
 		return
 	}
@@ -54,6 +54,8 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 		ui.Text(c.Key("hb-install-status"), p.installNotice).Role(ui.RoleStatus)
 	}
 	if mintbrewReason == "" {
+		ui.TextInput(c.Key("hb-stremio-quality"), &p.stremioQuality).Label(locales.HbStremioQuality()).Disabled(s.Busy || !leased)
+		ui.TextInput(c.Key("hb-stremio-addons"), &p.stremioAddons).Label(locales.HbStremioAddons()).Disabled(s.Busy || !leased)
 		if inline(ui.Button(c.Key("hb-mintbrew"), locales.HbMintbrew())).Disabled(mintbrew).Clicked() {
 			a.runHomebrew("mintbrew")
 		}
@@ -70,15 +72,6 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 		}
 		if inline(ui.Button(c.Key("hb-native"), locales.HbNative())).Disabled(native || strings.TrimSpace(p.appFolder) != "" && !p.nativeConsent).Clicked() {
 			a.runHomebrew("native-hblauncher")
-		}
-	}
-	if izReason == "" {
-		ui.Text(c, locales.HbModules())
-		ui.Checkbox(c.Key("hb-mod-iz-exchange"), &p.izExchange, locales.HbModIZExchange()).Disabled(s.Busy || !leased)
-		ui.Checkbox(c.Key("hb-mod-blitbun"), &p.blitbun, locales.HbModBlitbun()).Disabled(s.Busy || !leased)
-		ui.Checkbox(c.Key("hb-mod-vacootube"), &p.vacootube, locales.HbModVacootube()).Disabled(s.Busy || !leased)
-		if inline(ui.Button(c.Key("hb-izlauncher"), locales.HbIZ())).Disabled(iz).Clicked() {
-			a.runHomebrew("izlauncher")
 		}
 	}
 	if customReason == "" {
@@ -100,6 +93,9 @@ func (a *app) homebrewView(c *ui.Context, s session.Snapshot, state retained.Sta
 // handoff locks every tool until the console restarts, and the view says so.
 func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.State) {
 	p := &a.homebrewPanel
+	if p.modSource == "" {
+		p.modSource = "pc"
+	}
 	leased := s.Leased()
 	install, reason := a.toolGate(s, state, "modloader")
 	if reason != "" {
@@ -110,13 +106,21 @@ func (a *app) modloaderView(c *ui.Context, s session.Snapshot, state retained.St
 	if state.ModloaderInstalled {
 		ui.Text(c.Key("mod-installed"), locales.ModInstalled()).Bold().Role(ui.RoleStatus)
 	}
-	ui.TextInput(c.Key("mod-folder"), &p.modsFolder).Label(locales.ModFolder()).Disabled(s.Busy || !leased || state.ModloaderInstalled)
-	if p.modsFolder != p.consentedModsFolder {
+	ui.Select(c.Key("mod-source"), &p.modSource, []string{"pc", "sd"}).Label(locales.ModSourceMode()).Disabled(s.Busy || !leased || state.ModloaderInstalled)
+	if p.modSource == "pc" {
+		ui.TextInput(c.Key("mod-folder"), &p.modsFolder).Label(locales.ModFolder()).Disabled(s.Busy || !leased || state.ModloaderInstalled)
+	}
+	consentKey := p.modSource + ":" + p.modsFolder
+	if p.modSource == "sd" {
+		consentKey = "sd"
+	}
+	if consentKey != p.consentedModsFolder {
 		p.modsConsent = false
-		p.consentedModsFolder = p.modsFolder
+		p.consentedModsFolder = consentKey
 	}
 	ui.Checkbox(c.Key("mod-consent"), &p.modsConsent, locales.ModConsent()).Disabled(install)
-	if inline(ui.Button(c.Key("mod-install"), locales.ModInstall())).Disabled(install || !p.modsConsent).Clicked() {
+	needsFolder := p.modSource == "pc" && strings.TrimSpace(p.modsFolder) == ""
+	if inline(ui.Button(c.Key("mod-install"), locales.ModInstall())).Disabled(install || !p.modsConsent || needsFolder).Clicked() {
 		a.runHomebrew("modloader")
 	}
 }
@@ -125,6 +129,13 @@ func (a *app) runHomebrew(tool string) {
 	p := &a.homebrewPanel
 	request := session.ToolRequest{Tool: tool}
 	switch tool {
+	case "mintbrew":
+		request.StremioQuality = strings.TrimSpace(p.stremioQuality)
+		for _, part := range strings.FieldsFunc(p.stremioAddons, func(r rune) bool { return r == ',' || r == '\n' || r == ';' }) {
+			if trimmed := strings.TrimSpace(part); trimmed != "" {
+				request.StremioAddonURLs = append(request.StremioAddonURLs, trimmed)
+			}
+		}
 	case "native-hblauncher":
 		request.SDRomFolder = strings.TrimSpace(p.sdFolder)
 		request.AppFolder = strings.TrimSpace(p.appFolder)
@@ -135,20 +146,11 @@ func (a *app) runHomebrew(tool string) {
 		request.CodeConsent = p.customConsent
 		p.customConsent = false
 	case "modloader":
-		request.ModsFolder = strings.TrimSpace(p.modsFolder)
+		if p.modSource != "sd" {
+			request.ModsFolder = strings.TrimSpace(p.modsFolder)
+		}
 		request.CodeConsent = p.modsConsent
 		p.modsConsent = false
-	case "izlauncher":
-		for _, module := range []struct {
-			id      string
-			enabled bool
-		}{
-			{"iz-exchange", p.izExchange}, {"blitbun", p.blitbun}, {"vacootube", p.vacootube},
-		} {
-			if module.enabled {
-				request.Modules = append(request.Modules, module.id)
-			}
-		}
 	}
 	a.command(a.Controller.RunToolWith(request))
 }

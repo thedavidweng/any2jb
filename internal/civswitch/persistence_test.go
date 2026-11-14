@@ -139,7 +139,6 @@ func newPersistenceFixture(t *testing.T, respond func(string) string) *persisten
 		"civswitch-payload":    "integrations/civswitch/payload.txt",
 		backupPayloadComponent: "integrations/civswitch/backup-single.js",
 		installerComponent:     "vendor/CivSwitch/installer-creator/install.py",
-		controlCenterComponent: "vendor/CivSwitch-ControlCenter/control_center.js",
 	} {
 		data := "fixture " + id
 		if err := os.MkdirAll(filepath.Join(root, filepath.Dir(file)), 0o700); err != nil {
@@ -175,10 +174,6 @@ func (f *persistenceFixture) sent(t *testing.T) []string {
 		}
 	}
 	return code
-}
-
-func jsonUnmarshalString(text string, value *string) error {
-	return json.Unmarshal([]byte(text), value)
 }
 
 func (f *persistenceFixture) installerArgs(t *testing.T) []string {

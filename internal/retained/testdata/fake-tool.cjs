@@ -45,11 +45,9 @@ async function main() {
     emit('catalog', {games: [{titleId: '0123456789abcdef', name: 'Fixture Game'}]});
     const title = await selected;
     if (title !== '0123456789abcdef') throw Error('unexpected fixture selection');
-    emit('running', {readOnly: true, endpoint: tool === 'ouncecake-ftp'
-      ? 'ftp://127.0.0.1:2222/' : 'http://' + consoleAddress + ':2121/'});
-  } else if (tool === 'sd-browser') {
     emit('running', {readOnly: true, endpoint: scenario === 'exposed'
-      ? 'ftp://192.0.2.9:2122/sd/' : 'ftp://' + consoleAddress + ':2122/sd/'});
+      ? 'http://192.0.2.9:2121/'
+      : tool === 'ouncecake-ftp' ? 'ftp://127.0.0.1:2222/' : 'http://' + consoleAddress + ':2121/'});
   } else if (tool === 'modloader') {
     if (scenario === 'mod-fail-retry' || scenario === 'mod-fail-blocked') {
       emit('failed', {cleanupBlocked: scenario === 'mod-fail-blocked', message: 'fixture modloader failure'});
@@ -59,7 +57,7 @@ async function main() {
     emit('progress', {message: 'READY'});
     emit('ready', {message: 'fixture handoff verified'});
     return;
-  } else if (['mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew'].includes(tool)) {
+  } else if (['mintbrew', 'native-hblauncher', 'custom-homebrew'].includes(tool)) {
     const marker = path.join(workspace, '.mac2jb-hblauncher-attempt.json');
     fs.writeFileSync(marker, JSON.stringify({application: tool, started: 'fixture'}) + '\n',
       {mode: 0o600, flag: 'wx'});

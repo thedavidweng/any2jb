@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
 	"testing"
 
 	"github.com/thedavidweng/any2jb/internal/manifest"
@@ -148,59 +147,6 @@ func TestHomebrewRuntimeVerification(t *testing.T) {
 	}
 	if err := retained.VerifyHomebrewRuntime(filepath.Join(dir, "missing"), lock, adapter); err == nil {
 		t.Fatal("a missing runtime was accepted")
-	}
-}
-
-func TestIZLauncherPreparesOnlyUntilTheStagedRuntimeVerifies(t *testing.T) {
-	node := nodePath(t)
-	dest := t.TempDir()
-	fixture, err := filepath.Abs("testdata/fake-iz-prepare.cjs")
-	if err != nil {
-		t.Fatal(err)
-	}
-	install := func(source string) {
-		data, err := os.ReadFile(source)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := os.MkdirAll(filepath.Join(dest, "scripts"), 0o700); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(dest, "scripts/prepare-izlauncher.cjs"), data, 0o600); err != nil {
-			t.Fatal(err)
-		}
-	}
-	install(fixture)
-	// A stale prepared tree must go before the pinned prepare runs.
-	if err := os.MkdirAll(filepath.Join(dest, "homebrew", "stale"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := retained.StageIZLauncher(node, dest); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(filepath.Join(dest, "homebrew", "stale")); !os.IsNotExist(err) {
-		t.Fatal("a stale prepared tree survived re-preparation")
-	}
-	if err := retained.StageIZLauncher(node, dest); err != nil {
-		t.Fatal(err)
-	}
-	count, err := os.ReadFile(filepath.Join(dest, "prepare-count"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if n, _ := strconv.Atoi(string(count)); n != 1 {
-		t.Fatalf("a verified runtime was prepared again: %d preparations", n)
-	}
-	failing, err := filepath.Abs("testdata/fake-iz-prepare-fail.cjs")
-	if err != nil {
-		t.Fatal(err)
-	}
-	install(failing)
-	if err := os.RemoveAll(filepath.Join(dest, "homebrew")); err != nil {
-		t.Fatal(err)
-	}
-	if err := retained.StageIZLauncher(node, dest); err == nil {
-		t.Fatal("a failing prepare reported success")
 	}
 }
 

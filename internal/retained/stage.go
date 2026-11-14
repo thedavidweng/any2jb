@@ -28,7 +28,10 @@ const (
 // It returns the stage root, the components that verified, and the failures of
 // the others; a partial stage leaves the rest unavailable rather than guessed.
 func StageTools(o StageOptions) (string, []string, error) {
-	if o.SourceRoot == "" || len(o.Components) == 0 {
+	if !o.Bundled && (o.SourceRoot == "" || len(o.Components) == 0) {
+		return "", nil, nil
+	}
+	if o.Bundled && len(o.Components) > 0 && o.SourceRoot == "" {
 		return "", nil, nil
 	}
 	if o.Manifest == nil || o.Version == "" || filepath.Base(o.Version) != o.Version {

@@ -24,8 +24,22 @@ import (
 type Options struct {
 	Manifest *manifest.Manifest
 	// Assets is the packaged or prepared resource root containing bundled
-	// CivSwitch payloads and notices when DeveloperSourceRoot is empty.
+	// CivSwitch payloads and notices when DeveloperSourceRoot and ToolRoot are
+	// both empty.
 	Assets string
+	// ToolRoot is the versioned plugin stage (<Support>/tools/<Version>). When it
+	// is set, each CivSwitch component is read from the plugin that staged it
+	// instead of the packaged resources.
+	ToolRoot string
+	// NodeBinary runs the plugin-staged CivSwitch FS host and CivHomebrew scripts.
+	NodeBinary string
+	// HomebrewPython is the verified bundled interpreter. An empty value falls
+	// back to <HomebrewRuntimeRoot>/homebrew/python/bin/python3 and then to
+	// python3 from PATH.
+	HomebrewPython string
+	// HomebrewRuntimeRoot is the staged portable runtime root whose
+	// homebrew/python/bin/python3 runs the CivHomebrew console tools.
+	HomebrewRuntimeRoot string
 	// StagedRuntimeRoot is the verified immutable runtime directory containing
 	// runtime/civswitch-hid and runtime/vendor/libusbd/libusbd.dylib on Darwin.
 	StagedRuntimeRoot string
@@ -44,6 +58,10 @@ type Options struct {
 	Inspector                *readiness.Inspector
 	// LinuxHelperCommand is a test seam for trusted Linux ConfigFS helper fixtures.
 	LinuxHelperCommand func(payload, controller string, dryRun bool) (*exec.Cmd, error)
+	// HomebrewPort is a loopback fixture seam for the CivHomebrew companion port.
+	HomebrewPort int
+	// AllowLoopback permits 127.0.0.1 console addresses in loopback fixtures.
+	AllowLoopback bool
 }
 
 type Adapter struct {
@@ -62,11 +80,39 @@ func New(options Options) *Adapter {
 	return &Adapter{options: options}
 }
 
-func (a *Adapter) sourceRoot() string {
+// stagedPlugin names the plugin that stages a bundled CivSwitch component. The
+// plugin stage root is shared by components one action needs together.
+func stagedPlugin(id string) string {
+	switch id {
+	case payloadComponent, hidSourceComponent:
+		return "civswitch-usb"
+	case installerComponent, coreComponent, saveTemplateComponent, backupPayloadComponent:
+		return "civswitch-trigger"
+	}
+	return id
+}
+
+// componentRoot is the directory that holds a component's recorded path. A
+// developer source root holds every component; a plugin stage holds only the
+// plugin's own tree per component.
+func (a *Adapter) componentRoot(id string) string {
 	if a.options.DeveloperSourceRoot != "" {
 		return a.options.DeveloperSourceRoot
 	}
-	return a.options.Assets
+	if a.options.ToolRoot == "" {
+		return a.options.Assets
+	}
+	return filepath.Join(a.options.ToolRoot, "tools", stagedPlugin(id))
+}
+
+// read returns the verified bytes of a component from the root that holds it.
+func (a *Adapter) read(id string) ([]byte, error) {
+	return a.options.Manifest.Read(a.componentRoot(id), id)
+}
+
+// verifyComponent re-checks one component wherever it is staged.
+func (a *Adapter) verifyComponent(id string) error {
+	return a.options.Manifest.Verify(a.componentRoot(id), id)
 }
 
 func (a *Adapter) Writer() session.CivSwitchWriter { return a }
@@ -75,14 +121,14 @@ func (a *Adapter) Availability() error {
 	if a.options.Manifest == nil {
 		return locales.Key("dynCivManifestUnavailable")
 	}
-	d, err := a.options.Manifest.DistributionFor("civswitch-payload")
+	d, err := a.options.Manifest.DistributionFor(payloadComponent)
 	if err != nil {
 		return err
 	}
 	if a.options.DeveloperSourceRoot != "" {
 		if d.Decision == "excluded" {
 			return locales.Format("dynCivUnavailable", map[string]any{
-				"reason": locales.DistributionReason("civswitch-payload", d.Reason),
+				"reason": locales.DistributionReason(payloadComponent, d.Reason),
 			})
 		}
 		if !filepath.IsAbs(a.options.DeveloperSourceRoot) {
@@ -90,13 +136,29 @@ func (a *Adapter) Availability() error {
 		}
 		return nil
 	}
-	if !d.Available() || a.options.Assets == "" {
+	root := a.componentRoot(payloadComponent)
+	permitted := d.Available()
+	if a.options.ToolRoot != "" {
+		permitted = d.Permitted()
+	}
+	if !permitted || root == "" {
 		return locales.Format("dynCivUnavailable", map[string]any{
-			"reason": locales.DistributionReason("civswitch-payload", d.Reason),
+			"reason": locales.DistributionReason(payloadComponent, d.Reason),
 		})
 	}
-	if !filepath.IsAbs(a.options.Assets) {
+	if !filepath.IsAbs(root) {
 		return locales.Key("dynCivRootAbsolute")
+	}
+	if a.options.ToolRoot == "" {
+		return nil
+	}
+	// The payload ships in the civswitch-usb plugin now, so an uninstalled
+	// plugin is the ordinary "not staged yet" answer rather than a failure.
+	if err := a.verifyComponent(payloadComponent); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return locales.Key("dynCivNotStaged")
+		}
+		return err
 	}
 	return nil
 }
@@ -105,19 +167,20 @@ func (a *Adapter) verifySource() error {
 	if err := a.Availability(); err != nil {
 		return err
 	}
-	root := a.sourceRoot()
-	info, err := os.Lstat(root)
-	if err != nil {
-		return err
-	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
-		return locales.Key("dynCivRootNotDirectory")
-	}
-	if err := a.options.Manifest.Verify(root, "civswitch-payload"); err != nil {
-		return err
-	}
+	ids := []string{payloadComponent}
 	if a.options.DeveloperSourceRoot != "" {
-		if err := a.options.Manifest.Verify(root, "civswitch-hid.c"); err != nil {
+		ids = append(ids, hidSourceComponent)
+	}
+	for _, id := range ids {
+		root := a.componentRoot(id)
+		info, err := os.Lstat(root)
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return locales.Key("dynCivRootNotDirectory")
+		}
+		if err := a.verifyComponent(id); err != nil {
 			return err
 		}
 	}
@@ -180,8 +243,8 @@ func (a *Adapter) helperPath() string {
 
 func (a *Adapter) payload() string {
 	for _, c := range a.options.Manifest.Components {
-		if c.ID == "civswitch-payload" {
-			return filepath.Join(a.sourceRoot(), c.Path)
+		if c.ID == payloadComponent {
+			return filepath.Join(a.componentRoot(c.ID), c.Path)
 		}
 	}
 	return ""
@@ -362,3 +425,4 @@ func (a *Adapter) helper(ctx context.Context, dryRun bool, receive func(helperEv
 }
 
 var _ session.CivSwitchAdapter = (*Adapter)(nil)
+var _ session.CivSwitchWriter = (*Adapter)(nil)

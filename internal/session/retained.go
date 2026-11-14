@@ -8,7 +8,7 @@ import (
 
 // RetainedSession is a discovered local verified held session. Listing one is
 // not proof that it can still be used; Attach revalidates its live evidence.
-type RetainedSession struct{ ID, Description string }
+type RetainedSession struct{ ID, Target, Description string }
 
 // RetainedAdapter owns discovery of and attachment to an existing verified held
 // session on this machine. Attach must revalidate the live lease, and Detach
@@ -132,6 +132,8 @@ type ToolRequest struct {
 	AppFolder            string
 	ModsFolder           string
 	CustomHomebrewFolder string
+	StremioQuality       string
+	StremioAddonURLs     []string
 	CodeConsent          bool
 }
 
@@ -141,7 +143,7 @@ func (r ToolRequest) ValidateCodeConsent() error {
 	if r.Tool == "modloader" && !r.CodeConsent {
 		return errors.New("Confirm running mods on the console before installing them.")
 	}
-	if (r.Tool == "custom-homebrew" || r.Tool == "native-hblauncher" && r.AppFolder != "") && !r.CodeConsent {
+	if (r.Tool == "custom-homebrew" || (r.Tool == "native-hblauncher" || r.Tool == "mintbrew") && r.AppFolder != "") && !r.CodeConsent {
 		return errors.New("Confirm running user-provided homebrew code on the console before launching it.")
 	}
 	return nil

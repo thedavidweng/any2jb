@@ -40,9 +40,8 @@ func TestCivSwitchPanelStatesUnavailableReasonWithoutSmileBASICControls(t *testi
 	}
 }
 
-// civPanelAdapter is the route adapter plus its gated persistence surface.
 type civPanelAdapter struct {
-	installs, sends, stages, centers atomic.Int32
+	installs, sends, fsHosts, hbProbes, hbLaunches atomic.Int32
 }
 
 func (a *civPanelAdapter) Availability() error                            { return nil }
@@ -70,20 +69,39 @@ func (a *civPanelAdapter) SendJavaScript(ctx context.Context, address, file stri
 	return nil
 }
 
-func (a *civPanelAdapter) StageJavaScript(ctx context.Context, address, file string, confirmed bool, report session.Report) error {
-	if !confirmed {
-		return errors.New("unconfirmed staging reached the adapter")
-	}
-	a.stages.Add(1)
+func (a *civPanelAdapter) StartCivSwitchFSHost(ctx context.Context, request session.CivSwitchFSRequest, event func(session.CivSwitchFSEvent)) error {
+	a.fsHosts.Add(1)
+	event(session.CivSwitchFSEvent{Type: "ready", RunPath: "/retained/fs-workspace"})
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func (a *civPanelAdapter) CivHomebrewProbe(context.Context, string) (session.CivHomebrewState, error) {
+	a.hbProbes.Add(1)
+	return session.CivHomebrewState{Mode: "launcher", Launcher: true, FTP: true}, nil
+}
+
+func (a *civPanelAdapter) CivHomebrewLaunch(ctx context.Context, address string, event func(session.CivHomebrewEvent)) error {
+	a.hbLaunches.Add(1)
+	event(session.CivHomebrewEvent{Type: "ready"})
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func (a *civPanelAdapter) CivHomebrewInstallTrigger(context.Context, string, bool, func(session.CivHomebrewEvent)) (string, error) {
+	return "/retained/hb-backup", nil
+}
+
+func (a *civPanelAdapter) CivHomebrewRestoreTrigger(context.Context, string, func(session.CivHomebrewEvent)) error {
 	return nil
 }
 
-func (a *civPanelAdapter) ControlCenter(ctx context.Context, address string, observe session.CivSwitchObserver) error {
-	a.centers.Add(1)
-	observe(session.CivSwitchObservation{Ready: true})
-	observe(session.CivSwitchObservation{ExportPath: "/retained/save-exports/one"})
-	<-ctx.Done()
-	return ctx.Err()
+func (a *civPanelAdapter) CivHomebrewShutdown(context.Context, string) (session.CivHomebrewStop, error) {
+	return session.CivHomebrewStop{Stopped: true}, nil
+}
+
+func (a *civPanelAdapter) CivHomebrewInstallPackage(context.Context, string, string, func(session.CivHomebrewEvent)) (session.CivHomebrewApp, error) {
+	return session.CivHomebrewApp{ID: "moonlight-civswitch"}, nil
 }
 
 func verifiedCivSwitchPanel(t *testing.T, w *civPanelAdapter) (*app, *ui.Tester) {
@@ -91,7 +109,7 @@ func verifiedCivSwitchPanel(t *testing.T, w *civPanelAdapter) (*app, *ui.Tester)
 	env := sessiontest.NewFakeEnvironment().Environment()
 	env.CivSwitch = w
 	a := testApp(t, session.New(env, session.Profile{ID: "test", Revision: "pinned"}))
-	tt := ui.NewTester(a.civSwitchView, 1000, 3200)
+	tt := ui.NewTester(a.civSwitchView, 1000, 3600)
 	a.civSwitchPanel.prerequisites.ConsoleIPv4 = "192.0.2.2"
 	tt.Frame()
 	if err := tt.Click(locales.CivAttach()); err != nil {
@@ -113,18 +131,18 @@ func disabled(t *testing.T, tt *ui.Tester, label string) bool {
 func TestCivSwitchPanelGatesPersistenceAndCodeOnExplicitConsent(t *testing.T) {
 	w := &civPanelAdapter{}
 	a, tt := verifiedCivSwitchPanel(t, w)
-	for _, text := range []string{locales.CivTriggerWarning(), locales.CivCodeWarning(), locales.CivControlNote(), locales.CivDependentNote()} {
+	for _, text := range []string{locales.CivTriggerWarning(), locales.CivCodeWarning(), locales.CivDependentNote(), locales.CivFSHostIntro()} {
 		if !tt.HasText(text) {
 			t.Fatalf("missing risk disclosure %q: %v", text, tt.Texts())
 		}
 	}
-	for _, label := range []string{locales.CivTrigger(), locales.CivJSSend(), locales.CivControlStage()} {
+	for _, label := range []string{locales.CivTrigger(), locales.CivJSSend(), locales.CivHBInstallTrigger(), locales.CivHBRestoreTrigger()} {
 		if !disabled(t, tt, label) {
 			t.Fatalf("%q is usable without explicit confirmation", label)
 		}
 	}
-	if disabled(t, tt, locales.CivControlStart()) {
-		t.Fatal("the read-only Control Center requires code consent")
+	if disabled(t, tt, locales.CivFSStart()) {
+		t.Fatal("the CivSwitch FS host requires code consent")
 	}
 	if err := tt.Click(locales.CivTriggerConsent()); err != nil {
 		t.Fatal(err)
@@ -154,36 +172,56 @@ func TestCivSwitchPanelGatesPersistenceAndCodeOnExplicitConsent(t *testing.T) {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Verified)
-	if w.sends.Load() != 1 || w.stages.Load() != 0 {
-		t.Fatalf("after a confirmed send: %d sends, %d stagings", w.sends.Load(), w.stages.Load())
+	if w.sends.Load() != 1 {
+		t.Fatalf("after a confirmed send: %d sends", w.sends.Load())
 	}
 }
 
-func TestCivSwitchPanelRunsAndStopsTheReadOnlyControlCenter(t *testing.T) {
+func TestCivSwitchPanelRunsAndStopsFSHostAndCivHomebrew(t *testing.T) {
 	w := &civPanelAdapter{}
 	a, tt := verifiedCivSwitchPanel(t, w)
-	if err := tt.Click(locales.CivControlStart()); err != nil {
+	a.civSwitchPanel.fsHostAddress = "192.0.2.10"
+	tt.Frame()
+	if err := tt.Click(locales.CivFSStart()); err != nil {
 		t.Fatal(err)
 	}
-	for start := time.Now(); !a.Controller.Snapshot().CivSwitchActions.ControlCenterLive; {
+	for start := time.Now(); a.Controller.Snapshot().CivSwitchActions.FSRunPath == ""; {
 		if time.Since(start) > time.Second {
-			t.Fatal("the Control Center session never became live")
+			t.Fatal("the CivSwitch FS host session never reported its run path")
 		}
 		time.Sleep(time.Millisecond)
 	}
 	tt.Frame()
-	if !tt.HasText(locales.CivControlLive()) || !tt.HasText(locales.CivExportSaved("/retained/save-exports/one")) {
-		t.Fatalf("live Control Center: %v", tt.Texts())
+	if !tt.HasText(locales.CivFSLive("/retained/fs-workspace")) {
+		t.Fatalf("live FS host: %v", tt.Texts())
 	}
-	if err := tt.Click(locales.CivControlStop()); err != nil {
+	if err := tt.Click(locales.CivFSStop()); err != nil {
 		t.Fatal(err)
 	}
 	uiStage(t, a, tt, session.Verified)
 	s := a.Controller.Snapshot()
-	if s.CivSwitchActions.ControlCenterLive || s.SideEffects || !s.LoaderVerified {
-		t.Fatalf("after stopping the read-only session: %+v", s)
+	if s.CivSwitchActions.FSHostLive || s.SideEffects || !s.LoaderVerified {
+		t.Fatalf("after stopping FS host: %+v", s)
 	}
-	if w.centers.Load() != 1 {
-		t.Fatalf("Control Center sessions: %d", w.centers.Load())
+	if w.fsHosts.Load() != 1 {
+		t.Fatalf("FS host sessions: %d", w.fsHosts.Load())
+	}
+
+	if err := tt.Click(locales.CivHBLaunch()); err != nil {
+		t.Fatal(err)
+	}
+	for start := time.Now(); !a.Controller.Snapshot().CivSwitchActions.CivHomebrewLive; {
+		if time.Since(start) > time.Second {
+			t.Fatal("CivHomebrew never became live")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	tt.Frame()
+	if err := tt.Click(locales.CivHBStop()); err != nil {
+		t.Fatal(err)
+	}
+	uiStage(t, a, tt, session.Verified)
+	if w.hbLaunches.Load() != 1 {
+		t.Fatalf("CivHomebrew launches: %d", w.hbLaunches.Load())
 	}
 }

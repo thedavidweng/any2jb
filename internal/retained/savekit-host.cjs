@@ -18,6 +18,8 @@ const TOOLS = ['list-apps.cjs', 'save-inventory.cjs', 'save-pull-root.cjs',
   'save-write-stage.cjs', 'save-delete-root.cjs'];
 const READ_ACTIONS = new Set(['accounts', 'titles', 'inventory', 'inspect', 'backup', 'filetime']);
 const WRITE_ACTIONS = new Set(['write', 'restore', 'delete']);
+const HELD_TARGETS = new Set(['switch2', 'civ7', 'artemis-seedsow']);
+const SEEDSOW_TITLES = new Set(['010042d022aea000', '0100ee5021c9e000']);
 const titlePattern = /^[0-9a-f]{16}$/;
 const uidPattern = /^[0-9a-f]{32}$/;
 const check = (value, message) => { if (!value) throw Error(message); };
@@ -205,7 +207,7 @@ async function heldProof(requested) {
     (!result.cleanupErrors || Array.isArray(result.cleanupErrors) && result.cleanupErrors.length === 0),
   'A verified session with a live retained RPC lease is required.');
   const connection = await privateJSON(workspace, 'connection.json');
-  check(connection.addresses?.session === session && connection.addresses?.target === 'switch2' &&
+  check(connection.addresses?.session === session && HELD_TARGETS.has(connection.addresses?.target) &&
     Number.isSafeInteger(connection.port) && connection.port > 0 && connection.port <= 65535,
   'The retained endpoint does not belong to this session.');
   return {workspace, connection};
@@ -492,6 +494,8 @@ async function readRequest() {
 // One gated mutation: re-verify the backup, stage locally, run the single
 // pinned entrypoint and require its own post-commit verification line.
 async function mutate(parsed, proof, tools, backup, stageParent) {
+  check(!(proof.connection.addresses?.target === 'artemis-seedsow' && SEEDSOW_TITLES.has(parsed.titleId)),
+    'Save mutations cannot target Seedsow Lullaby while running inside an Artemis Seedsow session.');
   const selection = parsed.action === 'restore' ? parsed.archive : archive(undefined);
   const saved = await verifyPull(backup, {titleId: parsed.titleId, uid: parsed.uid,
     selection, trustedStaticId: 0});
@@ -606,7 +610,7 @@ async function main(args = process.argv.slice(2)) {
 }
 
 module.exports = {request, archive, buildArgs, buildMutationArgs, parseUsers, parseTitles,
-  parseInventory, verifyPull, heldProof, checkPreview, main, TOOLS};
+  parseInventory, verifyPull, heldProof, checkPreview, main, TOOLS, HELD_TARGETS, SEEDSOW_TITLES};
 if (require.main === module) main().catch(error => {
   emit('failed', {message: String(error.message).replace(/[\x00-\x1f\x7f]+/g, ' ').slice(0, 512)});
   process.exitCode = 1;

@@ -19,13 +19,13 @@ const readline = require('node:readline');
 const {spawn} = require('node:child_process');
 const {EventEmitter} = require('node:events');
 
-const TOOLS = ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp', 'sd-browser',
-  'mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew', 'modloader'];
-const HOMEBREW = ['mintbrew', 'native-hblauncher', 'izlauncher', 'custom-homebrew'];
+const TOOLS = ['rpc-status', 'system-code-dump', 'ouncecake-webdav', 'ouncecake-ftp',
+  'mintbrew', 'native-hblauncher', 'custom-homebrew', 'modloader'];
+const HOMEBREW = ['mintbrew', 'native-hblauncher', 'custom-homebrew'];
+const HELD_TARGETS = ['switch2', 'civ7', 'artemis-seedsow'];
 const ATTEMPT_MARKER = '.mac2jb-hblauncher-attempt.json';
 const RPC_COMMANDS = new Set(['status', 'call', 'verify-function', 'call-address', 'pair', 'read', 'write', 'query']);
 const NATIVE_TRUSTED_PROFILES = ['kurumuz', 'cellenseres', 'astral'];
-const IZ_PROGRAM_IDS = ['0100c9100b06a000', '0100b4b00f9f6000'];
 const MINIMUM_FREE_BYTES = 512n * 1024n * 1024n;
 const check = (value, message) => { if (!value) throw Error(message); };
 
@@ -68,10 +68,12 @@ async function heldProof(requested) {
     (!result.cleanupErrors || Array.isArray(result.cleanupErrors) && result.cleanupErrors.length === 0),
   'A verified session with a live retained RPC lease is required.');
   const connection = await privateJSON(workspace, 'connection.json');
-  check(connection.addresses?.session === session && connection.addresses?.target === 'switch2' &&
+  const target = connection.addresses?.target;
+  check(connection.addresses?.session === session && HELD_TARGETS.includes(target) &&
+    (target === 'switch2' ? (!result.target || result.target === 'switch2') : result.target === target) &&
     Number.isSafeInteger(connection.port) && connection.port > 0 && connection.port <= 65535,
   'The retained endpoint does not belong to this session.');
-  return {workspace, session, result, connection};
+  return {workspace, session, target, result, connection};
 }
 
 // A fresh loopback status request. A stale result file is never accepted as
@@ -181,57 +183,6 @@ async function systemCodeDump(workspace, proof, destination, modulePath) {
     }
   }
   emit('complete', {path: destination, total, message: 'System-code capture verified.'});
-}
-
-function readOnlySD(storage) {
-  const directory = {type: 'dir', size: 0};
-  const inside = value => {
-    check(typeof value === 'string' && (value === '/sd' || value.startsWith('/sd/')),
-      'Only the SD filesystem is exported.');
-    return value;
-  };
-  return {
-    list: value => value === '/' ? [{name: 'sd', ...directory}] : storage.list(inside(value)),
-    stat: value => value === '/' ? directory : storage.stat(inside(value)),
-    openRead: value => storage.openRead(inside(value)),
-    read: (file, offset, count) => storage.read(file, offset, count),
-    close: file => storage.close(file)
-  };
-}
-
-async function sdBrowser(toolRoot, workspace, proof, consoleAddress, run) {
-  const upstream = path.join(toolRoot, 'integrations/super-file-bros/upstream');
-  const load = name => require(path.join(upstream, name));
-  let attachment, server, pumping, stopping = false, failure;
-  try {
-    emit('started', {message: 'Opening the read-only SD export.'});
-    attachment = await load('modules/iz-exchange/server/ouncecake/engine/session.cjs').attachGame(workspace);
-    check(attachment.live.session === proof.session, 'The export attached to a different native session.');
-    const storage = await load('tools/dolphin-fs-rpc/storage.cjs').createStorage(attachment);
-    check(storage.mounts.includes('sd'), 'The SD filesystem is unavailable in this retained session.');
-    const library = load('tools/dolphin-fs-rpc/library.cjs');
-    const port = await library.availablePort(consoleAddress);
-    const native = await load('core/console/host/ftp-native.cjs')
-      .create(require(path.join(workspace, 'shared/rpc.cjs')), workspace);
-    server = load('core/console/host/ftp-server.cjs').create({...native, storage: readOnlySD(storage),
-      readOnly: true, greeting: 'any2jb SD files, read-only'});
-    await server.start(port);
-    pumping = (async () => { while (!stopping) { await server.pump(); await new Promise(r => setTimeout(r, 10)); } })();
-    pumping.catch(error => { failure ||= error; });
-    const listing = await library.probeFtp(consoleAddress, port);
-    check(listing.some(line => /(?:^|\s)sd$/.test(line)), 'The SD listing did not verify.');
-    check(!run.stopping, 'The export stopped before verification.');
-    emit('running', {endpoint: 'ftp://' + consoleAddress + ':' + port + '/sd/', readOnly: true,
-      message: 'Read-only SD export is listening on the console.'});
-    await run.stopped;
-  } catch (error) { failure = error; }
-  finally {
-    stopping = true;
-    for (const close of [() => pumping, () => server?.stop(), () => attachment?.close()]) {
-      try { await close(); } catch (error) { failure ||= error; }
-    }
-  }
-  if (failure) throw failure;
 }
 
 async function ounceCake(toolRoot, workspace, proof, consoleAddress, mode, run) {
@@ -683,8 +634,12 @@ async function mintbrewApp(toolRoot, workspace, proof, config, custom) {
     env: homebrewEnvironment(config.homebrewRuntime, process.env,
       {HB_APPS_DIR: path.join(vendorDir, 'apps')}),
     prepareSession: async sessionDir => {
+      const quality = ['480p', '720p', '1080p'].includes(config.stremioQuality) ? config.stremioQuality : '720p';
+      const addonUrls = Array.isArray(config.stremioAddonUrls)
+        ? config.stremioAddonUrls.filter(u => typeof u === 'string' && /^https?:\/\//.test(u)).slice(0, 16)
+        : [];
       await writePrivateJSON(path.join(sessionDir, 'stremio-config.json'),
-        {addonUrls: [], libraryItems: [], quality: '720p'}, true);
+        {addonUrls, libraryItems: [], quality}, true);
       await writePrivateJSON(path.join(sessionDir, 'mintbrew-host.json'),
         {runDirectory: workspace, sourceSession: proof.session}, true);
       if (custom) {
@@ -692,6 +647,8 @@ async function mintbrewApp(toolRoot, workspace, proof, config, custom) {
         fs.mkdirSync(library, {mode: 0o700});
         copyRegularTree(custom.folder, path.join(library, custom.id));
         app.env = {...app.env, HB_APPS_DIR: library};
+      } else if (config.appFolder) {
+        app.env = {...app.env, HB_APPS_DIR: ownedFolderSync(config.appFolder, 'MintBrew apps folder')};
       }
     },
     launch: async ctx => {
@@ -724,145 +681,6 @@ async function mintbrewApp(toolRoot, workspace, proof, config, custom) {
   return app;
 }
 
-const IZ_STAGES = [
-  ['core/services/inspect-display.cjs'],
-  ['core/services/inspect-compatibility.cjs'],
-  ['core/services/inspect-input.cjs'],
-  ['core/services/vulkan-copy.cjs', 'display'],
-  ['shells/izlauncher/server/prepare.cjs', 'auto'],
-  ['shells/izlauncher/server/check-input.cjs', 'auto']
-];
-const IZ_OWNERS = [
-  {role: 'graphics', script: 'shells/izlauncher/server/frame-loop.cjs', args: ['auto'],
-    ready: 'IZ launcher game event source ready.'},
-  {role: 'ftp', script: 'core/console/host/ftp-service.cjs', args: [], ready: 'SDK FTP service ready.'},
-  {role: 'audio', script: 'core/console/audio/game-audio.cjs', args: [], ready: 'Game sound effects ready.'}
-];
-const IZ_ENV_KEYS = ['PATH', 'PYTHONPATH', 'PYTHONNOUSERSITE', 'PYTHONDONTWRITEBYTECODE', 'PYTHONHOME',
-  'SPIRV_VAL', 'GLSLANG', 'HB_FONT', 'HB_APPS_DIR', 'IZ2S_ROOT', 'IZ15_ROOT', 'IZ15_SHELL',
-  'IZ2S_MODULE_PINS'];
-
-async function izFrameProof(directory, session, stopped = false) {
-  let prepared, qualified, loop;
-  try {
-    [prepared, qualified, loop] = await Promise.all(
-      ['launcher-auto.json', 'launcher-auto-check.json', 'launcher-auto-loop.json']
-        .map(name => privateJSON(directory, name)));
-  } catch {
-    throw Error('IZlauncher did not verify its ' +
-      (stopped ? 'graphics shutdown' : 'live console frame worker') + '.');
-  }
-  check([prepared, qualified, loop].every(row => row.session === session && !row.error) &&
-    prepared.ready === true && prepared.firstShaderFramePresented === true &&
-    prepared.scratchRestored === true &&
-    qualified.passed === true && qualified.scratchRestored === true &&
-    loop.continuous === true && /^[a-f0-9]{64}$/.test(loop.frameSha256 || '') &&
-    (stopped ? loop.threadRunning === false && Boolean(loop.completed)
-      : loop.threadRunning === true && !loop.completed),
-  'IZlauncher did not verify its ' + (stopped ? 'graphics shutdown' : 'live console frame worker') + '.');
-  return loop;
-}
-
-// The current SmileBASIC process qualification the IZlauncher requires. The
-// any2jb held contract has no dump report file, so the binding is the session
-// and its private workspace instead of mac2jb's report path.
-async function verifyProcessIdentity(workspace, session) {
-  const folder = await fsp.realpath(path.join(workspace, 'switch2', 'process'))
-    .catch(() => { throw Error('IZlauncher requires the current SmileBASIC process qualification.'); });
-  await owned(folder, 'directory', false);
-  const prefix = session + '-qualification-';
-  const names = (await fsp.readdir(folder))
-    .filter(name => name.startsWith(prefix) && /^\d+\.json$/.test(name.slice(prefix.length)))
-    .sort((a, b) => Number(b.slice(prefix.length, -5)) - Number(a.slice(prefix.length, -5)));
-  check(names.length > 0, 'IZlauncher requires the current SmileBASIC process qualification.');
-  const proof = await privateJSON(folder, names[0]);
-  check(proof.session === session && proof.verified === true && !proof.error && !proof.cleanupError &&
-    proof.cleanup?.finished === true && proof.app?.result === 0 &&
-    IZ_PROGRAM_IDS.includes(proof.app.programId),
-  'IZlauncher requires the current verified SmileBASIC process identity.');
-}
-
-// The IZlauncher descriptor: the staged prepare module verifies the prepared
-// runtime again here, and module selection is validated against the staged
-// catalog before the console is touched.
-async function izlauncherApp(toolRoot, workspace, proof, config) {
-  const izRoot = path.join(toolRoot, 'izlauncher');
-  const prepare = require(path.join(izRoot, 'scripts/prepare-izlauncher.cjs'));
-  const info = prepare.verify(izRoot);
-  const runtimeDir = info.directory;
-  await checkHomebrewRuntime(config.homebrewRuntime);
-  const sharedClient = path.join(izRoot, 'vendor/GPUBrewLauncher/smilebasic/engine/shared/rpc.cjs');
-  check((await fsp.lstat(sharedClient)).isFile(), 'The frozen IZlauncher RPC client is missing.');
-  const modules = require(path.join(izRoot, 'scripts/izlauncher-modules.cjs'));
-  const selected = config.modules || [];
-  if (selected.length) {
-    check(modules.validIds(selected), 'Choose up to 15 distinct compatible IZlauncher modules.');
-    await modules.validate(izRoot, selected);
-  }
-  await verifyProcessIdentity(workspace, proof.session);
-  const attempt = {application: 'izlauncher', source: 'IZ2S Platform', commit: prepare.REVISION,
-    started: new Date().toISOString()};
-  check((await rpcRequest(proof.connection, {command: 'status'}))?.ready === true,
-    'The existing native RPC connection is not ready.');
-  await writeAttemptMarker(workspace, attempt);
-  const buildEnvironment = sessionDir => homebrewEnvironment(config.homebrewRuntime, process.env, {
-    IZ2S_ROOT: runtimeDir, IZ15_ROOT: runtimeDir, IZ15_SHELL: 'izlauncher',
-    HB_APPS_DIR: path.join(runtimeDir, 'data/app-links'),
-    HB_FONT: path.join(config.homebrewRuntime, 'fonts/DejaVuSans.ttf'),
-    GLSLANG: path.join(config.homebrewRuntime, 'bin/glslangValidator'),
-    IZ2S_MODULE_PINS: JSON.stringify({version: 1, root: runtimeDir, modules: {
-      ...info.builtIns,
-      blitbun: {sha256: info.blitbunSha256, packageBytes: info.blitbunPackageBytes},
-      vacootube: {sha256: info.vacootubeSha256, packageBytes: info.vacootubePackageBytes}}}),
-    IZ11_STATE_DIR: path.join(sessionDir, 'state')});
-  const app = {
-    id: 'izlauncher', name: 'IZlauncher', vendorDir: runtimeDir, attempt, drain: true,
-    markerWritten: true,
-    frameReady: 'IZ launcher continuous native frame loop running.',
-    sharedClient,
-    prepareSession: async sessionDir => {
-      app.env = buildEnvironment(sessionDir);
-      if (!selected.length) return;
-      const apps = path.join(sessionDir, 'app-links');
-      await fsp.mkdir(apps, {mode: 0o700});
-      await withEnvironment(app.env, IZ_ENV_KEYS, () =>
-        require(path.join(runtimeDir, 'core/session/preload.cjs'))
-          .prepare(runtimeDir, selected, apps, {shell: 'izlauncher'}));
-      app.env = {...app.env, HB_APPS_DIR: apps};
-    },
-    launch: async ctx => {
-      for (const [script, ...extra] of IZ_STAGES) {
-        if (script === 'core/services/vulkan-copy.cjs') ctx.markMutation();
-        const outcome = await ctx.stage(script, extra);
-        check(!outcome.error && outcome.code === 0 && !outcome.signal,
-          'IZlauncher preparation failed: ' + script);
-      }
-      const graphics = await ctx.startOwner(IZ_OWNERS[0]);
-      await ctx.frameReady(graphics);
-      await izFrameProof(ctx.sessionDir, ctx.session);
-      const catalog = await privateJSON(ctx.sessionDir, 'app-runtime.json');
-      check(catalog.session === ctx.session && Array.isArray(catalog.catalog?.apps),
-        'IZlauncher app catalog belongs to another session.');
-      await ctx.startOwner(IZ_OWNERS[1]);
-      if (catalog.catalog.apps.some(item => Object.keys(item.effects || {}).length)) {
-        await ctx.startOwner(IZ_OWNERS[2]);
-      }
-      check(ctx.live(), 'The original RPC session ended during launcher preparation.');
-      await izFrameProof(ctx.sessionDir, ctx.session);
-      return graphics;
-    },
-    shutdownProof: async ctx => {
-      await izFrameProof(ctx.sessionDir, ctx.session, true);
-      if (ctx.activeOwners.has('audio')) {
-        const sound = await privateJSON(ctx.sessionDir, 'game-audio.json');
-        check(sound.session === ctx.session && sound.completed && !sound.error && !sound.stopError,
-          'IZlauncher did not verify audio shutdown.');
-      }
-    }
-  };
-  return app;
-}
-
 // nativeHBLauncher delegates to the staged MIT fork's host with injected
 // adapters: the any2jb held proof, the loopback RPC request, the developer
 // engine sources for its ABI check and the any2jb-owned MintNES ROM folder.
@@ -883,7 +701,7 @@ async function nativeHBLauncher(toolRoot, workspace, proof, config, run) {
   const args = [workspace];
   if (config.appFolder) args.push('--app-folder', config.appFolder);
   if (config.sdRomFolder) args.push('--sd-rom-folder', config.sdRomFolder);
-  const sdUpstream = path.join(toolRoot, 'sd-browser', 'integrations/super-file-bros/upstream');
+  const ouncecakeSession = path.join(toolRoot, 'ouncecake', 'vendor/OunceCake/engine/session.cjs');
   let reported = false, stoppedProof;
   const forward = (type, fields = {}) => {
     if (type === 'stopped') { stoppedProof = fields; return; }
@@ -908,9 +726,9 @@ async function nativeHBLauncher(toolRoot, workspace, proof, config, run) {
       trustedProfileForDigest: () => ({profile: {id: config.profileID},
         sourceDirectory: path.join(config.engineSourceDir, config.sourceDirectory)}),
       macRomDirectory: path.join(config.supportDir, 'MintNES', 'roms'),
-      readSDRoms: fs.existsSync(path.join(sdUpstream, 'SOURCE-MANIFEST.json')) ?
+      readSDRoms: fs.existsSync(ouncecakeSession) ?
         (directory, options) => require(path.join(component, 'integrations/mintbrew-native/sd-roms.cjs'))
-          .readSDRoms(directory, {...options, sourceRoot: sdUpstream}) :
+          .readSDRoms(directory, {...options, attachGame: require(ouncecakeSession).attachGame}) :
         undefined
     });
   } catch (error) {
@@ -923,12 +741,13 @@ async function nativeHBLauncher(toolRoot, workspace, proof, config, run) {
     attemptMarkers: stoppedProof.attemptMarkers,
     message: 'Native HBLauncher stopped. Its display resources remain in this console session.'});
 }
+
 // ---------- modloader ----------
-// The modloader stages the pinned ns2jb-modloader code and the user's
-// Atmosphere-style mod tree into a private folder of this run, then runs its
-// installer as the session's final action. Everything up to the installer
-// spawn is retry-safe; after it the console state is unknown until the
-// installer proves its game handoff, and the overlay stays until reboot.
+// The modloader stages the pinned ns2jb-modloader code (plus OunceCake's engine
+// for ELicense access) and either reads compatible mods already on the Switch SD
+// card (/ns2jb-modloader) or uploads the user's selected Atmosphere mod folder to
+// /ns2jb-modloader with SHA-256 readback, then runs install.cjs as the session's
+// final action on either a SmileBASIC (switch2) or CivSwitch FS (civ7) session.
 const MODLOADER_PROFILES = ['kurumuz', 'cellenseres'];
 const MODLOADER_CODE = ['install.cjs', 'LICENSE', 'lib', 'native'];
 const MOD_ENTRIES = ['contents', 'exefs_patches'];
@@ -1004,33 +823,74 @@ function copyRegularTree(source, destination) {
 const boundedLine = line => String(line).trim().replace(/[\x00-\x1f\x7f]/g, ' ').slice(0, 512);
 
 async function modloader(toolRoot, workspace, proof, config, run) {
-  const component = path.join(toolRoot, 'modloader', 'integrations/ns2jb-modloader');
-  let staging, child;
+  const modloaderRoot = path.join(toolRoot, 'modloader');
+  const component = path.join(modloaderRoot, 'integrations/ns2jb-modloader');
+  const ouncecake = path.join(toolRoot, 'ouncecake', 'vendor/OunceCake');
+  const target = proof.target || 'switch2';
+  let staging, child, uploaded, staged = {games: [], patches: 0}, captureStarted = false, uploadStarted = false;
   try {
-    check(MODLOADER_PROFILES.includes(config.profileID),
-      'The modloader requires a held Kurumuz or Cellenseres RPC session.');
+    if (target === 'civ7') {
+      check(proof.result.target === 'civ7', 'The held CivSwitch FS session has an unexpected target.');
+    } else {
+      check(target === 'switch2' && MODLOADER_PROFILES.includes(config.profileID),
+        'The modloader requires a held Kurumuz or Cellenseres RPC session, or a verified CivSwitch FS session.');
+    }
     const {collectMods} = require(path.join(component, 'lib/mods.cjs'));
-    const mods = validateModsFolder(config.modsFolder, collectMods);
-    staging = fs.mkdtempSync(path.join(workspace, '.any2jb-modloader-'));
+    const mods = config.modsFolder ? validateModsFolder(config.modsFolder, collectMods) : null;
+    staging = fs.mkdtempSync(path.join(workspace, '.mac2jb-modloader-'));
     fs.chmodSync(staging, 0o700);
     for (const name of MODLOADER_CODE) copyRegularTree(path.join(component, name), path.join(staging, name));
-    for (const name of MOD_ENTRIES) {
-      if (fs.existsSync(path.join(mods, name))) copyRegularTree(path.join(mods, name), path.join(staging, name));
+    if (fs.existsSync(path.join(ouncecake, 'engine')) && fs.existsSync(path.join(ouncecake, 'LICENSE'))) {
+      const stagedOuncecake = path.join(staging, 'vendor', 'OunceCake');
+      fs.mkdirSync(stagedOuncecake, {recursive: true, mode: 0o700});
+      copyRegularTree(path.join(ouncecake, 'engine'), path.join(stagedOuncecake, 'engine'));
+      copyRegularTree(path.join(ouncecake, 'LICENSE'), path.join(stagedOuncecake, 'LICENSE'));
     }
-    const staged = collectMods(staging);
-    check(staged.games.length + staged.patches.length > 0, 'No loadable mod files were staged.');
+    if (mods) {
+      for (const name of MOD_ENTRIES) {
+        if (fs.existsSync(path.join(mods, name))) copyRegularTree(path.join(mods, name), path.join(staging, name));
+      }
+      const collected = collectMods(staging);
+      check(collected.games.length + collected.patches.length > 0, 'No loadable mod files were staged.');
+      staged = {games: collected.games.map(g => g.titleId), patches: collected.patches.length};
+    }
     require(path.join(staging, 'lib/native/artifacts.cjs')).artifacts();
     check(!run.stopping && liveCheck(proof), 'The modloader stopped before its transfer started.');
-    emit('started', {message: 'Staged ' + staged.games.length + ' game mod set(s) and ' +
-      staged.patches.length + ' global patch(es). Installing; this is the final action of the session.'});
+    if (target === 'civ7') {
+      process.env.NS2_TARGET = 'civ7';
+      process.env.NS2_TARGET_ROOT = workspace;
+      captureStarted = true;
+      await require(path.join(staging, 'lib/native-capture.cjs'))
+        .captureNative(workspace, path.join(staging, 'preflight'));
+      fs.rmSync(path.join(staging, 'preflight'), {recursive: true, force: true});
+    }
+    if (!mods) {
+      emit('started', {message: 'Reading compatible mods from /ns2jb-modloader on the Switch SD card. Installing; this is the final action of the session.'});
+    } else {
+      emit('started', {message: 'Uploading ' + staged.games.length + ' game mod set(s) and ' +
+        staged.patches + ' global patch(es) to /ns2jb-modloader on the Switch SD card.'});
+      uploadStarted = true;
+      const sdHelper = path.join(modloaderRoot, 'scripts/gui-modloader-sd.cjs');
+      if (fs.existsSync(sdHelper)) {
+        uploaded = await require(sdHelper).uploadSelectedMods(workspace, staging);
+        emit('progress', {message: 'Verified ' + uploaded.files + ' SD mod file(s) on the console.'});
+      }
+    }
   } catch (error) {
     if (staging) fs.rmSync(staging, {recursive: true, force: true});
+    if (captureStarted || uploadStarted) {
+      error.cleanupBlocked = true;
+      error.message += ' Restart the console before trying again.';
+    }
     throw error;
   }
   let ready = false, stoppedReason = '';
   try {
-    child = spawn(process.execPath, [path.join(staging, 'install.cjs'), '--run-dir', workspace],
-      {cwd: staging, stdio: ['ignore', 'pipe', 'pipe']});
+    const installArgs = [path.join(staging, 'install.cjs'), '--run-dir', workspace,
+      ...(uploaded?.source && uploaded.source !== '/ns2jb-modloader' ? ['--mod-source', uploaded.source] : [])];
+    const childEnv = {...process.env, ...(target === 'civ7' ? {NS2_TARGET: 'civ7', NS2_TARGET_ROOT: workspace} : {})};
+    child = spawn(process.execPath, installArgs,
+      {cwd: staging, stdio: ['ignore', 'pipe', 'pipe'], env: childEnv});
     const observe = line => {
       line = boundedLine(line);
       if (line.startsWith('READY')) ready = true;
@@ -1058,7 +918,9 @@ async function modloader(toolRoot, workspace, proof, config, run) {
     error.message += ' Restart the console before trying again.';
     throw error;
   }
-  emit('ready', {message: 'Modloader installed. Finish this session, close SmileBASIC without restarting the console, then launch the game. The overlay stays until the console restarts.'});
+  emit('ready', {message: target === 'civ7' ?
+    'Modloader installed. Disconnect this attachment, stop the CivSwitch FS host, then close Civilization VII without restarting the Switch before launching the game.' :
+    'Modloader installed. Finish this session, close SmileBASIC without restarting the console, then launch the game. The overlay stays until the console restarts.'});
 }
 
 // ---------- custom homebrew ----------
@@ -1096,7 +958,7 @@ async function main(args = process.argv.slice(2)) {
       'Invalid homebrew launch configuration.');
   }
   if (selected === 'modloader' || selected === 'custom-homebrew' ||
-      selected === 'native-hblauncher' && config.appFolder) {
+      (selected === 'native-hblauncher' || selected === 'mintbrew') && config.appFolder) {
     check(config.codeConsent === true, 'Confirm running user-provided code on the console before this action.');
   }
   const record = JSON.parse(await fsp.readFile(path.join(stagedRoot, 'stage.json'), 'utf8'));
@@ -1113,10 +975,12 @@ async function main(args = process.argv.slice(2)) {
   const run = control();
   try {
     if (selected === 'system-code-dump') {
+      check(proof.target === 'switch2', 'System-code capture requires a verified SmileBASIC (ns2jb) session.');
       check(destination !== '-' && path.isAbsolute(destination), 'Choose a dedicated dump destination.');
       await systemCodeDump(owned, proof, path.resolve(destination),
         path.join(owned, 'switch2/firmware-dump.cjs'));
     } else if (HOMEBREW.includes(selected)) {
+      check(proof.target === 'switch2', 'SmileBASIC homebrew launchers require a verified ns2jb session.');
       check(typeof config.supportDir === 'string' && path.isAbsolute(config.supportDir),
         'The homebrew launch configuration is incomplete.');
       const toolRoot = path.join(stagedRoot, 'tools');
@@ -1124,10 +988,6 @@ async function main(args = process.argv.slice(2)) {
         check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
           'The homebrew launch configuration is missing the verified runtime root.');
         await superviseHomebrew(await mintbrewApp(toolRoot, owned, proof, config), owned, proof, run);
-      } else if (selected === 'izlauncher') {
-        check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
-          'The homebrew launch configuration is missing the verified runtime root.');
-        await superviseHomebrew(await izlauncherApp(toolRoot, owned, proof, config), owned, proof, run);
       } else if (selected === 'custom-homebrew') {
         check(typeof config.homebrewRuntime === 'string' && path.isAbsolute(config.homebrewRuntime),
           'The homebrew launch configuration is missing the verified runtime root.');
@@ -1140,9 +1000,8 @@ async function main(args = process.argv.slice(2)) {
       await modloader(path.join(stagedRoot, 'tools'), owned, proof, config, run);
     } else {
       check(net.isIPv4(consoleAddress), 'Enter the console IPv4 address.');
-      const toolRoot = path.join(stagedRoot, 'tools', selected === 'sd-browser' ? 'sd-browser' : 'ouncecake');
-      if (selected === 'sd-browser') await sdBrowser(toolRoot, owned, proof, consoleAddress, run);
-      else await ounceCake(toolRoot, owned, proof, consoleAddress,
+      const toolRoot = path.join(stagedRoot, 'tools', 'ouncecake');
+      await ounceCake(toolRoot, owned, proof, consoleAddress,
         selected === 'ouncecake-ftp' ? 'ftp' : 'webdav', run);
       emit('stopped', {message: 'The read-only tool released its own resources.'});
     }
@@ -1158,6 +1017,6 @@ if (require.main === module) main().catch(error => {
   }
   process.exitCode = 1;
 });
-module.exports = {main, heldProof, readOnlySD, TOOLS, HOMEBREW, ATTEMPT_MARKER,
+module.exports = {main, heldProof, TOOLS, HOMEBREW, HELD_TARGETS, ATTEMPT_MARKER,
   liveCheck, rpcProxy, homebrewEnvironment, releaseAttemptMarker, superviseHomebrew,
-  mintbrewApp, izlauncherApp, nativeHBLauncher, validateModsFolder, modloader, customHomebrewFolder};
+  mintbrewApp, nativeHBLauncher, validateModsFolder, modloader, customHomebrewFolder};

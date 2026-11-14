@@ -44,10 +44,4 @@ var Whitelist = []Difference{
 		Summary:   "mac2jb's gui-session.cjs emits stage 4 twice in held mode (matching both pipeline's '4/4 ...' and run.cjs's '4/4 verified...') and stops run.cjs via SIGTERM; any2jb emits stages [1,2,3,4] once and finishes via stdin JSON {'type':'finish'}.",
 		Rationale: "Avoids duplicate progress transitions and signal races in cross-platform process supervision while producing the exact same IPC release, cleanup RPC, and 0x8080 zero-byte native.stop() wire sequence.",
 	},
-	{
-		ID:        "izmysh-profile-refusal",
-		Layer:     "engine/profile",
-		Summary:   "any2jb refuses engine launch for the legacy izmysh profile while preserving its HID and guided command formatting (NS2I, port 39395, 9-argument START).",
-		Rationale: "izmysh uses a separate GPL-2.0 server/qualification protocol outside the ns2jb NativeClient adapter.",
-	},
 }

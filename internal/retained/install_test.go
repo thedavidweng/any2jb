@@ -67,25 +67,11 @@ func TestBundledStageAndOnDemandHomebrewInstall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	izFixture, err := filepath.Abs("testdata/fake-iz-prepare.cjs")
-	if err != nil {
-		t.Fatal(err)
-	}
-	izPrepareBytes, err := os.ReadFile(izFixture)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	const revision = "ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308"
+	const revision = "717022b8a91a713be41a02b5e131d3229dd8b00a"
 	files := map[string]string{
-		"vendor/bundled/tool.cjs":               "// bundled\n",
+		"vendor/OunceCake/tool.cjs":             "// ouncecake\n",
 		"vendor/MintBrew/manifest.json":         "{}\n",
 		"integrations/mintbrew-native/host.cjs": "// native\n",
-		"scripts/prepare-izlauncher.cjs":        string(izPrepareBytes),
-		"vendor/izlauncher-core/core.cjs":       "// iz core\n",
-		"vendor/izlauncher-blitbun/mod.cjs":     "// blitbun\n",
-		"vendor/izlauncher-shell/mod.cjs":       "// shell\n",
-		"vendor/izlauncher-vacootube/mod.cjs":   "// vacootube\n",
 		"packaging/homebrew-runtime.lock.json":  "{\"lock\":1}\n",
 		"packaging/homebrew/sitecustomize.py":   "# font adapter\n",
 		"scripts/prepare-homebrew-runtime.py":   "import sys; sys.exit(1)\n",
@@ -136,25 +122,9 @@ func TestBundledStageAndOnDemandHomebrewInstall(t *testing.T) {
 			Distribution:    manifest.Distribution{Decision: "may-ship", Bundled: true, Reason: "bundled"},
 		}},
 		Components: []manifest.Component{
-			embeddedComponent("ouncecake", "vendor/bundled/tool.cjs", true),
+			embeddedComponent("ouncecake", "vendor/OunceCake/tool.cjs", false),
 			embeddedComponent("mintbrew", "vendor/MintBrew/manifest.json", false),
 			embeddedComponent("mintbrew-native", "integrations/mintbrew-native/host.cjs", false),
-			{
-				ID:     "izlauncher",
-				Path:   "vendor/izlauncher-core/core.cjs",
-				SHA256: shaHex(files["vendor/izlauncher-core/core.cjs"]),
-				Source: &manifest.ToolSource{
-					Directory: "vendor/izlauncher-core",
-					Format:    "embedded",
-					Files:     1,
-					Embedded:  map[string]string{"vendor/izlauncher-core/core.cjs": shaHex(files["vendor/izlauncher-core/core.cjs"])},
-					Extra:     map[string]string{"scripts/prepare-izlauncher.cjs": shaHex(files["scripts/prepare-izlauncher.cjs"])},
-				},
-				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: false, Reason: "optional izlauncher"},
-			},
-			embeddedComponent("izlauncher-blitbun", "vendor/izlauncher-blitbun/mod.cjs", false),
-			embeddedComponent("izlauncher-shell", "vendor/izlauncher-shell/mod.cjs", false),
-			embeddedComponent("izlauncher-vacootube", "vendor/izlauncher-vacootube/mod.cjs", false),
 			{
 				ID:     "homebrew-runtime",
 				Path:   "packaging/homebrew-runtime.lock.json",
@@ -173,25 +143,14 @@ func TestBundledStageAndOnDemandHomebrewInstall(t *testing.T) {
 		},
 	}
 
-	assets := t.TempDir()
-	assetFile := filepath.Join(assets, "vendor/bundled/tool.cjs")
-	if err := os.MkdirAll(filepath.Dir(assetFile), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(assetFile, []byte(files["vendor/bundled/tool.cjs"]), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
 	toolRoot, staged, err := retained.StageTools(retained.StageOptions{
-		Support:    support,
-		Version:    "0.1.0",
-		SourceRoot: assets,
-		Bundled:    true,
-		Manifest:   m,
-		Components: []string{"ouncecake"},
+		Support:  support,
+		Version:  "0.1.0",
+		Bundled:  true,
+		Manifest: m,
 	})
-	if err != nil || !slices.Equal(staged, []string{"ouncecake"}) {
-		t.Fatalf("bundled StageTools failed: %v %v", staged, err)
+	if err != nil || len(staged) != 0 {
+		t.Fatalf("empty packaged StageTools failed: %v %v", staged, err)
 	}
 	record, err := os.ReadFile(filepath.Join(toolRoot, "stage.json"))
 	if err != nil || string(record) != `{"source":"bundled","redistributable":true}` {
@@ -215,20 +174,27 @@ func TestBundledStageAndOnDemandHomebrewInstall(t *testing.T) {
 		Manifest:     m,
 		Runs:         runner,
 	})
-	profile := session.Profile{ID: "kurumuz", Tools: []string{"ouncecake-webdav", "mintbrew", "native-hblauncher", "izlauncher"}}
+	profile := session.Profile{ID: "kurumuz", Tools: []string{"ouncecake-webdav", "mintbrew", "native-hblauncher"}}
 	if !mgr.HomebrewInstallable(profile) {
 		t.Fatal("HomebrewInstallable should be true before optional components are downloaded")
 	}
-	if got := mgr.Unavailable("ouncecake-webdav", "kurumuz"); got != "" {
-		t.Fatalf("bundled ouncecake should be available offline, got %q", got)
+	if got := mgr.Unavailable("ouncecake-webdav", "kurumuz"); got == "" {
+		t.Fatal("ouncecake-webdav should be unavailable before plugin install")
 	}
 	if got := mgr.Unavailable("native-hblauncher", "kurumuz"); got == "" {
 		t.Fatal("native-hblauncher should be unavailable before on-demand install")
 	}
 
-	// InstallHomebrew stages all source components and IZlauncher; the fixture
-	// prepare-homebrew-runtime.py exits 1 so Native HBLauncher becomes ready
-	// while GPU/Python launchers report the actionable runtime note.
+	if _, err := mgr.InstallPlugins(context.Background(), "ouncecake"); err != nil {
+		t.Fatalf("InstallPlugins(ouncecake): %v", err)
+	}
+	if got := mgr.Unavailable("ouncecake-webdav", "kurumuz"); got != "" {
+		t.Fatalf("ouncecake-webdav should be ready after InstallPlugins, got %q", got)
+	}
+
+	// InstallHomebrew stages all homebrew plugins (and ouncecake dependency);
+	// fixture prepare-homebrew-runtime.py exits 1 so Native HBLauncher becomes
+	// ready while GPU/Python launchers report the actionable runtime note.
 	installErr := mgr.InstallHomebrew(context.Background())
 	if installErr == nil {
 		t.Fatal("expected portable runtime note from failing fixture prepare script")
@@ -237,16 +203,20 @@ func TestBundledStageAndOnDemandHomebrewInstall(t *testing.T) {
 		t.Fatalf("native-hblauncher should be ready after InstallHomebrew, got %q", got)
 	}
 	if got := mgr.Unavailable("ouncecake-webdav", "kurumuz"); got != "" {
-		t.Fatalf("InstallHomebrew lost previously bundled ouncecake: %q", got)
+		t.Fatalf("InstallHomebrew lost installed ouncecake: %q", got)
 	}
-	if err := retained.CheckIZLauncher(node, filepath.Join(toolRoot, "tools", "izlauncher")); err != nil {
-		t.Fatalf("IZlauncher was not prepared by InstallHomebrew: %v", err)
-	}
-	restored := retained.VerifyStagedComponents(toolRoot, m, retained.OptionalHomebrewComponents)
-	for _, want := range []string{"mintbrew", "mintbrew-native", "izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube"} {
+	restored := retained.VerifyInstalledPlugins(toolRoot, m)
+	for _, want := range []string{"ouncecake", "mintbrew", "mintbrew-native"} {
 		if !slices.Contains(restored, want) {
-			t.Fatalf("VerifyStagedComponents did not restore %s: %v", want, restored)
+			t.Fatalf("VerifyInstalledPlugins did not restore %s: %v", want, restored)
 		}
+	}
+
+	if _, err := mgr.UninstallPlugins(context.Background(), "mintbrew"); err != nil {
+		t.Fatalf("UninstallPlugins(mintbrew): %v", err)
+	}
+	if got := mgr.Unavailable("mintbrew", "kurumuz"); got == "" {
+		t.Fatal("mintbrew remained available after UninstallPlugins")
 	}
 
 	// Verify real savekit-host.cjs accepts the bundled stage.json record up to

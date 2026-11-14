@@ -225,6 +225,7 @@ func USBPrerequisitesReady(checks []Check) bool {
 }
 
 type Outcome struct {
+	Target          string
 	Verified        bool
 	FSVerified      bool
 	Restored        bool

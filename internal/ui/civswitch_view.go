@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -11,12 +12,17 @@ import (
 )
 
 type civSwitchPanel struct {
-	open          bool
-	saveConsent   bool
-	codeConsent   bool
-	openFailed    bool
-	javaScript    string
-	prerequisites session.CivSwitchPrerequisites
+	open             bool
+	saveConsent      bool
+	codeConsent      bool
+	openFailed       bool
+	javaScript       string
+	fsHostAddress    string
+	fsWaitForLoader  bool
+	hbTriggerConsent bool
+	hbPackage        string
+	hbPackageFile    string
+	prerequisites    session.CivSwitchPrerequisites
 }
 
 func (a *app) civSwitchView(c *ui.Context) {
@@ -87,23 +93,19 @@ func (a *app) civSwitchView(c *ui.Context) {
 		ui.Text(c, locales.CommandRejected())
 	}
 	if inline(ui.Button(c.Key("civ-back"), locales.CivBack())).Disabled(s.Busy || s.SideEffects || s.Stage == session.Indeterminate || (s.CivSwitch && s.Stage == session.Verified)).Clicked() {
-		// Selecting a host explicitly ends the separate route; no loader proof is
-		// carried into a SmileBASIC session.
 		if s.CivSwitch {
 			a.command(a.Controller.SelectProfile(s.Profile, s.Edition))
 		}
-		// The route is chosen where its checklist is, so SmileBASIC's own
-		// confirmations are asked for before its setup.
 		p.open = false
 		a.flow.stage = flowPrepare
 	}
 }
 
-// Every action here writes to the console or runs code on it, so each carries
-// its own confirmation and rechecks the loader. The read-only Control Center
-// and its save export need no code consent.
 func (a *app) civSwitchActionsView(c *ui.Context, s session.Snapshot) {
 	p := &a.civSwitchPanel
+	if p.hbPackage == "" {
+		p.hbPackage = "moonlight-civswitch"
+	}
 	actions := s.CivSwitchActions
 	ui.Text(c, locales.CivPersistence()).Bold()
 	ui.Text(c, locales.CivDependentNote())
@@ -125,30 +127,77 @@ func (a *app) civSwitchActionsView(c *ui.Context, s session.Snapshot) {
 	ui.Text(c, locales.CivCodeWarning()).Bold()
 	ui.TextInput(c.Key("civ-js-file"), &p.javaScript).Label(locales.CivJSFile()).Disabled(s.Busy)
 	ui.Checkbox(c.Key("civ-consent-code"), &p.codeConsent, locales.CivCodeConsent()).Disabled(s.Busy)
-	code := !s.Busy && p.codeConsent && p.javaScript != ""
+	code := !s.Busy && p.codeConsent && strings.TrimSpace(p.javaScript) != ""
 	if inline(ui.Button(c.Key("civ-js"), locales.CivJSSend())).Disabled(!code).Clicked() {
-		a.command(a.Controller.SendCivSwitchJavaScript(p.javaScript, p.codeConsent))
+		a.command(a.Controller.SendCivSwitchJavaScript(strings.TrimSpace(p.javaScript), p.codeConsent))
 	}
-	ui.Text(c, locales.CivControlStageNote())
-	if inline(ui.Button(c.Key("civ-control-stage"), locales.CivControlStage())).Disabled(!code).Clicked() {
-		a.command(a.Controller.StageCivSwitchJavaScript(p.javaScript, p.codeConsent))
-	}
-	ui.Text(c, locales.CivControlNote())
-	if inline(ui.Button(c.Key("civ-control-start"), locales.CivControlStart())).Disabled(s.Busy).Clicked() {
-		a.command(a.Controller.StartCivSwitchControlCenter())
-	}
-	if actions.ControlCenterLive {
-		ui.Text(c, locales.CivControlLive())
-		if inline(ui.Button(c.Key("civ-control-stop"), locales.CivControlStop())).Clicked() {
-			a.command(a.Controller.StopCivSwitchControlCenter())
+
+	rule(c)
+	ui.Text(c, locales.CivFSHostSection()).Bold()
+	ui.Text(c, locales.CivFSHostIntro())
+	ui.TextInput(c.Key("civ-fs-host"), &p.fsHostAddress).Label(locales.CivFSHostAddress()).Disabled(s.Busy || actions.FSHostLive)
+	ui.Checkbox(c.Key("civ-fs-wait"), &p.fsWaitForLoader, locales.CivFSWaitLoader()).Disabled(s.Busy || actions.FSHostLive)
+	ui.Row(c).Wrap().Gap(8).Children(func() {
+		if ui.Button(c.Key("civ-fs-start"), locales.CivFSStart()).Disabled(s.Busy || actions.FSHostLive || actions.CivHomebrewLive).Clicked() {
+			hostIP := strings.TrimSpace(p.fsHostAddress)
+			if hostIP == "" {
+				hostIP = a.defaultLocalIPv4()
+			}
+			a.command(a.Controller.StartCivSwitchFSHost(hostIP, p.fsWaitForLoader))
 		}
-	}
-	if actions.ExportPath != "" {
-		ui.Text(c, locales.CivExportSaved(actions.ExportPath))
-		if inline(ui.Button(c.Key("civ-export-open"), locales.CivExportOpen())).Clicked() {
-			p.openFailed = mygo.Shell.OpenPath(actions.ExportPath) != nil
+		if actions.FSHostLive {
+			if ui.Button(c.Key("civ-fs-stop"), locales.CivFSStop()).Clicked() {
+				a.command(a.Controller.StopCivSwitchFSHost())
+			}
 		}
+	})
+	if actions.FSHostLive {
+		ui.Text(c, locales.CivFSLive(actions.FSRunPath))
 	}
+
+	rule(c)
+	ui.Row(c).Wrap().Gap(8).Children(func() {
+		if ui.Button(c.Key("civ-hb-probe"), locales.CivHBProbe()).Disabled(s.Busy).Clicked() {
+			a.command(a.Controller.ProbeCivHomebrew())
+		}
+		if ui.Button(c.Key("civ-hb-launch"), locales.CivHBLaunch()).Disabled(s.Busy || actions.CivHomebrewLive || actions.FSHostLive).Clicked() {
+			a.command(a.Controller.LaunchCivHomebrew())
+		}
+		if actions.CivHomebrewLive {
+			if ui.Button(c.Key("civ-hb-stop"), locales.CivHBStop()).Clicked() {
+				a.command(a.Controller.StopCivHomebrew())
+			}
+		}
+		if ui.Button(c.Key("civ-hb-shutdown"), locales.CivHBShutdown()).Disabled(s.Busy).Clicked() {
+			a.command(a.Controller.ShutdownCivHomebrew())
+		}
+	})
+	if actions.CivHomebrew.Mode != "" || actions.CivHomebrew.Launcher || actions.CivHomebrew.FTP {
+		ui.Text(c, locales.CivHBStatusFormat(actions.CivHomebrew.Mode, fmt.Sprint(actions.CivHomebrew.Launcher)))
+	}
+	ui.Checkbox(c.Key("civ-hb-consent"), &p.hbTriggerConsent, locales.CivHBTriggerConsent()).Disabled(s.Busy)
+	ui.Row(c).Wrap().Gap(8).Children(func() {
+		if ui.Button(c.Key("civ-hb-install-trigger"), locales.CivHBInstallTrigger()).Disabled(s.Busy || !p.hbTriggerConsent).Clicked() {
+			a.command(a.Controller.InstallCivHomebrewTrigger(p.hbTriggerConsent))
+		}
+		if ui.Button(c.Key("civ-hb-restore-trigger"), locales.CivHBRestoreTrigger()).Disabled(s.Busy || !p.hbTriggerConsent).Clicked() {
+			a.command(a.Controller.RestoreCivHomebrewTrigger())
+		}
+	})
+	packages := []string{"moonlight-civswitch", "sw2nes", "jellyfin-civswitch", "custom"}
+	ui.Select(c.Key("civ-hb-pkg-select"), &p.hbPackage, packages).Label(locales.CivHBPkgSelect()).Disabled(s.Busy)
+	if p.hbPackage == "custom" {
+		ui.TextInput(c.Key("civ-hb-pkg-file"), &p.hbPackageFile).Label(locales.CivHBPkgPath()).Disabled(s.Busy)
+	}
+	needsPkgFile := p.hbPackage == "custom" && strings.TrimSpace(p.hbPackageFile) == ""
+	if inline(ui.Button(c.Key("civ-hb-pkg-install"), locales.CivHBPkgInstall())).Disabled(s.Busy || needsPkgFile).Clicked() {
+		spec := p.hbPackage
+		if spec == "custom" {
+			spec = strings.TrimSpace(p.hbPackageFile)
+		}
+		a.command(a.Controller.InstallCivHomebrewPackage(spec))
+	}
+
 	if p.openFailed {
 		ui.Text(c, locales.CivOpenFailed())
 	}

@@ -10,7 +10,7 @@
   "macos": { "minimumSystemVersion": "14.0" },
   "linux": {
     "webview": false,
-    "comment": "Nintendo Switch homebrew session manager",
+    "comment": "Cross-platform mac2jb fork with streamlined UX and on-demand plugins",
     "categories": ["Utility"],
     "command": "any2jb"
   }

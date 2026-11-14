@@ -78,19 +78,15 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	research, err := m.DistributionFor("browser-research")
-	if err != nil {
-		t.Fatal(err)
-	}
 	adapter := &fakeToolAdapter{reasons: map[string]string{
 		"ouncecake-webdav": ounce.Reason, "ouncecake-ftp": ounce.Reason}}
 	f := sessiontest.NewFakeEnvironment()
-	a := retainedApp(t, f, adapter, []string{"rpc-status", "ouncecake-webdav", "ouncecake-ftp", "sd-browser"})
+	a := retainedApp(t, f, adapter, []string{"rpc-status", "ouncecake-webdav", "ouncecake-ftp"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
 	if !tt.HasText(locales.ToolsReadOnly()) {
 		t.Fatal(tt.Texts())
 	}
-	if !tt.HasText(ounce.Reason) || !tt.HasText(research.Reason) {
+	if !tt.HasText(ounce.Reason) {
 		t.Fatalf("missing recorded reasons: %q", tt.Texts())
 	}
 	for _, label := range []string{"Start read-only WebDAV export", "Start read-only FTP export on this Mac"} {
@@ -136,7 +132,7 @@ func TestUnavailableToolsShareOneReasonAndKeepUsableToolsVisible(t *testing.T) {
 func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
-	a := retainedApp(t, f, adapter, []string{"rpc-status", "system-code-dump", "sd-browser"})
+	a := retainedApp(t, f, adapter, []string{"rpc-status", "system-code-dump", "ouncecake-ftp"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)
 	if _, err := a.Controller.Inspect(); err != nil {
 		t.Fatal(err)
@@ -153,9 +149,9 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 	if !ok || status.Disabled {
 		t.Fatalf("a verified lease did not enable the status check: %+v", status)
 	}
-	adapter.state = retained.State{Tool: "sd-browser", Endpoint: "ftp://192.0.2.7:2122/sd/"}
+	adapter.state = retained.State{Tool: "ouncecake-ftp", Endpoint: "ftp://192.0.2.7:2122/"}
 	tt.Frame()
-	if !tt.HasText("Read-only endpoint: ftp://192.0.2.7:2122/sd/") {
+	if !tt.HasText("Read-only endpoint: ftp://192.0.2.7:2122/") {
 		t.Fatal(tt.Texts())
 	}
 	for _, label := range []string{"Check live RPC status", "Dump system code"} {
@@ -164,7 +160,7 @@ func TestOwnedLeaseEnablesOnlyOneToolAtATime(t *testing.T) {
 			t.Fatalf("%s started while another tool owns the session: %+v", label, control)
 		}
 	}
-	if !tt.HasText("sd-browser owns the retained session. Stop it before starting another tool.") {
+	if !tt.HasText("ouncecake-ftp owns the retained session. Stop it before starting another tool.") {
 		t.Fatal(tt.Texts())
 	}
 	stop, ok := tt.AccessByRole(ui.RoleButton, "Stop the running tool")

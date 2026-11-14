@@ -4,19 +4,27 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/thedavidweng/any2jb/internal/session"
 	"github.com/thedavidweng/any2jb/internal/session/sessiontest"
 )
 
-// civWriter is the gated persistence surface of the route adapter.
+// civWriter is the gated persistence and application surface of the route
+// adapter: everything that needs the verified loader plus the console address.
 type civWriter struct {
 	civAdapter
-	installs, sends, stages, centers int
-	file                             string
-	installErr                       error
-	center                           func(context.Context, session.CivSwitchObserver) error
+	installs, sends    int
+	triggers, restores []string
+	file               string
+	installErr         error
+	fs                 []session.CivSwitchFSRequest
+	fsRunPath          string
+	fsErr              error
+	homebrewCalls      []string
+	homebrewState      session.CivHomebrewState
+	homebrewStop       session.CivHomebrewStop
+	homebrewApp        session.CivHomebrewApp
+	homebrewErr        error
 }
 
 func (w *civWriter) Writer() session.CivSwitchWriter { return w }
@@ -39,23 +47,53 @@ func (w *civWriter) SendJavaScript(ctx context.Context, address, file string, co
 	return nil
 }
 
-func (w *civWriter) StageJavaScript(ctx context.Context, address, file string, confirmed bool, report session.Report) error {
-	if !confirmed {
-		return errors.New("unconfirmed staging reached the adapter")
+func (w *civWriter) StartCivSwitchFSHost(ctx context.Context, request session.CivSwitchFSRequest, event func(session.CivSwitchFSEvent)) error {
+	w.fs = append(w.fs, request)
+	if w.fsErr != nil {
+		return w.fsErr
 	}
-	w.stages, w.file = w.stages+1, file
-	report(session.Progress{SideEffect: true})
-	return nil
+	w.fsRunPath = "/support/runs/civswitch-fs-0123456789abcdef/port/engine/runs/switch2-abc123"
+	event(session.CivSwitchFSEvent{Type: "held-ready", RunPath: w.fsRunPath, Message: "CivSwitch FS and RPC verified"})
+	<-ctx.Done()
+	return ctx.Err()
 }
 
-func (w *civWriter) ControlCenter(ctx context.Context, address string, observe session.CivSwitchObserver) error {
-	w.centers++
-	if w.center != nil {
-		return w.center(ctx, observe)
+func (w *civWriter) CivHomebrewProbe(ctx context.Context, address string) (session.CivHomebrewState, error) {
+	w.homebrewCalls = append(w.homebrewCalls, "probe "+address)
+	return w.homebrewState, w.homebrewErr
+}
+
+func (w *civWriter) CivHomebrewLaunch(ctx context.Context, address string, event func(session.CivHomebrewEvent)) error {
+	w.homebrewCalls = append(w.homebrewCalls, "launch "+address)
+	if w.homebrewErr != nil {
+		return w.homebrewErr
 	}
-	observe(session.CivSwitchObservation{Ready: true})
-	observe(session.CivSwitchObservation{ExportPath: "/retained/save-exports/one"})
-	return nil
+	event(session.CivHomebrewEvent{Type: "ready", Message: "CivHomebrew is running on the Switch"})
+	<-ctx.Done()
+	return ctx.Err()
+}
+
+func (w *civWriter) CivHomebrewInstallTrigger(ctx context.Context, address string, confirmed bool, event func(session.CivHomebrewEvent)) (string, error) {
+	if !confirmed {
+		return "", errors.New("unconfirmed save replacement reached the adapter")
+	}
+	w.triggers = append(w.triggers, address)
+	return "/support/civswitch/civhomebrew/backups/" + address, w.homebrewErr
+}
+
+func (w *civWriter) CivHomebrewRestoreTrigger(ctx context.Context, address string, event func(session.CivHomebrewEvent)) error {
+	w.restores = append(w.restores, address)
+	return w.homebrewErr
+}
+
+func (w *civWriter) CivHomebrewShutdown(ctx context.Context, address string) (session.CivHomebrewStop, error) {
+	w.homebrewCalls = append(w.homebrewCalls, "shutdown "+address)
+	return w.homebrewStop, w.homebrewErr
+}
+
+func (w *civWriter) CivHomebrewInstallPackage(ctx context.Context, address, spec string, event func(session.CivHomebrewEvent)) (session.CivHomebrewApp, error) {
+	w.homebrewCalls = append(w.homebrewCalls, "install "+spec)
+	return w.homebrewApp, w.homebrewErr
 }
 
 func verifiedCivSwitch(t *testing.T, w *civWriter) *session.SessionController {
@@ -81,16 +119,16 @@ func TestCivSwitchActionsNeedAVerifiedLoaderAndStagedWriter(t *testing.T) {
 		return env
 	}(), session.Profile{ID: "test", Revision: "pinned"})
 	for name, action := range map[string]func() (session.Snapshot, error){
-		"trigger":        func() (session.Snapshot, error) { return c.InstallCivSwitchTrigger(true) },
-		"javascript":     func() (session.Snapshot, error) { return c.SendCivSwitchJavaScript("/tmp/p.js", true) },
-		"staging":        func() (session.Snapshot, error) { return c.StageCivSwitchJavaScript("/tmp/p.js", true) },
-		"control center": func() (session.Snapshot, error) { return c.StartCivSwitchControlCenter() },
+		"trigger":    func() (session.Snapshot, error) { return c.InstallCivSwitchTrigger(true) },
+		"javascript": func() (session.Snapshot, error) { return c.SendCivSwitchJavaScript("/tmp/p.js", true) },
+		"fs host":    func() (session.Snapshot, error) { return c.StartCivSwitchFSHost("192.0.2.3", true) },
+		"homebrew":   func() (session.Snapshot, error) { return c.ProbeCivHomebrew() },
 	} {
 		if _, err := action(); err == nil {
 			t.Fatalf("%s ran without a verified loader", name)
 		}
 	}
-	if w.installs+w.sends+w.stages+w.centers != 0 {
+	if w.installs+w.sends+len(w.fs)+len(w.homebrewCalls) != 0 {
 		t.Fatalf("the adapter was reached without a verified loader: %+v", w)
 	}
 	// A route adapter without the gated surface offers no dependent action.
@@ -105,6 +143,12 @@ func TestCivSwitchActionsNeedAVerifiedLoaderAndStagedWriter(t *testing.T) {
 	if _, err := bare.InstallCivSwitchTrigger(true); err == nil {
 		t.Fatal("an unstaged persistence adapter accepted a trigger install")
 	}
+	if _, err := bare.StartCivSwitchFSHost("192.0.2.3", true); err == nil {
+		t.Fatal("an adapter without the FS host accepted a supervisor start")
+	}
+	if _, err := bare.ProbeCivHomebrew(); err == nil {
+		t.Fatal("an adapter without CivHomebrew accepted a probe")
+	}
 }
 
 func TestCivSwitchWritesAndCodeNeedExplicitConfirmation(t *testing.T) {
@@ -116,13 +160,10 @@ func TestCivSwitchWritesAndCodeNeedExplicitConfirmation(t *testing.T) {
 	if _, err := c.SendCivSwitchJavaScript("/tmp/p.js", false); err == nil {
 		t.Fatal("sent arbitrary JavaScript without confirmation")
 	}
-	if _, err := c.StageCivSwitchJavaScript("/tmp/p.js", false); err == nil {
-		t.Fatal("staged a payload without confirmation")
-	}
 	if _, err := c.SendCivSwitchJavaScript("", true); err == nil {
 		t.Fatal("accepted a confirmation without a chosen file")
 	}
-	if w.installs+w.sends+w.stages != 0 {
+	if w.installs+w.sends != 0 {
 		t.Fatalf("an unconfirmed action reached the console: %+v", w)
 	}
 	if _, err := c.SendCivSwitchJavaScript("/tmp/p.js", true); err != nil {
@@ -131,13 +172,6 @@ func TestCivSwitchWritesAndCodeNeedExplicitConfirmation(t *testing.T) {
 	s := await(t, c, session.Verified)
 	if w.sends != 1 || w.file != "/tmp/p.js" || !s.SideEffects {
 		t.Fatalf("confirmed send: %+v %+v", w, s)
-	}
-	if _, err := c.StageCivSwitchJavaScript("/tmp/p.js", true); err != nil {
-		t.Fatal(err)
-	}
-	await(t, c, session.Verified)
-	if w.stages != 1 {
-		t.Fatalf("confirmed staging: %+v", w)
 	}
 }
 
@@ -157,43 +191,5 @@ func TestTriggerInstallFailureKeepsBackupAndRequiresConsoleRestart(t *testing.T)
 	w.installErr = nil
 	if _, err := c.InstallCivSwitchTrigger(true); err == nil {
 		t.Fatal("retried the install from an indeterminate console state")
-	}
-}
-
-func TestControlCenterRecordsReadOnlyExportAndStopsWithoutFailure(t *testing.T) {
-	w := &civWriter{center: func(ctx context.Context, observe session.CivSwitchObserver) error {
-		observe(session.CivSwitchObservation{Ready: true})
-		observe(session.CivSwitchObservation{ExportPath: "/retained/save-exports/one"})
-		<-ctx.Done()
-		return ctx.Err()
-	}}
-	c := verifiedCivSwitch(t, w)
-	if _, err := c.StartCivSwitchControlCenter(); err != nil {
-		t.Fatal(err)
-	}
-	live := func() session.Snapshot {
-		for start := time.Now(); time.Since(start) < time.Second; time.Sleep(time.Millisecond) {
-			if s := c.Snapshot(); s.CivSwitchActions.ControlCenterLive && s.CivSwitchActions.ExportPath != "" {
-				return s
-			}
-		}
-		t.Fatal("the Control Center session never became live")
-		return session.Snapshot{}
-	}()
-	if live.SideEffects {
-		t.Fatal("a read-only Control Center session reported a console side effect")
-	}
-	if _, err := c.StopCivSwitchControlCenter(); err != nil {
-		t.Fatal(err)
-	}
-	s := await(t, c, session.Verified)
-	if s.CivSwitchActions.ControlCenterLive || !s.LoaderVerified || s.Stage != session.Verified {
-		t.Fatalf("after a deliberate stop: %+v", s)
-	}
-	if s.CivSwitchActions.ExportPath != "/retained/save-exports/one" {
-		t.Fatalf("the verified export was not recorded: %+v", s.CivSwitchActions)
-	}
-	if _, err := c.StopCivSwitchControlCenter(); err == nil {
-		t.Fatal("stopped a Control Center session that was not running")
 	}
 }

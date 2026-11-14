@@ -504,27 +504,6 @@ func TestEngineOutputMatchesMac2jbAndNs2jb(t *testing.T) {
 	}
 
 	for _, p := range m.Profiles {
-		if p.Engine == "izmysh" {
-			t.Run("refuses-"+p.ID, func(t *testing.T) {
-				support := t.TempDir()
-				t.Cleanup(func() { unsealSupport(support) })
-				runner := engine.NewHostRunner(engine.Options{
-					Assets:              assets,
-					Support:             support,
-					Version:             "parity-izmysh",
-					Manifest:            m,
-					DeveloperSourceRoot: reference,
-					DeveloperProfileID:  p.ID,
-				})
-				run := session.Run{ID: "parity-izmysh", Edition: "full", LANIPv4: "127.0.0.1", Profile: p.SessionProfile()}
-				_, err := runner.Prepare(context.Background(), run, func(session.Progress) {})
-				if err == nil || !strings.Contains(err.Error(), "IZMYSH") {
-					t.Fatalf("expected explicit IZMYSH refusal, got %v", err)
-				}
-			})
-			continue
-		}
-
 		t.Run(p.ID, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
@@ -598,9 +577,7 @@ func TestCommittedEngineParityDigests(t *testing.T) {
 	}
 	expected := make(map[string]manifest.Profile)
 	for _, p := range m.Profiles {
-		if p.Engine != "izmysh" {
-			expected[p.ID] = p
-		}
+		expected[p.ID] = p
 	}
 	if len(committed.Profiles) != len(expected) {
 		t.Fatalf("recorded %d profiles, want %d", len(committed.Profiles), len(expected))

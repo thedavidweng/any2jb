@@ -9,6 +9,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/egoist/mygo/ui/markdown"
 	appstate "github.com/thedavidweng/any2jb/internal/app"
 	"github.com/thedavidweng/any2jb/internal/civswitch"
 	"github.com/thedavidweng/any2jb/internal/devlaunch"
@@ -31,10 +32,14 @@ type app struct {
 	civSwitchPanel     civSwitchPanel
 	toolsPanel         toolsPanel
 	homebrewPanel      homebrewPanel
+	pluginsPanel       pluginsPanel
+	utilitiesPanel     utilitiesPanel
 	saveKit            saveKitPanel
 	launcherPanel      launcherPanel
 	driverPanel        driverPanel
 	about              bool
+	aboutMD            markdown.Options
+	applyLocale        func(string)
 	restart            restartUI
 	commandRejected    bool
 	commandInstruction string
@@ -82,26 +87,85 @@ func (a *app) openSession(env session.Environment, interrupted bool) error {
 	return nil
 }
 
+func (a *app) languageButtonLabel() string {
+	pref := a.Preferences.Language
+	if pref == "" {
+		return locales.LanguageLabel() + ": " + locales.LanguageSystem()
+	}
+	for _, opt := range locales.Switch2Languages {
+		if opt.Tag == pref {
+			return locales.LanguageLabel() + ": " + opt.Autonym
+		}
+	}
+	return locales.LanguageLabel() + ": " + pref
+}
+
+func (a *app) setLanguage(tag string) {
+	norm, ok := locales.NormalizeLanguagePreference(tag)
+	if !ok {
+		return
+	}
+	a.Preferences.Language = norm
+	if a.PreferencesPath != "" {
+		_ = a.SavePreferences()
+	}
+	if a.applyLocale != nil {
+		a.applyLocale(norm)
+	}
+}
+
+func (a *app) toggleTopPanel(panel string) {
+	a.stopKeyboard()
+	nextPlugins := panel == "plugins" && !a.flow.plugins
+	nextUtilities := panel == "utilities" && !a.flow.utilities
+	nextDiagnostics := panel == "diagnostics" && !a.flow.diagnostics
+	nextSettings := panel == "settings" && !a.flow.settings
+	nextAbout := panel == "about" && !a.flow.aboutPage
+	a.flow.plugins = nextPlugins
+	a.flow.utilities = nextUtilities
+	a.flow.diagnostics = nextDiagnostics
+	a.flow.settings = nextSettings
+	a.flow.aboutPage = nextAbout
+	a.driverPanel.open = false
+}
+
 func (a *app) view(c *ui.Context) {
 	if a.Controller != nil {
 		a.keyboard.observe(a.Controller.Snapshot())
 	}
 	applyTheme(c)
 	ui.Column(c).Fill().Children(func() {
-		ui.Row(c).FillWidth().Gap(8).Padding(12, 20).Background(cardFill(c)).Children(func() {
+		ui.Row(c).FillWidth().Wrap().AlignItems(ui.Center).Gap(8).Padding(12, 20).Background(cardFill(c)).Children(func() {
 			ui.Column(c).Gap(1).Grow(1).Children(func() {
 				ui.Text(c, locales.AppName()).FontSize(c.Theme().Rem(1.35)).Bold()
 				muted(c, locales.AppDescriptionShort()).FontSize(c.Theme().Rem(0.85)).SingleLine()
 			})
+			ui.PopoverMenuButton(c.Key("language-select"), a.languageButtonLabel(), func(m *ui.Menu) {
+				if m.Item(locales.LanguageSystem()).Radio(a.Preferences.Language == "").Chosen() {
+					a.setLanguage("")
+				}
+				m.Separator()
+				for _, opt := range locales.Switch2Languages {
+					tag := opt.Tag
+					if m.Item(opt.Autonym).Radio(a.Preferences.Language == tag).Chosen() {
+						a.setLanguage(tag)
+					}
+				}
+			})
+			if ui.Button(c.Key("plugins-open"), locales.PluginsTitle()).Clicked() {
+				a.toggleTopPanel("plugins")
+			}
+			if ui.Button(c.Key("utilities-open"), locales.UtilTitle()).Clicked() {
+				a.toggleTopPanel("utilities")
+			}
 			if ui.Button(c.Key("diagnostics-open"), locales.Diagnostics()).Clicked() {
-				a.stopKeyboard()
-				a.flow.diagnostics = !a.flow.diagnostics
-				a.flow.settings = false
+				a.toggleTopPanel("diagnostics")
 			}
 			if ui.Button(c.Key("settings-open"), locales.Settings()).Clicked() {
-				a.stopKeyboard()
-				a.flow.settings = !a.flow.settings
-				a.flow.diagnostics = false
+				a.toggleTopPanel("settings")
+			}
+			if ui.Button(c.Key("about-open"), locales.AboutTitle()).Clicked() {
+				a.toggleTopPanel("about")
 			}
 		})
 		rule(c)
@@ -129,7 +193,7 @@ func (a *app) view(c *ui.Context) {
 }
 
 func (a *app) inFlow() bool {
-	return !a.flow.diagnostics && !a.driverPanel.open && !a.flow.settings && a.Controller != nil
+	return !a.flow.plugins && !a.flow.utilities && !a.flow.diagnostics && !a.driverPanel.open && !a.flow.settings && !a.flow.aboutPage && a.Controller != nil
 }
 
 func (a *app) body(c *ui.Context) {
@@ -140,6 +204,10 @@ func (a *app) body(c *ui.Context) {
 		ui.Text(c.Key("startup-error"), a.startupError).Role(ui.RoleStatus).Bold().TextColor(c.Theme().Danger)
 	}
 	switch {
+	case a.flow.plugins:
+		a.pluginsView(c)
+	case a.flow.utilities:
+		a.utilitiesView(c)
 	case a.flow.diagnostics:
 		ui.Text(c, locales.Diagnostics()).FontSize(c.Theme().Rem(1.55)).Bold()
 		card(c, func() { a.diagnosticsView(c) })
@@ -147,6 +215,8 @@ func (a *app) body(c *ui.Context) {
 		card(c, func() { a.driverView(c) })
 	case a.flow.settings:
 		a.settingsView(c)
+	case a.flow.aboutPage:
+		a.aboutView(c)
 	case a.Controller == nil:
 		ui.Text(c, locales.NoSession())
 	default:
@@ -197,9 +267,11 @@ func Run() error {
 	}()
 	a.driverPanel.gate = appstate.ProductionDriverGate(options)
 	mygo.App.WhenReady(func() {
+		a.applyLocale = mygo.App.SetLocale
+		mygo.App.SetLocale(a.Preferences.Language)
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     locales.AppName(),
-			Width:     720,
+			Width:     760,
 			Height:    720,
 			MinWidth:  560,
 			MinHeight: 360,
@@ -211,7 +283,7 @@ func Run() error {
 		})
 		win.OnBlur(a.stopKeyboard)
 		closed := make(chan struct{})
-		win.OnClosed(func() { a.stopKeyboard(); close(closed) })
+		win.OnClosed(func() { a.stopKeyboard(); a.stopUtilitySessions(); close(closed) })
 		inputOptions := transport.DarwinOptions{Timing: transport.DefaultTiming(), Confirm: a.USBConfirmation.Wait}
 		if a.Preferences.USB != nil {
 			inputOptions.Controller = a.Preferences.USB.Controller
@@ -241,6 +313,8 @@ func Run() error {
 					return
 				}
 				a.startDiagnostics(win, store)
+				a.pluginsPanel.update = win.Update
+				a.utilitiesPanel.update = win.Update
 				a.toolsPanel.update = win.Update
 				a.launcherPanel.update = win.Update
 				a.saveKit.update = win.Update

@@ -35,12 +35,12 @@ func TestBundledNodeRuntime(t *testing.T) {
 	if err != nil || string(output) == "" {
 		t.Fatalf("bundled profile rejected: %q %v", output, err)
 	}
-	output, err = exec.Command(node, filepath.Join(root, "runtime/bridge.cjs"), filepath.Join(root, "profiles.json"), "izmysh").CombinedOutput()
+	output, err = exec.Command(node, filepath.Join(root, "runtime/bridge.cjs"), filepath.Join(root, "profiles.json"), "unknown-profile").CombinedOutput()
 	if err == nil {
-		t.Fatal("blocked profile accepted")
+		t.Fatal("unknown profile accepted")
 	}
 	if string(output) == "" {
-		t.Fatal("bridge did not report blocked profile")
+		t.Fatal("bridge did not report unknown profile")
 	}
 }
 

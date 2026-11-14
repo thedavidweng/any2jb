@@ -58,9 +58,6 @@ func NewHostRunner(options Options) *HostRunner {
 		if err != nil {
 			return nil, err
 		}
-		if profile.Engine == "izmysh" {
-			return nil, errors.New("IZMYSH requires its separate native qualification adapter")
-		}
 		developerMode := options.DeveloperSourceRoot != "" || options.DeveloperProfileID != ""
 		if developerMode {
 			if options.DeveloperSourceRoot == "" || options.DeveloperProfileID != run.Profile.ID {

@@ -17,6 +17,7 @@ import (
 	"unicode"
 
 	"github.com/thedavidweng/any2jb/internal/manifest"
+	"github.com/thedavidweng/any2jb/internal/plugins"
 	"github.com/thedavidweng/any2jb/locales"
 )
 
@@ -65,22 +66,51 @@ func loadCatalogStrings(t *testing.T, path string) map[string]string {
 func TestCatalogCompleteness(t *testing.T) {
 	root := repoRootDir(t)
 	en := loadCatalogStrings(t, filepath.Join(root, "locales", "en.json"))
-	zh := loadCatalogStrings(t, filepath.Join(root, "locales", "zh-CN.json"))
 	placeholders := regexp.MustCompile(`\{[a-zA-Z][a-zA-Z0-9]*\}`)
-	for key, english := range en {
-		chinese, ok := zh[key]
-		if !ok || chinese == "" {
-			t.Errorf("missing zh-CN translation: %s", key)
+	sorted := func(values []string) []string {
+		out := append([]string{}, values...)
+		sort.Strings(out)
+		return out
+	}
+
+	if len(locales.Switch2Languages) != 18 {
+		t.Fatalf("Switch2Languages has %d locales, want 18", len(locales.Switch2Languages))
+	}
+
+	for _, lang := range locales.Switch2Languages {
+		if lang.Tag == "en" {
 			continue
 		}
-		sorted := func(values []string) []string { out := append([]string{}, values...); sort.Strings(out); return out }
-		if !reflect.DeepEqual(sorted(placeholders.FindAllString(english, -1)), sorted(placeholders.FindAllString(chinese, -1))) {
-			t.Errorf("%s: placeholder mismatch", key)
+		target := loadCatalogStrings(t, filepath.Join(root, "locales", lang.Tag+".json"))
+		for key, english := range en {
+			translated, ok := target[key]
+			if !ok || strings.TrimSpace(translated) == "" {
+				t.Errorf("[%s] missing translation: %s", lang.Tag, key)
+				continue
+			}
+			if !reflect.DeepEqual(sorted(placeholders.FindAllString(english, -1)), sorted(placeholders.FindAllString(translated, -1))) {
+				t.Errorf("[%s] %s: placeholder mismatch", lang.Tag, key)
+			}
+		}
+		for key := range target {
+			if _, ok := en[key]; !ok {
+				t.Errorf("[%s] unknown key: %s", lang.Tag, key)
+			}
 		}
 	}
-	for key := range zh {
-		if _, ok := en[key]; !ok {
-			t.Errorf("unknown zh-CN key: %s", key)
+}
+
+func TestPluginSpecsAreLocalized(t *testing.T) {
+	for _, spec := range plugins.All() {
+		for _, lang := range locales.Switch2Languages {
+			title := locales.Catalog.Format(lang.Tag, spec.TitleKey, nil)
+			if title == "" || title == spec.TitleKey {
+				t.Errorf("[%s] plugin %s TitleKey %q missing from catalog", lang.Tag, spec.ID, spec.TitleKey)
+			}
+			desc := locales.Catalog.Format(lang.Tag, spec.DescKey, nil)
+			if desc == "" || desc == spec.DescKey {
+				t.Errorf("[%s] plugin %s DescKey %q missing from catalog", lang.Tag, spec.ID, spec.DescKey)
+			}
 		}
 	}
 }

@@ -24,7 +24,7 @@
     { "id": "civ-loader-verify", "outcome": "pass | fail | blocked", "log": "fresh nonce and Executed successfully on TCP 9026" },
     { "id": "civ-save-backup", "outcome": "pass | fail | blocked", "log": "save:/saves/Single backup checksums verified and retained" },
     { "id": "civ-trigger-install", "outcome": "pass | fail | blocked", "notes": "optional write; omit the step when not performed", "log": "INSTALL DONE - reboot, Load Game" },
-    { "id": "civ-control-center", "outcome": "pass | fail | blocked", "notes": "optional; omit when not performed", "log": "CONTROL_CENTER_READY, verified XSTRIG.Civ7Save export, clean stop" },
+    { "id": "civ-fs-host", "outcome": "pass | fail | blocked", "notes": "optional; omit when not performed", "log": "CIVSWITCH_FS_READY, verified held RPC run path, clean stop" },
     { "id": "civ-javascript", "outcome": "pass | fail | blocked", "notes": "optional; omit when not performed", "log": "explicit consent, exact file sent, execution confirmation" }
   ]
 }

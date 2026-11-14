@@ -1,7 +1,6 @@
 package retained_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -87,7 +86,6 @@ func TestInvalidFoldersAreRejectedWithTheLeaseIntact(t *testing.T) {
 		t.Fatal(err)
 	}
 	bad := []session.ToolRequest{
-		{Tool: "modloader", CodeConsent: true},
 		{Tool: "modloader", ModsFolder: "relative/mods", CodeConsent: true},
 		{Tool: "modloader", ModsFolder: t.TempDir(), CodeConsent: true},
 		{Tool: "modloader", ModsFolder: symlinked, CodeConsent: true},
@@ -171,22 +169,20 @@ func TestUserHomebrewRequiresPerActionCodeConsent(t *testing.T) {
 }
 
 func TestHomebrewToolRequestsValidateTheirInput(t *testing.T) {
-	c, _ := retainedValidatedController(t, "rpc-status", "mintbrew", "native-hblauncher", "izlauncher")
-	many := make([]string, 16)
-	for i := range many {
-		many[i] = fmt.Sprintf("module-%02d", i)
-	}
+	c, _ := retainedValidatedController(t, "rpc-status", "mintbrew", "native-hblauncher", "modloader")
 	bad := []session.ToolRequest{
-		{Tool: "izlauncher", Modules: []string{"UPPER"}},
-		{Tool: "izlauncher", Modules: []string{"blitbun", "blitbun"}},
-		{Tool: "izlauncher", Modules: many},
 		{Tool: "mintbrew", Modules: []string{"blitbun"}},
+		{Tool: "mintbrew", StremioQuality: "4k"},
+		{Tool: "mintbrew", StremioAddonURLs: []string{"ftp://example.com/manifest.json"}},
+		{Tool: "mintbrew", StremioAddonURLs: []string{"https://example.com/not-a-manifest"}},
+		{Tool: "mintbrew", AppFolder: t.TempDir(), CodeConsent: false},
 		{Tool: "native-hblauncher", SDRomFolder: "sd/roms"},
 		{Tool: "native-hblauncher", SDRomFolder: "/sd/roms/"},
 		{Tool: "native-hblauncher", SDRomFolder: "/sd/../roms"},
 		{Tool: "native-hblauncher", AppFolder: "relative/apps", CodeConsent: true},
 		{Tool: "native-hblauncher", AppFolder: "/definitely/missing-any2jb-fixture", CodeConsent: true},
 		{Tool: "mintbrew", SDRomFolder: "/sd/roms/nes"},
+		{Tool: "modloader", CodeConsent: false},
 	}
 	for _, request := range bad {
 		_, err := c.RunToolWith(request)
@@ -195,8 +191,13 @@ func TestHomebrewToolRequestsValidateTheirInput(t *testing.T) {
 			t.Fatalf("invalid request must state InvalidConfiguration: %+v %v", request, err)
 		}
 	}
-	if _, err := c.RunToolWith(session.ToolRequest{Tool: "izlauncher",
-		Modules: []string{"iz-exchange", "blitbun"}}); err != nil {
+	if _, err := c.RunToolWith(session.ToolRequest{Tool: "mintbrew",
+		AppFolder: t.TempDir(), CodeConsent: true, StremioQuality: "1080p",
+		StremioAddonURLs: []string{"https://v3-cinemeta.strem.io/manifest.json"}}); err != nil {
+		t.Fatal(err)
+	}
+	awaitSessionStage(t, c, session.RetainedRPC)
+	if _, err := c.RunToolWith(session.ToolRequest{Tool: "modloader", CodeConsent: true}); err != nil {
 		t.Fatal(err)
 	}
 	awaitSessionStage(t, c, session.RetainedRPC)

@@ -37,9 +37,6 @@ func TestUSBSaveMatchesEveryProfileEditionWithoutAcceptingOverwrite(t *testing.T
 					t.Fatal(err)
 				}
 				want := "SAVE \"NS2\"\n"
-				if profile.ID == "izmysh" {
-					want = "SAVE \"NS2I\"\n"
-				}
 				if edition == "demo" {
 					want = "PRGEDIT 0:C$=\"\":FOR I=0 TO PRGSIZE(0)-1:C$=C$+PRGGET$() :NEXT:SAVEV \"TXT:NS2\",C$\n"
 				}

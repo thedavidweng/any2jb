@@ -180,31 +180,18 @@ func TestCanonicalToolSourcesAreRecordedAndBlocked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bundledTools := []string{
-		"ouncecake", "sd-browser", "savekit", "modloader",
+	onDemandTools := []string{
+		"ouncecake", "savekit", "mintbrew", "mintbrew-native", "homebrew-runtime", "modloader",
 		"launcher-seedsow-demo", "launcher-seedsow-full", "launcher-nora2-demo", "launcher-nora1-demo",
 		"launcher-hamidashi-demo", "launcher-lua-editor", "launcher-lua-editor-pro",
 		"launcher-balatro", "launcher-balatro-showcase", "launcher-gravity-circuit",
+		"civswitch-usb", "civswitch-trigger", "civswitch-fs", "artemis-fs", "civhomebrew", "moonlight-civswitch",
+		"sw2nes", "jellyfin-civswitch", "nxformat", "nsp-box", "nup",
+		"dnswitch", "browser-probes",
 	}
-	for _, id := range bundledTools {
-		c, err := m.ToolComponent(id)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !c.Distribution.Available() || !c.Distribution.Bundled {
-			t.Fatalf("%s must be bundled in packages: %+v", id, c.Distribution)
-		}
-		if c.Revision == "" || c.Upstream == "" || c.SHA256 == "" || c.Source.Files == 0 {
-			t.Fatalf("%s is not pinned: %+v", id, c)
-		}
-		d, err := m.DistributionFor(id)
-		if err != nil || d.Reason == "" || d.Notice == "" {
-			t.Fatalf("%s has no user-facing reason or notice: %+v %v", id, d, err)
-		}
-	}
-	onDemandTools := []string{
-		"mintbrew", "mintbrew-native", "izlauncher", "izlauncher-blitbun",
-		"izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime",
+	gotOptional := m.OptionalToolIDs()
+	if len(gotOptional) != len(onDemandTools) {
+		t.Fatalf("OptionalToolIDs() = %v (%d), want %v (%d)", gotOptional, len(gotOptional), onDemandTools, len(onDemandTools))
 	}
 	for _, id := range onDemandTools {
 		c, err := m.ToolComponent(id)

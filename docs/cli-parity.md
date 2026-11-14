@@ -11,10 +11,33 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | UI key | CLI |
 | --- | --- |
 | about | `settings about` |
+| about-github | `about` |
+| about-open | `about` |
 | apple-recovery | n/a: a link to Apple's documentation |
 | apple-sip | n/a: a link to Apple's documentation |
 | apple-startup-security | n/a: a link to Apple's documentation |
 | apply-preferences | `settings set` |
+| artemis-backup | `artemis backup` |
+| artemis-catalog | `artemis catalog` |
+| artemis-consent | `artemis eval --consent` |
+| artemis-discover | `artemis discover` |
+| artemis-eval | `artemis eval` |
+| artemis-fs-host | `artemis fs --host` |
+| artemis-fs-start | `artemis fs` |
+| artemis-fs-stop | n/a: sending SIGINT (Ctrl-C) stops `artemis fs` |
+| artemis-get | `artemis get` |
+| artemis-health | `artemis health` |
+| artemis-host | `artemis status --console` |
+| artemis-local-path | `artemis get --out` |
+| artemis-lua | `artemis eval --code` |
+| artemis-port | `artemis status --port` |
+| artemis-probe | `artemis probe` |
+| artemis-put | `artemis put` |
+| artemis-remote-path | `artemis stat --path` |
+| artemis-rm | `artemis rm` |
+| artemis-stat | `artemis stat` |
+| artemis-status | `artemis status` |
+| artemis-subnet | `artemis discover --subnet` |
 | bootstrap | `prepare` |
 | bootstrap-overwrite | `save --consent` |
 | bootstrap-reuse | `use-saved` |
@@ -35,11 +58,21 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | civ-chat | `civswitch launch --confirm` |
 | civ-consent-code | `civswitch send-js --consent` |
 | civ-consent-saves | `civswitch install-trigger --consent` |
-| civ-control-stage | `civswitch stage-js` |
-| civ-control-start | `civswitch control-center` |
-| civ-control-stop | `civswitch stop-control-center` |
-| civ-export-open | n/a: `status --json` prints `CivSwitchActions.ExportPath` |
 | civ-finish | `finish` |
+| civ-fs-host | `civswitch fs start --host` |
+| civ-fs-start | `civswitch fs start` |
+| civ-fs-stop | `civswitch fs stop` |
+| civ-fs-wait | `civswitch fs start --wait` |
+| civ-hb-consent | `civswitch homebrew install-trigger --consent` |
+| civ-hb-install-trigger | `civswitch homebrew install-trigger` |
+| civ-hb-launch | `civswitch homebrew launch` |
+| civ-hb-pkg-file | `civswitch homebrew install-package --file` |
+| civ-hb-pkg-install | `civswitch homebrew install-package` |
+| civ-hb-pkg-select | `civswitch homebrew install-package --package` |
+| civ-hb-probe | `civswitch homebrew probe` |
+| civ-hb-restore-trigger | `civswitch homebrew restore-trigger --consent` |
+| civ-hb-shutdown | `civswitch homebrew shutdown` |
+| civ-hb-stop | `civswitch homebrew stop` |
 | civ-js | `civswitch send-js` |
 | civ-js-file | `civswitch send-js` |
 | civ-language | `civswitch launch --confirm` |
@@ -55,6 +88,14 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | console-restart | `restart-confirm --confirm` |
 | developer-options | `settings developer` |
 | diagnostics-open | `diagnostics` |
+| dnswitch-address | `dnswitch start --address` |
+| dnswitch-dns-port | `dnswitch start --dns-port` |
+| dnswitch-hostname | `dnswitch start --hostname` |
+| dnswitch-http-port | `dnswitch start --http-port` |
+| dnswitch-start | `dnswitch start` |
+| dnswitch-status | `dnswitch status` |
+| dnswitch-stop | `dnswitch stop` |
+| dnswitch-url | `dnswitch start --url` |
 | driver-approve | `driver install` |
 | driver-back | n/a: answering N at the prompt declines |
 | driver-confirm | `driver install --consent` |
@@ -76,25 +117,16 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | hb-custom-consent | `tool run --consent` |
 | hb-custom-folder | `tool run --custom-folder` |
 | hb-install | `tool install-homebrew` |
-| hb-izlauncher | `tool run` |
 | hb-mintbrew | `tool run` |
-| hb-mod-blitbun | `tool run --modules` |
-| hb-mod-iz-exchange | `tool run --modules` |
-| hb-mod-vacootube | `tool run --modules` |
 | hb-native | `tool run` |
 | hb-native-consent | `tool run --consent` |
 | hb-sd-folder | `tool run --sd-folder` |
-| prep-cable | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
-| prep-direct | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
-| prep-guide | n/a: a link to the 90dns setup guide |
-| prep-keyboard | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
-| prep-network | `civswitch launch --confirm` |
-| prep-smilebasic | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
-| prep-updates | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
-| prep-version | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| hb-stremio-addons | `tool run --stremio-addon` |
+| hb-stremio-quality | `tool run --stremio-quality` |
 | host-profile | `settings set --profile` |
 | inspect | `detect` |
 | lan-override | `settings set --lan` |
+| language-select | `settings set --language` |
 | launcher-account | `launcher install --account` |
 | launcher-confirm | `launcher install --consent` |
 | launcher-fullgame-export | `launcher install --backup-folder` |
@@ -118,10 +150,50 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | mod-consent | `tool run --consent` |
 | mod-folder | `tool run --mods-folder` |
 | mod-install | `tool run` |
+| mod-source | `tool run --mods-folder` |
+| nsp-artwork | `nsp-box build --artwork` |
+| nsp-base-game | `nsp-box build --base-game` |
+| nsp-build | `nsp-box build` |
+| nsp-dlc | `nsp-box build --dlc` |
+| nsp-output | `nsp-box build --out` |
+| nsp-source | `nsp-box build --source` |
+| nsp-title | `nsp-box build --title` |
+| nsp-title-id | `nsp-box build --title-id` |
+| nsp-version | `nsp-box build --version` |
+| nup-action | `nup` |
+| nup-input | `nup info --in` |
+| nup-output | `nup pack --out` |
+| nup-run | `nup` |
+| nxformat-action | `nxformat` |
+| nxformat-input | `nxformat info --in` |
+| nxformat-output | `nxformat pack --out` |
+| nxformat-run | `nxformat` |
 | ouncecake-ftp | `tool run --console` |
 | ouncecake-game | `tool state` |
 | ouncecake-select | `tool select` |
 | ouncecake-webdav | `tool run --console` |
+| plugin-category | `plugins list --category` |
+| plugin-install | `plugins install` |
+| plugin-install-all | `plugins install --all` |
+| plugin-install-category | `plugins install --category` |
+| plugin-select | `plugins list` |
+| plugin-uninstall | `plugins uninstall` |
+| plugin-upstream | `plugins list --json` |
+| plugins-open | `plugins list` |
+| prep-cable | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-direct | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-guide | n/a: a link to the 90dns setup guide |
+| prep-keyboard | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-network | `civswitch launch --confirm` |
+| prep-smilebasic | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-updates | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| prep-version | n/a: a console-side fact this app cannot observe; the command line leaves it to the operator |
+| probes-address | `browser-probes serve --address` |
+| probes-port | `browser-probes serve --port` |
+| probes-select | `browser-probes serve --probe` |
+| probes-source | `browser-probes serve --source` |
+| probes-start | `browser-probes serve` |
+| probes-stop | n/a: sending SIGINT (Ctrl-C) stops `browser-probes serve` |
 | recovery-steps | n/a: read-only Recovery instructions the user follows; no command changes security settings |
 | route | `launch` |
 | rpc-attach | `connect` |
@@ -158,7 +230,6 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | savekit-titles | `savekit titles` |
 | savekit-write | `savekit write` |
 | savekit-write-source | `savekit write --source` |
-| sd-browser | `tool run --console` |
 | selection-attach | `discover` |
 | selection-details | `settings profiles` |
 | selection-expert | `settings set --profile` |
@@ -190,4 +261,6 @@ Commands marked *session* run inside `any2jb session` (interactive, piped or
 | usb-start-forwarding | `keyboard open` |
 | usb-stock-defaults | `usb-defaults` |
 | usb-stop-forwarding | `keyboard close` |
+| util-tab | n/a: selects the active sub-tool tab in the GUI Utilities view |
+| utilities-open | n/a: navigates to the GUI Utilities view |
 | verified-details | `status --json` |

@@ -8,14 +8,18 @@ import (
 	"github.com/egoist/mygo/i18n"
 
 	// MyGo's own strings in the app's languages.
+	_ "github.com/egoist/mygo/locales/ja"
 	_ "github.com/egoist/mygo/locales/zh-Hans"
+	_ "github.com/egoist/mygo/locales/zh-Hant"
 )
 
 //go:embed *.json
 var files embed.FS
 
-// Catalog holds the messages in en, the source language, and zh-CN. It is
-// registered with package i18n, which makes its languages the app's.
+// Catalog holds the messages in en, the source language, and de, en-GB, es,
+// es-419, fr, fr-CA, it, ja, ko, nl, pl, pt-BR, pt-PT, ru, th, zh-CN and
+// zh-Hant. It is registered with package i18n, which makes its languages
+// the app's.
 var Catalog *i18n.Catalog
 
 func init() {
@@ -54,11 +58,11 @@ func (msgs Messages) CliJSON() string {
 	return Catalog.Format(msgs.locale, "cliJSON", nil)
 }
 
-// CliLanguage says "Language: en or zh-CN (default: system language)."
+// CliLanguage says "Language tag or system (default: follow system language)."
 // in the language the app shows.
 func CliLanguage() string { return In(i18n.Locale()).CliLanguage() }
 
-// CliLanguage says "Language: en or zh-CN (default: system language)."
+// CliLanguage says "Language tag or system (default: follow system language)."
 // in the language of msgs.
 func (msgs Messages) CliLanguage() string {
 	return Catalog.Format(msgs.locale, "cliLanguage", nil)
@@ -7260,134 +7264,306 @@ func (msgs Messages) DynDistBerm() string {
 	return Catalog.Format(msgs.locale, "dynDistBerm", nil)
 }
 
-// DynDistOptMintbrew says "Optional large homebrew environment (~100 MB+); not bundled in the base app. Download and verify it on demand from Ad…"
+// DynDistOptMintbrew says "Optional MintBrew GPU homebrew launcher plugin. Install on demand in Plugins; verified by SHA-256 before staging."
 // in the language the app shows.
 func DynDistOptMintbrew() string { return In(i18n.Locale()).DynDistOptMintbrew() }
 
-// DynDistOptMintbrew says "Optional large homebrew environment (~100 MB+); not bundled in the base app. Download and verify it on demand from Ad…"
+// DynDistOptMintbrew says "Optional MintBrew GPU homebrew launcher plugin. Install on demand in Plugins; verified by SHA-256 before staging."
 // in the language of msgs.
 func (msgs Messages) DynDistOptMintbrew() string {
 	return Catalog.Format(msgs.locale, "dynDistOptMintbrew", nil)
 }
 
-// DynDistOptMintbrewNative says "Optional homebrew component; not bundled in the base app. Download and verify it on demand from Advanced Tools or any…"
+// DynDistOptMintbrewNative says "Optional Native HBLauncher plugin. Install on demand in Plugins; verified by SHA-256 before staging."
 // in the language the app shows.
 func DynDistOptMintbrewNative() string { return In(i18n.Locale()).DynDistOptMintbrewNative() }
 
-// DynDistOptMintbrewNative says "Optional homebrew component; not bundled in the base app. Download and verify it on demand from Advanced Tools or any…"
+// DynDistOptMintbrewNative says "Optional Native HBLauncher plugin. Install on demand in Plugins; verified by SHA-256 before staging."
 // in the language of msgs.
 func (msgs Messages) DynDistOptMintbrewNative() string {
 	return Catalog.Format(msgs.locale, "dynDistOptMintbrewNative", nil)
 }
 
-// DynDistOptIZLauncher says "Optional large homebrew launcher (~100 MB+ environment); not bundled in the base app. Download and verify it on deman…"
-// in the language the app shows.
-func DynDistOptIZLauncher() string { return In(i18n.Locale()).DynDistOptIZLauncher() }
-
-// DynDistOptIZLauncher says "Optional large homebrew launcher (~100 MB+ environment); not bundled in the base app. Download and verify it on deman…"
-// in the language of msgs.
-func (msgs Messages) DynDistOptIZLauncher() string {
-	return Catalog.Format(msgs.locale, "dynDistOptIZLauncher", nil)
-}
-
-// DynDistOptIZBlitbun says "Optional IZlauncher BlitBun module; not bundled in the base app. Download and verify it on demand from Advanced Tools…"
-// in the language the app shows.
-func DynDistOptIZBlitbun() string { return In(i18n.Locale()).DynDistOptIZBlitbun() }
-
-// DynDistOptIZBlitbun says "Optional IZlauncher BlitBun module; not bundled in the base app. Download and verify it on demand from Advanced Tools…"
-// in the language of msgs.
-func (msgs Messages) DynDistOptIZBlitbun() string {
-	return Catalog.Format(msgs.locale, "dynDistOptIZBlitbun", nil)
-}
-
-// DynDistOptIZShell says "Optional IZlauncher shell module; not bundled in the base app. Download and verify it on demand from Advanced Tools o…"
-// in the language the app shows.
-func DynDistOptIZShell() string { return In(i18n.Locale()).DynDistOptIZShell() }
-
-// DynDistOptIZShell says "Optional IZlauncher shell module; not bundled in the base app. Download and verify it on demand from Advanced Tools o…"
-// in the language of msgs.
-func (msgs Messages) DynDistOptIZShell() string {
-	return Catalog.Format(msgs.locale, "dynDistOptIZShell", nil)
-}
-
-// DynDistOptIZVacootube says "Optional IZlauncher VacooTube module; not bundled in the base app. Download and verify it on demand from Advanced Too…"
-// in the language the app shows.
-func DynDistOptIZVacootube() string { return In(i18n.Locale()).DynDistOptIZVacootube() }
-
-// DynDistOptIZVacootube says "Optional IZlauncher VacooTube module; not bundled in the base app. Download and verify it on demand from Advanced Too…"
-// in the language of msgs.
-func (msgs Messages) DynDistOptIZVacootube() string {
-	return Catalog.Format(msgs.locale, "dynDistOptIZVacootube", nil)
-}
-
-// DynDistOptHomebrewRuntime says "Optional portable CPython/Pillow/SPIRV-Tools runtime (~100 MB+); not bundled in the base app. Download and verify it …"
+// DynDistOptHomebrewRuntime says "Optional portable GPU homebrew Python and shader runtime. Install on demand in Plugins; verified by SHA-256 before pr…"
 // in the language the app shows.
 func DynDistOptHomebrewRuntime() string { return In(i18n.Locale()).DynDistOptHomebrewRuntime() }
 
-// DynDistOptHomebrewRuntime says "Optional portable CPython/Pillow/SPIRV-Tools runtime (~100 MB+); not bundled in the base app. Download and verify it …"
+// DynDistOptHomebrewRuntime says "Optional portable GPU homebrew Python and shader runtime. Install on demand in Plugins; verified by SHA-256 before pr…"
 // in the language of msgs.
 func (msgs Messages) DynDistOptHomebrewRuntime() string {
 	return Catalog.Format(msgs.locale, "dynDistOptHomebrewRuntime", nil)
 }
 
-// DynDistBundledOunceCake says "Pinned OunceCake JavaScript export server and local FTP bridge bundled as complete verbatim source with GPL v2 LICENS…"
+// DynDistBundledOunceCake says "Optional OunceCake read-only game export plugin. Install on demand in Plugins; verified by SHA-256 before staging."
 // in the language the app shows.
 func DynDistBundledOunceCake() string { return In(i18n.Locale()).DynDistBundledOunceCake() }
 
-// DynDistBundledOunceCake says "Pinned OunceCake JavaScript export server and local FTP bridge bundled as complete verbatim source with GPL v2 LICENS…"
+// DynDistBundledOunceCake says "Optional OunceCake read-only game export plugin. Install on demand in Plugins; verified by SHA-256 before staging."
 // in the language of msgs.
 func (msgs Messages) DynDistBundledOunceCake() string {
 	return Catalog.Format(msgs.locale, "dynDistBundledOunceCake", nil)
 }
 
-// DynDistBundledSDBrowser says "Pinned Super File Bros /sd browser bundled as complete verbatim JavaScript source with GPL-2.0-only LICENSE and third…"
-// in the language the app shows.
-func DynDistBundledSDBrowser() string { return In(i18n.Locale()).DynDistBundledSDBrowser() }
-
-// DynDistBundledSDBrowser says "Pinned Super File Bros /sd browser bundled as complete verbatim JavaScript source with GPL-2.0-only LICENSE and third…"
-// in the language of msgs.
-func (msgs Messages) DynDistBundledSDBrowser() string {
-	return Catalog.Format(msgs.locale, "dynDistBundledSDBrowser", nil)
-}
-
-// DynDistBundledSaveKit says "Pinned SaveKit (ns2-savekit) tools bundled with MIT LICENSE, NOTICE and provenance."
+// DynDistBundledSaveKit says "Optional SaveKit save inspection, backup, mutation and Artemis HTTP plugin. Install on demand in Plugins; verified by…"
 // in the language the app shows.
 func DynDistBundledSaveKit() string { return In(i18n.Locale()).DynDistBundledSaveKit() }
 
-// DynDistBundledSaveKit says "Pinned SaveKit (ns2-savekit) tools bundled with MIT LICENSE, NOTICE and provenance."
+// DynDistBundledSaveKit says "Optional SaveKit save inspection, backup, mutation and Artemis HTTP plugin. Install on demand in Plugins; verified by…"
 // in the language of msgs.
 func (msgs Messages) DynDistBundledSaveKit() string {
 	return Catalog.Format(msgs.locale, "dynDistBundledSaveKit", nil)
 }
 
-// DynDistBundledModloader says "Pinned ns2jb-modloader bundled with complete JavaScript, C/WASI sources, prebuilt WASI module and GPL v2/zstd/wasi-li…"
+// DynDistBundledModloader says "Optional ns2jb-modloader Atmosphere layeredFS and IPS patch plugin. Install on demand in Plugins; verified by SHA-256…"
 // in the language the app shows.
 func DynDistBundledModloader() string { return In(i18n.Locale()).DynDistBundledModloader() }
 
-// DynDistBundledModloader says "Pinned ns2jb-modloader bundled with complete JavaScript, C/WASI sources, prebuilt WASI module and GPL v2/zstd/wasi-li…"
+// DynDistBundledModloader says "Optional ns2jb-modloader Atmosphere layeredFS and IPS patch plugin. Install on demand in Plugins; verified by SHA-256…"
 // in the language of msgs.
 func (msgs Messages) DynDistBundledModloader() string {
 	return Catalog.Format(msgs.locale, "dynDistBundledModloader", nil)
 }
 
-// DynDistBundledLauncherSave says "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256."
-// in the language the app shows.
-func DynDistBundledLauncherSave() string { return In(i18n.Locale()).DynDistBundledLauncherSave() }
-
-// DynDistBundledLauncherSave says "Pinned launcher save package bundled for offline SaveKit installation and verified by SHA-256."
-// in the language of msgs.
-func (msgs Messages) DynDistBundledLauncherSave() string {
-	return Catalog.Format(msgs.locale, "dynDistBundledLauncherSave", nil)
-}
-
-// DynDistBundledCivPayload says "Pinned CivSwitch bootstrap payload bundled with retained MIT notices."
+// DynDistBundledCivPayload says "Pinned CivSwitch bootstrap payload downloaded on demand via the civswitch-usb plugin."
 // in the language the app shows.
 func DynDistBundledCivPayload() string { return In(i18n.Locale()).DynDistBundledCivPayload() }
 
-// DynDistBundledCivPayload says "Pinned CivSwitch bootstrap payload bundled with retained MIT notices."
+// DynDistBundledCivPayload says "Pinned CivSwitch bootstrap payload downloaded on demand via the civswitch-usb plugin."
 // in the language of msgs.
 func (msgs Messages) DynDistBundledCivPayload() string {
 	return Catalog.Format(msgs.locale, "dynDistBundledCivPayload", nil)
+}
+
+// DynDistLauncherSeedsowDemo says "Optional launcher-seedsow-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistLauncherSeedsowDemo() string { return In(i18n.Locale()).DynDistLauncherSeedsowDemo() }
+
+// DynDistLauncherSeedsowDemo says "Optional launcher-seedsow-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherSeedsowDemo() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherSeedsowDemo", nil)
+}
+
+// DynDistLauncherSeedsowFull says "Optional launcher-seedsow-full save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistLauncherSeedsowFull() string { return In(i18n.Locale()).DynDistLauncherSeedsowFull() }
+
+// DynDistLauncherSeedsowFull says "Optional launcher-seedsow-full save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherSeedsowFull() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherSeedsowFull", nil)
+}
+
+// DynDistLauncherNora2Demo says "Optional launcher-nora2-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistLauncherNora2Demo() string { return In(i18n.Locale()).DynDistLauncherNora2Demo() }
+
+// DynDistLauncherNora2Demo says "Optional launcher-nora2-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherNora2Demo() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherNora2Demo", nil)
+}
+
+// DynDistLauncherNora1Demo says "Optional launcher-nora1-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistLauncherNora1Demo() string { return In(i18n.Locale()).DynDistLauncherNora1Demo() }
+
+// DynDistLauncherNora1Demo says "Optional launcher-nora1-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherNora1Demo() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherNora1Demo", nil)
+}
+
+// DynDistLauncherHamidashiDemo says "Optional launcher-hamidashi-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before stag…"
+// in the language the app shows.
+func DynDistLauncherHamidashiDemo() string { return In(i18n.Locale()).DynDistLauncherHamidashiDemo() }
+
+// DynDistLauncherHamidashiDemo says "Optional launcher-hamidashi-demo save launcher package. Install on demand in Plugins; verified by SHA-256 before stag…"
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherHamidashiDemo() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherHamidashiDemo", nil)
+}
+
+// DynDistLauncherLuaEditor says "Optional launcher-lua-editor save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistLauncherLuaEditor() string { return In(i18n.Locale()).DynDistLauncherLuaEditor() }
+
+// DynDistLauncherLuaEditor says "Optional launcher-lua-editor save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherLuaEditor() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherLuaEditor", nil)
+}
+
+// DynDistLauncherLuaEditorPro says "Optional launcher-lua-editor-pro save launcher package. Install on demand in Plugins; verified by SHA-256 before stag…"
+// in the language the app shows.
+func DynDistLauncherLuaEditorPro() string { return In(i18n.Locale()).DynDistLauncherLuaEditorPro() }
+
+// DynDistLauncherLuaEditorPro says "Optional launcher-lua-editor-pro save launcher package. Install on demand in Plugins; verified by SHA-256 before stag…"
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherLuaEditorPro() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherLuaEditorPro", nil)
+}
+
+// DynDistLauncherBalatro says "Optional launcher-balatro save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistLauncherBalatro() string { return In(i18n.Locale()).DynDistLauncherBalatro() }
+
+// DynDistLauncherBalatro says "Optional launcher-balatro save launcher package. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherBalatro() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherBalatro", nil)
+}
+
+// DynDistLauncherBalatroShowcase says "Optional launcher-balatro-showcase save launcher package. Install on demand in Plugins; verified by SHA-256 before st…"
+// in the language the app shows.
+func DynDistLauncherBalatroShowcase() string {
+	return In(i18n.Locale()).DynDistLauncherBalatroShowcase()
+}
+
+// DynDistLauncherBalatroShowcase says "Optional launcher-balatro-showcase save launcher package. Install on demand in Plugins; verified by SHA-256 before st…"
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherBalatroShowcase() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherBalatroShowcase", nil)
+}
+
+// DynDistLauncherGravityCircuit says "Optional launcher-gravity-circuit save launcher package. Install on demand in Plugins; verified by SHA-256 before sta…"
+// in the language the app shows.
+func DynDistLauncherGravityCircuit() string { return In(i18n.Locale()).DynDistLauncherGravityCircuit() }
+
+// DynDistLauncherGravityCircuit says "Optional launcher-gravity-circuit save launcher package. Install on demand in Plugins; verified by SHA-256 before sta…"
+// in the language of msgs.
+func (msgs Messages) DynDistLauncherGravityCircuit() string {
+	return Catalog.Format(msgs.locale, "dynDistLauncherGravityCircuit", nil)
+}
+
+// DynDistOptCivSwitchUSB says "Downloaded on demand from the verified upstream archive with SHA-256 checking; not bundled in the base app."
+// in the language the app shows.
+func DynDistOptCivSwitchUSB() string { return In(i18n.Locale()).DynDistOptCivSwitchUSB() }
+
+// DynDistOptCivSwitchUSB says "Downloaded on demand from the verified upstream archive with SHA-256 checking; not bundled in the base app."
+// in the language of msgs.
+func (msgs Messages) DynDistOptCivSwitchUSB() string {
+	return Catalog.Format(msgs.locale, "dynDistOptCivSwitchUSB", nil)
+}
+
+// DynDistOptCivSwitchTrigger says "Downloaded on demand from the verified upstream archive with SHA-256 checking; not bundled in the base app."
+// in the language the app shows.
+func DynDistOptCivSwitchTrigger() string { return In(i18n.Locale()).DynDistOptCivSwitchTrigger() }
+
+// DynDistOptCivSwitchTrigger says "Downloaded on demand from the verified upstream archive with SHA-256 checking; not bundled in the base app."
+// in the language of msgs.
+func (msgs Messages) DynDistOptCivSwitchTrigger() string {
+	return Catalog.Format(msgs.locale, "dynDistOptCivSwitchTrigger", nil)
+}
+
+// DynDistOptCivSwitchFS says "Optional CivSwitch FS held-RPC and filesystem host plugin. Install on demand in Plugins; verified by SHA-256 before s…"
+// in the language the app shows.
+func DynDistOptCivSwitchFS() string { return In(i18n.Locale()).DynDistOptCivSwitchFS() }
+
+// DynDistOptCivSwitchFS says "Optional CivSwitch FS held-RPC and filesystem host plugin. Install on demand in Plugins; verified by SHA-256 before s…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptCivSwitchFS() string {
+	return Catalog.Format(msgs.locale, "dynDistOptCivSwitchFS", nil)
+}
+
+// DynDistOptArtemisFS says "Optional Artemis Seedsow experimental FS host plugin. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language the app shows.
+func DynDistOptArtemisFS() string { return In(i18n.Locale()).DynDistOptArtemisFS() }
+
+// DynDistOptArtemisFS says "Optional Artemis Seedsow experimental FS host plugin. Install on demand in Plugins; verified by SHA-256 before staging."
+// in the language of msgs.
+func (msgs Messages) DynDistOptArtemisFS() string {
+	return Catalog.Format(msgs.locale, "dynDistOptArtemisFS", nil)
+}
+
+// DynDistOptCivHomebrew says "Optional CivHomebrew launcher and companion manager plugin. Fetches XITRIX/CivHomebrew from official GitHub and verif…"
+// in the language the app shows.
+func DynDistOptCivHomebrew() string { return In(i18n.Locale()).DynDistOptCivHomebrew() }
+
+// DynDistOptCivHomebrew says "Optional CivHomebrew launcher and companion manager plugin. Fetches XITRIX/CivHomebrew from official GitHub and verif…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptCivHomebrew() string {
+	return Catalog.Format(msgs.locale, "dynDistOptCivHomebrew", nil)
+}
+
+// DynDistOptMoonlight says "Optional Moonlight CivHomebrew app plugin. Downloads official v0.1.3 release asset on demand and verifies SHA-256."
+// in the language the app shows.
+func DynDistOptMoonlight() string { return In(i18n.Locale()).DynDistOptMoonlight() }
+
+// DynDistOptMoonlight says "Optional Moonlight CivHomebrew app plugin. Downloads official v0.1.3 release asset on demand and verifies SHA-256."
+// in the language of msgs.
+func (msgs Messages) DynDistOptMoonlight() string {
+	return Catalog.Format(msgs.locale, "dynDistOptMoonlight", nil)
+}
+
+// DynDistOptSW2NES says "Optional SW2NES CivHomebrew app plugin. Downloads and verifies SHA-256 on demand."
+// in the language the app shows.
+func DynDistOptSW2NES() string { return In(i18n.Locale()).DynDistOptSW2NES() }
+
+// DynDistOptSW2NES says "Optional SW2NES CivHomebrew app plugin. Downloads and verifies SHA-256 on demand."
+// in the language of msgs.
+func (msgs Messages) DynDistOptSW2NES() string {
+	return Catalog.Format(msgs.locale, "dynDistOptSW2NES", nil)
+}
+
+// DynDistOptJellyfin says "Optional Jellyfin CivHomebrew app plugin. Downloads and verifies SHA-256 on demand."
+// in the language the app shows.
+func DynDistOptJellyfin() string { return In(i18n.Locale()).DynDistOptJellyfin() }
+
+// DynDistOptJellyfin says "Optional Jellyfin CivHomebrew app plugin. Downloads and verifies SHA-256 on demand."
+// in the language of msgs.
+func (msgs Messages) DynDistOptJellyfin() string {
+	return Catalog.Format(msgs.locale, "dynDistOptJellyfin", nil)
+}
+
+// DynDistOptNXFormat says "Optional NXFormat (.nx) converter plugin. Downloads official fab918/nxformat V1.0.3 release for the host OS/CPU on de…"
+// in the language the app shows.
+func DynDistOptNXFormat() string { return In(i18n.Locale()).DynDistOptNXFormat() }
+
+// DynDistOptNXFormat says "Optional NXFormat (.nx) converter plugin. Downloads official fab918/nxformat V1.0.3 release for the host OS/CPU on de…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptNXFormat() string {
+	return Catalog.Format(msgs.locale, "dynDistOptNXFormat", nil)
+}
+
+// DynDistOptNSPBox says "Optional NSP-Box local homebrew packager plugin. Downloads and verifies SHA-256 on demand."
+// in the language the app shows.
+func DynDistOptNSPBox() string { return In(i18n.Locale()).DynDistOptNSPBox() }
+
+// DynDistOptNSPBox says "Optional NSP-Box local homebrew packager plugin. Downloads and verifies SHA-256 on demand."
+// in the language of msgs.
+func (msgs Messages) DynDistOptNSPBox() string {
+	return Catalog.Format(msgs.locale, "dynDistOptNSPBox", nil)
+}
+
+// DynDistOptNUP says "Optional NUP archive pack/inspect/extract/verify plugin. Fetches a55uka/nup from official GitHub and verifies SHA-256…"
+// in the language the app shows.
+func DynDistOptNUP() string { return In(i18n.Locale()).DynDistOptNUP() }
+
+// DynDistOptNUP says "Optional NUP archive pack/inspect/extract/verify plugin. Fetches a55uka/nup from official GitHub and verifies SHA-256…"
+// in the language of msgs.
+func (msgs Messages) DynDistOptNUP() string {
+	return Catalog.Format(msgs.locale, "dynDistOptNUP", nil)
+}
+
+// DynDistOptDNSwitch says "Optional DNSwitch captive-portal DNS and HTTP redirect plugin. Install on demand in Plugins; verified by SHA-256."
+// in the language the app shows.
+func DynDistOptDNSwitch() string { return In(i18n.Locale()).DynDistOptDNSwitch() }
+
+// DynDistOptDNSwitch says "Optional DNSwitch captive-portal DNS and HTTP redirect plugin. Install on demand in Plugins; verified by SHA-256."
+// in the language of msgs.
+func (msgs Messages) DynDistOptDNSwitch() string {
+	return Catalog.Format(msgs.locale, "dynDistOptDNSwitch", nil)
+}
+
+// DynDistOptBrowserProbes says "Optional local WebKit/browser capability probe server plugin. Install on demand in Plugins; verified by SHA-256."
+// in the language the app shows.
+func DynDistOptBrowserProbes() string { return In(i18n.Locale()).DynDistOptBrowserProbes() }
+
+// DynDistOptBrowserProbes says "Optional local WebKit/browser capability probe server plugin. Install on demand in Plugins; verified by SHA-256."
+// in the language of msgs.
+func (msgs Messages) DynDistOptBrowserProbes() string {
+	return Catalog.Format(msgs.locale, "dynDistOptBrowserProbes", nil)
 }
 
 // DynDistUsbgadgetBinary says "Apple Silicon macOS USB gadget kext binary bundled in darwin-arm64 with retained MIT and APSL-2.0 notices."
@@ -7428,4 +7604,2468 @@ func DynDistDriverInstaller() string { return In(i18n.Locale()).DynDistDriverIns
 // in the language of msgs.
 func (msgs Messages) DynDistDriverInstaller() string {
 	return Catalog.Format(msgs.locale, "dynDistDriverInstaller", nil)
+}
+
+// DynCivTriggerNotStaged says "CivSwitch boot trigger components are not installed yet. Install the civswitch-trigger plugin in Plugins first."
+// in the language the app shows.
+func DynCivTriggerNotStaged() string { return In(i18n.Locale()).DynCivTriggerNotStaged() }
+
+// DynCivTriggerNotStaged says "CivSwitch boot trigger components are not installed yet. Install the civswitch-trigger plugin in Plugins first."
+// in the language of msgs.
+func (msgs Messages) DynCivTriggerNotStaged() string {
+	return Catalog.Format(msgs.locale, "dynCivTriggerNotStaged", nil)
+}
+
+// ChooseLanguage says "Choose system or one of the 18 supported Nintendo Switch 2 UI languages."
+// in the language the app shows.
+func ChooseLanguage() string { return In(i18n.Locale()).ChooseLanguage() }
+
+// ChooseLanguage says "Choose system or one of the 18 supported Nintendo Switch 2 UI languages."
+// in the language of msgs.
+func (msgs Messages) ChooseLanguage() string {
+	return Catalog.Format(msgs.locale, "chooseLanguage", nil)
+}
+
+// LanguageLabel says "Language"
+// in the language the app shows.
+func LanguageLabel() string { return In(i18n.Locale()).LanguageLabel() }
+
+// LanguageLabel says "Language"
+// in the language of msgs.
+func (msgs Messages) LanguageLabel() string {
+	return Catalog.Format(msgs.locale, "languageLabel", nil)
+}
+
+// LanguageSystem says "Follow system"
+// in the language the app shows.
+func LanguageSystem() string { return In(i18n.Locale()).LanguageSystem() }
+
+// LanguageSystem says "Follow system"
+// in the language of msgs.
+func (msgs Messages) LanguageSystem() string {
+	return Catalog.Format(msgs.locale, "languageSystem", nil)
+}
+
+// NavPlugins says "Plugins"
+// in the language the app shows.
+func NavPlugins() string { return In(i18n.Locale()).NavPlugins() }
+
+// NavPlugins says "Plugins"
+// in the language of msgs.
+func (msgs Messages) NavPlugins() string {
+	return Catalog.Format(msgs.locale, "navPlugins", nil)
+}
+
+// NavUtilities says "Utilities"
+// in the language the app shows.
+func NavUtilities() string { return In(i18n.Locale()).NavUtilities() }
+
+// NavUtilities says "Utilities"
+// in the language of msgs.
+func (msgs Messages) NavUtilities() string {
+	return Catalog.Format(msgs.locale, "navUtilities", nil)
+}
+
+// NavAbout says "About"
+// in the language the app shows.
+func NavAbout() string { return In(i18n.Locale()).NavAbout() }
+
+// NavAbout says "About"
+// in the language of msgs.
+func (msgs Messages) NavAbout() string {
+	return Catalog.Format(msgs.locale, "navAbout", nil)
+}
+
+// AboutTitle says "About Any2JB"
+// in the language the app shows.
+func AboutTitle() string { return In(i18n.Locale()).AboutTitle() }
+
+// AboutTitle says "About Any2JB"
+// in the language of msgs.
+func (msgs Messages) AboutTitle() string {
+	return Catalog.Format(msgs.locale, "aboutTitle", nil)
+}
+
+// AboutOpenGitHub says "Open GitHub repository"
+// in the language the app shows.
+func AboutOpenGitHub() string { return In(i18n.Locale()).AboutOpenGitHub() }
+
+// AboutOpenGitHub says "Open GitHub repository"
+// in the language of msgs.
+func (msgs Messages) AboutOpenGitHub() string {
+	return Catalog.Format(msgs.locale, "aboutOpenGitHub", nil)
+}
+
+// AboutMarkdown says "# Any2JB {version}\n\nCross-platform fork of [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) for macOS and Linux, wit…"
+// in the language the app shows.
+func AboutMarkdown(version string) string { return In(i18n.Locale()).AboutMarkdown(version) }
+
+// AboutMarkdown says "# Any2JB {version}\n\nCross-platform fork of [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) for macOS and Linux, wit…"
+// in the language of msgs.
+func (msgs Messages) AboutMarkdown(version string) string {
+	return Catalog.Format(msgs.locale, "aboutMarkdown", map[string]any{"version": version})
+}
+
+// PluginsTitle says "Plugins"
+// in the language the app shows.
+func PluginsTitle() string { return In(i18n.Locale()).PluginsTitle() }
+
+// PluginsTitle says "Plugins"
+// in the language of msgs.
+func (msgs Messages) PluginsTitle() string {
+	return Catalog.Format(msgs.locale, "pluginsTitle", nil)
+}
+
+// PluginsIntro says "Sub-tools and companion runtimes are not bundled in the base app. Download, SHA-256 verify, and stage only the plugin…"
+// in the language the app shows.
+func PluginsIntro() string { return In(i18n.Locale()).PluginsIntro() }
+
+// PluginsIntro says "Sub-tools and companion runtimes are not bundled in the base app. Download, SHA-256 verify, and stage only the plugin…"
+// in the language of msgs.
+func (msgs Messages) PluginsIntro() string {
+	return Catalog.Format(msgs.locale, "pluginsIntro", nil)
+}
+
+// PluginsCategory says "Category"
+// in the language the app shows.
+func PluginsCategory() string { return In(i18n.Locale()).PluginsCategory() }
+
+// PluginsCategory says "Category"
+// in the language of msgs.
+func (msgs Messages) PluginsCategory() string {
+	return Catalog.Format(msgs.locale, "pluginsCategory", nil)
+}
+
+// PluginsCatAll says "All plugins"
+// in the language the app shows.
+func PluginsCatAll() string { return In(i18n.Locale()).PluginsCatAll() }
+
+// PluginsCatAll says "All plugins"
+// in the language of msgs.
+func (msgs Messages) PluginsCatAll() string {
+	return Catalog.Format(msgs.locale, "pluginsCatAll", nil)
+}
+
+// PluginsCatRetained says "Session tools"
+// in the language the app shows.
+func PluginsCatRetained() string { return In(i18n.Locale()).PluginsCatRetained() }
+
+// PluginsCatRetained says "Session tools"
+// in the language of msgs.
+func (msgs Messages) PluginsCatRetained() string {
+	return Catalog.Format(msgs.locale, "pluginsCatRetained", nil)
+}
+
+// PluginsCatHomebrew says "Homebrew & runtimes"
+// in the language the app shows.
+func PluginsCatHomebrew() string { return In(i18n.Locale()).PluginsCatHomebrew() }
+
+// PluginsCatHomebrew says "Homebrew & runtimes"
+// in the language of msgs.
+func (msgs Messages) PluginsCatHomebrew() string {
+	return Catalog.Format(msgs.locale, "pluginsCatHomebrew", nil)
+}
+
+// PluginsCatLaunchers says "Launcher saves"
+// in the language the app shows.
+func PluginsCatLaunchers() string { return In(i18n.Locale()).PluginsCatLaunchers() }
+
+// PluginsCatLaunchers says "Launcher saves"
+// in the language of msgs.
+func (msgs Messages) PluginsCatLaunchers() string {
+	return Catalog.Format(msgs.locale, "pluginsCatLaunchers", nil)
+}
+
+// PluginsCatCivSwitch says "CivSwitch"
+// in the language the app shows.
+func PluginsCatCivSwitch() string { return In(i18n.Locale()).PluginsCatCivSwitch() }
+
+// PluginsCatCivSwitch says "CivSwitch"
+// in the language of msgs.
+func (msgs Messages) PluginsCatCivSwitch() string {
+	return Catalog.Format(msgs.locale, "pluginsCatCivSwitch", nil)
+}
+
+// PluginsCatArtemis says "Artemis"
+// in the language the app shows.
+func PluginsCatArtemis() string { return In(i18n.Locale()).PluginsCatArtemis() }
+
+// PluginsCatArtemis says "Artemis"
+// in the language of msgs.
+func (msgs Messages) PluginsCatArtemis() string {
+	return Catalog.Format(msgs.locale, "pluginsCatArtemis", nil)
+}
+
+// PluginsCatDevtools says "Developer utilities"
+// in the language the app shows.
+func PluginsCatDevtools() string { return In(i18n.Locale()).PluginsCatDevtools() }
+
+// PluginsCatDevtools says "Developer utilities"
+// in the language of msgs.
+func (msgs Messages) PluginsCatDevtools() string {
+	return Catalog.Format(msgs.locale, "pluginsCatDevtools", nil)
+}
+
+// PluginsSelect says "Selected plugin"
+// in the language the app shows.
+func PluginsSelect() string { return In(i18n.Locale()).PluginsSelect() }
+
+// PluginsSelect says "Selected plugin"
+// in the language of msgs.
+func (msgs Messages) PluginsSelect() string {
+	return Catalog.Format(msgs.locale, "pluginsSelect", nil)
+}
+
+// PluginsInstall says "Install plugin"
+// in the language the app shows.
+func PluginsInstall() string { return In(i18n.Locale()).PluginsInstall() }
+
+// PluginsInstall says "Install plugin"
+// in the language of msgs.
+func (msgs Messages) PluginsInstall() string {
+	return Catalog.Format(msgs.locale, "pluginsInstall", nil)
+}
+
+// PluginsUninstall says "Uninstall plugin"
+// in the language the app shows.
+func PluginsUninstall() string { return In(i18n.Locale()).PluginsUninstall() }
+
+// PluginsUninstall says "Uninstall plugin"
+// in the language of msgs.
+func (msgs Messages) PluginsUninstall() string {
+	return Catalog.Format(msgs.locale, "pluginsUninstall", nil)
+}
+
+// PluginsInstallCategory says "Install category"
+// in the language the app shows.
+func PluginsInstallCategory() string { return In(i18n.Locale()).PluginsInstallCategory() }
+
+// PluginsInstallCategory says "Install category"
+// in the language of msgs.
+func (msgs Messages) PluginsInstallCategory() string {
+	return Catalog.Format(msgs.locale, "pluginsInstallCategory", nil)
+}
+
+// PluginsInstallAll says "Install all plugins"
+// in the language the app shows.
+func PluginsInstallAll() string { return In(i18n.Locale()).PluginsInstallAll() }
+
+// PluginsInstallAll says "Install all plugins"
+// in the language of msgs.
+func (msgs Messages) PluginsInstallAll() string {
+	return Catalog.Format(msgs.locale, "pluginsInstallAll", nil)
+}
+
+// PluginsInstalling says "Downloading and verifying plugins..."
+// in the language the app shows.
+func PluginsInstalling() string { return In(i18n.Locale()).PluginsInstalling() }
+
+// PluginsInstalling says "Downloading and verifying plugins..."
+// in the language of msgs.
+func (msgs Messages) PluginsInstalling() string {
+	return Catalog.Format(msgs.locale, "pluginsInstalling", nil)
+}
+
+// PluginsInstalledCount says "Installed: {installed} of {total} plugins"
+// in the language the app shows.
+func PluginsInstalledCount(installed string, total string) string {
+	return In(i18n.Locale()).PluginsInstalledCount(installed, total)
+}
+
+// PluginsInstalledCount says "Installed: {installed} of {total} plugins"
+// in the language of msgs.
+func (msgs Messages) PluginsInstalledCount(installed string, total string) string {
+	return Catalog.Format(msgs.locale, "pluginsInstalledCount", map[string]any{"installed": installed, "total": total})
+}
+
+// PluginsStateInstalled says "Installed"
+// in the language the app shows.
+func PluginsStateInstalled() string { return In(i18n.Locale()).PluginsStateInstalled() }
+
+// PluginsStateInstalled says "Installed"
+// in the language of msgs.
+func (msgs Messages) PluginsStateInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginsStateInstalled", nil)
+}
+
+// PluginsStateNotInstalled says "Not installed"
+// in the language the app shows.
+func PluginsStateNotInstalled() string { return In(i18n.Locale()).PluginsStateNotInstalled() }
+
+// PluginsStateNotInstalled says "Not installed"
+// in the language of msgs.
+func (msgs Messages) PluginsStateNotInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginsStateNotInstalled", nil)
+}
+
+// PluginsStateUnsupported says "Unsupported on this platform"
+// in the language the app shows.
+func PluginsStateUnsupported() string { return In(i18n.Locale()).PluginsStateUnsupported() }
+
+// PluginsStateUnsupported says "Unsupported on this platform"
+// in the language of msgs.
+func (msgs Messages) PluginsStateUnsupported() string {
+	return Catalog.Format(msgs.locale, "pluginsStateUnsupported", nil)
+}
+
+// PluginsDetailFormat says "{name} ({id}) · {state} · License: {license}"
+// in the language the app shows.
+func PluginsDetailFormat(name string, id string, state string, license string) string {
+	return In(i18n.Locale()).PluginsDetailFormat(name, id, state, license)
+}
+
+// PluginsDetailFormat says "{name} ({id}) · {state} · License: {license}"
+// in the language of msgs.
+func (msgs Messages) PluginsDetailFormat(name string, id string, state string, license string) string {
+	return Catalog.Format(msgs.locale, "pluginsDetailFormat", map[string]any{"name": name, "id": id, "state": state, "license": license})
+}
+
+// PluginsInstalledDone says "Verified and installed: {ids}"
+// in the language the app shows.
+func PluginsInstalledDone(ids string) string { return In(i18n.Locale()).PluginsInstalledDone(ids) }
+
+// PluginsInstalledDone says "Verified and installed: {ids}"
+// in the language of msgs.
+func (msgs Messages) PluginsInstalledDone(ids string) string {
+	return Catalog.Format(msgs.locale, "pluginsInstalledDone", map[string]any{"ids": ids})
+}
+
+// PluginsUninstalledDone says "Removed plugins: {ids}"
+// in the language the app shows.
+func PluginsUninstalledDone(ids string) string { return In(i18n.Locale()).PluginsUninstalledDone(ids) }
+
+// PluginsUninstalledDone says "Removed plugins: {ids}"
+// in the language of msgs.
+func (msgs Messages) PluginsUninstalledDone(ids string) string {
+	return Catalog.Format(msgs.locale, "pluginsUninstalledDone", map[string]any{"ids": ids})
+}
+
+// CivFSHostSection says "CivSwitch FS host & CivHomebrew"
+// in the language the app shows.
+func CivFSHostSection() string { return In(i18n.Locale()).CivFSHostSection() }
+
+// CivFSHostSection says "CivSwitch FS host & CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) CivFSHostSection() string {
+	return Catalog.Format(msgs.locale, "civFSHostSection", nil)
+}
+
+// CivFSHostIntro says "Start the CivSwitch FS held-RPC host to attach Session tools and SaveKit to Civilization VII, or manage CivHomebrew c…"
+// in the language the app shows.
+func CivFSHostIntro() string { return In(i18n.Locale()).CivFSHostIntro() }
+
+// CivFSHostIntro says "Start the CivSwitch FS held-RPC host to attach Session tools and SaveKit to Civilization VII, or manage CivHomebrew c…"
+// in the language of msgs.
+func (msgs Messages) CivFSHostIntro() string {
+	return Catalog.Format(msgs.locale, "civFSHostIntro", nil)
+}
+
+// CivFSHostAddress says "Host bind IPv4 (optional)"
+// in the language the app shows.
+func CivFSHostAddress() string { return In(i18n.Locale()).CivFSHostAddress() }
+
+// CivFSHostAddress says "Host bind IPv4 (optional)"
+// in the language of msgs.
+func (msgs Messages) CivFSHostAddress() string {
+	return Catalog.Format(msgs.locale, "civFSHostAddress", nil)
+}
+
+// CivFSWaitSeconds says "Connect timeout (seconds)"
+// in the language the app shows.
+func CivFSWaitSeconds() string { return In(i18n.Locale()).CivFSWaitSeconds() }
+
+// CivFSWaitSeconds says "Connect timeout (seconds)"
+// in the language of msgs.
+func (msgs Messages) CivFSWaitSeconds() string {
+	return Catalog.Format(msgs.locale, "civFSWaitSeconds", nil)
+}
+
+// CivFSWaitLoader says "Wait for the console loader to connect"
+// in the language the app shows.
+func CivFSWaitLoader() string { return In(i18n.Locale()).CivFSWaitLoader() }
+
+// CivFSWaitLoader says "Wait for the console loader to connect"
+// in the language of msgs.
+func (msgs Messages) CivFSWaitLoader() string {
+	return Catalog.Format(msgs.locale, "civFSWaitLoader", nil)
+}
+
+// CivFSStart says "Start CivSwitch FS host"
+// in the language the app shows.
+func CivFSStart() string { return In(i18n.Locale()).CivFSStart() }
+
+// CivFSStart says "Start CivSwitch FS host"
+// in the language of msgs.
+func (msgs Messages) CivFSStart() string {
+	return Catalog.Format(msgs.locale, "civFSStart", nil)
+}
+
+// CivFSStop says "Stop CivSwitch FS host"
+// in the language the app shows.
+func CivFSStop() string { return In(i18n.Locale()).CivFSStop() }
+
+// CivFSStop says "Stop CivSwitch FS host"
+// in the language of msgs.
+func (msgs Messages) CivFSStop() string {
+	return Catalog.Format(msgs.locale, "civFSStop", nil)
+}
+
+// CivFSLive says "CivSwitch FS host is live at {workspace}"
+// in the language the app shows.
+func CivFSLive(workspace string) string { return In(i18n.Locale()).CivFSLive(workspace) }
+
+// CivFSLive says "CivSwitch FS host is live at {workspace}"
+// in the language of msgs.
+func (msgs Messages) CivFSLive(workspace string) string {
+	return Catalog.Format(msgs.locale, "civFSLive", map[string]any{"workspace": workspace})
+}
+
+// CivHBProbe says "Probe CivHomebrew status"
+// in the language the app shows.
+func CivHBProbe() string { return In(i18n.Locale()).CivHBProbe() }
+
+// CivHBProbe says "Probe CivHomebrew status"
+// in the language of msgs.
+func (msgs Messages) CivHBProbe() string {
+	return Catalog.Format(msgs.locale, "civHBProbe", nil)
+}
+
+// CivHBLaunch says "Launch CivHomebrew"
+// in the language the app shows.
+func CivHBLaunch() string { return In(i18n.Locale()).CivHBLaunch() }
+
+// CivHBLaunch says "Launch CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) CivHBLaunch() string {
+	return Catalog.Format(msgs.locale, "civHBLaunch", nil)
+}
+
+// CivHBStop says "Stop CivHomebrew companion"
+// in the language the app shows.
+func CivHBStop() string { return In(i18n.Locale()).CivHBStop() }
+
+// CivHBStop says "Stop CivHomebrew companion"
+// in the language of msgs.
+func (msgs Messages) CivHBStop() string {
+	return Catalog.Format(msgs.locale, "civHBStop", nil)
+}
+
+// CivHBTriggerConsent says "I confirm modifying the Civilization VII save for CivHomebrew boot trigger"
+// in the language the app shows.
+func CivHBTriggerConsent() string { return In(i18n.Locale()).CivHBTriggerConsent() }
+
+// CivHBTriggerConsent says "I confirm modifying the Civilization VII save for CivHomebrew boot trigger"
+// in the language of msgs.
+func (msgs Messages) CivHBTriggerConsent() string {
+	return Catalog.Format(msgs.locale, "civHBTriggerConsent", nil)
+}
+
+// CivHBInstallTrigger says "Install CivHomebrew trigger"
+// in the language the app shows.
+func CivHBInstallTrigger() string { return In(i18n.Locale()).CivHBInstallTrigger() }
+
+// CivHBInstallTrigger says "Install CivHomebrew trigger"
+// in the language of msgs.
+func (msgs Messages) CivHBInstallTrigger() string {
+	return Catalog.Format(msgs.locale, "civHBInstallTrigger", nil)
+}
+
+// CivHBRestoreTrigger says "Restore original save from CivHomebrew"
+// in the language the app shows.
+func CivHBRestoreTrigger() string { return In(i18n.Locale()).CivHBRestoreTrigger() }
+
+// CivHBRestoreTrigger says "Restore original save from CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) CivHBRestoreTrigger() string {
+	return Catalog.Format(msgs.locale, "civHBRestoreTrigger", nil)
+}
+
+// CivHBShutdown says "Shut down CivHomebrew runtime"
+// in the language the app shows.
+func CivHBShutdown() string { return In(i18n.Locale()).CivHBShutdown() }
+
+// CivHBShutdown says "Shut down CivHomebrew runtime"
+// in the language of msgs.
+func (msgs Messages) CivHBShutdown() string {
+	return Catalog.Format(msgs.locale, "civHBShutdown", nil)
+}
+
+// CivHBPkgSelect says "CivHomebrew app package"
+// in the language the app shows.
+func CivHBPkgSelect() string { return In(i18n.Locale()).CivHBPkgSelect() }
+
+// CivHBPkgSelect says "CivHomebrew app package"
+// in the language of msgs.
+func (msgs Messages) CivHBPkgSelect() string {
+	return Catalog.Format(msgs.locale, "civHBPkgSelect", nil)
+}
+
+// CivHBPkgCustom says "Custom .civapp file"
+// in the language the app shows.
+func CivHBPkgCustom() string { return In(i18n.Locale()).CivHBPkgCustom() }
+
+// CivHBPkgCustom says "Custom .civapp file"
+// in the language of msgs.
+func (msgs Messages) CivHBPkgCustom() string {
+	return Catalog.Format(msgs.locale, "civHBPkgCustom", nil)
+}
+
+// CivHBPkgPath says "Custom .civapp path (absolute)"
+// in the language the app shows.
+func CivHBPkgPath() string { return In(i18n.Locale()).CivHBPkgPath() }
+
+// CivHBPkgPath says "Custom .civapp path (absolute)"
+// in the language of msgs.
+func (msgs Messages) CivHBPkgPath() string {
+	return Catalog.Format(msgs.locale, "civHBPkgPath", nil)
+}
+
+// CivHBPkgInstall says "Install CivHomebrew app"
+// in the language the app shows.
+func CivHBPkgInstall() string { return In(i18n.Locale()).CivHBPkgInstall() }
+
+// CivHBPkgInstall says "Install CivHomebrew app"
+// in the language of msgs.
+func (msgs Messages) CivHBPkgInstall() string {
+	return Catalog.Format(msgs.locale, "civHBPkgInstall", nil)
+}
+
+// CivHBStatusFormat says "CivHomebrew: reachable={reachable}, companion={companion}"
+// in the language the app shows.
+func CivHBStatusFormat(reachable string, companion string) string {
+	return In(i18n.Locale()).CivHBStatusFormat(reachable, companion)
+}
+
+// CivHBStatusFormat says "CivHomebrew: reachable={reachable}, companion={companion}"
+// in the language of msgs.
+func (msgs Messages) CivHBStatusFormat(reachable string, companion string) string {
+	return Catalog.Format(msgs.locale, "civHBStatusFormat", map[string]any{"reachable": reachable, "companion": companion})
+}
+
+// ModSourceMode says "Mod source location"
+// in the language the app shows.
+func ModSourceMode() string { return In(i18n.Locale()).ModSourceMode() }
+
+// ModSourceMode says "Mod source location"
+// in the language of msgs.
+func (msgs Messages) ModSourceMode() string {
+	return Catalog.Format(msgs.locale, "modSourceMode", nil)
+}
+
+// ModSourcePC says "Local folder on this computer"
+// in the language the app shows.
+func ModSourcePC() string { return In(i18n.Locale()).ModSourcePC() }
+
+// ModSourcePC says "Local folder on this computer"
+// in the language of msgs.
+func (msgs Messages) ModSourcePC() string {
+	return Catalog.Format(msgs.locale, "modSourcePC", nil)
+}
+
+// ModSourceSD says "SD card folder on the console"
+// in the language the app shows.
+func ModSourceSD() string { return In(i18n.Locale()).ModSourceSD() }
+
+// ModSourceSD says "SD card folder on the console"
+// in the language of msgs.
+func (msgs Messages) ModSourceSD() string {
+	return Catalog.Format(msgs.locale, "modSourceSD", nil)
+}
+
+// ModSDFolder says "SD mod folder on the console (for example /sd/mods)"
+// in the language the app shows.
+func ModSDFolder() string { return In(i18n.Locale()).ModSDFolder() }
+
+// ModSDFolder says "SD mod folder on the console (for example /sd/mods)"
+// in the language of msgs.
+func (msgs Messages) ModSDFolder() string {
+	return Catalog.Format(msgs.locale, "modSDFolder", nil)
+}
+
+// HbStremioQuality says "Stremio stream quality (optional)"
+// in the language the app shows.
+func HbStremioQuality() string { return In(i18n.Locale()).HbStremioQuality() }
+
+// HbStremioQuality says "Stremio stream quality (optional)"
+// in the language of msgs.
+func (msgs Messages) HbStremioQuality() string {
+	return Catalog.Format(msgs.locale, "hbStremioQuality", nil)
+}
+
+// HbStremioAddons says "Stremio addon manifest URLs (comma-separated, optional)"
+// in the language the app shows.
+func HbStremioAddons() string { return In(i18n.Locale()).HbStremioAddons() }
+
+// HbStremioAddons says "Stremio addon manifest URLs (comma-separated, optional)"
+// in the language of msgs.
+func (msgs Messages) HbStremioAddons() string {
+	return Catalog.Format(msgs.locale, "hbStremioAddons", nil)
+}
+
+// UtilTitle says "Utilities"
+// in the language the app shows.
+func UtilTitle() string { return In(i18n.Locale()).UtilTitle() }
+
+// UtilTitle says "Utilities"
+// in the language of msgs.
+func (msgs Messages) UtilTitle() string {
+	return Catalog.Format(msgs.locale, "utilTitle", nil)
+}
+
+// UtilIntro says "Standalone companion utilities for Artemis HTTP & Seedsow FS, NXFormat, NSP-Box, NUP archives, DNSwitch and local bro…"
+// in the language the app shows.
+func UtilIntro() string { return In(i18n.Locale()).UtilIntro() }
+
+// UtilIntro says "Standalone companion utilities for Artemis HTTP & Seedsow FS, NXFormat, NSP-Box, NUP archives, DNSwitch and local bro…"
+// in the language of msgs.
+func (msgs Messages) UtilIntro() string {
+	return Catalog.Format(msgs.locale, "utilIntro", nil)
+}
+
+// UtilTab says "Tool"
+// in the language the app shows.
+func UtilTab() string { return In(i18n.Locale()).UtilTab() }
+
+// UtilTab says "Tool"
+// in the language of msgs.
+func (msgs Messages) UtilTab() string {
+	return Catalog.Format(msgs.locale, "utilTab", nil)
+}
+
+// UtilTabArtemis says "Artemis & Seedsow FS"
+// in the language the app shows.
+func UtilTabArtemis() string { return In(i18n.Locale()).UtilTabArtemis() }
+
+// UtilTabArtemis says "Artemis & Seedsow FS"
+// in the language of msgs.
+func (msgs Messages) UtilTabArtemis() string {
+	return Catalog.Format(msgs.locale, "utilTabArtemis", nil)
+}
+
+// UtilTabNXFormat says "NXFormat"
+// in the language the app shows.
+func UtilTabNXFormat() string { return In(i18n.Locale()).UtilTabNXFormat() }
+
+// UtilTabNXFormat says "NXFormat"
+// in the language of msgs.
+func (msgs Messages) UtilTabNXFormat() string {
+	return Catalog.Format(msgs.locale, "utilTabNXFormat", nil)
+}
+
+// UtilTabNSPBox says "NSP-Box"
+// in the language the app shows.
+func UtilTabNSPBox() string { return In(i18n.Locale()).UtilTabNSPBox() }
+
+// UtilTabNSPBox says "NSP-Box"
+// in the language of msgs.
+func (msgs Messages) UtilTabNSPBox() string {
+	return Catalog.Format(msgs.locale, "utilTabNSPBox", nil)
+}
+
+// UtilTabNUP says "NUP Archive"
+// in the language the app shows.
+func UtilTabNUP() string { return In(i18n.Locale()).UtilTabNUP() }
+
+// UtilTabNUP says "NUP Archive"
+// in the language of msgs.
+func (msgs Messages) UtilTabNUP() string {
+	return Catalog.Format(msgs.locale, "utilTabNUP", nil)
+}
+
+// UtilTabDNSwitch says "DNSwitch"
+// in the language the app shows.
+func UtilTabDNSwitch() string { return In(i18n.Locale()).UtilTabDNSwitch() }
+
+// UtilTabDNSwitch says "DNSwitch"
+// in the language of msgs.
+func (msgs Messages) UtilTabDNSwitch() string {
+	return Catalog.Format(msgs.locale, "utilTabDNSwitch", nil)
+}
+
+// UtilTabProbes says "Browser Probes"
+// in the language the app shows.
+func UtilTabProbes() string { return In(i18n.Locale()).UtilTabProbes() }
+
+// UtilTabProbes says "Browser Probes"
+// in the language of msgs.
+func (msgs Messages) UtilTabProbes() string {
+	return Catalog.Format(msgs.locale, "utilTabProbes", nil)
+}
+
+// UtilOutput says "Output"
+// in the language the app shows.
+func UtilOutput() string { return In(i18n.Locale()).UtilOutput() }
+
+// UtilOutput says "Output"
+// in the language of msgs.
+func (msgs Messages) UtilOutput() string {
+	return Catalog.Format(msgs.locale, "utilOutput", nil)
+}
+
+// ArtemisHost says "Artemis console IPv4"
+// in the language the app shows.
+func ArtemisHost() string { return In(i18n.Locale()).ArtemisHost() }
+
+// ArtemisHost says "Artemis console IPv4"
+// in the language of msgs.
+func (msgs Messages) ArtemisHost() string {
+	return Catalog.Format(msgs.locale, "artemisHost", nil)
+}
+
+// ArtemisPort says "Artemis HTTP port (default 8080)"
+// in the language the app shows.
+func ArtemisPort() string { return In(i18n.Locale()).ArtemisPort() }
+
+// ArtemisPort says "Artemis HTTP port (default 8080)"
+// in the language of msgs.
+func (msgs Messages) ArtemisPort() string {
+	return Catalog.Format(msgs.locale, "artemisPort", nil)
+}
+
+// ArtemisRemotePath says "Console path (for stat / get / put / rm / backup)"
+// in the language the app shows.
+func ArtemisRemotePath() string { return In(i18n.Locale()).ArtemisRemotePath() }
+
+// ArtemisRemotePath says "Console path (for stat / get / put / rm / backup)"
+// in the language of msgs.
+func (msgs Messages) ArtemisRemotePath() string {
+	return Catalog.Format(msgs.locale, "artemisRemotePath", nil)
+}
+
+// ArtemisLocalPath says "Local file or backup folder (absolute path)"
+// in the language the app shows.
+func ArtemisLocalPath() string { return In(i18n.Locale()).ArtemisLocalPath() }
+
+// ArtemisLocalPath says "Local file or backup folder (absolute path)"
+// in the language of msgs.
+func (msgs Messages) ArtemisLocalPath() string {
+	return Catalog.Format(msgs.locale, "artemisLocalPath", nil)
+}
+
+// ArtemisLuaCode says "Lua snippet to evaluate"
+// in the language the app shows.
+func ArtemisLuaCode() string { return In(i18n.Locale()).ArtemisLuaCode() }
+
+// ArtemisLuaCode says "Lua snippet to evaluate"
+// in the language of msgs.
+func (msgs Messages) ArtemisLuaCode() string {
+	return Catalog.Format(msgs.locale, "artemisLuaCode", nil)
+}
+
+// ArtemisWriteConsent says "I confirm running Lua code or modifying files on the Artemis target"
+// in the language the app shows.
+func ArtemisWriteConsent() string { return In(i18n.Locale()).ArtemisWriteConsent() }
+
+// ArtemisWriteConsent says "I confirm running Lua code or modifying files on the Artemis target"
+// in the language of msgs.
+func (msgs Messages) ArtemisWriteConsent() string {
+	return Catalog.Format(msgs.locale, "artemisWriteConsent", nil)
+}
+
+// ArtemisCatalog says "List Artemis catalog"
+// in the language the app shows.
+func ArtemisCatalog() string { return In(i18n.Locale()).ArtemisCatalog() }
+
+// ArtemisCatalog says "List Artemis catalog"
+// in the language of msgs.
+func (msgs Messages) ArtemisCatalog() string {
+	return Catalog.Format(msgs.locale, "artemisCatalog", nil)
+}
+
+// ArtemisStatus says "Check status"
+// in the language the app shows.
+func ArtemisStatus() string { return In(i18n.Locale()).ArtemisStatus() }
+
+// ArtemisStatus says "Check status"
+// in the language of msgs.
+func (msgs Messages) ArtemisStatus() string {
+	return Catalog.Format(msgs.locale, "artemisStatus", nil)
+}
+
+// ArtemisHealth says "Check health"
+// in the language the app shows.
+func ArtemisHealth() string { return In(i18n.Locale()).ArtemisHealth() }
+
+// ArtemisHealth says "Check health"
+// in the language of msgs.
+func (msgs Messages) ArtemisHealth() string {
+	return Catalog.Format(msgs.locale, "artemisHealth", nil)
+}
+
+// ArtemisProbe says "Probe target"
+// in the language the app shows.
+func ArtemisProbe() string { return In(i18n.Locale()).ArtemisProbe() }
+
+// ArtemisProbe says "Probe target"
+// in the language of msgs.
+func (msgs Messages) ArtemisProbe() string {
+	return Catalog.Format(msgs.locale, "artemisProbe", nil)
+}
+
+// ArtemisSubnet says "Discovery subnet or host IPv4 (optional)"
+// in the language the app shows.
+func ArtemisSubnet() string { return In(i18n.Locale()).ArtemisSubnet() }
+
+// ArtemisSubnet says "Discovery subnet or host IPv4 (optional)"
+// in the language of msgs.
+func (msgs Messages) ArtemisSubnet() string {
+	return Catalog.Format(msgs.locale, "artemisSubnet", nil)
+}
+
+// ArtemisDiscover says "Discover on LAN"
+// in the language the app shows.
+func ArtemisDiscover() string { return In(i18n.Locale()).ArtemisDiscover() }
+
+// ArtemisDiscover says "Discover on LAN"
+// in the language of msgs.
+func (msgs Messages) ArtemisDiscover() string {
+	return Catalog.Format(msgs.locale, "artemisDiscover", nil)
+}
+
+// ArtemisStat says "Inspect path"
+// in the language the app shows.
+func ArtemisStat() string { return In(i18n.Locale()).ArtemisStat() }
+
+// ArtemisStat says "Inspect path"
+// in the language of msgs.
+func (msgs Messages) ArtemisStat() string {
+	return Catalog.Format(msgs.locale, "artemisStat", nil)
+}
+
+// ArtemisGet says "Download file"
+// in the language the app shows.
+func ArtemisGet() string { return In(i18n.Locale()).ArtemisGet() }
+
+// ArtemisGet says "Download file"
+// in the language of msgs.
+func (msgs Messages) ArtemisGet() string {
+	return Catalog.Format(msgs.locale, "artemisGet", nil)
+}
+
+// ArtemisBackup says "Export verified backup"
+// in the language the app shows.
+func ArtemisBackup() string { return In(i18n.Locale()).ArtemisBackup() }
+
+// ArtemisBackup says "Export verified backup"
+// in the language of msgs.
+func (msgs Messages) ArtemisBackup() string {
+	return Catalog.Format(msgs.locale, "artemisBackup", nil)
+}
+
+// ArtemisEval says "Run Lua"
+// in the language the app shows.
+func ArtemisEval() string { return In(i18n.Locale()).ArtemisEval() }
+
+// ArtemisEval says "Run Lua"
+// in the language of msgs.
+func (msgs Messages) ArtemisEval() string {
+	return Catalog.Format(msgs.locale, "artemisEval", nil)
+}
+
+// ArtemisPut says "Upload file"
+// in the language the app shows.
+func ArtemisPut() string { return In(i18n.Locale()).ArtemisPut() }
+
+// ArtemisPut says "Upload file"
+// in the language of msgs.
+func (msgs Messages) ArtemisPut() string {
+	return Catalog.Format(msgs.locale, "artemisPut", nil)
+}
+
+// ArtemisRemove says "Delete file"
+// in the language the app shows.
+func ArtemisRemove() string { return In(i18n.Locale()).ArtemisRemove() }
+
+// ArtemisRemove says "Delete file"
+// in the language of msgs.
+func (msgs Messages) ArtemisRemove() string {
+	return Catalog.Format(msgs.locale, "artemisRemove", nil)
+}
+
+// ArtemisFSBindHost says "Seedsow FS local bind IPv4 (optional)"
+// in the language the app shows.
+func ArtemisFSBindHost() string { return In(i18n.Locale()).ArtemisFSBindHost() }
+
+// ArtemisFSBindHost says "Seedsow FS local bind IPv4 (optional)"
+// in the language of msgs.
+func (msgs Messages) ArtemisFSBindHost() string {
+	return Catalog.Format(msgs.locale, "artemisFSBindHost", nil)
+}
+
+// ArtemisFSStart says "Start Seedsow FS host"
+// in the language the app shows.
+func ArtemisFSStart() string { return In(i18n.Locale()).ArtemisFSStart() }
+
+// ArtemisFSStart says "Start Seedsow FS host"
+// in the language of msgs.
+func (msgs Messages) ArtemisFSStart() string {
+	return Catalog.Format(msgs.locale, "artemisFSStart", nil)
+}
+
+// ArtemisFSStop says "Stop Seedsow FS host"
+// in the language the app shows.
+func ArtemisFSStop() string { return In(i18n.Locale()).ArtemisFSStop() }
+
+// ArtemisFSStop says "Stop Seedsow FS host"
+// in the language of msgs.
+func (msgs Messages) ArtemisFSStop() string {
+	return Catalog.Format(msgs.locale, "artemisFSStop", nil)
+}
+
+// NxAction says "NXFormat action"
+// in the language the app shows.
+func NxAction() string { return In(i18n.Locale()).NxAction() }
+
+// NxAction says "NXFormat action"
+// in the language of msgs.
+func (msgs Messages) NxAction() string {
+	return Catalog.Format(msgs.locale, "nxAction", nil)
+}
+
+// NxActionStatus says "Check binary status"
+// in the language the app shows.
+func NxActionStatus() string { return In(i18n.Locale()).NxActionStatus() }
+
+// NxActionStatus says "Check binary status"
+// in the language of msgs.
+func (msgs Messages) NxActionStatus() string {
+	return Catalog.Format(msgs.locale, "nxActionStatus", nil)
+}
+
+// NxActionInfo says "Inspect header"
+// in the language the app shows.
+func NxActionInfo() string { return In(i18n.Locale()).NxActionInfo() }
+
+// NxActionInfo says "Inspect header"
+// in the language of msgs.
+func (msgs Messages) NxActionInfo() string {
+	return Catalog.Format(msgs.locale, "nxActionInfo", nil)
+}
+
+// NxActionContents says "List contents"
+// in the language the app shows.
+func NxActionContents() string { return In(i18n.Locale()).NxActionContents() }
+
+// NxActionContents says "List contents"
+// in the language of msgs.
+func (msgs Messages) NxActionContents() string {
+	return Catalog.Format(msgs.locale, "nxActionContents", nil)
+}
+
+// NxActionVerify says "Verify archive"
+// in the language the app shows.
+func NxActionVerify() string { return In(i18n.Locale()).NxActionVerify() }
+
+// NxActionVerify says "Verify archive"
+// in the language of msgs.
+func (msgs Messages) NxActionVerify() string {
+	return Catalog.Format(msgs.locale, "nxActionVerify", nil)
+}
+
+// NxActionPack says "Pack directory"
+// in the language the app shows.
+func NxActionPack() string { return In(i18n.Locale()).NxActionPack() }
+
+// NxActionPack says "Pack directory"
+// in the language of msgs.
+func (msgs Messages) NxActionPack() string {
+	return Catalog.Format(msgs.locale, "nxActionPack", nil)
+}
+
+// NxInput says "Input .nx file or source folder (absolute path)"
+// in the language the app shows.
+func NxInput() string { return In(i18n.Locale()).NxInput() }
+
+// NxInput says "Input .nx file or source folder (absolute path)"
+// in the language of msgs.
+func (msgs Messages) NxInput() string {
+	return Catalog.Format(msgs.locale, "nxInput", nil)
+}
+
+// NxOutput says "Output .nx path for pack (absolute path)"
+// in the language the app shows.
+func NxOutput() string { return In(i18n.Locale()).NxOutput() }
+
+// NxOutput says "Output .nx path for pack (absolute path)"
+// in the language of msgs.
+func (msgs Messages) NxOutput() string {
+	return Catalog.Format(msgs.locale, "nxOutput", nil)
+}
+
+// NxRun says "Run NXFormat"
+// in the language the app shows.
+func NxRun() string { return In(i18n.Locale()).NxRun() }
+
+// NxRun says "Run NXFormat"
+// in the language of msgs.
+func (msgs Messages) NxRun() string {
+	return Catalog.Format(msgs.locale, "nxRun", nil)
+}
+
+// NspSource says "Decrypted dump folder (absolute path)"
+// in the language the app shows.
+func NspSource() string { return In(i18n.Locale()).NspSource() }
+
+// NspSource says "Decrypted dump folder (absolute path)"
+// in the language of msgs.
+func (msgs Messages) NspSource() string {
+	return Catalog.Format(msgs.locale, "nspSource", nil)
+}
+
+// NspDLC says "Package as DLC add-on content"
+// in the language the app shows.
+func NspDLC() string { return In(i18n.Locale()).NspDLC() }
+
+// NspDLC says "Package as DLC add-on content"
+// in the language of msgs.
+func (msgs Messages) NspDLC() string {
+	return Catalog.Format(msgs.locale, "nspDLC", nil)
+}
+
+// NspTitleID says "Title ID (16 hex digits, optional)"
+// in the language the app shows.
+func NspTitleID() string { return In(i18n.Locale()).NspTitleID() }
+
+// NspTitleID says "Title ID (16 hex digits, optional)"
+// in the language of msgs.
+func (msgs Messages) NspTitleID() string {
+	return Catalog.Format(msgs.locale, "nspTitleID", nil)
+}
+
+// NspBaseGame says "Base game Title ID for DLC (optional)"
+// in the language the app shows.
+func NspBaseGame() string { return In(i18n.Locale()).NspBaseGame() }
+
+// NspBaseGame says "Base game Title ID for DLC (optional)"
+// in the language of msgs.
+func (msgs Messages) NspBaseGame() string {
+	return Catalog.Format(msgs.locale, "nspBaseGame", nil)
+}
+
+// NspName says "Application title (optional)"
+// in the language the app shows.
+func NspName() string { return In(i18n.Locale()).NspName() }
+
+// NspName says "Application title (optional)"
+// in the language of msgs.
+func (msgs Messages) NspName() string {
+	return Catalog.Format(msgs.locale, "nspName", nil)
+}
+
+// NspAuthor says "Author"
+// in the language the app shows.
+func NspAuthor() string { return In(i18n.Locale()).NspAuthor() }
+
+// NspAuthor says "Author"
+// in the language of msgs.
+func (msgs Messages) NspAuthor() string {
+	return Catalog.Format(msgs.locale, "nspAuthor", nil)
+}
+
+// NspVersion says "Display version (optional)"
+// in the language the app shows.
+func NspVersion() string { return In(i18n.Locale()).NspVersion() }
+
+// NspVersion says "Display version (optional)"
+// in the language of msgs.
+func (msgs Messages) NspVersion() string {
+	return Catalog.Format(msgs.locale, "nspVersion", nil)
+}
+
+// NspNRO says "Input .nro file (absolute path)"
+// in the language the app shows.
+func NspNRO() string { return In(i18n.Locale()).NspNRO() }
+
+// NspNRO says "Input .nro file (absolute path)"
+// in the language of msgs.
+func (msgs Messages) NspNRO() string {
+	return Catalog.Format(msgs.locale, "nspNRO", nil)
+}
+
+// NspIcon says "Artwork image path (optional)"
+// in the language the app shows.
+func NspIcon() string { return In(i18n.Locale()).NspIcon() }
+
+// NspIcon says "Artwork image path (optional)"
+// in the language of msgs.
+func (msgs Messages) NspIcon() string {
+	return Catalog.Format(msgs.locale, "nspIcon", nil)
+}
+
+// NspRomfs says "RomFS folder path (optional)"
+// in the language the app shows.
+func NspRomfs() string { return In(i18n.Locale()).NspRomfs() }
+
+// NspRomfs says "RomFS folder path (optional)"
+// in the language of msgs.
+func (msgs Messages) NspRomfs() string {
+	return Catalog.Format(msgs.locale, "nspRomfs", nil)
+}
+
+// NspKeys says "prod.keys path (optional)"
+// in the language the app shows.
+func NspKeys() string { return In(i18n.Locale()).NspKeys() }
+
+// NspKeys says "prod.keys path (optional)"
+// in the language of msgs.
+func (msgs Messages) NspKeys() string {
+	return Catalog.Format(msgs.locale, "nspKeys", nil)
+}
+
+// NspOutput says "Output .nsp file (absolute path)"
+// in the language the app shows.
+func NspOutput() string { return In(i18n.Locale()).NspOutput() }
+
+// NspOutput says "Output .nsp file (absolute path)"
+// in the language of msgs.
+func (msgs Messages) NspOutput() string {
+	return Catalog.Format(msgs.locale, "nspOutput", nil)
+}
+
+// NspBuild says "Build NSP"
+// in the language the app shows.
+func NspBuild() string { return In(i18n.Locale()).NspBuild() }
+
+// NspBuild says "Build NSP"
+// in the language of msgs.
+func (msgs Messages) NspBuild() string {
+	return Catalog.Format(msgs.locale, "nspBuild", nil)
+}
+
+// NupAction says "NUP action"
+// in the language the app shows.
+func NupAction() string { return In(i18n.Locale()).NupAction() }
+
+// NupAction says "NUP action"
+// in the language of msgs.
+func (msgs Messages) NupAction() string {
+	return Catalog.Format(msgs.locale, "nupAction", nil)
+}
+
+// NupActionInfo says "Inspect metadata"
+// in the language the app shows.
+func NupActionInfo() string { return In(i18n.Locale()).NupActionInfo() }
+
+// NupActionInfo says "Inspect metadata"
+// in the language of msgs.
+func (msgs Messages) NupActionInfo() string {
+	return Catalog.Format(msgs.locale, "nupActionInfo", nil)
+}
+
+// NupActionList says "List entries"
+// in the language the app shows.
+func NupActionList() string { return In(i18n.Locale()).NupActionList() }
+
+// NupActionList says "List entries"
+// in the language of msgs.
+func (msgs Messages) NupActionList() string {
+	return Catalog.Format(msgs.locale, "nupActionList", nil)
+}
+
+// NupActionVerify says "Verify archive"
+// in the language the app shows.
+func NupActionVerify() string { return In(i18n.Locale()).NupActionVerify() }
+
+// NupActionVerify says "Verify archive"
+// in the language of msgs.
+func (msgs Messages) NupActionVerify() string {
+	return Catalog.Format(msgs.locale, "nupActionVerify", nil)
+}
+
+// NupActionPack says "Pack folder"
+// in the language the app shows.
+func NupActionPack() string { return In(i18n.Locale()).NupActionPack() }
+
+// NupActionPack says "Pack folder"
+// in the language of msgs.
+func (msgs Messages) NupActionPack() string {
+	return Catalog.Format(msgs.locale, "nupActionPack", nil)
+}
+
+// NupActionExtract says "Extract archive"
+// in the language the app shows.
+func NupActionExtract() string { return In(i18n.Locale()).NupActionExtract() }
+
+// NupActionExtract says "Extract archive"
+// in the language of msgs.
+func (msgs Messages) NupActionExtract() string {
+	return Catalog.Format(msgs.locale, "nupActionExtract", nil)
+}
+
+// NupInput says "Input .nup file or source folder (absolute path)"
+// in the language the app shows.
+func NupInput() string { return In(i18n.Locale()).NupInput() }
+
+// NupInput says "Input .nup file or source folder (absolute path)"
+// in the language of msgs.
+func (msgs Messages) NupInput() string {
+	return Catalog.Format(msgs.locale, "nupInput", nil)
+}
+
+// NupOutput says "Output .nup file or destination folder"
+// in the language the app shows.
+func NupOutput() string { return In(i18n.Locale()).NupOutput() }
+
+// NupOutput says "Output .nup file or destination folder"
+// in the language of msgs.
+func (msgs Messages) NupOutput() string {
+	return Catalog.Format(msgs.locale, "nupOutput", nil)
+}
+
+// NupRun says "Run NUP"
+// in the language the app shows.
+func NupRun() string { return In(i18n.Locale()).NupRun() }
+
+// NupRun says "Run NUP"
+// in the language of msgs.
+func (msgs Messages) NupRun() string {
+	return Catalog.Format(msgs.locale, "nupRun", nil)
+}
+
+// DnsRedirectIP says "Redirect IPv4 address"
+// in the language the app shows.
+func DnsRedirectIP() string { return In(i18n.Locale()).DnsRedirectIP() }
+
+// DnsRedirectIP says "Redirect IPv4 address"
+// in the language of msgs.
+func (msgs Messages) DnsRedirectIP() string {
+	return Catalog.Format(msgs.locale, "dnsRedirectIP", nil)
+}
+
+// DnsHostname says "Intercepted hostname (optional)"
+// in the language the app shows.
+func DnsHostname() string { return In(i18n.Locale()).DnsHostname() }
+
+// DnsHostname says "Intercepted hostname (optional)"
+// in the language of msgs.
+func (msgs Messages) DnsHostname() string {
+	return Catalog.Format(msgs.locale, "dnsHostname", nil)
+}
+
+// DnsPort says "DNS port (default 5353)"
+// in the language the app shows.
+func DnsPort() string { return In(i18n.Locale()).DnsPort() }
+
+// DnsPort says "DNS port (default 5353)"
+// in the language of msgs.
+func (msgs Messages) DnsPort() string {
+	return Catalog.Format(msgs.locale, "dnsPort", nil)
+}
+
+// DnsHTTPPort says "HTTP landing port (default 8081)"
+// in the language the app shows.
+func DnsHTTPPort() string { return In(i18n.Locale()).DnsHTTPPort() }
+
+// DnsHTTPPort says "HTTP landing port (default 8081)"
+// in the language of msgs.
+func (msgs Messages) DnsHTTPPort() string {
+	return Catalog.Format(msgs.locale, "dnsHTTPPort", nil)
+}
+
+// DnsLandingURL says "Target redirect URL"
+// in the language the app shows.
+func DnsLandingURL() string { return In(i18n.Locale()).DnsLandingURL() }
+
+// DnsLandingURL says "Target redirect URL"
+// in the language of msgs.
+func (msgs Messages) DnsLandingURL() string {
+	return Catalog.Format(msgs.locale, "dnsLandingURL", nil)
+}
+
+// DnsStart says "Start DNSwitch"
+// in the language the app shows.
+func DnsStart() string { return In(i18n.Locale()).DnsStart() }
+
+// DnsStart says "Start DNSwitch"
+// in the language of msgs.
+func (msgs Messages) DnsStart() string {
+	return Catalog.Format(msgs.locale, "dnsStart", nil)
+}
+
+// DnsStatus says "Refresh DNSwitch status"
+// in the language the app shows.
+func DnsStatus() string { return In(i18n.Locale()).DnsStatus() }
+
+// DnsStatus says "Refresh DNSwitch status"
+// in the language of msgs.
+func (msgs Messages) DnsStatus() string {
+	return Catalog.Format(msgs.locale, "dnsStatus", nil)
+}
+
+// DnsStop says "Stop DNSwitch"
+// in the language the app shows.
+func DnsStop() string { return In(i18n.Locale()).DnsStop() }
+
+// DnsStop says "Stop DNSwitch"
+// in the language of msgs.
+func (msgs Messages) DnsStop() string {
+	return Catalog.Format(msgs.locale, "dnsStop", nil)
+}
+
+// ProbesSelect says "Browser probe suite"
+// in the language the app shows.
+func ProbesSelect() string { return In(i18n.Locale()).ProbesSelect() }
+
+// ProbesSelect says "Browser probe suite"
+// in the language of msgs.
+func (msgs Messages) ProbesSelect() string {
+	return Catalog.Format(msgs.locale, "probesSelect", nil)
+}
+
+// ProbesSource says "Custom probe pages folder (optional)"
+// in the language the app shows.
+func ProbesSource() string { return In(i18n.Locale()).ProbesSource() }
+
+// ProbesSource says "Custom probe pages folder (optional)"
+// in the language of msgs.
+func (msgs Messages) ProbesSource() string {
+	return Catalog.Format(msgs.locale, "probesSource", nil)
+}
+
+// ProbesPort says "HTTP listen port (0 for random)"
+// in the language the app shows.
+func ProbesPort() string { return In(i18n.Locale()).ProbesPort() }
+
+// ProbesPort says "HTTP listen port (0 for random)"
+// in the language of msgs.
+func (msgs Messages) ProbesPort() string {
+	return Catalog.Format(msgs.locale, "probesPort", nil)
+}
+
+// ProbesStart says "Start browser probes server"
+// in the language the app shows.
+func ProbesStart() string { return In(i18n.Locale()).ProbesStart() }
+
+// ProbesStart says "Start browser probes server"
+// in the language of msgs.
+func (msgs Messages) ProbesStart() string {
+	return Catalog.Format(msgs.locale, "probesStart", nil)
+}
+
+// ProbesStop says "Stop browser probes server"
+// in the language the app shows.
+func ProbesStop() string { return In(i18n.Locale()).ProbesStop() }
+
+// ProbesStop says "Stop browser probes server"
+// in the language of msgs.
+func (msgs Messages) ProbesStop() string {
+	return Catalog.Format(msgs.locale, "probesStop", nil)
+}
+
+// CliCmdLanguageList says "List all supported UI and CLI languages."
+// in the language the app shows.
+func CliCmdLanguageList() string { return In(i18n.Locale()).CliCmdLanguageList() }
+
+// CliCmdLanguageList says "List all supported UI and CLI languages."
+// in the language of msgs.
+func (msgs Messages) CliCmdLanguageList() string {
+	return Catalog.Format(msgs.locale, "cliCmdLanguageList", nil)
+}
+
+// CliCmdAbout says "Print project credits, upstream repositories and official GitHub link."
+// in the language the app shows.
+func CliCmdAbout() string { return In(i18n.Locale()).CliCmdAbout() }
+
+// CliCmdAbout says "Print project credits, upstream repositories and official GitHub link."
+// in the language of msgs.
+func (msgs Messages) CliCmdAbout() string {
+	return Catalog.Format(msgs.locale, "cliCmdAbout", nil)
+}
+
+// CliCmdPlugins says "Download, verify, list and remove on-demand plugins."
+// in the language the app shows.
+func CliCmdPlugins() string { return In(i18n.Locale()).CliCmdPlugins() }
+
+// CliCmdPlugins says "Download, verify, list and remove on-demand plugins."
+// in the language of msgs.
+func (msgs Messages) CliCmdPlugins() string {
+	return Catalog.Format(msgs.locale, "cliCmdPlugins", nil)
+}
+
+// CliCmdPluginsList says "List all plugins and their installation status."
+// in the language the app shows.
+func CliCmdPluginsList() string { return In(i18n.Locale()).CliCmdPluginsList() }
+
+// CliCmdPluginsList says "List all plugins and their installation status."
+// in the language of msgs.
+func (msgs Messages) CliCmdPluginsList() string {
+	return Catalog.Format(msgs.locale, "cliCmdPluginsList", nil)
+}
+
+// CliCmdPluginsInstall says "Download and SHA-256 verify one or more plugins."
+// in the language the app shows.
+func CliCmdPluginsInstall() string { return In(i18n.Locale()).CliCmdPluginsInstall() }
+
+// CliCmdPluginsInstall says "Download and SHA-256 verify one or more plugins."
+// in the language of msgs.
+func (msgs Messages) CliCmdPluginsInstall() string {
+	return Catalog.Format(msgs.locale, "cliCmdPluginsInstall", nil)
+}
+
+// CliCmdPluginsUninstall says "Remove installed plugin stages."
+// in the language the app shows.
+func CliCmdPluginsUninstall() string { return In(i18n.Locale()).CliCmdPluginsUninstall() }
+
+// CliCmdPluginsUninstall says "Remove installed plugin stages."
+// in the language of msgs.
+func (msgs Messages) CliCmdPluginsUninstall() string {
+	return Catalog.Format(msgs.locale, "cliCmdPluginsUninstall", nil)
+}
+
+// CliCmdCivswitchFs says "Manage the CivSwitch held-RPC filesystem host."
+// in the language the app shows.
+func CliCmdCivswitchFs() string { return In(i18n.Locale()).CliCmdCivswitchFs() }
+
+// CliCmdCivswitchFs says "Manage the CivSwitch held-RPC filesystem host."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchFs() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchFs", nil)
+}
+
+// CliCmdCivswitchFsStart says "Start the CivSwitch filesystem host and wait for console attach."
+// in the language the app shows.
+func CliCmdCivswitchFsStart() string { return In(i18n.Locale()).CliCmdCivswitchFsStart() }
+
+// CliCmdCivswitchFsStart says "Start the CivSwitch filesystem host and wait for console attach."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchFsStart() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchFsStart", nil)
+}
+
+// CliCmdCivswitchFsStop says "Stop the running CivSwitch filesystem host."
+// in the language the app shows.
+func CliCmdCivswitchFsStop() string { return In(i18n.Locale()).CliCmdCivswitchFsStop() }
+
+// CliCmdCivswitchFsStop says "Stop the running CivSwitch filesystem host."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchFsStop() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchFsStop", nil)
+}
+
+// CliCmdCivswitchHomebrew says "Manage CivHomebrew launcher, boot trigger and .civapp packages."
+// in the language the app shows.
+func CliCmdCivswitchHomebrew() string { return In(i18n.Locale()).CliCmdCivswitchHomebrew() }
+
+// CliCmdCivswitchHomebrew says "Manage CivHomebrew launcher, boot trigger and .civapp packages."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrew() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrew", nil)
+}
+
+// CliCmdCivswitchHomebrewProbe says "Probe CivHomebrew loader and companion status."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewProbe() string { return In(i18n.Locale()).CliCmdCivswitchHomebrewProbe() }
+
+// CliCmdCivswitchHomebrewProbe says "Probe CivHomebrew loader and companion status."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewProbe() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewProbe", nil)
+}
+
+// CliCmdCivswitchHomebrewLaunch says "Launch CivHomebrew and keep the companion server running."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewLaunch() string { return In(i18n.Locale()).CliCmdCivswitchHomebrewLaunch() }
+
+// CliCmdCivswitchHomebrewLaunch says "Launch CivHomebrew and keep the companion server running."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewLaunch() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewLaunch", nil)
+}
+
+// CliCmdCivswitchHomebrewStop says "Stop the running CivHomebrew companion server."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewStop() string { return In(i18n.Locale()).CliCmdCivswitchHomebrewStop() }
+
+// CliCmdCivswitchHomebrewStop says "Stop the running CivHomebrew companion server."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewStop() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewStop", nil)
+}
+
+// CliCmdCivswitchHomebrewInstallTrigger says "Install the CivHomebrew persistent boot trigger."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewInstallTrigger() string {
+	return In(i18n.Locale()).CliCmdCivswitchHomebrewInstallTrigger()
+}
+
+// CliCmdCivswitchHomebrewInstallTrigger says "Install the CivHomebrew persistent boot trigger."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewInstallTrigger() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewInstallTrigger", nil)
+}
+
+// CliCmdCivswitchHomebrewRestoreTrigger says "Restore the pre-trigger Civilization VII save."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewRestoreTrigger() string {
+	return In(i18n.Locale()).CliCmdCivswitchHomebrewRestoreTrigger()
+}
+
+// CliCmdCivswitchHomebrewRestoreTrigger says "Restore the pre-trigger Civilization VII save."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewRestoreTrigger() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewRestoreTrigger", nil)
+}
+
+// CliCmdCivswitchHomebrewShutdown says "Send shutdown to the console CivHomebrew runtime."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewShutdown() string {
+	return In(i18n.Locale()).CliCmdCivswitchHomebrewShutdown()
+}
+
+// CliCmdCivswitchHomebrewShutdown says "Send shutdown to the console CivHomebrew runtime."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewShutdown() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewShutdown", nil)
+}
+
+// CliCmdCivswitchHomebrewInstallPackage says "Push an installed plugin app or custom .civapp to CivHomebrew."
+// in the language the app shows.
+func CliCmdCivswitchHomebrewInstallPackage() string {
+	return In(i18n.Locale()).CliCmdCivswitchHomebrewInstallPackage()
+}
+
+// CliCmdCivswitchHomebrewInstallPackage says "Push an installed plugin app or custom .civapp to CivHomebrew."
+// in the language of msgs.
+func (msgs Messages) CliCmdCivswitchHomebrewInstallPackage() string {
+	return Catalog.Format(msgs.locale, "cliCmdCivswitchHomebrewInstallPackage", nil)
+}
+
+// CliCmdArtemis says "Interact with Artemis HTTP targets and the Seedsow FS host."
+// in the language the app shows.
+func CliCmdArtemis() string { return In(i18n.Locale()).CliCmdArtemis() }
+
+// CliCmdArtemis says "Interact with Artemis HTTP targets and the Seedsow FS host."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemis() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemis", nil)
+}
+
+// CliCmdArtemisCatalog says "List bundled Artemis game targets and capabilities."
+// in the language the app shows.
+func CliCmdArtemisCatalog() string { return In(i18n.Locale()).CliCmdArtemisCatalog() }
+
+// CliCmdArtemisCatalog says "List bundled Artemis game targets and capabilities."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisCatalog() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisCatalog", nil)
+}
+
+// CliCmdArtemisStatus says "Read Artemis status from a console."
+// in the language the app shows.
+func CliCmdArtemisStatus() string { return In(i18n.Locale()).CliCmdArtemisStatus() }
+
+// CliCmdArtemisStatus says "Read Artemis status from a console."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisStatus() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisStatus", nil)
+}
+
+// CliCmdArtemisHealth says "Run an Artemis HTTP health check."
+// in the language the app shows.
+func CliCmdArtemisHealth() string { return In(i18n.Locale()).CliCmdArtemisHealth() }
+
+// CliCmdArtemisHealth says "Run an Artemis HTTP health check."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisHealth() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisHealth", nil)
+}
+
+// CliCmdArtemisProbe says "Probe Artemis identity and capabilities."
+// in the language the app shows.
+func CliCmdArtemisProbe() string { return In(i18n.Locale()).CliCmdArtemisProbe() }
+
+// CliCmdArtemisProbe says "Probe Artemis identity and capabilities."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisProbe() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisProbe", nil)
+}
+
+// CliCmdArtemisDiscover says "Discover Artemis targets on the local subnet."
+// in the language the app shows.
+func CliCmdArtemisDiscover() string { return In(i18n.Locale()).CliCmdArtemisDiscover() }
+
+// CliCmdArtemisDiscover says "Discover Artemis targets on the local subnet."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisDiscover() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisDiscover", nil)
+}
+
+// CliCmdArtemisStat says "Inspect a remote file or directory on Artemis."
+// in the language the app shows.
+func CliCmdArtemisStat() string { return In(i18n.Locale()).CliCmdArtemisStat() }
+
+// CliCmdArtemisStat says "Inspect a remote file or directory on Artemis."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisStat() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisStat", nil)
+}
+
+// CliCmdArtemisGet says "Download a remote file from Artemis."
+// in the language the app shows.
+func CliCmdArtemisGet() string { return In(i18n.Locale()).CliCmdArtemisGet() }
+
+// CliCmdArtemisGet says "Download a remote file from Artemis."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisGet() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisGet", nil)
+}
+
+// CliCmdArtemisEval says "Evaluate Lua code on Artemis with explicit consent."
+// in the language the app shows.
+func CliCmdArtemisEval() string { return In(i18n.Locale()).CliCmdArtemisEval() }
+
+// CliCmdArtemisEval says "Evaluate Lua code on Artemis with explicit consent."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisEval() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisEval", nil)
+}
+
+// CliCmdArtemisPut says "Upload a local file to Artemis with explicit consent."
+// in the language the app shows.
+func CliCmdArtemisPut() string { return In(i18n.Locale()).CliCmdArtemisPut() }
+
+// CliCmdArtemisPut says "Upload a local file to Artemis with explicit consent."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisPut() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisPut", nil)
+}
+
+// CliCmdArtemisRm says "Delete a remote path on Artemis with explicit consent."
+// in the language the app shows.
+func CliCmdArtemisRm() string { return In(i18n.Locale()).CliCmdArtemisRm() }
+
+// CliCmdArtemisRm says "Delete a remote path on Artemis with explicit consent."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisRm() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisRm", nil)
+}
+
+// CliCmdArtemisBackup says "Export a verified directory backup from Artemis."
+// in the language the app shows.
+func CliCmdArtemisBackup() string { return In(i18n.Locale()).CliCmdArtemisBackup() }
+
+// CliCmdArtemisBackup says "Export a verified directory backup from Artemis."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisBackup() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisBackup", nil)
+}
+
+// CliCmdArtemisFs says "Start the Artemis Seedsow experimental FS host until interrupted."
+// in the language the app shows.
+func CliCmdArtemisFs() string { return In(i18n.Locale()).CliCmdArtemisFs() }
+
+// CliCmdArtemisFs says "Start the Artemis Seedsow experimental FS host until interrupted."
+// in the language of msgs.
+func (msgs Messages) CliCmdArtemisFs() string {
+	return Catalog.Format(msgs.locale, "cliCmdArtemisFs", nil)
+}
+
+// CliCmdNxformat says "Inspect, verify and pack .nx homebrew archives."
+// in the language the app shows.
+func CliCmdNxformat() string { return In(i18n.Locale()).CliCmdNxformat() }
+
+// CliCmdNxformat says "Inspect, verify and pack .nx homebrew archives."
+// in the language of msgs.
+func (msgs Messages) CliCmdNxformat() string {
+	return Catalog.Format(msgs.locale, "cliCmdNxformat", nil)
+}
+
+// CliCmdNxformatStatus says "Check whether the nxformat plugin binary is installed."
+// in the language the app shows.
+func CliCmdNxformatStatus() string { return In(i18n.Locale()).CliCmdNxformatStatus() }
+
+// CliCmdNxformatStatus says "Check whether the nxformat plugin binary is installed."
+// in the language of msgs.
+func (msgs Messages) CliCmdNxformatStatus() string {
+	return Catalog.Format(msgs.locale, "cliCmdNxformatStatus", nil)
+}
+
+// CliCmdNxformatInfo says "Inspect .nx archive header metadata."
+// in the language the app shows.
+func CliCmdNxformatInfo() string { return In(i18n.Locale()).CliCmdNxformatInfo() }
+
+// CliCmdNxformatInfo says "Inspect .nx archive header metadata."
+// in the language of msgs.
+func (msgs Messages) CliCmdNxformatInfo() string {
+	return Catalog.Format(msgs.locale, "cliCmdNxformatInfo", nil)
+}
+
+// CliCmdNxformatContents says "List entries inside a .nx archive."
+// in the language the app shows.
+func CliCmdNxformatContents() string { return In(i18n.Locale()).CliCmdNxformatContents() }
+
+// CliCmdNxformatContents says "List entries inside a .nx archive."
+// in the language of msgs.
+func (msgs Messages) CliCmdNxformatContents() string {
+	return Catalog.Format(msgs.locale, "cliCmdNxformatContents", nil)
+}
+
+// CliCmdNxformatVerify says "Verify .nx archive integrity."
+// in the language the app shows.
+func CliCmdNxformatVerify() string { return In(i18n.Locale()).CliCmdNxformatVerify() }
+
+// CliCmdNxformatVerify says "Verify .nx archive integrity."
+// in the language of msgs.
+func (msgs Messages) CliCmdNxformatVerify() string {
+	return Catalog.Format(msgs.locale, "cliCmdNxformatVerify", nil)
+}
+
+// CliCmdNxformatPack says "Pack a directory into a .nx archive."
+// in the language the app shows.
+func CliCmdNxformatPack() string { return In(i18n.Locale()).CliCmdNxformatPack() }
+
+// CliCmdNxformatPack says "Pack a directory into a .nx archive."
+// in the language of msgs.
+func (msgs Messages) CliCmdNxformatPack() string {
+	return Catalog.Format(msgs.locale, "cliCmdNxformatPack", nil)
+}
+
+// CliCmdNspBox says "Build homebrew .nsp packages locally with NSP-Box."
+// in the language the app shows.
+func CliCmdNspBox() string { return In(i18n.Locale()).CliCmdNspBox() }
+
+// CliCmdNspBox says "Build homebrew .nsp packages locally with NSP-Box."
+// in the language of msgs.
+func (msgs Messages) CliCmdNspBox() string {
+	return Catalog.Format(msgs.locale, "cliCmdNspBox", nil)
+}
+
+// CliCmdNspBoxBuild says "Package a .nro binary into a local .nsp file."
+// in the language the app shows.
+func CliCmdNspBoxBuild() string { return In(i18n.Locale()).CliCmdNspBoxBuild() }
+
+// CliCmdNspBoxBuild says "Package a .nro binary into a local .nsp file."
+// in the language of msgs.
+func (msgs Messages) CliCmdNspBoxBuild() string {
+	return Catalog.Format(msgs.locale, "cliCmdNspBoxBuild", nil)
+}
+
+// CliCmdNup says "Inspect, verify, pack and extract .nup archives."
+// in the language the app shows.
+func CliCmdNup() string { return In(i18n.Locale()).CliCmdNup() }
+
+// CliCmdNup says "Inspect, verify, pack and extract .nup archives."
+// in the language of msgs.
+func (msgs Messages) CliCmdNup() string {
+	return Catalog.Format(msgs.locale, "cliCmdNup", nil)
+}
+
+// CliCmdNupInfo says "Inspect .nup archive metadata."
+// in the language the app shows.
+func CliCmdNupInfo() string { return In(i18n.Locale()).CliCmdNupInfo() }
+
+// CliCmdNupInfo says "Inspect .nup archive metadata."
+// in the language of msgs.
+func (msgs Messages) CliCmdNupInfo() string {
+	return Catalog.Format(msgs.locale, "cliCmdNupInfo", nil)
+}
+
+// CliCmdNupList says "List entries in a .nup archive."
+// in the language the app shows.
+func CliCmdNupList() string { return In(i18n.Locale()).CliCmdNupList() }
+
+// CliCmdNupList says "List entries in a .nup archive."
+// in the language of msgs.
+func (msgs Messages) CliCmdNupList() string {
+	return Catalog.Format(msgs.locale, "cliCmdNupList", nil)
+}
+
+// CliCmdNupVerify says "Verify a .nup archive."
+// in the language the app shows.
+func CliCmdNupVerify() string { return In(i18n.Locale()).CliCmdNupVerify() }
+
+// CliCmdNupVerify says "Verify a .nup archive."
+// in the language of msgs.
+func (msgs Messages) CliCmdNupVerify() string {
+	return Catalog.Format(msgs.locale, "cliCmdNupVerify", nil)
+}
+
+// CliCmdNupPack says "Pack a directory into a .nup archive."
+// in the language the app shows.
+func CliCmdNupPack() string { return In(i18n.Locale()).CliCmdNupPack() }
+
+// CliCmdNupPack says "Pack a directory into a .nup archive."
+// in the language of msgs.
+func (msgs Messages) CliCmdNupPack() string {
+	return Catalog.Format(msgs.locale, "cliCmdNupPack", nil)
+}
+
+// CliCmdNupExtract says "Extract a .nup archive to a local folder."
+// in the language the app shows.
+func CliCmdNupExtract() string { return In(i18n.Locale()).CliCmdNupExtract() }
+
+// CliCmdNupExtract says "Extract a .nup archive to a local folder."
+// in the language of msgs.
+func (msgs Messages) CliCmdNupExtract() string {
+	return Catalog.Format(msgs.locale, "cliCmdNupExtract", nil)
+}
+
+// CliCmdDnswitch says "Run the DNSwitch local DNS and HTTP redirect server."
+// in the language the app shows.
+func CliCmdDnswitch() string { return In(i18n.Locale()).CliCmdDnswitch() }
+
+// CliCmdDnswitch says "Run the DNSwitch local DNS and HTTP redirect server."
+// in the language of msgs.
+func (msgs Messages) CliCmdDnswitch() string {
+	return Catalog.Format(msgs.locale, "cliCmdDnswitch", nil)
+}
+
+// CliCmdDnswitchStart says "Start DNSwitch until interrupted."
+// in the language the app shows.
+func CliCmdDnswitchStart() string { return In(i18n.Locale()).CliCmdDnswitchStart() }
+
+// CliCmdDnswitchStart says "Start DNSwitch until interrupted."
+// in the language of msgs.
+func (msgs Messages) CliCmdDnswitchStart() string {
+	return Catalog.Format(msgs.locale, "cliCmdDnswitchStart", nil)
+}
+
+// CliCmdDnswitchStatus says "Print DNSwitch plugin availability."
+// in the language the app shows.
+func CliCmdDnswitchStatus() string { return In(i18n.Locale()).CliCmdDnswitchStatus() }
+
+// CliCmdDnswitchStatus says "Print DNSwitch plugin availability."
+// in the language of msgs.
+func (msgs Messages) CliCmdDnswitchStatus() string {
+	return Catalog.Format(msgs.locale, "cliCmdDnswitchStatus", nil)
+}
+
+// CliCmdDnswitchStop says "Stop an in-process DNSwitch instance."
+// in the language the app shows.
+func CliCmdDnswitchStop() string { return In(i18n.Locale()).CliCmdDnswitchStop() }
+
+// CliCmdDnswitchStop says "Stop an in-process DNSwitch instance."
+// in the language of msgs.
+func (msgs Messages) CliCmdDnswitchStop() string {
+	return Catalog.Format(msgs.locale, "cliCmdDnswitchStop", nil)
+}
+
+// CliCmdBrowserProbes says "List and serve local WebKit capability probes."
+// in the language the app shows.
+func CliCmdBrowserProbes() string { return In(i18n.Locale()).CliCmdBrowserProbes() }
+
+// CliCmdBrowserProbes says "List and serve local WebKit capability probes."
+// in the language of msgs.
+func (msgs Messages) CliCmdBrowserProbes() string {
+	return Catalog.Format(msgs.locale, "cliCmdBrowserProbes", nil)
+}
+
+// CliCmdBrowserProbesList says "List available browser probe suites."
+// in the language the app shows.
+func CliCmdBrowserProbesList() string { return In(i18n.Locale()).CliCmdBrowserProbesList() }
+
+// CliCmdBrowserProbesList says "List available browser probe suites."
+// in the language of msgs.
+func (msgs Messages) CliCmdBrowserProbesList() string {
+	return Catalog.Format(msgs.locale, "cliCmdBrowserProbesList", nil)
+}
+
+// CliCmdBrowserProbesServe says "Serve local browser capability probes over HTTP until interrupted."
+// in the language the app shows.
+func CliCmdBrowserProbesServe() string { return In(i18n.Locale()).CliCmdBrowserProbesServe() }
+
+// CliCmdBrowserProbesServe says "Serve local browser capability probes over HTTP until interrupted."
+// in the language of msgs.
+func (msgs Messages) CliCmdBrowserProbesServe() string {
+	return Catalog.Format(msgs.locale, "cliCmdBrowserProbesServe", nil)
+}
+
+// PluginOunceCakeTitle says "OunceCake"
+// in the language the app shows.
+func PluginOunceCakeTitle() string { return In(i18n.Locale()).PluginOunceCakeTitle() }
+
+// PluginOunceCakeTitle says "OunceCake"
+// in the language of msgs.
+func (msgs Messages) PluginOunceCakeTitle() string {
+	return Catalog.Format(msgs.locale, "pluginOunceCakeTitle", nil)
+}
+
+// PluginOunceCakeDesc says "Read-only HTTP/WebDAV and loopback FTP game and /sd file export."
+// in the language the app shows.
+func PluginOunceCakeDesc() string { return In(i18n.Locale()).PluginOunceCakeDesc() }
+
+// PluginOunceCakeDesc says "Read-only HTTP/WebDAV and loopback FTP game and /sd file export."
+// in the language of msgs.
+func (msgs Messages) PluginOunceCakeDesc() string {
+	return Catalog.Format(msgs.locale, "pluginOunceCakeDesc", nil)
+}
+
+// PluginSaveKitTitle says "SaveKit"
+// in the language the app shows.
+func PluginSaveKitTitle() string { return In(i18n.Locale()).PluginSaveKitTitle() }
+
+// PluginSaveKitTitle says "SaveKit"
+// in the language of msgs.
+func (msgs Messages) PluginSaveKitTitle() string {
+	return Catalog.Format(msgs.locale, "pluginSaveKitTitle", nil)
+}
+
+// PluginSaveKitDesc says "Inspect, back up, verify, write, restore and delete console save archives."
+// in the language the app shows.
+func PluginSaveKitDesc() string { return In(i18n.Locale()).PluginSaveKitDesc() }
+
+// PluginSaveKitDesc says "Inspect, back up, verify, write, restore and delete console save archives."
+// in the language of msgs.
+func (msgs Messages) PluginSaveKitDesc() string {
+	return Catalog.Format(msgs.locale, "pluginSaveKitDesc", nil)
+}
+
+// PluginModloaderTitle says "ns2jb Modloader"
+// in the language the app shows.
+func PluginModloaderTitle() string { return In(i18n.Locale()).PluginModloaderTitle() }
+
+// PluginModloaderTitle says "ns2jb Modloader"
+// in the language of msgs.
+func (msgs Messages) PluginModloaderTitle() string {
+	return Catalog.Format(msgs.locale, "pluginModloaderTitle", nil)
+}
+
+// PluginModloaderDesc says "Apply RomFS/ExeFS overlays and IPS patches from /sd/mods or a local folder."
+// in the language the app shows.
+func PluginModloaderDesc() string { return In(i18n.Locale()).PluginModloaderDesc() }
+
+// PluginModloaderDesc says "Apply RomFS/ExeFS overlays and IPS patches from /sd/mods or a local folder."
+// in the language of msgs.
+func (msgs Messages) PluginModloaderDesc() string {
+	return Catalog.Format(msgs.locale, "pluginModloaderDesc", nil)
+}
+
+// PluginMintBrewNativeTitle says "Native HBLauncher (ABI 3)"
+// in the language the app shows.
+func PluginMintBrewNativeTitle() string { return In(i18n.Locale()).PluginMintBrewNativeTitle() }
+
+// PluginMintBrewNativeTitle says "Native HBLauncher (ABI 3)"
+// in the language of msgs.
+func (msgs Messages) PluginMintBrewNativeTitle() string {
+	return Catalog.Format(msgs.locale, "pluginMintBrewNativeTitle", nil)
+}
+
+// PluginMintBrewNativeDesc says "Native CPU/GPU homebrew launcher with MintNES and Diamond Chase ROM."
+// in the language the app shows.
+func PluginMintBrewNativeDesc() string { return In(i18n.Locale()).PluginMintBrewNativeDesc() }
+
+// PluginMintBrewNativeDesc says "Native CPU/GPU homebrew launcher with MintNES and Diamond Chase ROM."
+// in the language of msgs.
+func (msgs Messages) PluginMintBrewNativeDesc() string {
+	return Catalog.Format(msgs.locale, "pluginMintBrewNativeDesc", nil)
+}
+
+// PluginMintBrewTitle says "MintBrew (GPUBrewLauncher)"
+// in the language the app shows.
+func PluginMintBrewTitle() string { return In(i18n.Locale()).PluginMintBrewTitle() }
+
+// PluginMintBrewTitle says "MintBrew (GPUBrewLauncher)"
+// in the language of msgs.
+func (msgs Messages) PluginMintBrewTitle() string {
+	return Catalog.Format(msgs.locale, "pluginMintBrewTitle", nil)
+}
+
+// PluginMintBrewDesc says "GPU homebrew launcher with Stremio streaming and custom app support."
+// in the language the app shows.
+func PluginMintBrewDesc() string { return In(i18n.Locale()).PluginMintBrewDesc() }
+
+// PluginMintBrewDesc says "GPU homebrew launcher with Stremio streaming and custom app support."
+// in the language of msgs.
+func (msgs Messages) PluginMintBrewDesc() string {
+	return Catalog.Format(msgs.locale, "pluginMintBrewDesc", nil)
+}
+
+// PluginHomebrewRuntimeTitle says "Homebrew Build Runtime"
+// in the language the app shows.
+func PluginHomebrewRuntimeTitle() string { return In(i18n.Locale()).PluginHomebrewRuntimeTitle() }
+
+// PluginHomebrewRuntimeTitle says "Homebrew Build Runtime"
+// in the language of msgs.
+func (msgs Messages) PluginHomebrewRuntimeTitle() string {
+	return Catalog.Format(msgs.locale, "pluginHomebrewRuntimeTitle", nil)
+}
+
+// PluginHomebrewRuntimeDesc says "Standalone Python 3.12, SPIRV-Tools and glslang toolchain for homebrew and archive tools."
+// in the language the app shows.
+func PluginHomebrewRuntimeDesc() string { return In(i18n.Locale()).PluginHomebrewRuntimeDesc() }
+
+// PluginHomebrewRuntimeDesc says "Standalone Python 3.12, SPIRV-Tools and glslang toolchain for homebrew and archive tools."
+// in the language of msgs.
+func (msgs Messages) PluginHomebrewRuntimeDesc() string {
+	return Catalog.Format(msgs.locale, "pluginHomebrewRuntimeDesc", nil)
+}
+
+// PluginCivSwitchUSBTitle says "CivSwitch USB Entry"
+// in the language the app shows.
+func PluginCivSwitchUSBTitle() string { return In(i18n.Locale()).PluginCivSwitchUSBTitle() }
+
+// PluginCivSwitchUSBTitle says "CivSwitch USB Entry"
+// in the language of msgs.
+func (msgs Messages) PluginCivSwitchUSBTitle() string {
+	return Catalog.Format(msgs.locale, "pluginCivSwitchUSBTitle", nil)
+}
+
+// PluginCivSwitchUSBDesc says "Composite USB keyboard and gamepad transfer payload for Civilization VII."
+// in the language the app shows.
+func PluginCivSwitchUSBDesc() string { return In(i18n.Locale()).PluginCivSwitchUSBDesc() }
+
+// PluginCivSwitchUSBDesc says "Composite USB keyboard and gamepad transfer payload for Civilization VII."
+// in the language of msgs.
+func (msgs Messages) PluginCivSwitchUSBDesc() string {
+	return Catalog.Format(msgs.locale, "pluginCivSwitchUSBDesc", nil)
+}
+
+// PluginCivSwitchTriggerTitle says "CivSwitch Boot Trigger"
+// in the language the app shows.
+func PluginCivSwitchTriggerTitle() string { return In(i18n.Locale()).PluginCivSwitchTriggerTitle() }
+
+// PluginCivSwitchTriggerTitle says "CivSwitch Boot Trigger"
+// in the language of msgs.
+func (msgs Messages) PluginCivSwitchTriggerTitle() string {
+	return Catalog.Format(msgs.locale, "pluginCivSwitchTriggerTitle", nil)
+}
+
+// PluginCivSwitchTriggerDesc says "Persistent boot-trigger save template, backup payload and installer."
+// in the language the app shows.
+func PluginCivSwitchTriggerDesc() string { return In(i18n.Locale()).PluginCivSwitchTriggerDesc() }
+
+// PluginCivSwitchTriggerDesc says "Persistent boot-trigger save template, backup payload and installer."
+// in the language of msgs.
+func (msgs Messages) PluginCivSwitchTriggerDesc() string {
+	return Catalog.Format(msgs.locale, "pluginCivSwitchTriggerDesc", nil)
+}
+
+// PluginCivSwitchFSTitle says "CivSwitch FS Host"
+// in the language the app shows.
+func PluginCivSwitchFSTitle() string { return In(i18n.Locale()).PluginCivSwitchFSTitle() }
+
+// PluginCivSwitchFSTitle says "CivSwitch FS Host"
+// in the language of msgs.
+func (msgs Messages) PluginCivSwitchFSTitle() string {
+	return Catalog.Format(msgs.locale, "pluginCivSwitchFSTitle", nil)
+}
+
+// PluginCivSwitchFSDesc says "Held-RPC bridge over CivSwitch for SaveKit, OunceCake and Homebrew."
+// in the language the app shows.
+func PluginCivSwitchFSDesc() string { return In(i18n.Locale()).PluginCivSwitchFSDesc() }
+
+// PluginCivSwitchFSDesc says "Held-RPC bridge over CivSwitch for SaveKit, OunceCake and Homebrew."
+// in the language of msgs.
+func (msgs Messages) PluginCivSwitchFSDesc() string {
+	return Catalog.Format(msgs.locale, "pluginCivSwitchFSDesc", nil)
+}
+
+// PluginCivHomebrewTitle says "CivHomebrew"
+// in the language the app shows.
+func PluginCivHomebrewTitle() string { return In(i18n.Locale()).PluginCivHomebrewTitle() }
+
+// PluginCivHomebrewTitle says "CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) PluginCivHomebrewTitle() string {
+	return Catalog.Format(msgs.locale, "pluginCivHomebrewTitle", nil)
+}
+
+// PluginCivHomebrewDesc says "Civilization VII homebrew runtime, boot trigger manager and .civapp installer."
+// in the language the app shows.
+func PluginCivHomebrewDesc() string { return In(i18n.Locale()).PluginCivHomebrewDesc() }
+
+// PluginCivHomebrewDesc says "Civilization VII homebrew runtime, boot trigger manager and .civapp installer."
+// in the language of msgs.
+func (msgs Messages) PluginCivHomebrewDesc() string {
+	return Catalog.Format(msgs.locale, "pluginCivHomebrewDesc", nil)
+}
+
+// PluginMoonlightCivSwitchTitle says "Moonlight for CivHomebrew"
+// in the language the app shows.
+func PluginMoonlightCivSwitchTitle() string { return In(i18n.Locale()).PluginMoonlightCivSwitchTitle() }
+
+// PluginMoonlightCivSwitchTitle says "Moonlight for CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) PluginMoonlightCivSwitchTitle() string {
+	return Catalog.Format(msgs.locale, "pluginMoonlightCivSwitchTitle", nil)
+}
+
+// PluginMoonlightCivSwitchDesc says "Moonlight game-streaming .civapp package for CivHomebrew."
+// in the language the app shows.
+func PluginMoonlightCivSwitchDesc() string { return In(i18n.Locale()).PluginMoonlightCivSwitchDesc() }
+
+// PluginMoonlightCivSwitchDesc says "Moonlight game-streaming .civapp package for CivHomebrew."
+// in the language of msgs.
+func (msgs Messages) PluginMoonlightCivSwitchDesc() string {
+	return Catalog.Format(msgs.locale, "pluginMoonlightCivSwitchDesc", nil)
+}
+
+// PluginSW2NESTitle says "SW2NES for CivHomebrew"
+// in the language the app shows.
+func PluginSW2NESTitle() string { return In(i18n.Locale()).PluginSW2NESTitle() }
+
+// PluginSW2NESTitle says "SW2NES for CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) PluginSW2NESTitle() string {
+	return Catalog.Format(msgs.locale, "pluginSW2NESTitle", nil)
+}
+
+// PluginSW2NESDesc says "NES emulator .civapp package for CivHomebrew."
+// in the language the app shows.
+func PluginSW2NESDesc() string { return In(i18n.Locale()).PluginSW2NESDesc() }
+
+// PluginSW2NESDesc says "NES emulator .civapp package for CivHomebrew."
+// in the language of msgs.
+func (msgs Messages) PluginSW2NESDesc() string {
+	return Catalog.Format(msgs.locale, "pluginSW2NESDesc", nil)
+}
+
+// PluginJellyfinCivSwitchTitle says "Jellyfin for CivHomebrew"
+// in the language the app shows.
+func PluginJellyfinCivSwitchTitle() string { return In(i18n.Locale()).PluginJellyfinCivSwitchTitle() }
+
+// PluginJellyfinCivSwitchTitle says "Jellyfin for CivHomebrew"
+// in the language of msgs.
+func (msgs Messages) PluginJellyfinCivSwitchTitle() string {
+	return Catalog.Format(msgs.locale, "pluginJellyfinCivSwitchTitle", nil)
+}
+
+// PluginJellyfinCivSwitchDesc says "Jellyfin media client .civapp package for CivHomebrew."
+// in the language the app shows.
+func PluginJellyfinCivSwitchDesc() string { return In(i18n.Locale()).PluginJellyfinCivSwitchDesc() }
+
+// PluginJellyfinCivSwitchDesc says "Jellyfin media client .civapp package for CivHomebrew."
+// in the language of msgs.
+func (msgs Messages) PluginJellyfinCivSwitchDesc() string {
+	return Catalog.Format(msgs.locale, "pluginJellyfinCivSwitchDesc", nil)
+}
+
+// PluginArtemisFSTitle says "Artemis / Seedsow FS Bridge"
+// in the language the app shows.
+func PluginArtemisFSTitle() string { return In(i18n.Locale()).PluginArtemisFSTitle() }
+
+// PluginArtemisFSTitle says "Artemis / Seedsow FS Bridge"
+// in the language of msgs.
+func (msgs Messages) PluginArtemisFSTitle() string {
+	return Catalog.Format(msgs.locale, "pluginArtemisFSTitle", nil)
+}
+
+// PluginArtemisFSDesc says "Held-RPC filesystem bridge over Artemis HTTP for Seedsow Lullaby."
+// in the language the app shows.
+func PluginArtemisFSDesc() string { return In(i18n.Locale()).PluginArtemisFSDesc() }
+
+// PluginArtemisFSDesc says "Held-RPC filesystem bridge over Artemis HTTP for Seedsow Lullaby."
+// in the language of msgs.
+func (msgs Messages) PluginArtemisFSDesc() string {
+	return Catalog.Format(msgs.locale, "pluginArtemisFSDesc", nil)
+}
+
+// PluginLauncherSeedsowDemoTitle says "Seedsowhax (Demo)"
+// in the language the app shows.
+func PluginLauncherSeedsowDemoTitle() string {
+	return In(i18n.Locale()).PluginLauncherSeedsowDemoTitle()
+}
+
+// PluginLauncherSeedsowDemoTitle says "Seedsowhax (Demo)"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherSeedsowDemoTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherSeedsowDemoTitle", nil)
+}
+
+// PluginLauncherSeedsowDemoDesc says "Artemis HTTP launcher save for Sweetner / Seedsow Lullaby trial."
+// in the language the app shows.
+func PluginLauncherSeedsowDemoDesc() string { return In(i18n.Locale()).PluginLauncherSeedsowDemoDesc() }
+
+// PluginLauncherSeedsowDemoDesc says "Artemis HTTP launcher save for Sweetner / Seedsow Lullaby trial."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherSeedsowDemoDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherSeedsowDemoDesc", nil)
+}
+
+// PluginLauncherSeedsowFullTitle says "Seedsowhax (Full Game)"
+// in the language the app shows.
+func PluginLauncherSeedsowFullTitle() string {
+	return In(i18n.Locale()).PluginLauncherSeedsowFullTitle()
+}
+
+// PluginLauncherSeedsowFullTitle says "Seedsowhax (Full Game)"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherSeedsowFullTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherSeedsowFullTitle", nil)
+}
+
+// PluginLauncherSeedsowFullDesc says "Artemis HTTP launcher save for Sweetner / Seedsow Lullaby full game."
+// in the language the app shows.
+func PluginLauncherSeedsowFullDesc() string { return In(i18n.Locale()).PluginLauncherSeedsowFullDesc() }
+
+// PluginLauncherSeedsowFullDesc says "Artemis HTTP launcher save for Sweetner / Seedsow Lullaby full game."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherSeedsowFullDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherSeedsowFullDesc", nil)
+}
+
+// PluginLauncherNora2DemoTitle says "Nora2hax (Trial)"
+// in the language the app shows.
+func PluginLauncherNora2DemoTitle() string { return In(i18n.Locale()).PluginLauncherNora2DemoTitle() }
+
+// PluginLauncherNora2DemoTitle says "Nora2hax (Trial)"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherNora2DemoTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherNora2DemoTitle", nil)
+}
+
+// PluginLauncherNora2DemoDesc says "Artemis HTTP launcher save for Nora, Princess, and Crying Cat 2 trial."
+// in the language the app shows.
+func PluginLauncherNora2DemoDesc() string { return In(i18n.Locale()).PluginLauncherNora2DemoDesc() }
+
+// PluginLauncherNora2DemoDesc says "Artemis HTTP launcher save for Nora, Princess, and Crying Cat 2 trial."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherNora2DemoDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherNora2DemoDesc", nil)
+}
+
+// PluginLauncherNora1DemoTitle says "Norahax (Demo)"
+// in the language the app shows.
+func PluginLauncherNora1DemoTitle() string { return In(i18n.Locale()).PluginLauncherNora1DemoTitle() }
+
+// PluginLauncherNora1DemoTitle says "Norahax (Demo)"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherNora1DemoTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherNora1DemoTitle", nil)
+}
+
+// PluginLauncherNora1DemoDesc says "Artemis HTTP launcher save for Nora, Princess, and Stray Cat Heart demo."
+// in the language the app shows.
+func PluginLauncherNora1DemoDesc() string { return In(i18n.Locale()).PluginLauncherNora1DemoDesc() }
+
+// PluginLauncherNora1DemoDesc says "Artemis HTTP launcher save for Nora, Princess, and Stray Cat Heart demo."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherNora1DemoDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherNora1DemoDesc", nil)
+}
+
+// PluginLauncherHamidashiDemoTitle says "Hamihax (Demo)"
+// in the language the app shows.
+func PluginLauncherHamidashiDemoTitle() string {
+	return In(i18n.Locale()).PluginLauncherHamidashiDemoTitle()
+}
+
+// PluginLauncherHamidashiDemoTitle says "Hamihax (Demo)"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherHamidashiDemoTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherHamidashiDemoTitle", nil)
+}
+
+// PluginLauncherHamidashiDemoDesc says "Artemis HTTP launcher save for Hamidashi Creative demo."
+// in the language the app shows.
+func PluginLauncherHamidashiDemoDesc() string {
+	return In(i18n.Locale()).PluginLauncherHamidashiDemoDesc()
+}
+
+// PluginLauncherHamidashiDemoDesc says "Artemis HTTP launcher save for Hamidashi Creative demo."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherHamidashiDemoDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherHamidashiDemoDesc", nil)
+}
+
+// PluginLauncherLuaEditorTitle says "Seedsow Lua Editor"
+// in the language the app shows.
+func PluginLauncherLuaEditorTitle() string { return In(i18n.Locale()).PluginLauncherLuaEditorTitle() }
+
+// PluginLauncherLuaEditorTitle says "Seedsow Lua Editor"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherLuaEditorTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherLuaEditorTitle", nil)
+}
+
+// PluginLauncherLuaEditorDesc says "On-console Lua editor save for Seedsow Lullaby demo."
+// in the language the app shows.
+func PluginLauncherLuaEditorDesc() string { return In(i18n.Locale()).PluginLauncherLuaEditorDesc() }
+
+// PluginLauncherLuaEditorDesc says "On-console Lua editor save for Seedsow Lullaby demo."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherLuaEditorDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherLuaEditorDesc", nil)
+}
+
+// PluginLauncherLuaEditorProTitle says "Seedsow Lua Editor Pro"
+// in the language the app shows.
+func PluginLauncherLuaEditorProTitle() string {
+	return In(i18n.Locale()).PluginLauncherLuaEditorProTitle()
+}
+
+// PluginLauncherLuaEditorProTitle says "Seedsow Lua Editor Pro"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherLuaEditorProTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherLuaEditorProTitle", nil)
+}
+
+// PluginLauncherLuaEditorProDesc says "Multi-slot on-console Lua Editor Pro save for Seedsow Lullaby demo."
+// in the language the app shows.
+func PluginLauncherLuaEditorProDesc() string {
+	return In(i18n.Locale()).PluginLauncherLuaEditorProDesc()
+}
+
+// PluginLauncherLuaEditorProDesc says "Multi-slot on-console Lua Editor Pro save for Seedsow Lullaby demo."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherLuaEditorProDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherLuaEditorProDesc", nil)
+}
+
+// PluginLauncherBalatroTitle says "Balatro RCE Save"
+// in the language the app shows.
+func PluginLauncherBalatroTitle() string { return In(i18n.Locale()).PluginLauncherBalatroTitle() }
+
+// PluginLauncherBalatroTitle says "Balatro RCE Save"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherBalatroTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherBalatroTitle", nil)
+}
+
+// PluginLauncherBalatroDesc says "Save-based Lua execution package for physical Switch 1 Balatro cartridge."
+// in the language the app shows.
+func PluginLauncherBalatroDesc() string { return In(i18n.Locale()).PluginLauncherBalatroDesc() }
+
+// PluginLauncherBalatroDesc says "Save-based Lua execution package for physical Switch 1 Balatro cartridge."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherBalatroDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherBalatroDesc", nil)
+}
+
+// PluginLauncherBalatroShowcaseTitle says "Balatro Showcase Save"
+// in the language the app shows.
+func PluginLauncherBalatroShowcaseTitle() string {
+	return In(i18n.Locale()).PluginLauncherBalatroShowcaseTitle()
+}
+
+// PluginLauncherBalatroShowcaseTitle says "Balatro Showcase Save"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherBalatroShowcaseTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherBalatroShowcaseTitle", nil)
+}
+
+// PluginLauncherBalatroShowcaseDesc says "cpypwn showcase variant for physical Switch 1 Balatro cartridge."
+// in the language the app shows.
+func PluginLauncherBalatroShowcaseDesc() string {
+	return In(i18n.Locale()).PluginLauncherBalatroShowcaseDesc()
+}
+
+// PluginLauncherBalatroShowcaseDesc says "cpypwn showcase variant for physical Switch 1 Balatro cartridge."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherBalatroShowcaseDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherBalatroShowcaseDesc", nil)
+}
+
+// PluginLauncherGravityCircuitTitle says "Gravity Circuit RCE Save"
+// in the language the app shows.
+func PluginLauncherGravityCircuitTitle() string {
+	return In(i18n.Locale()).PluginLauncherGravityCircuitTitle()
+}
+
+// PluginLauncherGravityCircuitTitle says "Gravity Circuit RCE Save"
+// in the language of msgs.
+func (msgs Messages) PluginLauncherGravityCircuitTitle() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherGravityCircuitTitle", nil)
+}
+
+// PluginLauncherGravityCircuitDesc says "Save-based Lua and FTP package for Gravity Circuit 1.0.0 / 1.2.1."
+// in the language the app shows.
+func PluginLauncherGravityCircuitDesc() string {
+	return In(i18n.Locale()).PluginLauncherGravityCircuitDesc()
+}
+
+// PluginLauncherGravityCircuitDesc says "Save-based Lua and FTP package for Gravity Circuit 1.0.0 / 1.2.1."
+// in the language of msgs.
+func (msgs Messages) PluginLauncherGravityCircuitDesc() string {
+	return Catalog.Format(msgs.locale, "pluginLauncherGravityCircuitDesc", nil)
+}
+
+// PluginNXFormatTitle says "NXFormat"
+// in the language the app shows.
+func PluginNXFormatTitle() string { return In(i18n.Locale()).PluginNXFormatTitle() }
+
+// PluginNXFormatTitle says "NXFormat"
+// in the language of msgs.
+func (msgs Messages) PluginNXFormatTitle() string {
+	return Catalog.Format(msgs.locale, "pluginNXFormatTitle", nil)
+}
+
+// PluginNXFormatDesc says "Pack, inspect, list, verify and extract .nxf archives locally."
+// in the language the app shows.
+func PluginNXFormatDesc() string { return In(i18n.Locale()).PluginNXFormatDesc() }
+
+// PluginNXFormatDesc says "Pack, inspect, list, verify and extract .nxf archives locally."
+// in the language of msgs.
+func (msgs Messages) PluginNXFormatDesc() string {
+	return Catalog.Format(msgs.locale, "pluginNXFormatDesc", nil)
+}
+
+// PluginNSPBoxTitle says "NSP-Box"
+// in the language the app shows.
+func PluginNSPBoxTitle() string { return In(i18n.Locale()).PluginNSPBoxTitle() }
+
+// PluginNSPBoxTitle says "NSP-Box"
+// in the language of msgs.
+func (msgs Messages) PluginNSPBoxTitle() string {
+	return Catalog.Format(msgs.locale, "pluginNSPBoxTitle", nil)
+}
+
+// PluginNSPBoxDesc says "Build local homebrew .nsp packages from extracted game or DLC snapshots."
+// in the language the app shows.
+func PluginNSPBoxDesc() string { return In(i18n.Locale()).PluginNSPBoxDesc() }
+
+// PluginNSPBoxDesc says "Build local homebrew .nsp packages from extracted game or DLC snapshots."
+// in the language of msgs.
+func (msgs Messages) PluginNSPBoxDesc() string {
+	return Catalog.Format(msgs.locale, "pluginNSPBoxDesc", nil)
+}
+
+// PluginNUPTitle says "NUP Archive Tool"
+// in the language the app shows.
+func PluginNUPTitle() string { return In(i18n.Locale()).PluginNUPTitle() }
+
+// PluginNUPTitle says "NUP Archive Tool"
+// in the language of msgs.
+func (msgs Messages) PluginNUPTitle() string {
+	return Catalog.Format(msgs.locale, "pluginNUPTitle", nil)
+}
+
+// PluginNUPDesc says "Pack, inspect, list, verify and extract Zstandard-compressed .nup archives."
+// in the language the app shows.
+func PluginNUPDesc() string { return In(i18n.Locale()).PluginNUPDesc() }
+
+// PluginNUPDesc says "Pack, inspect, list, verify and extract Zstandard-compressed .nup archives."
+// in the language of msgs.
+func (msgs Messages) PluginNUPDesc() string {
+	return Catalog.Format(msgs.locale, "pluginNUPDesc", nil)
+}
+
+// PluginDNSwitchTitle says "DNSwitch"
+// in the language the app shows.
+func PluginDNSwitchTitle() string { return In(i18n.Locale()).PluginDNSwitchTitle() }
+
+// PluginDNSwitchTitle says "DNSwitch"
+// in the language of msgs.
+func (msgs Messages) PluginDNSwitchTitle() string {
+	return Catalog.Format(msgs.locale, "pluginDNSwitchTitle", nil)
+}
+
+// PluginDNSwitchDesc says "Local DNS and captive-portal HTTP redirect server for console browser testing."
+// in the language the app shows.
+func PluginDNSwitchDesc() string { return In(i18n.Locale()).PluginDNSwitchDesc() }
+
+// PluginDNSwitchDesc says "Local DNS and captive-portal HTTP redirect server for console browser testing."
+// in the language of msgs.
+func (msgs Messages) PluginDNSwitchDesc() string {
+	return Catalog.Format(msgs.locale, "pluginDNSwitchDesc", nil)
+}
+
+// PluginBrowserProbesTitle says "Browser Capability Probes"
+// in the language the app shows.
+func PluginBrowserProbesTitle() string { return In(i18n.Locale()).PluginBrowserProbesTitle() }
+
+// PluginBrowserProbesTitle says "Browser Capability Probes"
+// in the language of msgs.
+func (msgs Messages) PluginBrowserProbesTitle() string {
+	return Catalog.Format(msgs.locale, "pluginBrowserProbesTitle", nil)
+}
+
+// PluginBrowserProbesDesc says "Local HTTP server for Switch 2 WebKit diagnostic probe pages."
+// in the language the app shows.
+func PluginBrowserProbesDesc() string { return In(i18n.Locale()).PluginBrowserProbesDesc() }
+
+// PluginBrowserProbesDesc says "Local HTTP server for Switch 2 WebKit diagnostic probe pages."
+// in the language of msgs.
+func (msgs Messages) PluginBrowserProbesDesc() string {
+	return Catalog.Format(msgs.locale, "pluginBrowserProbesDesc", nil)
 }

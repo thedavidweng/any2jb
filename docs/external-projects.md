@@ -1,7 +1,7 @@
 # External projects
 
-Every outside project any2jb builds with, ships, stages or reimplements, with
-the exact version it is pinned to. Use this page to review what the app
+Every outside project any2jb builds with, ships, stages or downloads on demand,
+with the exact version it is pinned to. Use this page to review what the app
 depends on.
 
 The sources of truth are [`internal/manifest/profiles.json`](../internal/manifest/profiles.json)
@@ -12,31 +12,23 @@ License findings and release blockers are in the
 
 The **Use** column means:
 
-- **Shipped**: inside the packaged app.
-- **On-demand**: optional large tools downloaded and SHA-256-verified on user request, not bundled in the base app.
+- **Shipped**: inside the base packaged app (host profiles, USB sidecars, Node runtime).
+- **On-demand plugin**: optional sub-tools downloaded from official upstream sources and SHA-256-verified on user request, never bundled inside the base installer.
 - **Build**: needed to build or check any2jb, not packaged.
-- **Developer-staged**: read from a local pinned mac2jb checkout only through
-  [developer launch](developer-launch.md), never packaged.
-- **Blocked** / **Excluded**: the manifest's distribution decision. Blocked
-  items are not implemented in packaged mode. Excluded items are not used at all.
-
-When the manifest's upstream is mac2jb, any2jb takes the file from mac2jb's
-copy, and the original project is named beside it. Those original revisions
-come from mac2jb's own records (`upstream.lock`, `packaging/*provenance*`,
-`integrations/*/provenance.json`) at the pinned mac2jb revision.
+- **Excluded**: not distributed or executed.
 
 ## Reference implementation
 
 | Project | Pinned | Role |
 |---|---|---|
-| [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) | [`ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308`](https://github.com/cpypwn/mac2jb/tree/ce1ce5f4f40b412cf83ba0a4f10ac53a850ed308) | The Mac tool any2jb reaches parity with. Bundled and on-demand files from this pinned archive are digest-checked (`mac2jb-notice` ships root `LICENSE`). |
+| [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) | [`717022b8a91a713be41a02b5e131d3229dd8b00a`](https://github.com/cpypwn/mac2jb/tree/717022b8a91a713be41a02b5e131d3229dd8b00a) (`v0.8.2`) | The macOS reference implementation any2jb aligns with. Bundled core files and on-demand adapter files from this pinned archive are SHA-256-verified (`mac2jb-notice` ships root `LICENSE`). |
 
-## Shipped in the app
+## Shipped in the base app
 
 | Project | Pinned | Role | License |
 |---|---|---|---|
-| [egoist/mygo](https://github.com/egoist/mygo) | [`a4b6734f7715c9f73709092f7bae80d861572c03`](https://github.com/egoist/mygo/tree/a4b6734f7715c9f73709092f7bae80d861572c03) | Native UI framework and build tool, and the placeholder icon (records `placeholder-icon`, `mygo-notice`) | MIT |
-| [Node.js](https://nodejs.org) | `v24.22.1` ([darwin-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz), [linux-x64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz), [linux-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-arm64.tar.gz)) | Runs the ns2jb host bridge and the tool host. Each archive is checked against its release digest (records `node-darwin-arm64`, `node-linux-amd64`, `node-linux-arm64`, `node-notice`). | MIT plus bundled notices |
+| [egoist/mygo](https://github.com/egoist/mygo) | [`a4b6734f7715c9f73709092f7bae80d861572c03`](https://github.com/egoist/mygo/tree/a4b6734f7715c9f73709092f7bae80d861572c03) | Native UI framework and build tool, and the placeholder icon (`placeholder-icon`, `mygo-notice`) | MIT |
+| [Node.js](https://nodejs.org) | `v24.22.1` ([darwin-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz), [linux-x64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz), [linux-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-arm64.tar.gz)) | Runs the ns2jb host bridge and tool host (`node-darwin-arm64`, `node-linux-amd64`, `node-linux-arm64`, `node-notice`) | MIT plus bundled notices |
 
 Go modules compiled into the binary, from `go.mod`:
 
@@ -58,11 +50,11 @@ Go modules compiled into the binary, from `go.mod`:
 |---|---|---|
 | [Go](https://go.dev/dl/) | `1.27.3` (`go.mod`) | Builds the app |
 | [Zig](https://ziglang.org/download/) | `0.15.2` | Rebuilds pepsipu's payload in the [regression check](regression-checks.md) |
-| Apple Command Line Tools (`clang`) | system | Builds the USB helpers and libusbd for developer launch |
+| Apple Command Line Tools (`clang`) | system | Builds the USB helpers and libusbd for macOS |
 
 ## ns2jb host profiles
 
-Five `ns2jb` host profiles (`kurumuz`, `pepsipu`, `cellenseres`, `BermTheSequel`, and `astral`) are **Shipped** in packaged builds with their pinned bootstrap payloads. `izmysh` remains **Blocked** (its separate legacy adapter is not implemented in `any2jb`). See [host profiles](host-profile-ui.md).
+Five `ns2jb` host profiles (`kurumuz`, `pepsipu`, `cellenseres`, `BermTheSequel`, and `astral`) are **Shipped** in packaged builds with their pinned bootstrap payloads.
 
 | Profile | Upstream | Pinned | Notes |
 |---|---|---|---|
@@ -70,50 +62,42 @@ Five `ns2jb` host profiles (`kurumuz`, `pepsipu`, `cellenseres`, `BermTheSequel`
 | kurumuz (default) | [gitlab.com/kurumuz/ns2jb](https://gitlab.com/kurumuz/ns2jb) | [`81d5bb114c856109dadaf1077d927a9f297fe58d`](https://gitlab.com/kurumuz/ns2jb/-/tree/81d5bb114c856109dadaf1077d927a9f297fe58d) | Shipped; includes mac2jb's recorded ABI3 range patch |
 | Cellenseres | [github.com/Cellenseres/ns2jb](https://github.com/Cellenseres/ns2jb) | [`2f686045ff88e5a97f959d19752e00ef3b62011f`](https://github.com/Cellenseres/ns2jb/tree/2f686045ff88e5a97f959d19752e00ef3b62011f) | Shipped; includes the same ABI3 patch |
 | BermTheSequel | [gitlab.com/BermTheSequel/ns2jb2](https://gitlab.com/BermTheSequel/ns2jb2) | [`9accf75508f4e7033ffc6912b2ebb7e0b6704e84`](https://gitlab.com/BermTheSequel/ns2jb2/-/tree/9accf75508f4e7033ffc6912b2ebb7e0b6704e84) | Shipped |
-| IZMYSH | [github.com/byizmysh/IZ2S-Platform](https://github.com/byizmysh/IZ2S-Platform) | [`d7a0df16e7e0c68acf78d2f68da8496ef3d9fd6b`](https://github.com/byizmysh/IZ2S-Platform/tree/d7a0df16e7e0c68acf78d2f68da8496ef3d9fd6b) (0.16.0-rc.5) | Blocked; legacy IZMYSH engine not implemented in any2jb |
 | Astral (custom) | [gitlab.com/kurumuz/ns2jb](https://gitlab.com/kurumuz/ns2jb) | `81d5bb114c856109dadaf1077d927a9f297fe58d` | Shipped; mac2jb's `0.2.0-experimental` derivative of kurumuz |
 
 ## USB input on macOS
 
-This chain is how a Mac types on the Switch. On `darwin-arm64`, the kext, installer script, `libusbd.dylib`, and the four compiled Mach-O USB helpers are **Shipped** in the macOS app bundle (Linux packages use the built-in Go ConfigFS `usb_f_hid` helper instead). See [driver security](driver-security.md) and [keyboard input](usb-keyboard.md).
-
 | Project | Pinned | Role | Use |
 |---|---|---|---|
-| [shinyquagsire23/macos_usb_gadget_poc](https://github.com/shinyquagsire23/macos_usb_gadget_poc) | [`c8349b449a2171c1b5b7c59b882728b130fc6b88`](https://github.com/shinyquagsire23/macos_usb_gadget_poc/tree/c8349b449a2171c1b5b7c59b882728b130fc6b88) (mac2jb `upstream.lock`) | Source of `usbgadget.kext`, the unsigned kernel extension that switches the Mac's USB-C controller to device mode | Reference |
-| `usbgadget.kext` binary, `Info.plist`, `SHA256SUMS` and licenses in mac2jb `drivers/` | mac2jb `ce1ce5f` | Prebuilt driver and notices copied by the macOS driver installer | Shipped on `darwin-arm64` (`usbgadget-binary`, `usbgadget-info`, `usbgadget-checksums`, `usbgadget-license`, `usbgadget-apsl`) |
-| mac2jb `scripts/install-driver.sh` | mac2jb `ce1ce5f` | Installs and loads the driver after the administrator prompt | Shipped on `darwin-arm64` (`driver-installer`) |
-| [shinyquagsire23/libusbd](https://github.com/shinyquagsire23/libusbd) | [`4fe5521e424061b823c3f7aebaa754150f94a821`](https://github.com/shinyquagsire23/libusbd/tree/4fe5521e424061b823c3f7aebaa754150f94a821) (mac2jb `upstream.lock`) | User-space USB device-mode library compiled deterministically at `prepare-runtime` time (`libusbd-source`) | Shipped on `darwin-arm64` (`libusbd-dylib`, `libusbd-license`, `libusbd-apsl`) |
-| mac2jb `sender.c`, `commands.c`, `keyboard.c`, `civswitch-hid.c` | mac2jb `ce1ce5f` | Keyboard and composite HID helpers compiled deterministically against `libusbd` (`sender.c`, `commands.c`, `keyboard.c`, `civswitch-hid.c`) | Shipped on `darwin-arm64` (`sender`, `commands`, `keyboard`, `civswitch-hid`) |
+| [shinyquagsire23/macos_usb_gadget_poc](https://github.com/shinyquagsire23/macos_usb_gadget_poc) | [`c8349b449a2171c1b5b7c59b882728b130fc6b88`](https://github.com/shinyquagsire23/macos_usb_gadget_poc/tree/c8349b449a2171c1b5b7c59b882728b130fc6b88) | Source of `usbgadget.kext` | Reference; prebuilt driver shipped on `darwin-arm64` (`usbgadget-binary`, `usbgadget-info`, `usbgadget-checksums`, `usbgadget-license`, `usbgadget-apsl`) |
+| mac2jb `scripts/install-driver.sh` | mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | Installs and loads the driver after administrator prompt | Shipped on `darwin-arm64` (`driver-installer`) |
+| [shinyquagsire23/libusbd](https://github.com/shinyquagsire23/libusbd) | [`4fe5521e424061b823c3f7aebaa754150f94a821`](https://github.com/shinyquagsire23/libusbd/tree/4fe5521e424061b823c3f7aebaa754150f94a821) | User-space USB device-mode library compiled at `prepare-runtime` time (`libusbd-source`) | Shipped on `darwin-arm64` (`libusbd-dylib`, `libusbd-license`, `libusbd-apsl`) |
+| mac2jb `sender.c`, `commands.c`, `keyboard.c`, `civswitch-hid.c` | mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | Keyboard and composite HID helpers (`sender.c`, `commands.c`, `keyboard.c`, `civswitch-hid.c`) | Shipped on `darwin-arm64` (`sender`, `commands`, `keyboard`, `civswitch-hid`) |
 
-## Console-side tools and integrations
+## On-demand sub-tool plugins (never bundled in base installer)
 
-Session exports, SaveKit, Mod Loader, CivSwitch, and launcher save archives are **Shipped** in packaged builds. Large GPU/homebrew packages are downloaded and SHA-256-verified **On-demand**. Browser research probes remain **Excluded**.
+All sub-tools are downloaded and SHA-256-verified on user request inside the app (`Plugins` / `any2jb plugins`) and are excluded from the base `resources/` package.
 
 | Feature | Original project | Pinned | Manifest record |
 |---|---|---|---|
-| CivSwitch payload and installer | [Gezine/CivSwitch](https://github.com/Gezine/CivSwitch) | [`10b38e9f5abfd13a4b0bec8af24b026e44567da3`](https://github.com/Gezine/CivSwitch/tree/10b38e9f5abfd13a4b0bec8af24b026e44567da3) | Shipped: `civswitch-payload`, `civswitch-installer`, `civswitch-core`, `civswitch-save-template`, `civswitch-license`, `civswitch-backup-payload` |
-| CivSwitch Control Center | [MatthewKuKanich/CivSwitch-ControlCenter](https://github.com/MatthewKuKanich/CivSwitch-ControlCenter) | [`259cbe5e66f2e649a79a16f06db4cdb012017daa`](https://github.com/MatthewKuKanich/CivSwitch-ControlCenter/tree/259cbe5e66f2e649a79a16f06db4cdb012017daa) (1.0.0) | Shipped: `civswitch-control-center`, `civswitch-cc-license` |
-| OunceCake exports | [Cellenseres/OunceCake](https://github.com/Cellenseres/OunceCake) | [`6dfd7750752f8b6c18f2c40b34fdadc628cd9a6e`](https://github.com/Cellenseres/OunceCake/tree/6dfd7750752f8b6c18f2c40b34fdadc628cd9a6e) | Shipped: `ouncecake` |
-| `/sd` browser | [byizmysh/super-file-bros](https://github.com/byizmysh/super-file-bros) | [`d7b216bacdd53d25f373c4c07cb6c88fa9b319c4`](https://github.com/byizmysh/super-file-bros/tree/d7b216bacdd53d25f373c4c07cb6c88fa9b319c4) (v0.1.0) | Shipped: `sd-browser` |
-| SaveKit | [dougchansan/ns2-savekit](https://github.com/dougchansan/ns2-savekit) | [`700814ff37fa8f11f12e77b65dc8a33d421e8dd1`](https://github.com/dougchansan/ns2-savekit/tree/700814ff37fa8f11f12e77b65dc8a33d421e8dd1) | Shipped: `savekit` |
-| Seedsow Lua editor save | [DialingSpoon527/seedsow-lua-editor](https://github.com/DialingSpoon527/seedsow-lua-editor) | v0.1.3 (mac2jb copy) | Shipped: `launcher-lua-editor` |
-| MintBrew homebrew | [NiftyNova/GPUBrewLauncher](https://github.com/NiftyNova/GPUBrewLauncher) lineage | [`f35ff64ea4b9b42cf2a75095d24662fe250f03e4`](https://github.com/NiftyNova/GPUBrewLauncher/tree/f35ff64ea4b9b42cf2a75095d24662fe250f03e4) (mac2jb copy) | On-demand: `mintbrew` |
-| Native homebrew launch | RavensClawX's MIT fork, documented in mac2jb `integrations/mintbrew-native/`. mac2jb also pins [ravensclawx/HBLauncher](https://github.com/ravensclawx/HBLauncher) at `b40723be04baa51e5d1f121a1e2242c4167b6cbc`. | mac2jb copy | On-demand: `mintbrew-native` |
-| IZlauncher | [byizmysh/IZ2S-Platform](https://github.com/byizmysh/IZ2S-Platform) | [`73f1b6d98b3fd7c3a44c2b4f6e3b94704ce9435f`](https://github.com/byizmysh/IZ2S-Platform/tree/73f1b6d98b3fd7c3a44c2b4f6e3b94704ce9435f) (0.21.0) | On-demand: `izlauncher` |
-| BlitBun | [byizmysh/BlitBun](https://github.com/byizmysh/BlitBun), with [ozkl/doomgeneric](https://github.com/ozkl/doomgeneric) `e257a09527062bfb986b6e5e0780839b6cbd5b71` and [Freedoom](https://github.com/freedoom/freedoom/releases/tag/v0.13.0) v0.13.0 | mac2jb copy | On-demand: `izlauncher-blitbun` |
-| VacooTube | [byizmysh/VacooTube](https://github.com/byizmysh/VacooTube) | [`f28e762a085c4a4adcd655f12b40f4a68d646a4f`](https://github.com/byizmysh/VacooTube/tree/f28e762a085c4a4adcd655f12b40f4a68d646a4f) (v1.4.1, Electron 44.5.1) | On-demand: `izlauncher-vacootube` |
-| IZlauncher shell | A prebuilt module in mac2jb, shaders compiled with [KhronosGroup/glslang](https://github.com/KhronosGroup/glslang) 16.6.0 | mac2jb copy | On-demand: `izlauncher-shell` |
-| Homebrew build runtime | [python-build-standalone](https://github.com/astral-sh/python-build-standalone) `20261021` (CPython 3.13.17), [Pillow](https://pypi.org/project/pillow/13.0.0/) 13.0.0, [DejaVu fonts](https://github.com/dejavu-fonts/dejavu-fonts) 2.37, [SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools) `ef96ed763b43b59b33b31b362f09a02b729fa1c9`, [SPIRV-Headers](https://github.com/KhronosGroup/SPIRV-Headers) `496543121ce6419f23d6fa5d7194ba66c36212d2`, [glslang](https://github.com/KhronosGroup/glslang) 16.6.0 | mac2jb `packaging/homebrew-runtime.lock.json` | On-demand: `homebrew-runtime` |
-| Mod loader | [SebaaMG/ns2jb-modloader](https://github.com/SebaaMG/ns2jb-modloader) | [`b3e1736848ea2ed0157148c3049ab139b55c7ac0`](https://github.com/SebaaMG/ns2jb-modloader/tree/b3e1736848ea2ed0157148c3049ab139b55c7ac0), with mac2jb changes | Shipped: `modloader` |
-| Artemis launcher saves (Seedsow, Nora 2, Hamidashi) | [alula/switch-artemis-launcher](https://github.com/alula/switch-artemis-launcher) | [v2 release](https://github.com/alula/switch-artemis-launcher/releases/tag/v2) | Shipped: `launcher-seedsow-demo`, `launcher-seedsow-full`, `launcher-nora2-demo`, `launcher-hamidashi-demo` |
-| Artemis launcher save (Nora 1) | [alula/switch-artemis-launcher](https://github.com/alula/switch-artemis-launcher) | Later upstream source (mac2jb copy) | Shipped: `launcher-nora1-demo` |
-| Seedsow Lua Editor Pro | [purple442/seedsow-lua-editor-pro](https://github.com/purple442/seedsow-lua-editor-pro) | [v0.4.0](https://github.com/purple442/seedsow-lua-editor-pro/releases/tag/v0.4.0) | Shipped: `launcher-lua-editor-pro` |
-| Balatro saves | [Luminger/balatro-switch-rce](https://github.com/Luminger/balatro-switch-rce) | [v1.1.0](https://github.com/Luminger/balatro-switch-rce/releases/tag/v1.1.0) | Shipped: `launcher-balatro`, `launcher-balatro-showcase` |
-| Gravity Circuit save | [figurophobia/GravCirc-Switch-rce](https://github.com/figurophobia/GravCirc-Switch-rce) | v1.1 (mac2jb copy) | Shipped: `launcher-gravity-circuit` |
-| Browser research probes | [Jmesmykil/switch2-captive-portal-research](https://github.com/Jmesmykil/switch2-captive-portal-research) | [`07cd867af2f1dc8f7b6ce59d964c3827cc3997b3`](https://github.com/Jmesmykil/switch2-captive-portal-research/tree/07cd867af2f1dc8f7b6ce59d964c3827cc3997b3) | `browser-research`, **Excluded** |
-
-## Not used
-
-mac2jb vendors more projects than any2jb records, for example NSP-Box, ftpd-sb,
-other OunceCake forks and research tools. They are not in the manifest, so
-any2jb neither stages nor runs them.
+| OunceCake read-only exports | [Cellenseres/OunceCake](https://github.com/Cellenseres/OunceCake) | [`6dfd7750752f8b6c18f2c40b34fdadc628cd9a6e`](https://github.com/Cellenseres/OunceCake/tree/6dfd7750752f8b6c18f2c40b34fdadc628cd9a6e) | On-demand plugin: `ouncecake` |
+| SaveKit & Artemis HTTP | [dougchansan/ns2-savekit](https://github.com/dougchansan/ns2-savekit) | [`9d8ba7ff49e2544a8a4fe575a2f05cea90749218`](https://github.com/dougchansan/ns2-savekit/tree/9d8ba7ff49e2544a8a4fe575a2f05cea90749218) | On-demand plugin: `savekit` |
+| MintBrew GPU homebrew | [NiftyNova/GPUBrewLauncher](https://github.com/NiftyNova/GPUBrewLauncher) lineage in [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) | `f35ff64ea4b9b42cf2a75095d24662fe250f03e4` / mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `mintbrew` |
+| Native HBLauncher | RavensClawX MIT fork & [ravensclawx/HBLauncher](https://github.com/ravensclawx/HBLauncher) `b40723be04baa51e5d1f121a1e2242c4167b6cbc` in [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) | mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `mintbrew-native` |
+| Portable homebrew runtime | [python-build-standalone](https://github.com/astral-sh/python-build-standalone) `20261021`, [Pillow](https://pypi.org/project/pillow/13.0.0/) 13.0.0, [DejaVu fonts](https://github.com/dejavu-fonts/dejavu-fonts) 2.37, [SPIRV-Tools](https://github.com/KhronosGroup/SPIRV-Tools) `ef96ed763b43b59b33b31b362f09a02b729fa1c9`, [glslang](https://github.com/KhronosGroup/glslang) 16.6.0 | mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `homebrew-runtime` |
+| Mod loader | [SebaaMG/ns2jb-modloader](https://github.com/SebaaMG/ns2jb-modloader) | [`cb9031dfa4989e3f21b2632aa2a48283c48ccaaf`](https://github.com/SebaaMG/ns2jb-modloader/tree/cb9031dfa4989e3f21b2632aa2a48283c48ccaaf) / mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `modloader` |
+| CivSwitch USB entry & persistent trigger | [Gezine/CivSwitch](https://github.com/Gezine/CivSwitch) | [`10b38e9f5abfd13a4b0bec8af24b026e44567da3`](https://github.com/Gezine/CivSwitch/tree/10b38e9f5abfd13a4b0bec8af24b026e44567da3) / mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugins: `civswitch-usb`, `civswitch-trigger` (`civswitch-license`, `civswitch-core`, `civswitch-save-template`, `civswitch-payload`, `civswitch-backup-payload`, `civswitch-installer`) |
+| CivSwitch FS host | [mza1010/civswitch-kit](https://gitee.com/mza1010/civswitch-kit) | `76c136e8968a624c4814c8a0ce05af73f0848cf9` / mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `civswitch-fs` |
+| Artemis Seedsow FS host | [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) `integrations/artemis-fs` | `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `artemis-fs` |
+| CivHomebrew launcher & companion | [XITRIX/CivHomebrew](https://github.com/XITRIX/CivHomebrew) | [`ebb3857ebd2c80e4978ab7934651f2bcbefa78b7`](https://github.com/XITRIX/CivHomebrew/tree/ebb3857ebd2c80e4978ab7934651f2bcbefa78b7) (`v0.4.3`) | On-demand plugin: `civhomebrew` |
+| Moonlight for CivHomebrew | [XITRIX/Moonlight-CivSwitch](https://github.com/XITRIX/Moonlight-CivSwitch) | [`64cdae7f4a3f19202c7f8eaa0e5ac12ce3330d72`](https://github.com/XITRIX/Moonlight-CivSwitch/tree/64cdae7f4a3f19202c7f8eaa0e5ac12ce3330d72) (`v0.1.3`) | On-demand plugin: `moonlight-civswitch` |
+| SW2NES for CivHomebrew | [Rodpad/SW2NES](https://github.com/Rodpad/SW2NES) | [`974f5b47a6364b995c12f27d318477680aca5038`](https://github.com/Rodpad/SW2NES/tree/974f5b47a6364b995c12f27d318477680aca5038) (`v1.0.1`) | On-demand plugin: `sw2nes` |
+| Jellyfin for CivHomebrew | [THZoria/jellyfin](https://github.com/THZoria/jellyfin) | [`26da7a92f95512167cae8cae209da745a8984831`](https://github.com/THZoria/jellyfin/tree/26da7a92f95512167cae8cae209da745a8984831) (`0.0.1`) | On-demand plugin: `jellyfin-civswitch` |
+| NXFormat (.nx) converter | [fab918/nxformat](https://github.com/fab918/nxformat) | [`V1.0.3`](https://github.com/fab918/nxformat/releases/tag/V1.0.3) | On-demand plugin: `nxformat` |
+| NSP-Box packager | [smarkyie/NSP-Box](https://github.com/smarkyie/NSP-Box) | [`ea25556fdf88f3368d5cadf049a0558afcfaa5a4`](https://github.com/smarkyie/NSP-Box/tree/ea25556fdf88f3368d5cadf049a0558afcfaa5a4) | On-demand plugin: `nsp-box` |
+| NUP archive tool | [a55uka/nup](https://github.com/a55uka/nup) | [`6fa98a8623afc5e40eeb30052b77691f1a68d542`](https://github.com/a55uka/nup/tree/6fa98a8623afc5e40eeb30052b77691f1a68d542) | On-demand plugin: `nup` |
+| DNSwitch redirector | [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) `scripts/gui-dnswitch.cjs` | `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `dnswitch` |
+| Local browser capability probes | [cpypwn/mac2jb](https://github.com/cpypwn/mac2jb) `integrations/browser-probes` | `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugin: `browser-probes` |
+| Artemis launcher saves | [alula/switch-artemis-launcher](https://github.com/alula/switch-artemis-launcher) & [soniciso1/switch-artemis-launcher](https://github.com/soniciso1/switch-artemis-launcher) | [v2 release](https://github.com/alula/switch-artemis-launcher/releases/tag/v2) / mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugins: `launcher-seedsow-demo`, `launcher-seedsow-full`, `launcher-nora2-demo`, `launcher-nora1-demo`, `launcher-hamidashi-demo` |
+| Seedsow Lua Editor saves | [DialingSpoon527/seedsow-lua-editor](https://github.com/DialingSpoon527/seedsow-lua-editor) (`v0.1.3`) & [purple442/seedsow-lua-editor-pro](https://github.com/purple442/seedsow-lua-editor-pro) (`v0.4.0`) | mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugins: `launcher-lua-editor`, `launcher-lua-editor-pro` |
+| Balatro & Gravity Circuit saves | [Luminger/balatro-switch-rce](https://github.com/Luminger/balatro-switch-rce) (`v1.1.0`) & [figurophobia/GravCirc-Switch-rce](https://github.com/figurophobia/GravCirc-Switch-rce) (`v1.1`) | mac2jb `717022b8a91a713be41a02b5e131d3229dd8b00a` | On-demand plugins: `launcher-balatro`, `launcher-balatro-showcase`, `launcher-gravity-circuit` |
+| Captive portal research probes | [Jmesmykil/switch2-captive-portal-research](https://github.com/Jmesmykil/switch2-captive-portal-research) | [`07cd867af2f1dc8f7b6ce59d964c3827cc3997b3`](https://github.com/Jmesmykil/switch2-captive-portal-research/tree/07cd867af2f1dc8f7b6ce59d964c3827cc3997b3) | `browser-research`, **Excluded** |

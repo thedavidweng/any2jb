@@ -278,12 +278,11 @@ func buildStageHex(coreJS []byte) (stageHex, asciiWrapped string, err error) {
 }
 
 func (a *Adapter) runNativeInstaller(ctx context.Context, endpoint string) error {
-	root := a.sourceRoot()
-	coreJS, err := a.options.Manifest.Read(root, coreComponent)
+	coreJS, err := a.read(coreComponent)
 	if err != nil {
 		return err
 	}
-	tpl, err := a.options.Manifest.Read(root, saveTemplateComponent)
+	tpl, err := a.read(saveTemplateComponent)
 	if err != nil {
 		return err
 	}

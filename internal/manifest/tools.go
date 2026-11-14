@@ -37,6 +37,24 @@ func (m *Manifest) ToolComponent(id string) (Component, error) {
 	return Component{}, fmt.Errorf("unrecorded tool source %q", id)
 }
 
+// OptionalToolIDs returns all unbundled, permitted tool-source component IDs
+// eligible for in-app on-demand plugin download and verification.
+func (m *Manifest) OptionalToolIDs() []string {
+	if m == nil {
+		return nil
+	}
+	var ids []string
+	for _, c := range m.Components {
+		if c.Source == nil || c.ID == "libusbd-source" {
+			continue
+		}
+		if c.Distribution.Permitted() && !c.Distribution.Bundled {
+			ids = append(ids, c.ID)
+		}
+	}
+	return ids
+}
+
 // ToolSourceFiles verifies the inventory, every recorded file and every extra
 // artifact, refuses unrecorded files in the tree, and returns the exact
 // root-relative paths a developer stage may copy.

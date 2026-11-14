@@ -2,8 +2,6 @@ package civswitch
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,60 +78,6 @@ func TestJavaScriptSendNeedsConsentLiveLoaderAndExecutionConfirmation(t *testing
 		f.loader.listener.Close()
 		if err := f.adapter.SendJavaScript(context.Background(), "192.0.2.2", javaScriptFile(t, "payload.js", code), true, f.report); err == nil {
 			t.Fatal("sent code without validating the loader connection")
-		}
-	})
-}
-
-func TestStagedPayloadNeedsConsentPayloadModeAndAcknowledgedChunks(t *testing.T) {
-	code := strings.Repeat("a\"'\n", 30000)
-	digest := fmt.Sprintf("%x", sha256.Sum256([]byte(code)))
-	t.Run("unconfirmed", func(t *testing.T) {
-		f := newPersistenceFixture(t, nil)
-		if err := f.adapter.StageJavaScript(context.Background(), "192.0.2.2", javaScriptFile(t, "payload.js", code), false, f.report); err == nil {
-			t.Fatal("staged a payload without explicit confirmation")
-		}
-		if len(f.loader.sent()) != 0 {
-			t.Fatal("connected before confirmation")
-		}
-	})
-	t.Run("payload mode closed", func(t *testing.T) {
-		f := newPersistenceFixture(t, func(string) string {
-			return "PAYLOAD_STAGE|ERROR|Enter Control Center Payload Mode first\n" + executionConfirmation + "\n"
-		})
-		if err := f.adapter.StageJavaScript(context.Background(), "192.0.2.2", javaScriptFile(t, "payload.js", code), true, f.report); err == nil {
-			t.Fatal("a rejected staging attempt was reported as staged")
-		}
-	})
-	t.Run("acknowledged chunks", func(t *testing.T) {
-		f := newPersistenceFixture(t, nil)
-		if err := f.adapter.StageJavaScript(context.Background(), "192.0.2.2", javaScriptFile(t, "payload.js", code), true, f.report); err != nil {
-			t.Fatal(err)
-		}
-		sent := f.sent(t)
-		if len(sent) < 4 {
-			t.Fatalf("staging did not use begin, chunk and complete envelopes: %d", len(sent))
-		}
-		if !strings.Contains(sent[0], digest) || !strings.Contains(sent[0], "__civPayloadStage") {
-			t.Fatalf("begin envelope: %q", sent[0][:min(200, len(sent[0]))])
-		}
-		var staged string
-		for _, envelope := range sent[1 : len(sent)-1] {
-			if strings.Contains(envelope, "\n"+code[:4]) {
-				t.Fatal("payload text was interpolated into the envelope unescaped")
-			}
-			start := strings.Index(envelope, `s.append(`) + len(`s.append(`)
-			end := strings.LastIndex(envelope, `, {`)
-			var chunk string
-			if err := jsonUnmarshalString(envelope[start:end], &chunk); err != nil {
-				t.Fatalf("chunk envelope is not JSON-encoded: %v", err)
-			}
-			staged += chunk
-		}
-		if staged != code {
-			t.Fatalf("staged payload differs from the chosen file: %d of %d bytes", len(staged), len(code))
-		}
-		if !strings.Contains(sent[len(sent)-1], "s.complete(") || !strings.Contains(sent[len(sent)-1], digest) {
-			t.Fatal("staging did not finish with a verified complete envelope")
 		}
 	})
 }

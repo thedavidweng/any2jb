@@ -25,8 +25,11 @@ type flowUI struct {
 	initialized     bool
 	observed        session.Stage
 	heading         ui.Handle
+	plugins         bool
+	utilities       bool
 	settings        bool
 	diagnostics     bool
+	aboutPage       bool
 	entered         int
 	prerequisites   bool
 	expert          bool

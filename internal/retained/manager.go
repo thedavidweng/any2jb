@@ -18,6 +18,7 @@ import (
 
 	"github.com/thedavidweng/any2jb/internal/engine"
 	"github.com/thedavidweng/any2jb/internal/manifest"
+	"github.com/thedavidweng/any2jb/internal/plugins"
 	"github.com/thedavidweng/any2jb/internal/savekit"
 	"github.com/thedavidweng/any2jb/internal/session"
 	"github.com/thedavidweng/any2jb/locales"
@@ -57,6 +58,8 @@ type Options struct {
 	// SaveKitScenario selects the structured fixture's behavior. It is a test
 	// seam and stays empty in production.
 	SaveKitScenario string
+	// PluginURLRewriter optionally redirects upstream plugin downloads in tests.
+	PluginURLRewriter plugins.URLRewriter
 }
 
 // homebrewComponents lists the staged components each homebrew launcher needs
@@ -65,7 +68,6 @@ type Options struct {
 var homebrewComponents = map[string][]string{
 	"mintbrew":          {"mintbrew", "homebrew-runtime"},
 	"native-hblauncher": {"mintbrew", "mintbrew-native"},
-	"izlauncher":        {"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"},
 	"custom-homebrew":   {"mintbrew", "homebrew-runtime"},
 }
 
@@ -166,6 +168,42 @@ func (m *Manager) snapshotOptions() (Options, locales.Text) {
 	return o, m.homebrewRuntimeNote
 }
 
+// ToolRoot returns the active verified tool stage root, if initialized.
+func (m *Manager) ToolRoot() string {
+	o, _ := m.snapshotOptions()
+	if o.ToolRoot != "" {
+		return o.ToolRoot
+	}
+	if o.Support != "" && o.Version != "" {
+		return filepath.Join(o.Support, "tools", o.Version)
+	}
+	return ""
+}
+
+// HomebrewRuntimeRoot returns the verified portable Python/shader runtime path, if staged.
+func (m *Manager) HomebrewRuntimeRoot() string {
+	o, _ := m.snapshotOptions()
+	return o.HomebrewRuntime
+}
+
+// NodePath returns the verified staged Node runtime executable path.
+func (m *Manager) NodePath() string {
+	o, _ := m.snapshotOptions()
+	return o.Node
+}
+
+// SupportRoot returns the private support directory path.
+func (m *Manager) SupportRoot() string {
+	o, _ := m.snapshotOptions()
+	return o.Support
+}
+
+// Manifest returns the canonical manifest.
+func (m *Manager) Manifest() *manifest.Manifest {
+	o, _ := m.snapshotOptions()
+	return o.Manifest
+}
+
 // homebrewConfig carries the validated launch configuration to the tool host
 // as one JSON argument. The host re-validates it against staged, digest-pinned
 // sources; this JSON is never trusted on its own.
@@ -197,6 +235,12 @@ func (m *Manager) homebrewConfig(run session.Run, request session.ToolRequest) (
 	}
 	if request.CustomHomebrewFolder != "" {
 		config["customHomebrewFolder"] = request.CustomHomebrewFolder
+	}
+	if request.StremioQuality != "" {
+		config["stremioQuality"] = request.StremioQuality
+	}
+	if len(request.StremioAddonURLs) > 0 {
+		config["stremioAddonUrls"] = request.StremioAddonURLs
 	}
 	config["codeConsent"] = request.CodeConsent
 	data, err := json.Marshal(config)
@@ -262,7 +306,7 @@ func (m *Manager) UnavailableText(tool, profileID string) locales.Text {
 	}
 	component, ok := map[string]string{
 		"rpc-status": "", "system-code-dump": "",
-		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",
+		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake",
 		"savekit-read": "savekit", "savekit": "savekit", "modloader": "modloader",
 	}[tool]
 	if !ok {
@@ -324,10 +368,12 @@ func manifestReason(m *manifest.Manifest, id string) locales.Text {
 	return locales.DistributionReason(id, d.Reason)
 }
 
-// Discover lists verified retained sessions this machine still holds. Listing
+// Discover lists verified retained sessions this machine still holds across
+// standard NS2 runs, CivSwitch FS hosts, and Artemis Seedsow FS hosts. Listing
 // one is read-only: it claims no lease and adopts no stale artifact.
 func (m *Manager) Discover(ctx context.Context) ([]session.RetainedSession, error) {
-	entries, err := os.ReadDir(filepath.Join(m.options.Support, "runs"))
+	runsRoot := filepath.Join(m.options.Support, "runs")
+	entries, err := os.ReadDir(runsRoot)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, nil
 	}
@@ -336,15 +382,50 @@ func (m *Manager) Discover(ctx context.Context) ([]session.RetainedSession, erro
 	}
 	var found []session.RetainedSession
 	for _, entry := range entries {
-		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "run-") {
+		if !entry.IsDir() {
 			continue
 		}
-		outcome, err := engine.VerifyHeld(ctx, filepath.Join(m.options.Support, "runs", entry.Name()))
-		if err != nil || !outcome.Valid(true) {
-			continue
+		name := entry.Name()
+		switch {
+		case strings.HasPrefix(name, "run-"):
+			outcome, err := engine.VerifyHeld(ctx, filepath.Join(runsRoot, name))
+			if err != nil || !outcome.Valid(true) {
+				continue
+			}
+			target := outcome.Target
+			if target == "" {
+				target = "switch2"
+			}
+			found = append(found, session.RetainedSession{
+				ID:          name,
+				Target:      target,
+				Description: "Verified retained session " + name + " (" + target + ")",
+			})
+		case strings.HasPrefix(name, "civswitch-fs-"), strings.HasPrefix(name, "artemis-fs-"):
+			nestedRuns, err := resolveNestedRunsDir(runsRoot, name)
+			if err != nil {
+				continue
+			}
+			subEntries, err := os.ReadDir(nestedRuns)
+			if err != nil {
+				continue
+			}
+			for _, sub := range subEntries {
+				if !sub.IsDir() || !strings.HasPrefix(sub.Name(), "switch2-") {
+					continue
+				}
+				outcome, err := engine.VerifyHeld(ctx, filepath.Join(nestedRuns, sub.Name()))
+				if err != nil || !outcome.Valid(true) {
+					continue
+				}
+				id := name + "/" + sub.Name()
+				found = append(found, session.RetainedSession{
+					ID:          id,
+					Target:      outcome.Target,
+					Description: "Verified retained session " + id + " (" + outcome.Target + ")",
+				})
+			}
 		}
-		found = append(found, session.RetainedSession{ID: entry.Name(),
-			Description: "Verified retained session " + entry.Name()})
 	}
 	return found, nil
 }
@@ -352,10 +433,10 @@ func (m *Manager) Discover(ctx context.Context) ([]session.RetainedSession, erro
 // Attach re-verifies the chosen session's private evidence and its live lease.
 // It never prepares a host, sends console input or claims the owner's lease.
 func (m *Manager) Attach(ctx context.Context, _ session.Run, id string) (session.Outcome, error) {
-	if id == "" || filepath.Base(id) != id || !strings.HasPrefix(id, "run-") {
-		return session.Outcome{}, errors.New("invalid retained session identity")
+	workspace, err := resolveAttachWorkspace(filepath.Join(m.options.Support, "runs"), id)
+	if err != nil {
+		return session.Outcome{}, err
 	}
-	workspace := filepath.Join(m.options.Support, "runs", id)
 	outcome, err := engine.VerifyHeld(ctx, workspace)
 	if err != nil {
 		return session.Outcome{}, err
@@ -365,6 +446,42 @@ func (m *Manager) Attach(ctx context.Context, _ session.Run, id string) (session
 	m.attached = workspace
 	m.state = State{}
 	return outcome, nil
+}
+
+func resolveNestedRunsDir(runsRoot, hostDir string) (string, error) {
+	if filepath.Base(hostDir) != hostDir || !(strings.HasPrefix(hostDir, "civswitch-fs-") || strings.HasPrefix(hostDir, "artemis-fs-")) {
+		return "", errors.New("invalid multi-target host directory")
+	}
+	cur := runsRoot
+	for _, seg := range []string{hostDir, "port", "engine", "runs"} {
+		cur = filepath.Join(cur, seg)
+		info, err := os.Lstat(cur)
+		if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return "", errors.New("invalid multi-target run path")
+		}
+	}
+	return cur, nil
+}
+
+func resolveAttachWorkspace(runsRoot, id string) (string, error) {
+	if id == "" {
+		return "", errors.New("invalid retained session identity")
+	}
+	if !strings.Contains(id, "/") {
+		if filepath.Base(id) != id || !strings.HasPrefix(id, "run-") {
+			return "", errors.New("invalid retained session identity")
+		}
+		return filepath.Join(runsRoot, id), nil
+	}
+	hostDir, subSession, ok := strings.Cut(id, "/")
+	if !ok || strings.Contains(subSession, "/") || filepath.Base(subSession) != subSession || !strings.HasPrefix(subSession, "switch2-") {
+		return "", errors.New("invalid retained session identity")
+	}
+	nestedRuns, err := resolveNestedRunsDir(runsRoot, hostDir)
+	if err != nil {
+		return "", errors.New("invalid retained session identity")
+	}
+	return filepath.Join(nestedRuns, subSession), nil
 }
 
 // Detach releases this app's attachment and its own tool child only. The

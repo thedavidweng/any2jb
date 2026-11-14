@@ -15,25 +15,30 @@ import (
 
 // homebrewStaged lists every component the structured fixture pretends to have
 // verified; distribution policy still gates each launcher by its own record.
-var homebrewStaged = []string{"mintbrew", "mintbrew-native", "homebrew-runtime",
-	"izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube"}
+var homebrewStaged = []string{"mintbrew", "mintbrew-native", "homebrew-runtime"}
 
 func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 	m, err := manifest.Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-	unstaged := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs", Manifest: m})
-	for tool, want := range map[string]string{
-		"mintbrew": "mintbrew", "izlauncher": "izlauncher",
-	} {
-		d, err := m.DistributionFor(want)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if reason := unstaged.Unavailable(tool, "kurumuz"); reason != d.Reason {
-			t.Fatalf("%s must show the recorded reason, got %q", tool, reason)
-		}
+	unstaged := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
+		Manifest: m, EngineStaged: true})
+	dMint, err := m.DistributionFor("mintbrew")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reason := unstaged.Unavailable("mintbrew", "kurumuz"); reason != dMint.Reason {
+		t.Fatalf("mintbrew must show the recorded reason, got %q", reason)
+	}
+	partial := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
+		Manifest: m, EngineStaged: true, Staged: []string{"mintbrew"}})
+	dNative, err := m.DistributionFor("mintbrew-native")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reason := partial.Unavailable("native-hblauncher", "kurumuz"); reason != dNative.Reason {
+		t.Fatalf("native-hblauncher must show mintbrew-native's reason when mintbrew is staged, got %q", reason)
 	}
 	host, err := m.DistributionFor("kurumuz")
 	if err != nil {
@@ -43,16 +48,6 @@ func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 		Manifest: m, Staged: homebrewStaged})
 	if reason := staged.Unavailable("native-hblauncher", "kurumuz"); reason != host.Reason {
 		t.Fatalf("the native launcher needs a developer engine stage, got %q", reason)
-	}
-	// A partially staged IZlauncher names the first missing component.
-	partial := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
-		Manifest: m, Staged: []string{"izlauncher"}})
-	d, err := m.DistributionFor("izlauncher-blitbun")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if reason := partial.Unavailable("izlauncher", "kurumuz"); reason != d.Reason {
-		t.Fatalf("a missing IZlauncher module must name its component, got %q", reason)
 	}
 }
 
@@ -85,7 +80,7 @@ func TestHomebrewLaunchRefusesASecondOwner(t *testing.T) {
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
-	err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "izlauncher",
+	err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "native-hblauncher",
 		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
 	if err == nil || !strings.Contains(err.Error(), "mintbrew") {
 		t.Fatalf("a second homebrew launch was not refused with the current owner: %v", err)
@@ -97,7 +92,7 @@ func TestHomebrewLaunchRefusesASecondOwner(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(mustWorkspace(t, runner, run), ".mac2jb-hblauncher-attempt.json")); !os.IsNotExist(err) {
 		t.Fatalf("a proven cleanup kept the attempt marker: %v", err)
 	}
-	if err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "izlauncher",
+	if err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "native-hblauncher",
 		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}

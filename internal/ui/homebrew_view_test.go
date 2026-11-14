@@ -51,7 +51,7 @@ func TestHomebrewToolsStateTheirRecordedReasons(t *testing.T) {
 	}
 	adapter := &fakeToolAdapter{reasons: map[string]string{}}
 	for _, pair := range [][2]string{
-		{"mintbrew", "mintbrew"}, {"native-hblauncher", "mintbrew-native"}, {"izlauncher", "izlauncher"},
+		{"mintbrew", "mintbrew"}, {"native-hblauncher", "mintbrew-native"},
 	} {
 		d, err := m.DistributionFor(pair[1])
 		if err != nil {
@@ -60,14 +60,14 @@ func TestHomebrewToolsStateTheirRecordedReasons(t *testing.T) {
 		adapter.reasons[pair[0]] = d.Reason
 	}
 	f := sessiontest.NewFakeEnvironment()
-	a := retainedApp(t, f, adapter, []string{"mintbrew", "native-hblauncher", "izlauncher"})
+	a := retainedApp(t, f, adapter, []string{"mintbrew", "native-hblauncher"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1600)
 	for _, reason := range adapter.reasons {
 		if !tt.HasText(reason) {
 			t.Fatalf("missing recorded reason %q in %q", reason, tt.Texts())
 		}
 	}
-	for _, label := range []string{"Launch MintBrew", "Launch native HBLauncher", "Launch IZlauncher (experimental)"} {
+	for _, label := range []string{"Launch MintBrew", "Launch native HBLauncher"} {
 		if _, ok := tt.AccessByRole(ui.RoleButton, label); ok {
 			t.Fatalf("gated tool %s remains an action", label)
 		}
@@ -77,11 +77,11 @@ func TestHomebrewToolsStateTheirRecordedReasons(t *testing.T) {
 func TestHomebrewSingleActiveSwitching(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{state: retained.State{Tool: "mintbrew"}}
-	_, tt := leasedHomebrewApp(t, f, adapter, []string{"mintbrew", "native-hblauncher", "izlauncher"})
+	_, tt := leasedHomebrewApp(t, f, adapter, []string{"mintbrew", "native-hblauncher"})
 	if !tt.HasText("mintbrew owns the retained session. Stop it before starting another tool.") {
 		t.Fatal(tt.Texts())
 	}
-	for _, label := range []string{"Launch native HBLauncher", "Launch IZlauncher (experimental)"} {
+	for _, label := range []string{"Launch native HBLauncher"} {
 		control, ok := tt.AccessByRole(ui.RoleButton, label)
 		if !ok || !control.Disabled {
 			t.Fatalf("%s started while MintBrew owns the session: %+v", label, control)
@@ -89,18 +89,18 @@ func TestHomebrewSingleActiveSwitching(t *testing.T) {
 	}
 }
 
-func TestIZLauncherModuleSelectionReachesTheToolRequest(t *testing.T) {
+func TestMintBrewStremioOptionsReachTheToolRequest(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	adapter := &fakeToolAdapter{}
-	a, tt := leasedHomebrewApp(t, f, adapter, []string{"izlauncher"})
-	a.homebrewPanel.blitbun = true
-	a.homebrewPanel.vacootube = true
+	a, tt := leasedHomebrewApp(t, f, adapter, []string{"mintbrew"})
+	a.homebrewPanel.stremioQuality = "1080p"
+	a.homebrewPanel.stremioAddons = "https://addon1.example/manifest.json, https://addon2.example/manifest.json"
 	tt.Frame()
-	if err := tt.Click("Launch IZlauncher (experimental)"); err != nil {
+	if err := tt.Click("Launch MintBrew"); err != nil {
 		t.Fatal(err)
 	}
 	request := awaitToolRequest(t, f)
-	if request.Tool != "izlauncher" || !slices.Equal(request.Modules, []string{"blitbun", "vacootube"}) {
+	if request.Tool != "mintbrew" || request.StremioQuality != "1080p" || !slices.Equal(request.StremioAddonURLs, []string{"https://addon1.example/manifest.json", "https://addon2.example/manifest.json"}) {
 		t.Fatalf("unexpected tool request: %+v", request)
 	}
 }

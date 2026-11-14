@@ -22,7 +22,7 @@ func (p Profile) SessionProfile() session.Profile {
 	// redistribution grant: the adapter still consults DistributionFor.
 	if p.SupportsHeldRPC {
 		s.Tools = append(s.Tools, "rpc-status", "system-code-dump",
-			"ouncecake-webdav", "ouncecake-ftp", "sd-browser", "mintbrew", "izlauncher", "custom-homebrew")
+			"ouncecake-webdav", "ouncecake-ftp", "mintbrew", "custom-homebrew")
 	}
 	for _, tool := range []struct {
 		name      string

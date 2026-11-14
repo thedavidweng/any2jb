@@ -117,14 +117,22 @@ func (r Runtime) IsNodeComponent(componentID string) bool {
 func VerifyBinaryArchitecture(platform string, data []byte) error {
 	switch platform {
 	case "darwin-arm64":
-		f, err := macho.NewFile(bytes.NewReader(data))
+		if f, err := macho.NewFile(bytes.NewReader(data)); err == nil {
+			if f.Cpu != macho.CpuArm64 {
+				return fmt.Errorf("expected darwin-arm64 Mach-O")
+			}
+			return nil
+		}
+		fat, err := macho.NewFatFile(bytes.NewReader(data))
 		if err != nil {
 			return err
 		}
-		if f.Cpu != macho.CpuArm64 {
-			return fmt.Errorf("expected darwin-arm64 Mach-O")
+		for _, arch := range fat.Arches {
+			if arch.Cpu == macho.CpuArm64 {
+				return nil
+			}
 		}
-		return nil
+		return fmt.Errorf("expected darwin-arm64 slice in universal Mach-O")
 	case "linux-amd64", "linux-arm64":
 		f, err := elf.NewFile(bytes.NewReader(data))
 		if err != nil {

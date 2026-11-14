@@ -92,19 +92,19 @@ func TestSaveKitReadListsAndExportsWithAHeldLease(t *testing.T) {
 
 func TestSaveKitReadSharesTheSingleOwner(t *testing.T) {
 	runner, run, support := heldSession(t)
-	m := savekitManager(t, support, runner, "ok", "savekit", "sd-browser")
-	request := session.ToolRequest{Tool: "sd-browser", ConsoleIPv4: "192.0.2.7"}
+	m := savekitManager(t, support, runner, "ok", "savekit", "mintbrew", "homebrew-runtime")
+	request := session.ToolRequest{Tool: "mintbrew", ConsoleIPv4: "192.0.2.7"}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
 	err := m.RunWith(context.Background(), run, savekitRequest("accounts"), func(session.Progress) {})
-	if err == nil || !strings.Contains(err.Error(), "sd-browser") {
+	if err == nil || !strings.Contains(err.Error(), "mintbrew") {
 		t.Fatalf("a save operation ran while another tool owned the lease: %v", err)
 	}
 	if err := m.Stop(context.Background(), run); err != nil {
 		t.Fatal(err)
 	}
-	slow := savekitManager(t, support, runner, "slow", "savekit", "sd-browser")
+	slow := savekitManager(t, support, runner, "slow", "savekit", "mintbrew", "homebrew-runtime")
 	done := make(chan error, 1)
 	go func() {
 		done <- slow.RunWith(context.Background(), run, savekitRequest("accounts"), func(session.Progress) {})

@@ -151,7 +151,7 @@ func TestDistributionAvailability(t *testing.T) {
 			t.Fatalf("%s must be bundled with notice and reason: %+v", id, gate)
 		}
 	}
-	for _, id := range []string{"izmysh", "browser-research"} {
+	for _, id := range []string{"browser-research"} {
 		gate, err := m.DistributionFor(id)
 		if err != nil {
 			t.Fatal(err)
@@ -160,7 +160,7 @@ func TestDistributionAvailability(t *testing.T) {
 			t.Fatalf("%s must be unavailable with a reason: %+v", id, gate)
 		}
 	}
-	for _, id := range []string{"mintbrew", "mintbrew-native", "izlauncher", "izlauncher-blitbun", "izlauncher-shell", "izlauncher-vacootube", "homebrew-runtime"} {
+	for _, id := range m.OptionalToolIDs() {
 		gate, err := m.DistributionFor(id)
 		if err != nil {
 			t.Fatal(err)

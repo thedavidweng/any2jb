@@ -116,9 +116,10 @@ func verifyResult(ctx context.Context, workspace string, held bool) (session.Out
 		return session.Outcome{}, err
 	}
 	if connection.Port < 1 || connection.Port > 65535 || connection.Addresses.Session != filepath.Base(workspace) ||
-		connection.Addresses.Target != "switch2" {
+		!validHeldTarget(workspace, connection.Addresses.Target) {
 		return session.Outcome{}, errors.New("held connection identity mismatch")
 	}
+	o.Target = connection.Addresses.Target
 	request := map[string]any{"command": "status"}
 	if connection.Token != "" {
 		request["token"] = connection.Token
@@ -149,4 +150,26 @@ func verifyResult(ctx context.Context, workspace string, held bool) (session.Out
 		return session.Outcome{}, errors.New("live RPC is not ready")
 	}
 	return o, nil
+}
+
+func validHeldTarget(workspace, target string) bool {
+	switch target {
+	case "switch2":
+		return true
+	case "civ7", "artemis-seedsow":
+		// Multi-target FS hosts run under <runs>/<prefix>-<id>/port/engine/runs/<session>.
+		runsDir := filepath.Dir(workspace)
+		engineDir := filepath.Dir(runsDir)
+		portDir := filepath.Dir(engineDir)
+		hostDir := filepath.Base(filepath.Dir(portDir))
+		if filepath.Base(runsDir) != "runs" || filepath.Base(engineDir) != "engine" || filepath.Base(portDir) != "port" {
+			return false
+		}
+		if target == "civ7" {
+			return len(hostDir) > len("civswitch-fs-") && hostDir[:len("civswitch-fs-")] == "civswitch-fs-"
+		}
+		return len(hostDir) > len("artemis-fs-") && hostDir[:len("artemis-fs-")] == "artemis-fs-"
+	default:
+		return false
+	}
 }

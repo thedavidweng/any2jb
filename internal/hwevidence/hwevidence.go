@@ -117,7 +117,7 @@ var civSteps = []StepDef{
 	{ID: "civ-loader-verify", Title: "Loader verification on TCP 9026", Rows: fixedRows("civ-probe", "civ-attach")},
 	{ID: "civ-save-backup", Title: "Verified save backup", Rows: fixedRows("civ-original")},
 	{ID: "civ-trigger-install", Title: "Persistent boot trigger install", Optional: true, Rows: fixedRows("civ-trigger")},
-	{ID: "civ-control-center", Title: "Control Center read and save export", Optional: true, Rows: fixedRows("civ-control-start", "civ-control-export", "civ-control-stop")},
+	{ID: "civ-fs-host", Title: "CivSwitch FS held-RPC host start and clean stop", Optional: true, Rows: fixedRows("civ-fs-start", "civ-fs-stop")},
 	{ID: "civ-javascript", Title: "Explicit JavaScript send", Optional: true, Rows: fixedRows("civ-js")},
 }
 

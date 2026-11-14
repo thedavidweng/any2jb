@@ -72,7 +72,6 @@ func TestPackagedNativeInstallerWritesTriggerWithoutPython(t *testing.T) {
 		backupPayloadComponent: {"backup.js", "fixture backup"},
 		coreComponent:          {"core.js", "await log('core ok');"},
 		saveTemplateComponent:  {"save_template.bin", "CIV7" + strings.Repeat("T", 5000)},
-		controlCenterComponent: {"cc.js", "fixture cc"},
 	}
 	for id, item := range files {
 		full := filepath.Join(assets, item.path)

@@ -25,17 +25,11 @@ func TestManualLaunchUsesExactProfileAndEditionCommands(t *testing.T) {
 				if profile.StartArgumentCount == 9 {
 					start = "V=START(39380,192,0,2,1,1,2,3,4)"
 				}
-				if profile.ID == "izmysh" {
-					start = "V=START(39395,192,0,2,1,1,2,3,4)"
-				}
 				host := session.PreparedHost{Listening: true, PairingValid: true,
 					Opaque: engine.PairingDetails{RunID: run.ID, Command: start}}
 				done := make(chan error, 1)
 				go func() { done <- m.Send(context.Background(), run, session.Launch, host, func(session.Progress) {}) }()
 				load := `LOAD "TXT:NS2"`
-				if profile.ID == "izmysh" {
-					load = `LOAD "TXT:NS2I"`
-				}
 				if edition == "demo" {
 					load = `PRGEDIT 0:LOADV "TXT:NS2" OUT C$:PRGSET C$`
 				}

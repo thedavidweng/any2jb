@@ -93,12 +93,6 @@ func (a *app) advancedToolsView(c *ui.Context) {
 			a.runTool("ouncecake-ftp", p.consoleIPv4)
 		}
 	}
-	sd, sdReason := a.toolGate(s, state, "sd-browser")
-	if sdReason == "" {
-		if inline(ui.Button(c.Key("sd-browser"), locales.ToolsSDBrowser())).Disabled(sd).Clicked() {
-			a.runTool("sd-browser", p.consoleIPv4)
-		}
-	}
 	a.homebrewView(c, s, state)
 	a.modloaderView(c, s, state)
 	a.toolRefusals(c, s, state)
@@ -129,11 +123,6 @@ func (a *app) advancedToolsView(c *ui.Context) {
 	if inline(ui.Button(c.Key("savekit-open"), locales.SaveKitOpen())).Disabled(s.Busy).Clicked() {
 		a.saveKit.open = true
 	}
-	// A gated or excluded component states the recorded reason instead of an
-	// action; host capability booleans never decide this.
-	if d, err := a.Manifest.DistributionFor("browser-research"); err == nil {
-		ui.Text(c, locales.ToolsExcluded(locales.BrowserResearch(), locales.DistributionReason("browser-research", d.Reason).Local())).TextColor(c.Theme().TextMuted)
-	}
 	if p.failed {
 		ui.Text(c, locales.ToolsFailed())
 	}
@@ -160,8 +149,8 @@ func (a *app) toolRefusals(c *ui.Context, s session.Snapshot, state retained.Sta
 	for _, tool := range []struct{ id, name string }{
 		{"rpc-status", locales.ToolsStatus()}, {"system-code-dump", locales.ToolsDump()},
 		{"ouncecake-webdav", locales.ToolsOunceWebdav()}, {"ouncecake-ftp", locales.ToolsOunceFtp()},
-		{"sd-browser", locales.ToolsSDBrowser()}, {"mintbrew", locales.HbMintbrew()},
-		{"native-hblauncher", locales.HbNative()}, {"izlauncher", locales.HbIZ()},
+		{"mintbrew", locales.HbMintbrew()},
+		{"native-hblauncher", locales.HbNative()},
 		{"custom-homebrew", locales.HbCustom()}, {"modloader", locales.ModInstall()},
 	} {
 		_, reason := a.toolGate(s, state, tool.id)

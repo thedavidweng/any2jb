@@ -18,7 +18,7 @@ import (
 func testRun() session.Run {
 	return session.Run{ID: "fixture-run", LANIPv4: "192.0.2.1",
 		Profile: session.Profile{ID: "kurumuz", StartPort: 39380, StartArgumentCount: 5, RetainsRPC: true,
-			Tools: []string{"rpc-status", "system-code-dump", "ouncecake-webdav", "ouncecake-ftp", "sd-browser"}}}
+			Tools: []string{"rpc-status", "system-code-dump", "ouncecake-webdav", "ouncecake-ftp"}}}
 }
 
 // heldSession runs the structured engine fixture until its retained lease is
@@ -82,7 +82,7 @@ func TestUnavailableToolsStateTheRecordedReason(t *testing.T) {
 	}
 	unstaged := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs", Manifest: m})
 	for tool, want := range map[string]string{
-		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake", "sd-browser": "sd-browser",
+		"ouncecake-webdav": "ouncecake", "ouncecake-ftp": "ouncecake",
 	} {
 		d, err := m.DistributionFor(want)
 		if err != nil {
@@ -132,17 +132,15 @@ func TestToolRequiresAnOwnedVerifiedLease(t *testing.T) {
 
 func TestOneOwnerAtATime(t *testing.T) {
 	runner, run, support := heldSession(t)
-	m := manager(t, support, runner, "ok", "sd-browser", "ouncecake")
-	request := session.ToolRequest{Tool: "sd-browser", ConsoleIPv4: "192.0.2.7"}
+	run.Profile.Tools = append(run.Profile.Tools, "mintbrew")
+	m := manager(t, support, runner, "ok", "mintbrew", "homebrew-runtime", "ouncecake")
+	request := session.ToolRequest{Tool: "mintbrew", ConsoleIPv4: "192.0.2.7"}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
-	if endpoint := m.State().Endpoint; endpoint != "ftp://192.0.2.7:2122/sd/" {
-		t.Fatalf("unexpected endpoint %q", endpoint)
-	}
 	err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "ouncecake-webdav",
 		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
-	if err == nil || !strings.Contains(err.Error(), "sd-browser") {
+	if err == nil || !strings.Contains(err.Error(), "mintbrew") {
 		t.Fatalf("a second owner was not refused with the current owner: %v", err)
 	}
 	if err := m.Stop(context.Background(), run); err != nil {
@@ -161,9 +159,10 @@ func TestOneOwnerAtATime(t *testing.T) {
 
 func TestStopDrainsProgressAfterRunning(t *testing.T) {
 	runner, run, support := heldSession(t)
-	m := manager(t, support, runner, "progress-flood", "sd-browser")
+	run.Profile.Tools = append(run.Profile.Tools, "mintbrew")
+	m := manager(t, support, runner, "progress-flood", "mintbrew", "homebrew-runtime")
 	err := m.RunWith(context.Background(), run, session.ToolRequest{
-		Tool: "sd-browser", ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+		Tool: "mintbrew", ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,12 +180,13 @@ func TestStopDrainsProgressAfterRunning(t *testing.T) {
 
 func TestCancellationDrainsProgressBeforeRunning(t *testing.T) {
 	runner, run, support := heldSession(t)
-	m := manager(t, support, runner, "pre-result-flood", "sd-browser")
+	run.Profile.Tools = append(run.Profile.Tools, "mintbrew")
+	m := manager(t, support, runner, "pre-result-flood", "mintbrew", "homebrew-runtime")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	done := make(chan error, 1)
 	go func() {
-		done <- m.RunWith(ctx, run, session.ToolRequest{Tool: "sd-browser", ConsoleIPv4: "192.0.2.7"},
+		done <- m.RunWith(ctx, run, session.ToolRequest{Tool: "mintbrew", ConsoleIPv4: "192.0.2.7"},
 			func(session.Progress) { cancel() })
 	}()
 	select {
@@ -201,13 +201,24 @@ func TestCancellationDrainsProgressBeforeRunning(t *testing.T) {
 
 func TestExportsStayInsideTheirStatedBoundary(t *testing.T) {
 	runner, run, support := heldSession(t)
-	exposed := manager(t, support, runner, "exposed", "sd-browser")
-	err := exposed.RunWith(context.Background(), run, session.ToolRequest{Tool: "sd-browser",
-		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
-	if err == nil {
+	exposed := manager(t, support, runner, "exposed", "ouncecake")
+	done := make(chan error, 1)
+	go func() {
+		done <- exposed.RunWith(context.Background(), run, session.ToolRequest{Tool: "ouncecake-webdav",
+			ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+	}()
+	for exposed.State().Games == nil {
+		if len(done) > 0 {
+			t.Fatal(<-done)
+		}
+	}
+	if err := exposed.Select("0123456789abcdef"); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-done; err == nil {
 		t.Fatal("an endpoint outside the stated boundary was accepted")
 	}
-	outside := manager(t, support, runner, "outside", "sd-browser")
+	outside := manager(t, support, runner, "outside")
 	if err := outside.Run(context.Background(), run, "system-code-dump", func(session.Progress) {}); err == nil {
 		t.Fatal("a capture written into the private workspace was accepted")
 	}

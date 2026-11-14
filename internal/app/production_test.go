@@ -123,33 +123,25 @@ func TestProductionStartupWithBundledResourcesIsReadyOffline(t *testing.T) {
 			t.Fatalf("profile %s usb-runtime not verified on darwin/arm64: %+v", id, byID["usb-runtime"])
 		}
 	}
-	iz, err := a.Manifest.Profile("izmysh")
-	if err != nil {
-		t.Fatal(err)
-	}
-	izChecks, err := env.Platform.Inspect(context.Background(), session.Run{Profile: iz.SessionProfile()})
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, check := range izChecks {
-		if check.ID == "engine" && check.State != session.RequiresAttention {
-			t.Fatalf("izmysh unexpectedly marked ready: %+v", check)
-		}
-	}
 	mgr, ok := env.Tools.(*retained.Manager)
 	if !ok {
 		t.Fatal("expected *retained.Manager")
 	}
-	for _, bundledTool := range []string{
-		"rpc-status", "system-code-dump", "ouncecake-webdav", "ouncecake-ftp",
-		"sd-browser", "savekit-read", "savekit", "modloader", "launcher-seedsow-demo",
-	} {
-		if reason := mgr.Unavailable(bundledTool, "kurumuz"); reason != "" {
-			t.Fatalf("bundled tool %s unavailable offline: %q", bundledTool, reason)
+	for _, coreTool := range []string{"rpc-status", "system-code-dump"} {
+		if reason := mgr.Unavailable(coreTool, "kurumuz"); reason != "" {
+			t.Fatalf("core tool %s unavailable offline: %q", coreTool, reason)
 		}
 	}
-	if reason := mgr.Unavailable("mintbrew", "kurumuz"); reason == "" {
-		t.Fatal("optional mintbrew should not be staged before on-demand install")
+	for _, pluginTool := range []string{
+		"ouncecake-webdav", "ouncecake-ftp", "savekit-read", "savekit",
+		"modloader", "launcher-seedsow-demo", "mintbrew", "native-hblauncher",
+	} {
+		if reason := mgr.Unavailable(pluginTool, "kurumuz"); reason == "" {
+			t.Fatalf("plugin tool %s should not be staged before on-demand install", pluginTool)
+		}
+	}
+	if got := len(mgr.PluginsStatus()); runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" && got != 29 {
+		t.Fatalf("expected 29 plugins on darwin/arm64, got %d", got)
 	}
 	if !mgr.HomebrewInstallable(a.Controller.Snapshot().Profile) {
 		t.Fatal("expected optional homebrew to be installable on demand")
@@ -158,8 +150,8 @@ func TestProductionStartupWithBundledResourcesIsReadyOffline(t *testing.T) {
 		t.Fatal("excluded browser-research must remain unavailable")
 	}
 	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
-		if reason := a.Controller.CivSwitchUnavailable(); reason != "" {
-			t.Fatalf("packaged CivSwitch unavailable on darwin/arm64: %s", reason)
+		if reason := a.Controller.CivSwitchUnavailable(); reason == "" {
+			t.Fatal("expected CivSwitch payload to require on-demand civswitch-usb plugin before installation")
 		}
 		gate := ProductionDriverGate(engine.Options{Assets: assets, Manifest: a.Manifest})
 		if err := gate.Availability(); err != nil {

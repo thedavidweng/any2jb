@@ -86,6 +86,16 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 	if err != nil || !outcome.Valid(true) {
 		return errors.Join(errors.New("the retained session no longer holds a live verified lease"), err)
 	}
+	target := outcome.Target
+	if target == "" {
+		target = "switch2"
+	}
+	if (request.Tool == "system-code-dump" || isHomebrew(request.Tool)) && target != "switch2" {
+		return fmt.Errorf("%s requires a full Nintendo Switch 2 session (current target: %s)", request.Tool, target)
+	}
+	if request.Tool == "modloader" && target != "switch2" && target != "civ7" {
+		return fmt.Errorf("modloader requires a Switch 2 or CivSwitch session (current target: %s)", target)
+	}
 	m.mu.Lock()
 	if m.state.Lost {
 		m.mu.Unlock()
@@ -309,12 +319,6 @@ func validEndpoint(tool, endpoint, consoleIPv4 string) error {
 		}
 	case "ouncecake-ftp":
 		if parsed.Scheme == "ftp" && parsed.Hostname() == "127.0.0.1" && localPort(parsed.Port()) {
-			return nil
-		}
-	case "sd-browser":
-		port, convErr := strconv.Atoi(parsed.Port())
-		if parsed.Scheme == "ftp" && parsed.Hostname() == consoleIPv4 && convErr == nil &&
-			port >= 2122 && port <= 2199 && parsed.Path == "/sd/" {
 			return nil
 		}
 	}

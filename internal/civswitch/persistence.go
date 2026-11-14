@@ -20,14 +20,16 @@ import (
 
 	"github.com/thedavidweng/any2jb/internal/procgroup"
 	"github.com/thedavidweng/any2jb/internal/session"
+	"github.com/thedavidweng/any2jb/locales"
 )
 
 const (
+	payloadComponent       = "civswitch-payload"
+	hidSourceComponent     = "civswitch-hid.c"
 	backupPayloadComponent = "civswitch-backup-payload"
 	installerComponent     = "civswitch-installer"
 	coreComponent          = "civswitch-core"
 	saveTemplateComponent  = "civswitch-save-template"
-	controlCenterComponent = "civswitch-control-center"
 	installConfirmation    = "INSTALL DONE - reboot, Load Game"
 	backupFramePrefix      = "MAC2JB_CIV_BACKUP "
 	singleSaveDirectory    = "save:/saves/Single"
@@ -41,9 +43,11 @@ func (a *Adapter) dependentLoader(ctx context.Context, address string, component
 	if err := a.verifySource(); err != nil {
 		return "", err
 	}
-	root := a.sourceRoot()
 	for _, id := range components {
-		if err := a.options.Manifest.Verify(root, id); err != nil {
+		if err := a.verifyComponent(id); err != nil {
+			if a.options.ToolRoot != "" && errors.Is(err, os.ErrNotExist) {
+				return "", locales.Key("dynCivTriggerNotStaged")
+			}
 			return "", err
 		}
 	}
@@ -74,10 +78,9 @@ func (a *Adapter) retainedDirectory(kind string) (string, error) {
 }
 
 func (a *Adapter) componentPath(id string) (string, error) {
-	root := a.sourceRoot()
 	for _, c := range a.options.Manifest.Components {
 		if c.ID == id {
-			return filepath.Join(root, c.Path), nil
+			return filepath.Join(a.componentRoot(c.ID), c.Path), nil
 		}
 	}
 	return "", errors.New("unrecorded CivSwitch component " + id)
@@ -105,7 +108,7 @@ func (a *Adapter) InstallBootTrigger(ctx context.Context, address string, confir
 	if err != nil {
 		return "", err
 	}
-	payload, err := a.options.Manifest.Read(a.sourceRoot(), backupPayloadComponent)
+	payload, err := a.read(backupPayloadComponent)
 	if err != nil {
 		return "", err
 	}

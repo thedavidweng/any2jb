@@ -125,9 +125,8 @@ Optional steps, recorded only when performed:
 
 - **civ-trigger-install** — verified backup, explicit replacement consent,
   `INSTALL DONE - reboot, Load Game`. Advances `civ-trigger`.
-- **civ-control-center** — `CONTROL_CENTER_READY`, verified
-  `XSTRIG.Civ7Save` export, clean stop. Advances `civ-control-start`,
-  `civ-control-export`, `civ-control-stop`.
+- **civ-fs-host** — `CIVSWITCH_FS_READY`, verified held-RPC run path,
+  clean stop. Advances `civ-fs-start`, `civ-fs-stop`.
 - **civ-javascript** — explicit consent, exact `.js` file sent, execution
   confirmation. Advances `civ-js`.
 

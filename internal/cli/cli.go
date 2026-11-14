@@ -202,11 +202,41 @@ func (c *commandLine) close() {
 	}
 }
 
+func (c *commandLine) savedLanguage() string {
+	if c.app != nil {
+		return c.app.Preferences.Language
+	}
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return ""
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "any2jb", "preferences.json"))
+	if err != nil {
+		return ""
+	}
+	var prefs struct {
+		Language string `json:"language"`
+	}
+	if json.Unmarshal(data, &prefs) != nil {
+		return ""
+	}
+	normalized, _ := locales.NormalizeLanguagePreference(prefs.Language)
+	return normalized
+}
+
 // locale resolves the CLI language without MyGo's main thread, which never
-// runs in a command-line process: --lang, then MYGO_LOCALE and the POSIX
-// locale variables a terminal sets, then the catalog's source language.
+// runs in a command-line process: --lang, then saved preference (unless
+// --lang=system), then MYGO_LOCALE and the POSIX locale variables a terminal
+// sets, then the catalog's source language.
 func (c *commandLine) locale() string {
-	want := []string{c.lang}
+	var want []string
+	if c.lang != "" && c.lang != "system" {
+		want = append(want, c.lang)
+	} else if c.lang == "" {
+		if pref := c.savedLanguage(); pref != "" {
+			want = append(want, pref)
+		}
+	}
 	for _, name := range []string{"MYGO_LOCALE", "LC_ALL", "LC_MESSAGES", "LANG"} {
 		want = append(want, os.Getenv(name))
 	}
@@ -283,8 +313,10 @@ func (c *commandLine) execute(args []string) (err error) {
 			c.lang = args[i+1]
 		}
 	}
-	if c.lang != "" && c.lang != "en" && c.lang != "zh-CN" {
-		return cliFail(exitError, "use --lang=en or --lang=zh-CN")
+	if c.lang != "" {
+		if _, ok := locales.NormalizeLanguagePreference(c.lang); !ok {
+			return cliFail(exitError, locales.ChooseLanguage())
+		}
 	}
 	i18n.SetLocaleFunc(func() string { return c.locale() })
 	root := c.root()
@@ -429,6 +461,8 @@ func (c *commandLine) root() *cobra.Command {
 	c.addDiagnostics(root)
 	c.addCivSwitch(root)
 	c.addKeyboard(root)
+	c.addPlugins(root)
+	c.addUtilities(root)
 	root.InitDefaultHelpCmd()
 	localizeCommands(root)
 	return root
@@ -542,7 +576,7 @@ func (c *commandLine) wait() error {
 			c.say(cliMessage("cliAck"))
 			return nil
 		}
-		if s.KeyboardOpen || s.CivSwitchActions.ControlCenterLive {
+		if s.KeyboardOpen || s.CivSwitchActions.FSHostLive || s.CivSwitchActions.CivHomebrewLive {
 			return nil
 		}
 		if !s.Busy {

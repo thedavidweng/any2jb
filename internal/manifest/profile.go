@@ -52,11 +52,11 @@ func (m *Manifest) ProfileFiles(root, id string) ([]string, error) {
 	if err := verifyInventory(root, p, recorded); err != nil {
 		return nil, err
 	}
-	// Match mac2jb's sourceDigest: sorted [relative path, file SHA-256] pairs,
-	// covering engine/ and entrypoints, or the whole IZMYSH source tree.
+	// Match mac2jb's sourceDigest: sorted [relative path, file SHA-256] pairs
+	// covering engine/ and entrypoints.
 	names := make([]string, 0, len(recorded))
 	for name := range recorded {
-		if p.Engine == "izmysh" || name == "run.cjs" || name == "bootstrap.bas" ||
+		if name == "run.cjs" || name == "bootstrap.bas" ||
 			name == "rpc.cjs" || name == "dump-firmware.cjs" || strings.HasPrefix(name, "engine/") {
 			names = append(names, name)
 		}

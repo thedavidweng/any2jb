@@ -18,7 +18,7 @@ func TestPreferencesReload(t *testing.T) {
 	if a.Preferences.Profile != "kurumuz" || a.Preferences.Transport != "manual" {
 		t.Fatal(a.Preferences)
 	}
-	a.Preferences = Preferences{Profile: "izmysh", Edition: "full", LANIPv4: "192.168.1.9", Transport: "keyboard"}
+	a.Preferences = Preferences{Profile: "pepsipu", Edition: "full", LANIPv4: "192.168.1.9", Transport: "keyboard", Language: "zh-CN"}
 	if err := a.ApplyPreferences(); err != nil {
 		t.Fatal(err)
 	}
@@ -30,10 +30,18 @@ func TestPreferencesReload(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := b.Controller.Snapshot()
-	if s.Profile.ID != "izmysh" || s.Profile.StartPort != 39395 || s.Profile.SaveName != "NS2I" ||
+	if s.Profile.ID != "pepsipu" || s.Profile.StartPort != 39380 || s.Profile.SaveName != "NS2" ||
 		s.Edition != "full" || s.LANIPv4 != "192.168.1.9" || s.Transport.Mode != "keyboard" ||
 		s.Stage != session.Idle || len(s.Checks) != 0 || s.BootstrapSaved {
 		t.Fatalf("reload did not configure a fresh, unverified session: %+v", s)
+	}
+	b.Preferences.Language = "invalid-locale"
+	if err := b.ApplyPreferences(); err == nil {
+		t.Fatal("unsupported language accepted")
+	}
+	b.Preferences.Language = "system"
+	if err := b.ApplyPreferences(); err != nil || b.Preferences.Language != "" {
+		t.Fatalf("system language preference did not normalize to empty: %q, %v", b.Preferences.Language, err)
 	}
 	b.Preferences.Edition = "demo"
 	if err := b.ApplyPreferences(); err == nil {

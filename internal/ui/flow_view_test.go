@@ -475,7 +475,7 @@ func TestCompositeCivSwitchUsesSetupLaunchAndVerifiedToolsStages(t *testing.T) {
 	}
 	clickManual(t, tt, locales.CivStart())
 	uiStage(t, a, tt, session.Verified)
-	if _, ok := tt.AccessByRole(ui.RoleButton, locales.CivControlStart()); !ok {
+	if _, ok := tt.AccessByRole(ui.RoleButton, locales.CivFSStart()); !ok {
 		t.Fatal("verified CivSwitch tools unavailable")
 	}
 	if _, ok := tt.AccessByRole(ui.RoleButton, locales.CivStart()); ok {

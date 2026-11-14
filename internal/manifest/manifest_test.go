@@ -16,7 +16,7 @@ func TestPinnedProfiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.Default != "kurumuz" || len(m.Profiles) != 6 {
+	if m.Default != "kurumuz" || len(m.Profiles) != 5 {
 		t.Fatalf("unexpected default or profile count: %s, %d", m.Default, len(m.Profiles))
 	}
 	for _, want := range []struct {
@@ -29,7 +29,6 @@ func TestPinnedProfiles(t *testing.T) {
 		{"kurumuz", 5, 39380, "NS2", true, true, true, true, true},
 		{"cellenseres", 5, 39380, "NS2", true, true, true, true, true},
 		{"BermTheSequel", 5, 39380, "NS2", true, true, false, false, false},
-		{"izmysh", 9, 39395, "NS2I", false, false, false, false, false},
 		{"astral", 5, 39380, "NS2", true, true, true, true, false},
 	} {
 		t.Run(want.id, func(t *testing.T) {

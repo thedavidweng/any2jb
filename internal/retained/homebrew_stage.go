@@ -177,38 +177,3 @@ func StageHomebrewRuntimeContext(ctx context.Context, o StageOptions, toolRoot s
 	}
 	return out, nil
 }
-
-// CheckIZLauncher verifies an already-prepared IZlauncher runtime without
-// rebuilding it.
-func CheckIZLauncher(node, dest string) error {
-	if node == "" || dest == "" {
-		return errors.New("missing node or IZlauncher destination")
-	}
-	script := filepath.Join(dest, "scripts", "prepare-izlauncher.cjs")
-	return exec.Command(node, script, "--check", dest).Run()
-}
-
-// StageIZLauncher builds the pinned prepared IZlauncher runtime from the
-// staged, verified sources. It reruns the staged prepare script only when the
-// staged check fails, and refuses a runtime that still does not verify. The
-// homebrew supervisor verifies the same runtime again at every launch.
-func StageIZLauncher(node, dest string) error {
-	script := filepath.Join(dest, "scripts", "prepare-izlauncher.cjs")
-	run := func(flag string) error {
-		command := exec.Command(node, script, flag, dest)
-		return command.Run()
-	}
-	if run("--check") == nil {
-		return nil
-	}
-	if err := os.RemoveAll(filepath.Join(dest, "homebrew")); err != nil {
-		return err
-	}
-	if err := run("--prepare"); err != nil {
-		return fmt.Errorf("the staged IZlauncher prepare failed: %w", err)
-	}
-	if err := run("--check"); err != nil {
-		return fmt.Errorf("the staged IZlauncher runtime did not verify: %w", err)
-	}
-	return nil
-}

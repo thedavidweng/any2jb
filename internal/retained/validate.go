@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -34,20 +35,42 @@ var (
 // Atmosphere mod layout, custom homebrew app layout, and user-code consent
 // before the session controller enters RunningTool.
 func ValidateToolRequest(r session.ToolRequest) error {
-	if len(r.Modules) > 0 && r.Tool != "izlauncher" {
-		return errors.New("a module selection belongs to the IZlauncher")
+	if len(r.Modules) > 0 {
+		return errors.New("IZlauncher module selection is no longer supported")
 	}
 	if r.SDRomFolder != "" && r.Tool != "native-hblauncher" {
 		return errors.New("an SD ROM folder belongs to the native launcher")
 	}
-	if r.AppFolder != "" && r.Tool != "native-hblauncher" {
-		return errors.New("a native app folder belongs to the native launcher")
+	if r.AppFolder != "" && r.Tool != "native-hblauncher" && r.Tool != "mintbrew" {
+		return errors.New("an app folder belongs to MintBrew or the native launcher")
 	}
-	if (r.ModsFolder != "") != (r.Tool == "modloader") {
-		return errors.New("the modloader needs exactly one mod folder")
+	if r.ModsFolder != "" && r.Tool != "modloader" {
+		return errors.New("a mod folder belongs to the modloader")
 	}
 	if (r.CustomHomebrewFolder != "") != (r.Tool == "custom-homebrew") {
 		return errors.New("custom homebrew needs exactly one built app folder")
+	}
+	if r.StremioQuality != "" {
+		if r.Tool != "mintbrew" {
+			return errors.New("Stremio quality belongs to MintBrew")
+		}
+		if r.StremioQuality != "480p" && r.StremioQuality != "720p" && r.StremioQuality != "1080p" {
+			return errors.New("choose 480p, 720p, or 1080p for Stremio quality")
+		}
+	}
+	if len(r.StremioAddonURLs) > 0 {
+		if r.Tool != "mintbrew" {
+			return errors.New("Stremio addon URLs belong to MintBrew")
+		}
+		if len(r.StremioAddonURLs) > 16 {
+			return errors.New("choose up to 16 Stremio addon manifest URLs")
+		}
+		for _, raw := range r.StremioAddonURLs {
+			u, err := url.Parse(raw)
+			if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || !strings.HasSuffix(u.Path, "/manifest.json") {
+				return errors.New("Stremio addon URLs must be http or https manifest.json endpoints")
+			}
+		}
 	}
 	if r.ModsFolder != "" {
 		if err := validateModsFolder(r.ModsFolder); err != nil {
@@ -59,21 +82,11 @@ func ValidateToolRequest(r session.ToolRequest) error {
 			return err
 		}
 	}
-	if len(r.Modules) > 15 {
-		return errors.New("choose up to 15 distinct compatible modules")
-	}
-	seen := map[string]bool{}
-	for _, id := range r.Modules {
-		if seen[id] || !validModuleID(id) {
-			return errors.New("choose up to 15 distinct compatible modules")
-		}
-		seen[id] = true
-	}
 	if r.SDRomFolder != "" && !validSDRomFolder(r.SDRomFolder) {
 		return errors.New("enter an absolute SD folder under /sd without a trailing slash")
 	}
 	if r.AppFolder != "" && !validAppFolder(r.AppFolder) {
-		return errors.New("choose an existing absolute folder on this Mac")
+		return errors.New("choose an existing absolute folder on this computer")
 	}
 	return r.ValidateCodeConsent()
 }

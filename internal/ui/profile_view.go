@@ -12,9 +12,6 @@ import (
 func (a *app) profileView(c *ui.Context) {
 	p, _ := a.Manifest.Profile(a.Preferences.Profile)
 	keyValue(c, locales.HostProfile(), p.Label)
-	if p.Engine == "izmysh" {
-		ui.Text(c, locales.IzmyshUnavailable()).TextColor(c.Theme().TextMuted)
-	}
 	disabled := false
 	if a.Controller != nil {
 		s := a.Controller.Snapshot()

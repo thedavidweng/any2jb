@@ -121,3 +121,9 @@ test('staged files must match the confirmed preview', () => {
   checkPreview(null, crypto.createHash('sha256').update('delete\n/savegame.bin\n').digest('hex'), 'savegame.bin');
   assert.throws(() => checkPreview(null, digest, 'savegame.bin'), /changed since its preview/);
 });
+
+test('held targets and Seedsow Lullaby host protection match Mac2JB v0.8.2', () => {
+  const {HELD_TARGETS, SEEDSOW_TITLES} = require('./savekit-host.cjs');
+  assert.deepEqual([...HELD_TARGETS], ['switch2', 'civ7', 'artemis-seedsow']);
+  assert.deepEqual([...SEEDSOW_TITLES].sort(), ['010042d022aea000', '0100ee5021c9e000']);
+});

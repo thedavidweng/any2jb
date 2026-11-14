@@ -44,24 +44,16 @@ func (c *commandLine) addCivSwitch(root *cobra.Command) {
 		return c.operation(c.app.Controller.InstallCivSwitchTrigger(true))
 	})
 	install.Flags().StringVar(&trigger, "consent", "", cliMessage("cliConsent"))
-	for _, action := range []string{"send-js", "stage-js"} {
-		var consent string
-		cmd := c.command(group, action+" FILE", locales.ToolsTitle(), true, func(cmd *cobra.Command, args []string) error {
-			risk := locales.CivCodeWarning() + "\n" + locales.CivCodeConsent()
-			if err := c.consent(consent, "run-javascript", risk); err != nil {
-				return err
-			}
-			if cmd.Name() == "send-js" {
-				return c.operation(c.app.Controller.SendCivSwitchJavaScript(args[0], true))
-			}
-			return c.operation(c.app.Controller.StageCivSwitchJavaScript(args[0], true))
-		})
-		cmd.Args = cobra.ExactArgs(1)
-		cmd.Flags().StringVar(&consent, "consent", "", cliMessage("cliConsent"))
-	}
-	c.command(group, "control-center", locales.ToolsTitle(), true, func(*cobra.Command, []string) error {
-		return c.operation(c.app.Controller.StartCivSwitchControlCenter())
+	var jsConsent string
+	sendJS := c.command(group, "send-js FILE", locales.ToolsTitle(), true, func(_ *cobra.Command, args []string) error {
+		risk := locales.CivCodeWarning() + "\n" + locales.CivCodeConsent()
+		if err := c.consent(jsConsent, "run-javascript", risk); err != nil {
+			return err
+		}
+		return c.operation(c.app.Controller.SendCivSwitchJavaScript(args[0], true))
 	})
+	sendJS.Args = cobra.ExactArgs(1)
+	sendJS.Flags().StringVar(&jsConsent, "consent", "", cliMessage("cliConsent"))
 	c.command(group, "leave", locales.CivBack(), true, func(*cobra.Command, []string) error {
 		s := c.app.Controller.Snapshot()
 		if !s.CivSwitch {
@@ -69,9 +61,75 @@ func (c *commandLine) addCivSwitch(root *cobra.Command) {
 		}
 		return c.operation(c.app.Controller.SelectProfile(s.Profile, s.Edition))
 	})
-	c.command(group, "stop-control-center", locales.ToolsStop(), true, func(*cobra.Command, []string) error {
-		return c.operation(c.app.Controller.StopCivSwitchControlCenter())
+	c.addCivSwitchFSAndHomebrew(group)
+}
+
+func (c *commandLine) addCivSwitchFSAndHomebrew(group *cobra.Command) {
+	fsGroup := &cobra.Command{Use: "fs", Short: locales.CivFSHostSection()}
+	group.AddCommand(fsGroup)
+	var hostIPv4 string
+	var waitForLoader bool
+	fsStart := c.command(fsGroup, "start", locales.CivFSStart(), true, func(*cobra.Command, []string) error {
+		host := strings.TrimSpace(hostIPv4)
+		if host == "" {
+			host = c.app.Controller.Snapshot().LANIPv4
+		}
+		return c.operation(c.app.Controller.StartCivSwitchFSHost(host, waitForLoader))
 	})
+	fsStart.Flags().StringVar(&hostIPv4, "host", "", locales.CivFSHostAddress())
+	fsStart.Flags().BoolVar(&waitForLoader, "wait", false, locales.CivFSWaitLoader())
+	c.command(fsGroup, "stop", locales.CivFSStop(), true, func(*cobra.Command, []string) error {
+		return c.operation(c.app.Controller.StopCivSwitchFSHost())
+	})
+
+	hbGroup := &cobra.Command{Use: "homebrew", Short: locales.CivFSHostSection()}
+	group.AddCommand(hbGroup)
+	c.command(hbGroup, "probe", locales.CivHBProbe(), true, func(*cobra.Command, []string) error {
+		if err := c.operation(c.app.Controller.ProbeCivHomebrew()); err != nil {
+			return err
+		}
+		return c.print(c.app.Controller.Snapshot().CivSwitchActions.CivHomebrew)
+	})
+	c.command(hbGroup, "launch", locales.CivHBLaunch(), true, func(*cobra.Command, []string) error {
+		return c.operation(c.app.Controller.LaunchCivHomebrew())
+	})
+	c.command(hbGroup, "stop", locales.CivHBStop(), true, func(*cobra.Command, []string) error {
+		return c.operation(c.app.Controller.StopCivHomebrew())
+	})
+	var hbInstallConsent string
+	hbInstall := c.command(hbGroup, "install-trigger", locales.CivHBInstallTrigger(), true, func(*cobra.Command, []string) error {
+		risk := locales.CivTriggerWarning() + "\n" + locales.CivHBTriggerConsent()
+		if err := c.consent(hbInstallConsent, "replace-civswitch-saves", risk); err != nil {
+			return err
+		}
+		return c.operation(c.app.Controller.InstallCivHomebrewTrigger(true))
+	})
+	hbInstall.Flags().StringVar(&hbInstallConsent, "consent", "", cliMessage("cliConsent"))
+	var hbRestoreConsent string
+	hbRestore := c.command(hbGroup, "restore-trigger", locales.CivHBRestoreTrigger(), true, func(*cobra.Command, []string) error {
+		risk := locales.CivTriggerWarning() + "\n" + locales.CivHBTriggerConsent()
+		if err := c.consent(hbRestoreConsent, "restore-civswitch-saves", risk); err != nil {
+			return err
+		}
+		return c.operation(c.app.Controller.RestoreCivHomebrewTrigger())
+	})
+	hbRestore.Flags().StringVar(&hbRestoreConsent, "consent", "", cliMessage("cliConsent"))
+	c.command(hbGroup, "shutdown", locales.CivHBShutdown(), true, func(*cobra.Command, []string) error {
+		return c.operation(c.app.Controller.ShutdownCivHomebrew())
+	})
+	var pkgID, pkgFile string
+	hbPkg := c.command(hbGroup, "install-package", locales.CivHBPkgInstall(), true, func(*cobra.Command, []string) error {
+		spec := strings.TrimSpace(pkgFile)
+		if spec == "" {
+			spec = strings.TrimSpace(pkgID)
+		}
+		if spec == "" {
+			return cliFail(exitError, cliMessage("cliInvalidArguments"))
+		}
+		return c.operation(c.app.Controller.InstallCivHomebrewPackage(spec))
+	})
+	hbPkg.Flags().StringVar(&pkgID, "package", "", locales.CivHBPkgSelect())
+	hbPkg.Flags().StringVar(&pkgFile, "file", "", locales.CivHBPkgPath())
 }
 
 func (c *commandLine) addKeyboard(root *cobra.Command) {

@@ -85,7 +85,8 @@ func (c *commandLine) addTools(root *cobra.Command) {
 	run.Flags().StringVar(&request.SDRomFolder, "sd-folder", "", locales.HbSDFolder())
 	run.Flags().StringVar(&request.ModsFolder, "mods-folder", "", locales.ModFolder())
 	run.Flags().StringVar(&request.CustomHomebrewFolder, "custom-folder", "", locales.HbCustomFolder())
-	run.Flags().StringSliceVar(&request.Modules, "modules", nil, locales.HbModules())
+	run.Flags().StringVar(&request.StremioQuality, "stremio-quality", "", locales.HbStremioQuality())
+	run.Flags().StringSliceVar(&request.StremioAddonURLs, "stremio-addon", nil, locales.HbStremioAddons())
 	run.Flags().StringVar(&consent, "consent", "", cliMessage("cliConsent"))
 	c.command(tools, "stop", locales.ToolsStop(), true, func(*cobra.Command, []string) error { return c.operation(c.app.Controller.StopTool()) })
 	selectGame := c.command(tools, "select TITLE", locales.ToolsGameSelect(), true, func(_ *cobra.Command, args []string) error {
