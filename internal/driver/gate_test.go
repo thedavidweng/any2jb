@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -183,6 +184,19 @@ func TestPackagedDriverInstallVerifiesBundledAndOverlayAssets(t *testing.T) {
 	for i := range m.Components {
 		m.Components[i].Distribution = manifest.Distribution{Decision: "may-ship", Bundled: true}
 	}
+	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
+		g := driver.New(driver.Options{Manifest: m, Assets: root, Administrator: func(context.Context, string) error {
+			t.Fatal("administrator invoked outside darwin/arm64")
+			return nil
+		}})
+		if err := g.Availability(); err == nil {
+			t.Fatal("packaged kext driver accepted outside darwin/arm64")
+		}
+		if result, err := g.Install(context.Background(), true); err == nil || result.Attempted {
+			t.Fatalf("packaged kext install attempted outside darwin/arm64: %+v %v", result, err)
+		}
+		return
+	}
 	overlay := t.TempDir()
 	for _, c := range m.Components {
 		data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(c.Path)))
@@ -217,6 +231,9 @@ func TestPackagedDriverInstallVerifiesBundledAndOverlayAssets(t *testing.T) {
 }
 
 func TestPackagedGzipDriverInstallMaterializesVerifiedKext(t *testing.T) {
+	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
+		t.Skip("packaged kext installation requires darwin/arm64")
+	}
 	root, m := fixture(t)
 	wantBinary, err := os.ReadFile(filepath.Join(root, "drivers/usbgadget.kext/Contents/MacOS/usbgadget"))
 	if err != nil {

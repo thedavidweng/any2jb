@@ -68,7 +68,11 @@ func TestProductionStartupWithBundledResourcesIsReadyOffline(t *testing.T) {
 	assets := os.Getenv("ANY2JB_RUNTIME_ASSETS")
 	if assets == "" {
 		if abs, err := filepath.Abs(filepath.Join("..", "..", "resources")); err == nil {
-			if _, statErr := os.Stat(filepath.Join(abs, "runtime", "bridge.cjs")); statErr == nil {
+			mergedNode := filepath.Join(abs, "runtime", "node")
+			targetNode := filepath.Join(abs, runtime.GOOS+"-"+runtime.GOARCH, "runtime", "node")
+			if _, statErr := os.Stat(mergedNode); statErr == nil {
+				assets = abs
+			} else if _, statErr := os.Stat(targetNode); statErr == nil {
 				assets = abs
 			}
 		}
