@@ -20,7 +20,7 @@ func (s Store) RecordOwner(id string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(s.Support, "session-owner.json"), data, 0600)
+	return os.WriteFile(filepath.Join(s.Support, "session-owner.json"), data, 0o600)
 }
 
 // ReleaseInterrupted never signals a process. Unknown ownership or a live PID
@@ -37,7 +37,7 @@ func (s Store) ReleaseInterrupted(ctx context.Context) error {
 	lock := filepath.Join(s.Support, "session.lock")
 	info, err := os.Lstat(lock)
 	if err == nil {
-		if !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 {
+		if !info.Mode().IsRegular() || info.Mode().Perm()&0o077 != 0 {
 			return locales.Key("dynRecInvalidLease")
 		}
 		id, err := os.ReadFile(lock)
@@ -61,7 +61,7 @@ func (s Store) ReleaseInterrupted(ctx context.Context) error {
 		}
 	} else if errors.Is(err, os.ErrNotExist) {
 		// Reserve the same lease used by HostRunner while relocating orphaned runs.
-		f, err := os.OpenFile(lock, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+		f, err := os.OpenFile(lock, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func (s Store) ReleaseInterrupted(ctx context.Context) error {
 		return err
 	}
 	if len(entries) > 0 {
-		if err := os.MkdirAll(filepath.Join(s.Support, "past-runs"), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Join(s.Support, "past-runs"), 0o700); err != nil {
 			return err
 		}
 		for _, entry := range entries {

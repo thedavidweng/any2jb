@@ -41,8 +41,10 @@ func TestProfileEditionAndSavedBootstrap(t *testing.T) {
 			if _, err := c.SelectProfile(p.SessionProfile(), "full"); err != nil {
 				t.Fatal(err)
 			}
-			record := session.BootstrapRecord{ProfileID: p.ID, Revision: p.Revision, SourceSHA256: p.SourceSHA256,
-				BootstrapSHA256: p.BootstrapSHA256, SaveName: p.SaveName, Edition: "full", Confirmed: true}
+			record := session.BootstrapRecord{
+				ProfileID: p.ID, Revision: p.Revision, SourceSHA256: p.SourceSHA256,
+				BootstrapSHA256: p.BootstrapSHA256, SaveName: p.SaveName, Edition: "full", Confirmed: true,
+			}
 			if _, err := c.UseSavedBootstrap(record); err != nil {
 				t.Fatal(err)
 			}

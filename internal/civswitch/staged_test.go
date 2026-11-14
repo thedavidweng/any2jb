@@ -42,9 +42,11 @@ func stagedPluginFixture(t *testing.T) (*manifest.Manifest, string) {
 		if err := os.WriteFile(target, []byte(body), 0o400); err != nil {
 			t.Fatal(err)
 		}
-		m.Components = append(m.Components, manifest.Component{ID: id, Path: paths[id],
+		m.Components = append(m.Components, manifest.Component{
+			ID: id, Path: paths[id],
 			SHA256:       fmt.Sprintf("%x", sha256Sum([]byte(body))),
-			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: false}})
+			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: false},
+		})
 	}
 	return m, toolRoot
 }

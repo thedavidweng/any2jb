@@ -104,6 +104,7 @@ func (c *commandLine) print(value any) error {
 		return err
 	}
 }
+
 func (c *commandLine) load() error {
 	if c.app != nil {
 		return nil
@@ -115,6 +116,7 @@ func (c *commandLine) load() error {
 	c.app, err = app.Load(filepath.Join(dir, "any2jb", "preferences.json"))
 	return err
 }
+
 func (c *commandLine) own() error {
 	if c.release != nil {
 		return nil
@@ -133,6 +135,7 @@ func (c *commandLine) own() error {
 	c.release = release
 	return err
 }
+
 func (c *commandLine) ensure() error {
 	if err := c.load(); err != nil {
 		return err
@@ -186,19 +189,20 @@ func (c *commandLine) ensure() error {
 	store := diagnostics.Store{Support: c.support}
 	interrupted, recoveryErr := store.Interrupted()
 	if interrupted || recoveryErr != nil {
-		c.app.Controller.MarkInterrupted()
+		_, _ = c.app.Controller.MarkInterrupted()
 		if recoveryErr != nil {
 			return recoveryErr
 		}
 	}
 	return nil
 }
+
 func (c *commandLine) close() {
 	if c.helpers != nil {
 		c.helpers.Close()
 	}
 	if c.release != nil {
-		c.release()
+		_ = c.release()
 	}
 }
 
@@ -329,6 +333,7 @@ func (c *commandLine) execute(args []string) (err error) {
 	root.SetErr(c.stderr)
 	return root.Execute()
 }
+
 func (c *commandLine) command(parent *cobra.Command, use, title string, live bool, fn func(*cobra.Command, []string) error) *cobra.Command {
 	cmd := &cobra.Command{Use: use, Short: title, Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
 		if live && !c.shell {
@@ -507,6 +512,7 @@ func (c *commandLine) status() error {
 	}
 	return nil
 }
+
 func (c *commandLine) consent(provided, expected, risk string) error {
 	c.say(risk)
 	if c.terminal {
@@ -525,6 +531,7 @@ func (c *commandLine) consent(provided, expected, risk string) error {
 	}
 	return nil
 }
+
 func (c *commandLine) operation(s session.Snapshot, err error) error {
 	var reject *session.Rejection
 	if !errors.As(err, &reject) {
@@ -564,6 +571,7 @@ func (c *commandLine) prompt() (text string, ack func() bool, ok bool) {
 	}
 	return "", nil, false
 }
+
 func (c *commandLine) wait() error {
 	for {
 		s := c.app.Controller.Snapshot()
@@ -601,6 +609,7 @@ func (c *commandLine) wait() error {
 		}
 	}
 }
+
 func (c *commandLine) acknowledge(flag string) error {
 	text, ack, ok := c.prompt()
 	if !ok {
@@ -638,6 +647,7 @@ func (c *commandLine) interrupt() error {
 	}
 	return cliFail(exitCancelled, cliMessage("cliDeclined"))
 }
+
 func (c *commandLine) startInput() {
 	if c.lines != nil {
 		return
@@ -655,6 +665,7 @@ func (c *commandLine) startInput() {
 		}
 	}()
 }
+
 func (c *commandLine) readLine() (string, error) {
 	c.startInput()
 	select {
@@ -667,6 +678,7 @@ func (c *commandLine) readLine() (string, error) {
 		return "", c.interrupt()
 	}
 }
+
 func (c *commandLine) runShell() (err error) {
 	c.shell = true
 	defer func() {

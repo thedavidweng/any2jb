@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  check:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
+
+      - name: Install JS devDependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run quality gates
+        run: mise run check
+
+      - name: Verify clean working tree
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Working tree has uncommitted changes after quality gates:" >&2
+            git status --short >&2
+            git diff >&2
+            exit 1
+          fi
+
+  package:
+    name: Package & self-test (${{ matrix.target }})
+    needs: check
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin/arm64
+            target: darwin-arm64
+          - os: ubuntu-22.04
+            platform: linux/amd64
+            target: linux-amd64
+          - os: ubuntu-24.04-arm
+            platform: linux/arm64
+            target: linux-arm64
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
+        with:
+          install_args: "go"
+
+      - name: Cache verified runtime downloads
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .cache
+          key: runtime-cache-${{ matrix.target }}-${{ hashFiles('internal/manifest/profiles.json') }}
+
+      - name: Run Go race tests
+        run: go test -race ./...
+
+      - name: Build native package and run merged redistribution & self-test gates
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          go run ./cmd/prepare-runtime -platform "$TARGET"
+          go run ./cmd/check-package -platform "$TARGET"
+
+          if [ "$TARGET" = "darwin-arm64" ]; then
+            go tool mygo build -platform "$PLATFORM" -sign - -skip-notarize -skip-dmg -skip-build-command -o dist
+            merged_root="dist/darwin-arm64/any2jb.app/Contents/Resources"
+            bin_path="dist/darwin-arm64/any2jb.app/Contents/MacOS/any2jb"
+            go run ./cmd/check-package -platform "$TARGET" -merged "$merged_root"
+            codesign --verify --deep --strict dist/darwin-arm64/any2jb.app
+            codesign -d --entitlements - "$merged_root/runtime/node" 2>&1 | grep -q "com.apple.security.cs.allow-jit"
+          else
+            go tool mygo build -platform "$PLATFORM" -skip-notarize -skip-dmg -skip-build-command -o dist
+            merged_root="dist/$TARGET"
+            bin_path="dist/$TARGET/any2jb"
+            go run ./cmd/check-package -platform "$TARGET" -merged "$merged_root"
+          fi
+
+          "$bin_path" --self-test
+          "$bin_path" language list >/dev/null
+          "$bin_path" plugins list >/dev/null

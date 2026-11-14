@@ -89,10 +89,12 @@ func verifyResult(ctx context.Context, workspace string, held bool) (session.Out
 	if err := privateJSON(workspace, "result.json", &result); err != nil {
 		return session.Outcome{}, err
 	}
-	o := session.Outcome{Verified: result.Verified, FSVerified: result.FS.Verified, Restored: result.FS.Restored,
+	o := session.Outcome{
+		Verified: result.Verified, FSVerified: result.FS.Verified, Restored: result.FS.Restored,
 		CleanedUp: result.FS.Cleanup.CleanedUp, RetainedReady: result.FS.RetainedEndpoint.Ready,
 		CleanupDeferred: result.FS.Cleanup.Deferred, DonorCleanedUp: result.FS.Cleanup.Donor.CleanedUp,
-		RPCListening: result.RPC.Mode == "held" && result.RPC.State == "listening"}
+		RPCListening: result.RPC.Mode == "held" && result.RPC.State == "listening",
+	}
 	if result.Error != nil && result.Error != "" || len(result.CleanupErrors) != 0 ||
 		!o.Verified || !o.FSVerified || !o.Restored {
 		return session.Outcome{}, errors.New("engine verification incomplete")
@@ -133,8 +135,10 @@ func verifyResult(ctx context.Context, workspace string, held bool) (session.Out
 		return session.Outcome{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{Proxy: nil},
-		CheckRedirect: func(*http.Request, []*http.Request) error { return errors.New("RPC redirect refused") }}
+	client := &http.Client{
+		Timeout: 5 * time.Second, Transport: &http.Transport{Proxy: nil},
+		CheckRedirect: func(*http.Request, []*http.Request) error { return errors.New("RPC redirect refused") },
+	}
 	defer client.CloseIdleConnections()
 	response, err := client.Do(req)
 	if err != nil {

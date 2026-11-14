@@ -151,8 +151,10 @@ func (m *Manager) runSaveKitWrite(ctx context.Context, run session.Run, request 
 		return fmt.Errorf("post-write verification failed; the verified backup is kept at %s and the read-back at %s: %w",
 			backup, readback, err)
 	}
-	m.recordWrite(SaveKitWrite{Action: req.Action, Verified: true,
-		Files: result.Files, Replaced: result.Replaced, Backup: backup})
+	m.recordWrite(SaveKitWrite{
+		Action: req.Action, Verified: true,
+		Files: result.Files, Replaced: result.Replaced, Backup: backup,
+	})
 	return nil
 }
 
@@ -185,14 +187,14 @@ func stageSaveSource(workspace string, req *savekit.Request) (folder string, err
 	}
 	for _, file := range files {
 		name := filepath.FromSlash(file.Path[1:])
-		if err = os.MkdirAll(filepath.Join(folder, filepath.Dir(name)), 0700); err != nil {
+		if err = os.MkdirAll(filepath.Join(folder, filepath.Dir(name)), 0o700); err != nil {
 			return folder, err
 		}
 		input, openErr := root.Open(name)
 		if openErr != nil {
 			return folder, openErr
 		}
-		output, openErr := os.OpenFile(filepath.Join(folder, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		output, openErr := os.OpenFile(filepath.Join(folder, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 		if openErr != nil {
 			input.Close()
 			return folder, openErr
@@ -228,8 +230,10 @@ func (m *Manager) compareLiveSave(ctx context.Context, client savekit.Client, wo
 		m.recordWrite(SaveKitWrite{Action: "compare", Backup: live})
 		return fmt.Errorf("%w; the comparison export is kept at %s", err, live)
 	}
-	m.recordWrite(SaveKitWrite{Action: "compare", Verified: true,
-		Files: len(expected.Files), Backup: live})
+	m.recordWrite(SaveKitWrite{
+		Action: "compare", Verified: true,
+		Files: len(expected.Files), Backup: live,
+	})
 	return nil
 }
 
@@ -245,8 +249,10 @@ func (m *Manager) verifiedLiveSave(ctx context.Context, client savekit.Client, w
 	if err != nil {
 		return "", savekit.Export{}, err
 	}
-	read := savekit.Request{Action: "backup", TitleID: req.TitleID, UID: req.UID,
-		Archive: req.Archive}
+	read := savekit.Request{
+		Action: "backup", TitleID: req.TitleID, UID: req.UID,
+		Archive: req.Archive,
+	}
 	report(session.Progress{SideEffect: true})
 	if _, err := client.Run(ctx, workspace, folder, read); err != nil {
 		return "", savekit.Export{}, fmt.Errorf("the %s of the live save failed; no save was changed by this step: %w", step, err)

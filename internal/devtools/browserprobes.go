@@ -203,6 +203,8 @@ func parseBrowserProbesLine(line string) (BrowserProbesEvent, bool) {
 	if err := decodeJSON([]byte(payload), &raw); err != nil || raw.Type == "" {
 		return BrowserProbesEvent{}, false
 	}
-	return BrowserProbesEvent{Type: raw.Type, URL: raw.URL, ReportFolder: raw.ReportFolder,
-		Probe: raw.Probe, Message: raw.Message, Raw: json.RawMessage(payload)}, true
+	return BrowserProbesEvent{
+		Type: raw.Type, URL: raw.URL, ReportFolder: raw.ReportFolder,
+		Probe: raw.Probe, Message: raw.Message, Raw: json.RawMessage(payload),
+	}, true
 }

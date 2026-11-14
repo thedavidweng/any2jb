@@ -84,8 +84,10 @@ func exportFolder(t *testing.T, files map[string]string) string {
 			t.Fatal(err)
 		}
 		sum := sha256.Sum256([]byte(body))
-		entries = append(entries, entry{Path: "/" + name, Size: len(body),
-			SHA256: hex.EncodeToString(sum[:])})
+		entries = append(entries, entry{
+			Path: "/" + name, Size: len(body),
+			SHA256: hex.EncodeToString(sum[:]),
+		})
 		bytes += len(body)
 	}
 	manifest := map[string]any{
@@ -110,7 +112,8 @@ func writeRequest(t *testing.T, source string, preview savekit.Preview, allowRep
 	return session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
 		Action: "write", TitleID: writeTitle, UID: writeUID,
 		SourceFolder: source, AllowReplace: allowReplace,
-		Confirm: true, PreviewDigest: preview.Digest}}
+		Confirm: true, PreviewDigest: preview.Digest,
+	}}
 }
 
 func TestSaveKitWriteRunsTheFullGate(t *testing.T) {
@@ -152,7 +155,8 @@ func TestSaveKitFailureBlockSurvivesOtherOperations(t *testing.T) {
 			if next == "verify" {
 				other = session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
 					Action: "verify", TitleID: writeTitle, UID: writeUID,
-					ExpectedFolder: exportFolder(t, map[string]string{"savegame.bin": "save data\n"})}}
+					ExpectedFolder: exportFolder(t, map[string]string{"savegame.bin": "save data\n"}),
+				}}
 			}
 			if err := m.RunWith(context.Background(), run, other, func(session.Progress) {}); err != nil {
 				t.Fatal(err)
@@ -243,7 +247,7 @@ func TestSaveKitWritesConfirmedSnapshotWhenSourceChangesDuringBackup(t *testing.
 	err := m.RunWith(context.Background(), run, writeRequest(t, source, preview, false), func(p session.Progress) {
 		if p.SideEffect && !changed {
 			changed = true
-			if err := os.WriteFile(filepath.Join(source, "extra.bin"), []byte("unconfirmed\n"), 0600); err != nil {
+			if err := os.WriteFile(filepath.Join(source, "extra.bin"), []byte("unconfirmed\n"), 0o600); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -256,7 +260,8 @@ func TestSaveKitWritesConfirmedSnapshotWhenSourceChangesDuringBackup(t *testing.
 	}
 	expected := exportFolder(t, map[string]string{"savegame.bin": "save data\n", "extra.bin": "confirmed\n"})
 	err = m.RunWith(context.Background(), run, session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
-		Action: "verify", TitleID: writeTitle, UID: writeUID, ExpectedFolder: expected}}, func(session.Progress) {})
+		Action: "verify", TitleID: writeTitle, UID: writeUID, ExpectedFolder: expected,
+	}}, func(session.Progress) {})
 	if err != nil {
 		t.Fatalf("unconfirmed bytes reached the live save: %v", err)
 	}
@@ -326,7 +331,8 @@ func TestSaveKitDeleteRunsTheFullGate(t *testing.T) {
 	preview := savekit.PreviewDelete("savegame.bin")
 	request := session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
 		Action: "delete", TitleID: writeTitle, UID: writeUID,
-		FileName: "savegame.bin", Confirm: true, PreviewDigest: preview.Digest}}
+		FileName: "savegame.bin", Confirm: true, PreviewDigest: preview.Digest,
+	}}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
@@ -360,7 +366,8 @@ func TestSaveKitRestoreRunsTheFullGate(t *testing.T) {
 	}
 	request := session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
 		Action: "restore", TitleID: writeTitle, UID: writeUID,
-		SourceFolder: source, Confirm: true, PreviewDigest: preview.Digest}}
+		SourceFolder: source, Confirm: true, PreviewDigest: preview.Digest,
+	}}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
@@ -379,7 +386,8 @@ func TestSaveKitCompareStaysReadOnly(t *testing.T) {
 	m := savekitManager(t, support, runner, "ok", "savekit")
 	matching := exportFolder(t, map[string]string{"savegame.bin": "save data\n"})
 	request := session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
-		Action: "verify", TitleID: writeTitle, UID: writeUID, ExpectedFolder: matching}}
+		Action: "verify", TitleID: writeTitle, UID: writeUID, ExpectedFolder: matching,
+	}}
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}

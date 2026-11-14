@@ -58,8 +58,10 @@ func toolFixture(t *testing.T, format string) (string, *manifest.Manifest) {
 	}
 	m := &manifest.Manifest{Components: []manifest.Component{{
 		ID: "fixture-tool", Path: "INVENTORY", SHA256: digestOf(inventory),
-		Source: &manifest.ToolSource{Directory: ".", Format: format, Files: len(files),
-			Extra: map[string]string{"adapter.cjs": digestOf([]byte("// adapter\n"))}},
+		Source: &manifest.ToolSource{
+			Directory: ".", Format: format, Files: len(files),
+			Extra: map[string]string{"adapter.cjs": digestOf([]byte("// adapter\n"))},
+		},
 		Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture"},
 	}}}
 	return root, m
@@ -140,8 +142,10 @@ func selectedFilesFixture(t *testing.T) (string, *manifest.Manifest) {
 	}
 	m := &manifest.Manifest{Components: []manifest.Component{{
 		ID: "savekit", Path: "NOTICE", SHA256: digestOf([]byte("notice\n")),
-		Source: &manifest.ToolSource{Directory: "tools", Format: "selected-files",
-			Files: len(recorded), Extra: extra},
+		Source: &manifest.ToolSource{
+			Directory: "tools", Format: "selected-files",
+			Files: len(recorded), Extra: extra,
+		},
 		Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture"},
 	}}}
 	return root, m
@@ -175,6 +179,7 @@ func TestSelectedFilesStageOnlyTheRecordedEntrypoints(t *testing.T) {
 		t.Fatal("a missing read-only entrypoint was accepted")
 	}
 }
+
 func TestCanonicalToolSourcesAreRecordedAndBlocked(t *testing.T) {
 	m, err := manifest.Load()
 	if err != nil {

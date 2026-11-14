@@ -1,0 +1,35 @@
+name: Docs Links
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - ".github/workflows/docs-links.yml"
+  pull_request:
+    paths:
+      - "**/*.md"
+      - ".github/workflows/docs-links.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-links-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  links:
+    name: Check internal Markdown links
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check internal links and heading anchors
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --verbose --no-progress --offline --include-fragments '*.md' 'docs/**/*.md' 'internal/**/*.md'
+          fail: true

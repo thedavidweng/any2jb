@@ -96,7 +96,8 @@ func TestLaunchReobservesTheLANAddressItVerifies(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	env := f.Environment()
 	platform := &observedLAN{PlatformServices: env.Platform, observation: readiness.Observation{
-		Addresses: []readiness.Address{{Interface: "en0", IPv4: "192.168.1.10"}}, DefaultInterface: "en0"}}
+		Addresses: []readiness.Address{{Interface: "en0", IPv4: "192.168.1.10"}}, DefaultInterface: "en0",
+	}}
 	env.Platform = platform
 	host := &recordingHost{HostRunner: env.Host}
 	env.Host = host
@@ -112,7 +113,8 @@ func TestLaunchReobservesTheLANAddressItVerifies(t *testing.T) {
 	platform.mu.Lock()
 	platform.observation = readiness.Observation{
 		Addresses:        []readiness.Address{{Interface: "en0", IPv4: "192.168.1.10"}, {Interface: "en1", IPv4: "10.0.0.4"}},
-		DefaultInterface: "en1"}
+		DefaultInterface: "en1",
+	}
 	platform.mu.Unlock()
 	if _, err := c.Start(); err != nil {
 		t.Fatal(err)

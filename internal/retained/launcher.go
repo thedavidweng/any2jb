@@ -109,7 +109,7 @@ func PrepareLauncherArchive(ctx context.Context, m *manifest.Manifest, c manifes
 	if err := checkSaveMetadata(z, c.Launcher.TitleID); err != nil {
 		return savekit.Preview{}, err
 	}
-	if err := os.Mkdir(dest, 0700); err != nil {
+	if err := os.Mkdir(dest, 0o700); err != nil {
 		return savekit.Preview{}, err
 	}
 	for _, f := range z.File {
@@ -117,14 +117,14 @@ func PrepareLauncherArchive(ctx context.Context, m *manifest.Manifest, c manifes
 			continue
 		}
 		name := filepath.Join(dest, filepath.FromSlash(f.Name))
-		if err := os.MkdirAll(filepath.Dir(name), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(name), 0o700); err != nil {
 			return savekit.Preview{}, err
 		}
 		in, err := f.Open()
 		if err != nil {
 			return savekit.Preview{}, err
 		}
-		out, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		out, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 		if err != nil {
 			in.Close()
 			return savekit.Preview{}, err
@@ -254,7 +254,7 @@ func (m *Manager) PrepareLauncher(ctx context.Context, r LauncherRequest, target
 		}
 	}
 	parent := filepath.Join(o.Support, "launcher-previews")
-	if err := os.MkdirAll(parent, 0700); err != nil {
+	if err := os.MkdirAll(parent, 0o700); err != nil {
 		return "", savekit.Preview{}, err
 	}
 	dir, err := os.MkdirTemp(parent, r.ID+"-")

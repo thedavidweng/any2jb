@@ -14,8 +14,10 @@ import (
 func mutationBackup(t *testing.T, c savekit.Client, run string) string {
 	t.Helper()
 	destination := filepath.Join(t.TempDir(), "backup")
-	_, err := c.Run(context.Background(), run, destination, savekit.Request{Action: "backup",
-		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111"})
+	_, err := c.Run(context.Background(), run, destination, savekit.Request{
+		Action:  "backup",
+		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,9 +36,11 @@ func TestClientWriteReportsTheCommittedFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := c.Run(context.Background(), run, backup, savekit.Request{Action: "write",
+	result, err := c.Run(context.Background(), run, backup, savekit.Request{
+		Action:  "write",
 		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111",
-		SourceFolder: source, Confirm: true, PreviewDigest: preview.Digest})
+		SourceFolder: source, Confirm: true, PreviewDigest: preview.Digest,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,18 +70,22 @@ func TestClientMutationFailuresAreReportedNotRetried(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = c.Run(context.Background(), run, backup, savekit.Request{Action: "write",
+	_, err = c.Run(context.Background(), run, backup, savekit.Request{
+		Action:  "write",
 		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111",
-		SourceFolder: source, Confirm: true, PreviewDigest: preview.Digest})
+		SourceFolder: source, Confirm: true, PreviewDigest: preview.Digest,
+	})
 	if err == nil {
 		t.Fatal("an unverified write reported success")
 	}
 	// A host echoing a different action than requested is protocol drift.
 	c = client(t, "write-action")
-	_, err = c.Run(context.Background(), run, "", savekit.Request{Action: "delete",
+	_, err = c.Run(context.Background(), run, "", savekit.Request{
+		Action:  "delete",
 		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111",
 		FileName: "savegame.bin", Confirm: true,
-		PreviewDigest: savekit.PreviewDelete("savegame.bin").Digest})
+		PreviewDigest: savekit.PreviewDelete("savegame.bin").Digest,
+	})
 	if err == nil {
 		t.Fatal("a host reporting another action was accepted")
 	}

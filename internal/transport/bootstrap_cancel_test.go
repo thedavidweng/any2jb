@@ -17,7 +17,8 @@ func TestBootstrapCanCancelBeforePublicationWithoutStartingAHelper(t *testing.T)
 	const text = "PRINT 1\n"
 	sum := sha256.Sum256([]byte(text))
 	focus := make(chan struct{}, 1)
-	d := transport.NewHelperDarwin(transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming(),
+	d := transport.NewHelperDarwin(transport.DarwinOptions{
+		Controller: "usb-drd0", Timing: transport.DefaultTiming(),
 		Bootstrap: func(session.Run) (string, error) { return text, nil },
 		Confirm: func(ctx context.Context, _ session.Run, step transport.ConsoleStep) error {
 			if step != transport.EditorFocus {
@@ -26,7 +27,8 @@ func TestBootstrapCanCancelBeforePublicationWithoutStartingAHelper(t *testing.T)
 			focus <- struct{}{}
 			<-ctx.Done()
 			return ctx.Err()
-		}}, func(string, ...string) *exec.Cmd { t.Error("helper launched before focus confirmation"); return nil })
+		},
+	}, func(string, ...string) *exec.Cmd { t.Error("helper launched before focus confirmation"); return nil })
 	f := sessiontest.NewFakeEnvironment()
 	f.Checks = append(f.Checks, session.Check{ID: "usb-drd0", Controller: "usb-drd0", State: session.Available, GatesTransport: "usb-hid"})
 	env := f.Environment()

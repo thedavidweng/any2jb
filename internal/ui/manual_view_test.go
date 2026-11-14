@@ -30,8 +30,10 @@ func manualApp(t *testing.T, scenario string) (*app, *ui.Tester) {
 	})
 	manual := transport.NewManual(func(session.Run) (string, error) { return "PRINT 1\n", nil })
 	env.Input = manual
-	profile := session.Profile{ID: "fixture", Revision: "pinned", SaveName: "NS2",
-		BootstrapSHA256: "fixture", StartPort: 39380, StartArgumentCount: 5}
+	profile := session.Profile{
+		ID: "fixture", Revision: "pinned", SaveName: "NS2",
+		BootstrapSHA256: "fixture", StartPort: 39380, StartArgumentCount: 5,
+	}
 	c := session.New(env, profile)
 	t.Cleanup(func() {
 		s := c.Snapshot()

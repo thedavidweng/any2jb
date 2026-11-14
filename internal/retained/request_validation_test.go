@@ -191,9 +191,11 @@ func TestHomebrewToolRequestsValidateTheirInput(t *testing.T) {
 			t.Fatalf("invalid request must state InvalidConfiguration: %+v %v", request, err)
 		}
 	}
-	if _, err := c.RunToolWith(session.ToolRequest{Tool: "mintbrew",
+	if _, err := c.RunToolWith(session.ToolRequest{
+		Tool:      "mintbrew",
 		AppFolder: t.TempDir(), CodeConsent: true, StremioQuality: "1080p",
-		StremioAddonURLs: []string{"https://v3-cinemeta.strem.io/manifest.json"}}); err != nil {
+		StremioAddonURLs: []string{"https://v3-cinemeta.strem.io/manifest.json"},
+	}); err != nil {
 		t.Fatal(err)
 	}
 	awaitSessionStage(t, c, session.RetainedRPC)
@@ -201,8 +203,10 @@ func TestHomebrewToolRequestsValidateTheirInput(t *testing.T) {
 		t.Fatal(err)
 	}
 	awaitSessionStage(t, c, session.RetainedRPC)
-	if _, err := c.RunToolWith(session.ToolRequest{Tool: "native-hblauncher",
-		SDRomFolder: "/sd/roms/nes", AppFolder: t.TempDir(), CodeConsent: true}); err != nil {
+	if _, err := c.RunToolWith(session.ToolRequest{
+		Tool:        "native-hblauncher",
+		SDRomFolder: "/sd/roms/nes", AppFolder: t.TempDir(), CodeConsent: true,
+	}); err != nil {
 		t.Fatal(err)
 	}
 	awaitSessionStage(t, c, session.RetainedRPC)

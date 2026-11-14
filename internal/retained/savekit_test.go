@@ -30,9 +30,11 @@ func savekitManager(t *testing.T, support string, runner retained.Workspaces, sc
 	if err != nil {
 		t.Fatal(err)
 	}
-	options := retained.Options{Support: support, Node: node, Host: fixture, Manifest: m,
+	options := retained.Options{
+		Support: support, Node: node, Host: fixture, Manifest: m,
 		Runs: runner, Staged: staged, EngineStaged: true, ToolRoot: filepath.Join(support, "tools"),
-		SaveKitModule: module, SaveKitScenario: scenario}
+		SaveKitModule: module, SaveKitScenario: scenario,
+	}
 	return retained.NewProtocolManager(options, func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
 		return exec.Command(node, fixture, options.ToolRoot, request.Tool, workspace,
 			request.ConsoleIPv4, filepath.Join(support, "verified-exports", "system-code-"+run.ID), scenario)
@@ -68,16 +70,20 @@ func TestSaveKitReadListsAndExportsWithAHeldLease(t *testing.T) {
 		t.Fatalf("inventory: %+v", m.State().SaveKit)
 	}
 	entry := inventory[1]
-	target := session.ToolRequest{Tool: "savekit-read", Save: &savekit.Request{Action: "inspect",
-		TitleID: entry.TitleID, UID: entry.UID, Archive: &entry.Archive}}
+	target := session.ToolRequest{Tool: "savekit-read", Save: &savekit.Request{
+		Action:  "inspect",
+		TitleID: entry.TitleID, UID: entry.UID, Archive: &entry.Archive,
+	}}
 	if err := m.RunWith(context.Background(), run, target, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(m.State().SaveKit.Output, "/savegame.bin") {
 		t.Fatalf("inspect: %+v", m.State().SaveKit)
 	}
-	backup := session.ToolRequest{Tool: "savekit-read", Save: &savekit.Request{Action: "backup",
-		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111"}}
+	backup := session.ToolRequest{Tool: "savekit-read", Save: &savekit.Request{
+		Action:  "backup",
+		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111",
+	}}
 	if err := m.RunWith(context.Background(), run, backup, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}

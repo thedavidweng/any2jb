@@ -627,7 +627,7 @@
     {
       "id": "engine-bridge",
       "path": "runtime/bridge.cjs",
-      "sha256": "22b53950067c65e663c6419dfb54817949cbdbcf41e64df6d33f45d2aa0d18b4",
+      "sha256": "8b536cf7d44ae60fab9e1f15cbedfbfc2bb918d0ad95224ce381e647c247168c",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb bridge.",
@@ -641,7 +641,7 @@
     {
       "id": "tool-host",
       "path": "runtime/toolhost.cjs",
-      "sha256": "c3943a453ce359654c9ba630eda25e4ba24789b9880e5b1983aeae558c96705c",
+      "sha256": "faeb60416f07ca3068cfb3643c36c75819f34ce722077abe730e57eb52726a92",
       "upstream": "any2jb",
       "revision": "0.1.0",
       "licenseStatus": "Original any2jb retained-tool host.",

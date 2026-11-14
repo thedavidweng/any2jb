@@ -337,8 +337,10 @@ func parseDNSwitchLine(line string) (DNSwitchEvent, bool) {
 		if err := decodeJSON([]byte(payload), &raw); err != nil || raw.Type == "" {
 			return DNSwitchEvent{}, false
 		}
-		return DNSwitchEvent{Type: raw.Type, At: raw.At, Name: raw.Name, QType: raw.QType,
-			RCode: raw.RCode, Method: raw.Method, Status: raw.Status, Message: raw.Message}, true
+		return DNSwitchEvent{
+			Type: raw.Type, At: raw.At, Name: raw.Name, QType: raw.QType,
+			RCode: raw.RCode, Method: raw.Method, Status: raw.Status, Message: raw.Message,
+		}, true
 	}
 	var state DNSwitchState
 	if err := decodeJSON([]byte(line), &state); err != nil || state.Phase == "" {

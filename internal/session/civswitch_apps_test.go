@@ -67,9 +67,11 @@ func TestCivSwitchFSHostFailureIsReportedNotSwallowed(t *testing.T) {
 }
 
 func TestCivHomebrewActionsUseTheVerifiedConsole(t *testing.T) {
-	w := &civWriter{homebrewState: session.CivHomebrewState{Mode: "launcher", Launcher: true, FTP: true},
-		homebrewStop: session.CivHomebrewStop{Blocked: true, Message: "Close the foreground app on your Switch"},
-		homebrewApp:  session.CivHomebrewApp{ID: "moonlight-civswitch", Name: "Moonlight", Pinned: true}}
+	w := &civWriter{
+		homebrewState: session.CivHomebrewState{Mode: "launcher", Launcher: true, FTP: true},
+		homebrewStop:  session.CivHomebrewStop{Blocked: true, Message: "Close the foreground app on your Switch"},
+		homebrewApp:   session.CivHomebrewApp{ID: "moonlight-civswitch", Name: "Moonlight", Pinned: true},
+	}
 	c := verifiedCivSwitch(t, w)
 	if _, err := c.ProbeCivHomebrew(); err != nil {
 		t.Fatal(err)

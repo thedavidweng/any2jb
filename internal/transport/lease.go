@@ -28,11 +28,11 @@ func (d *Darwin) claim(run session.Run) (*os.File, error) {
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
 	}
-	file, err := root.OpenFile(name, os.O_CREATE|os.O_RDWR, 0600)
+	file, err := root.OpenFile(name, os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
 		return nil, err
 	}
-	if info, err := file.Stat(); err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 {
+	if info, err := file.Stat(); err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0o077 != 0 {
 		file.Close()
 		return nil, errors.New("USB controller lease is not private")
 	}

@@ -184,7 +184,7 @@ func TestAdapterMessagesAreLocalized(t *testing.T) {
 		}
 		if d.IsDir() && rel != "." {
 			base := d.Name()
-			if strings.HasPrefix(base, ".") || base == "build" || base == "vendor" || base == "testdata" || base == "sessiontest" ||
+			if strings.HasPrefix(base, ".") || base == "build" || base == "dist" || base == "node_modules" || base == "vendor" || base == "testdata" || base == "sessiontest" ||
 				rel == filepath.Join("cmd", "check") || rel == filepath.Join("cmd", "check-package") ||
 				rel == filepath.Join("cmd", "evidence") || rel == filepath.Join("cmd", "prepare-runtime") {
 				return filepath.SkipDir
@@ -313,7 +313,7 @@ func TestNoHardcodedUIStrings(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() && path != root && (strings.HasPrefix(d.Name(), ".") || d.Name() == "build" || d.Name() == "vendor" || d.Name() == "testdata") {
+		if d.IsDir() && path != root && (strings.HasPrefix(d.Name(), ".") || d.Name() == "build" || d.Name() == "dist" || d.Name() == "node_modules" || d.Name() == "vendor" || d.Name() == "testdata") {
 			return filepath.SkipDir
 		}
 		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {

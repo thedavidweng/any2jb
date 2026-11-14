@@ -180,6 +180,7 @@ func (c *commandLine) addSaveKit(root *cobra.Command) {
 	preview.Flags().StringVar(&request.SourceFolder, "source", "", cliMessage("cliFolder"))
 	preview.Flags().StringVar(&request.FileName, "file", "", cliMessage("cliFile"))
 }
+
 func cliSavePreview(request savekit.Request) (savekit.Preview, error) {
 	switch request.Action {
 	case "write":
@@ -230,8 +231,10 @@ func (c *commandLine) addLaunchers(root *cobra.Command) {
 			if cmd.Name() == "preview" {
 				return nil
 			}
-			risk := strings.Join([]string{locales.LauncherRestrictions(), locales.LauncherSideEffects(), locales.LauncherExistingUntouched(),
-				locales.SaveKitWriteTarget(target.TitleID, target.UID, "1", "1", "0", "0"), locales.LauncherConfirm()}, "\n")
+			risk := strings.Join([]string{
+				locales.LauncherRestrictions(), locales.LauncherSideEffects(), locales.LauncherExistingUntouched(),
+				locales.SaveKitWriteTarget(target.TitleID, target.UID, "1", "1", "0", "0"), locales.LauncherConfirm(),
+			}, "\n")
 			if err := c.consent(consent, "install-launcher-save", risk); err != nil {
 				return err
 			}

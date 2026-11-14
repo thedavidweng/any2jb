@@ -48,9 +48,11 @@ func Connect(ctx context.Context, command string) (*Console, error) {
 	}
 	// Addresses/layout from the pinned bootstrap's protocol-v1 test vector.
 	const main, sdk = uint64(0x3012300000), uint64(0x4012300000)
-	words := []uint64{0x31545344, 1, 2, 0x5012340000, 0x80000, main, sdk,
+	words := []uint64{
+		0x31545344, 1, 2, 0x5012340000, 0x80000, main, sdk,
 		main + 0x9c92f0, sdk + 0x5872f0, 0x5010100000, 0x5010100070,
-		values[5], values[6], values[7], values[8], 3925528160}
+		values[5], values[6], values[7], values[8], 3925528160,
+	}
 	hello := make([]byte, 128)
 	for i, word := range words {
 		binary.LittleEndian.PutUint64(hello[i*8:], word)

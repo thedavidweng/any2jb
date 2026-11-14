@@ -40,10 +40,7 @@ func TestCleanupKillsGrandchildThatIgnoresTermination(t *testing.T) {
 	}
 	timeout := time.NewTimer(time.Minute)
 	defer timeout.Stop()
-	for {
-		if errors.Is(syscall.Kill(child.PID, 0), syscall.ESRCH) {
-			break
-		}
+	for !errors.Is(syscall.Kill(child.PID, 0), syscall.ESRCH) {
 		select {
 		case <-timeout.C:
 			t.Fatal("grandchild survived owned process-group cleanup")

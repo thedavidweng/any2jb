@@ -144,12 +144,14 @@ func productionTools(root string, stageError error, options engine.Options, host
 		}
 	}
 	engineStaged := stageError == nil && ((options.DeveloperSourceRoot != "" && options.DeveloperProfileID != "") || options.DeveloperSourceRoot == "")
-	return retained.New(retained.Options{Support: options.Support, Version: options.Version, Bundled: bundled,
+	return retained.New(retained.Options{
+		Support: options.Support, Version: options.Version, Bundled: bundled,
 		Node: node, Host: toolHost,
 		ToolRoot: toolRoot, Staged: staged, StageError: stageToolsError,
 		EngineStaged: engineStaged,
 		EngineRoot:   root, HomebrewRuntime: homebrewRuntime,
-		Manifest: options.Manifest, Runs: host})
+		Manifest: options.Manifest, Runs: host,
+	})
 }
 
 // ProductionDriverGate creates the driver gate with packaged or explicit developer sources.

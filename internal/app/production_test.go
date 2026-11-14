@@ -21,7 +21,8 @@ func TestProductionStartupUsesRealBlockedAdapters(t *testing.T) {
 	}
 	env := ProductionEnvironmentWithCivSwitch(
 		engine.Options{Assets: t.TempDir(), Support: t.TempDir(), Version: "fixture", Manifest: a.Manifest},
-		transport.DarwinOptions{Timing: transport.DefaultTiming()}, civswitch.Options{})
+		transport.DarwinOptions{Timing: transport.DefaultTiming()}, civswitch.Options{},
+	)
 	if _, ok := env.Host.(*engine.HostRunner); !ok {
 		t.Fatal("production did not use the real host runner")
 	}
@@ -94,7 +95,8 @@ func TestProductionStartupWithBundledResourcesIsReadyOffline(t *testing.T) {
 	}
 	env := ProductionEnvironmentWithCivSwitch(
 		opts,
-		transport.DarwinOptions{Timing: transport.DefaultTiming()}, civswitch.Options{})
+		transport.DarwinOptions{Timing: transport.DefaultTiming()}, civswitch.Options{},
+	)
 	if _, err := a.InitializeSession(env); err != nil {
 		t.Fatal(err)
 	}

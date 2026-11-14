@@ -17,8 +17,10 @@ func (c *commandLine) addCivSwitch(root *cobra.Command) {
 	var prerequisites session.CivSwitchPrerequisites
 	var confirm string
 	start := c.command(group, "launch", locales.StartJailbreak(), true, func(*cobra.Command, []string) error {
-		risk := strings.Join([]string{locales.CivPrerequisites(), locales.CivNoRPC(), locales.CivComposite(), locales.CivDuration(), locales.CivProbe(),
-			locales.CivCartridge(), locales.CivLanguage(), locales.CivNetwork(), locales.CivChat()}, "\n")
+		risk := strings.Join([]string{
+			locales.CivPrerequisites(), locales.CivNoRPC(), locales.CivComposite(), locales.CivDuration(), locales.CivProbe(),
+			locales.CivCartridge(), locales.CivLanguage(), locales.CivNetwork(), locales.CivChat(),
+		}, "\n")
 		if err := c.consent(confirm, "civswitch-prerequisites", risk); err != nil {
 			return err
 		}

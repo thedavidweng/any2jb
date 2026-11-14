@@ -65,8 +65,10 @@ func developerSource(o Options) (*manifest.Profile, StagedRecord, error) {
 	if err := o.Manifest.VerifyProfile(o.DeveloperSourceRoot, p.ID); err != nil {
 		return nil, record, err
 	}
-	record = StagedRecord{Source: "developer-staged", Redistributable: false, ProfileID: p.ID,
-		Upstream: p.Upstream, Revision: p.Revision, SourceSHA256: p.SourceSHA256}
+	record = StagedRecord{
+		Source: "developer-staged", Redistributable: false, ProfileID: p.ID,
+		Upstream: p.Upstream, Revision: p.Revision, SourceSHA256: p.SourceSHA256,
+	}
 	return &p, record, nil
 }
 

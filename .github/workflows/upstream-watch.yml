@@ -1,0 +1,128 @@
+name: Upstream Monitor
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+    inputs:
+      force_issue:
+        description: "Open or update tracking issue even when aligned"
+        required: false
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - "internal/manifest/profiles.json"
+      - "internal/plugins/**"
+      - "resources/runtime/**"
+      - "docs/parity-ledger.md"
+      - "docs/external-projects.md"
+      - "scripts/check-upstream*"
+      - ".github/workflows/upstream-watch.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-watch-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify-pins:
+    name: Verify local upstream pins
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
+        with:
+          install_args: "node bun"
+
+      - name: Verify local manifest & doc pins and run unit tests
+        run: |
+          node scripts/check-upstream.mjs --offline
+          node --test scripts/check-upstream.test.mjs
+
+  monitor:
+    name: Check upstream cpypwn/mac2jb & ecosystem
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5.2.3
+        with:
+          install_args: "node"
+
+      - name: Query upstream cpypwn/mac2jb and pinned ecosystem repos
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/check-upstream.mjs \
+            --ecosystem \
+            --output upstream-report.json \
+            --markdown-output upstream-report.md
+          cat upstream-report.md >> "$GITHUB_STEP_SUMMARY"
+
+          has_update=$(node -e 'const r = JSON.parse(require("node:fs").readFileSync("upstream-report.json", "utf8")); console.log(r.mac2jb.hasUpdate ? "true" : "false")')
+          latest_sha=$(node -e 'const r = JSON.parse(require("node:fs").readFileSync("upstream-report.json", "utf8")); console.log(r.mac2jb.latestSha)')
+          short_sha=$(node -e 'const r = JSON.parse(require("node:fs").readFileSync("upstream-report.json", "utf8")); console.log(r.mac2jb.latestShortSha)')
+          latest_tag=$(node -e 'const r = JSON.parse(require("node:fs").readFileSync("upstream-report.json", "utf8")); console.log(r.mac2jb.latestTag || "")')
+          {
+            echo "has_update=$has_update"
+            echo "latest_sha=$latest_sha"
+            echo "short_sha=$short_sha"
+            echo "latest_tag=$latest_tag"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload upstream drift report
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: upstream-report
+          path: |
+            upstream-report.json
+            upstream-report.md
+          retention-days: 14
+
+      - name: Sync deduplicated GitHub tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HAS_UPDATE: ${{ steps.check.outputs.has_update }}
+          FORCE_ISSUE: ${{ inputs.force_issue }}
+          LATEST_SHA: ${{ steps.check.outputs.latest_sha }}
+          SHORT_SHA: ${{ steps.check.outputs.short_sha }}
+          LATEST_TAG: ${{ steps.check.outputs.latest_tag }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state open --search 'in:title "[Upstream] cpypwn/mac2jb update"' --json number,body --limit 1)
+          issue_number=$(node -e 'const list = JSON.parse(process.argv[1]); console.log(list[0]?.number ?? "")' "$existing")
+          issue_body=$(node -e 'const list = JSON.parse(process.argv[1]); console.log(list[0]?.body ?? "")' "$existing")
+
+          if [ "$HAS_UPDATE" = "true" ] || [ "$FORCE_ISSUE" = "true" ]; then
+            title="[Upstream] cpypwn/mac2jb update: ${SHORT_SHA}"
+            if [ -n "$LATEST_TAG" ]; then
+              title="${title} (${LATEST_TAG})"
+            fi
+            marker="<!-- upstream-mac2jb-sha:${LATEST_SHA} -->"
+            if [ -z "$issue_number" ]; then
+              gh issue create --repo "$REPO" --title "$title" --body-file upstream-report.md
+            elif ! printf '%s' "$issue_body" | grep -Fq "$marker"; then
+              gh issue edit "$issue_number" --repo "$REPO" --title "$title" --body-file upstream-report.md
+            else
+              echo "Open tracking issue #$issue_number already covers $SHORT_SHA; skipping edit."
+            fi
+          elif [ -n "$issue_number" ]; then
+            gh issue close "$issue_number" --repo "$REPO" --comment "Resolved: repository baseline is now aligned with upstream \`cpypwn/mac2jb\` (\`${SHORT_SHA}\`)."
+          fi

@@ -1,17 +1,17 @@
 {
-  "name": "any2jb",
-  "identifier": "io.github.thedavidweng.any2jb",
-  "version": "0.1.0",
-  "main": "./cmd/any2jb",
-  "out": "build",
-  "bindings": "build/mygo.ts",
-  "buildCommand": "go run ./cmd/prepare-runtime && go run ./cmd/check-package",
-  "i18n": { "dir": "locales", "source": "en" },
-  "macos": { "minimumSystemVersion": "14.0" },
-  "linux": {
-    "webview": false,
-    "comment": "Cross-platform mac2jb fork with streamlined UX and on-demand plugins",
-    "categories": ["Utility"],
-    "command": "any2jb"
-  }
+	"name": "any2jb",
+	"identifier": "io.github.thedavidweng.any2jb",
+	"version": "0.1.0",
+	"main": "./cmd/any2jb",
+	"out": "build",
+	"bindings": "build/mygo.ts",
+	"buildCommand": "go run ./cmd/prepare-runtime && go run ./cmd/check-package",
+	"i18n": { "dir": "locales", "source": "en" },
+	"macos": { "minimumSystemVersion": "14.0" },
+	"linux": {
+		"webview": false,
+		"comment": "Cross-platform mac2jb fork with streamlined UX and on-demand plugins",
+		"categories": ["Utility"],
+		"command": "any2jb"
+	}
 }

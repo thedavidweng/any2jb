@@ -453,8 +453,10 @@ func (a *app) detectionView(c *ui.Context, s session.Snapshot) {
 func recoverySteps(c *ui.Context) {
 	t := c.Theme()
 	ui.Column(c).FillWidth().Gap(t.Space(1.5)).Children(func() {
-		for i, step := range []string{locales.MacRecovery1(), locales.MacRecovery2(), locales.MacRecovery3(),
-			locales.MacRecovery4(), locales.MacRecovery5(), locales.MacRecovery6()} {
+		for i, step := range []string{
+			locales.MacRecovery1(), locales.MacRecovery2(), locales.MacRecovery3(),
+			locales.MacRecovery4(), locales.MacRecovery5(), locales.MacRecovery6(),
+		} {
 			ui.Row(c).FillWidth().AlignItems(ui.Start).Gap(t.Space(2)).Children(func() {
 				ui.Text(c, fmt.Sprint(i+1, ".")).TextColor(t.TextMuted).Shrink(0)
 				ui.Text(c, step).Shrink(1)

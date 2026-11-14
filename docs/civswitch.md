@@ -158,7 +158,7 @@ typing. Preparation never installs a driver, uses sudo, or changes security.
 - [Code tests](../internal/civswitch/code_test.go): consent refusal, file validation,
   the exact chosen bytes sent, refused payload errors, and JSON-encoded staging
   chunks that reassemble to the chosen file.
-- [Control Center tests](../internal/civswitch/control_test.go): a read-only session that
+- [Control Center FS host tests](../internal/civswitch/fshost_test.go): a read-only session that
   sends no further code, a verified export retained through user cleanup,
   refused unverified exports, and a deliberate stop.
 - [Gate tests](../internal/session/civswitch_actions_test.go) and

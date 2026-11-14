@@ -210,7 +210,7 @@ func (s *State) SavePreferences() error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(s.PreferencesPath), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(s.PreferencesPath), 0o700); err != nil {
 		return err
 	}
 	tmp, err := os.CreateTemp(filepath.Dir(s.PreferencesPath), ".preferences-*")
@@ -355,7 +355,7 @@ func SaveBootstrapRecord(path string, record session.BootstrapRecord) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
 	file, err := os.CreateTemp(filepath.Dir(path), ".bootstrap-*")
@@ -446,7 +446,7 @@ func (p *USBPrompt) CurrentWithIdentity(notify func()) (step transport.ConsoleSt
 	}
 	step, profile, edition, id, pending = p.step, p.profile, p.edition, p.sequence, p.pending != nil
 	p.mu.Unlock()
-	return
+	return step, profile, edition, id, pending
 }
 
 // Confirm releases only the step matching id, never a later one.
@@ -463,7 +463,7 @@ func (p *USBPrompt) Confirm(id uint64) bool {
 
 // RefreshSession schedules fresh reads whenever controller or manual emits an
 // event until closed is closed.
-func RefreshSession(closed <-chan struct{}, controller, manual <-chan struct{}, update func()) {
+func RefreshSession(closed, controller, manual <-chan struct{}, update func()) {
 	for {
 		select {
 		case <-closed:

@@ -424,5 +424,7 @@ func (a *Adapter) helper(ctx context.Context, dryRun bool, receive func(helperEv
 	return errors.Join(receiveErr, scanner.Err(), cmd.Wait())
 }
 
-var _ session.CivSwitchAdapter = (*Adapter)(nil)
-var _ session.CivSwitchWriter = (*Adapter)(nil)
+var (
+	_ session.CivSwitchAdapter = (*Adapter)(nil)
+	_ session.CivSwitchWriter  = (*Adapter)(nil)
+)

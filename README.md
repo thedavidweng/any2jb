@@ -41,13 +41,16 @@ To restore default security later, run `sudo rm -rf /Library/Extensions/usbgadge
 
 ## Build and Test
 
-Requires Go `1.27.3` (and Xcode Command Line Tools on `darwin/arm64`).
+Requires Go `1.27.3+` (and Xcode Command Line Tools on `darwin/arm64`). Development tools (`go`, `bun`, `node`, `gofumpt`, `golangci-lint`, `jactionlint`) are pinned in `mise.toml`.
 
 ```sh
+mise install && bun install
+mise run check                 # Go + JS lint/format/typecheck/tests + i18n + workflows
+bun lint && bun check          # JS/JSON Biome lint, Bun typecheck, and Node runtime tests
+bun run upstream:check         # Check upstream cpypwn/mac2jb and pinned plugin drift
 go run ./cmd/prepare-runtime
 go run ./cmd/check-package
 go tool mygo dev
-CGO_ENABLED=0 go test ./...
 ```
 
 ## Credits and License

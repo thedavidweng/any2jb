@@ -219,7 +219,7 @@ func TestPrepareConfirmationsAreNotPersisted(t *testing.T) {
 		if strings.Contains(strings.ToLower(string(data)), "prepar") || strings.Contains(string(data), "true") {
 			t.Fatalf("a confirmation was saved: %s", data)
 		}
-		a, tt = compositeApp(t, path)
+		_, tt = compositeApp(t, path)
 		if civ {
 			clickManual(t, tt, locales.CivTitle())
 		}

@@ -109,8 +109,10 @@ func (a *Adapter) CivHomebrewProbe(ctx context.Context, address string) (CivHome
 	if err := json.Unmarshal(result, &state); err != nil {
 		return CivHomebrewState{}, fmt.Errorf("the CivHomebrew companion status is invalid: %w", err)
 	}
-	return CivHomebrewState{Mode: state.Mode, Launcher: state.Launcher, FTP: state.FTP,
-		Busy: state.Busy, Closed: state.Closed, Message: message}, nil
+	return CivHomebrewState{
+		Mode: state.Mode, Launcher: state.Launcher, FTP: state.FTP,
+		Busy: state.Busy, Closed: state.Closed, Message: message,
+	}, nil
 }
 
 // CivHomebrewLaunch sends the temporary launcher to the open loader and blocks

@@ -178,7 +178,7 @@ func Stage(o Options) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer discard(tmp)
+	defer func() { _ = discard(tmp) }()
 	for _, c := range components {
 		rel := assetRelPath(o.Assets, c, true)
 		data, err := o.Manifest.ReadAt(o.Assets, c.ID, rel)

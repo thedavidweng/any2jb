@@ -10,11 +10,11 @@ import (
 func TestCleanedOrphanStillRequiresConsoleRestartAndRetainsLogs(t *testing.T) {
 	s := Store{Support: t.TempDir()}
 	past := filepath.Join(s.Support, "past-runs", "run-old")
-	if err := os.MkdirAll(past, 0700); err != nil {
+	if err := os.MkdirAll(past, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	for name, value := range map[string]string{"session-interrupted": "old", "past-runs/run-old/diagnostics-id": "old", "past-runs/run-old/run.log": "pipeline failed"} {
-		if err := os.WriteFile(filepath.Join(s.Support, name), []byte(value), 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(s.Support, name), []byte(value), 0o600); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -561,8 +561,10 @@ func TestArtemisHTTPRoundTripsAgainstTheLauncherFixture(t *testing.T) {
 	f := newFixture(t)
 	launcher := newMockLauncher(t)
 	host, port := launcher.address(t)
-	client := artemis.Client{Node: artemis.NodeBinary(nodeBinary(t)), ToolRoot: f.toolRoot,
-		Manifest: f.manifest, Support: f.support, Port: port, AllowLoopback: true}
+	client := artemis.Client{
+		Node: artemis.NodeBinary(nodeBinary(t)), ToolRoot: f.toolRoot,
+		Manifest: f.manifest, Support: f.support, Port: port, AllowLoopback: true,
+	}
 	ctx := context.Background()
 
 	status, err := client.Status(ctx, host)
@@ -589,8 +591,10 @@ func TestArtemisHTTPRoundTripsAgainstTheLauncherFixture(t *testing.T) {
 	}
 
 	folder := t.TempDir()
-	if _, err := client.Get(ctx, artemis.GetRequest{Host: host, Path: "save:/absent.dat",
-		Out: filepath.Join(folder, "absent.dat")}); !errors.Is(err, artemis.ErrRefused) {
+	if _, err := client.Get(ctx, artemis.GetRequest{
+		Host: host, Path: "save:/absent.dat",
+		Out: filepath.Join(folder, "absent.dat"),
+	}); !errors.Is(err, artemis.ErrRefused) {
 		t.Fatalf("a missing save must be a refused transfer: %v", err)
 	}
 	destination := filepath.Join(folder, "download.dat")
@@ -621,8 +625,10 @@ func TestArtemisHTTPRoundTripsAgainstTheLauncherFixture(t *testing.T) {
 	if evaluated.Result != "42" || !slices.Contains(evaluated.Output, "hello") {
 		t.Fatalf("eval: %+v", evaluated)
 	}
-	if _, err := client.Eval(ctx, artemis.EvalRequest{Host: host, Code: strings.Repeat("x", artemis.BodyLimit+1),
-		ConfirmedArbitraryCode: true}); !errors.Is(err, artemis.ErrTooLarge) {
+	if _, err := client.Eval(ctx, artemis.EvalRequest{
+		Host: host, Code: strings.Repeat("x", artemis.BodyLimit+1),
+		ConfirmedArbitraryCode: true,
+	}); !errors.Is(err, artemis.ErrTooLarge) {
 		t.Fatalf("an oversized Lua request must be refused locally: %v", err)
 	}
 
@@ -646,8 +652,10 @@ func TestArtemisHTTPRoundTripsAgainstTheLauncherFixture(t *testing.T) {
 	if mode(t, upload.Backup) != 0o700 {
 		t.Fatalf("the backup folder mode is %v", mode(t, upload.Backup))
 	}
-	if _, err := client.Put(ctx, artemis.PutRequest{Host: host, Path: "save:/core.lua", In: source,
-		ConfirmedMutation: true}); !errors.Is(err, artemis.ErrSavePath) {
+	if _, err := client.Put(ctx, artemis.PutRequest{
+		Host: host, Path: "save:/core.lua", In: source,
+		ConfirmedMutation: true,
+	}); !errors.Is(err, artemis.ErrSavePath) {
 		t.Fatalf("a protected launcher file must never be written: %v", err)
 	}
 
@@ -692,14 +700,18 @@ func TestStartSeedsowFSGatesBeforeSpawn(t *testing.T) {
 	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{}, nil); err == nil {
 		t.Fatal("a host needs a verified Node binary")
 	}
-	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{Node: absent,
+	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{
+		Node:      absent,
 		ConsoleIP: "127.0.0.1", HostIP: "192.168.1.2", Support: support, ToolRoot: toolRoot,
-		Manifest: m}, nil); !errors.Is(err, artemis.ErrAddress) {
+		Manifest: m,
+	}, nil); !errors.Is(err, artemis.ErrAddress) {
 		t.Fatalf("a loopback console needs the fixture option: %v", err)
 	}
-	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{Node: absent,
+	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{
+		Node:      absent,
 		ConsoleIP: "192.168.1.55", HostIP: "127.0.0.1", Support: support, ToolRoot: toolRoot,
-		Manifest: m}, nil); !errors.Is(err, artemis.ErrAddress) {
+		Manifest: m,
+	}, nil); !errors.Is(err, artemis.ErrAddress) {
 		t.Fatalf("a loopback computer address needs the fixture option: %v", err)
 	}
 	// The pinned host stages only beneath an absolute canonical root.
@@ -708,19 +720,25 @@ func TestStartSeedsowFSGatesBeforeSpawn(t *testing.T) {
 	if err := os.Symlink(real, link); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{Node: absent,
+	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{
+		Node:      absent,
 		ConsoleIP: "127.0.0.1", HostIP: "127.0.0.1", Support: link, ToolRoot: toolRoot,
-		Manifest: m, AllowLoopback: true}, nil); err == nil || !strings.Contains(err.Error(), "not canonical") {
+		Manifest: m, AllowLoopback: true,
+	}, nil); err == nil || !strings.Contains(err.Error(), "not canonical") {
 		t.Fatalf("a symlinked support root must be refused: %v", err)
 	}
-	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{Node: absent,
+	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{
+		Node:      absent,
 		ConsoleIP: "127.0.0.1", HostIP: "127.0.0.1", Port: 70000, Support: support,
-		ToolRoot: toolRoot, Manifest: m, AllowLoopback: true}, nil); err == nil {
+		ToolRoot: toolRoot, Manifest: m, AllowLoopback: true,
+	}, nil); err == nil {
 		t.Fatal("an impossible port must be refused")
 	}
-	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{Node: absent,
+	if _, err := artemis.StartSeedsowFS(context.Background(), artemis.SeedsowFSRequest{
+		Node:      absent,
 		ConsoleIP: "127.0.0.1", HostIP: "127.0.0.1", Support: support, ToolRoot: toolRoot,
-		Manifest: m, AllowLoopback: true}, nil); !errors.As(err, new(*artemis.PluginMissingError)) {
+		Manifest: m, AllowLoopback: true,
+	}, nil); !errors.As(err, new(*artemis.PluginMissingError)) {
 		t.Fatalf("the host needs the artemis-fs plugin: %v", err)
 	}
 }

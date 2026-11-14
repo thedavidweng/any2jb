@@ -50,9 +50,13 @@ func ReadExport(dir string) (Export, error) {
 	if err != nil {
 		return Export{}, err
 	}
-	export := Export{Dir: dir, TitleID: m.ProgramID, UID: m.UID,
-		Archive: Archive{Space: uint32(m.Space), Type: uint32(m.Type),
-			Rank: uint32(m.Rank), Index: uint32(m.Index)}}
+	export := Export{
+		Dir: dir, TitleID: m.ProgramID, UID: m.UID,
+		Archive: Archive{
+			Space: uint32(m.Space), Type: uint32(m.Type),
+			Rank: uint32(m.Rank), Index: uint32(m.Index),
+		},
+	}
 	if m.TitleID != "" {
 		if m.ProgramID != "" && m.TitleID != m.ProgramID {
 			return Export{}, errors.New("the save export has conflicting program IDs")
@@ -67,8 +71,10 @@ func ReadExport(dir string) (Export, error) {
 		if err != nil {
 			return Export{}, err
 		}
-		export.Files = append(export.Files, ExportFile{Path: "/" + name,
-			Size: entry.Size, SHA256: entry.SHA256})
+		export.Files = append(export.Files, ExportFile{
+			Path: "/" + name,
+			Size: entry.Size, SHA256: entry.SHA256,
+		})
 	}
 	return export, nil
 }
@@ -174,8 +180,10 @@ func PreviewWrite(folder string) (Preview, error) {
 		if copyErr != nil || closeErr != nil {
 			return errors.Join(copyErr, closeErr)
 		}
-		files = append(files, ExportFile{Path: "/" + filepath.ToSlash(name),
-			Size: info.Size(), SHA256: hex.EncodeToString(hash.Sum(nil))})
+		files = append(files, ExportFile{
+			Path: "/" + filepath.ToSlash(name),
+			Size: info.Size(), SHA256: hex.EncodeToString(hash.Sum(nil)),
+		})
 		return nil
 	})
 	if err != nil {
@@ -231,8 +239,10 @@ func PreviewRestore(folder string) (Preview, error) {
 	}
 	files := slices.Clone(export.Files)
 	slices.SortFunc(files, func(a, b ExportFile) int { return strings.Compare(a.Path, b.Path) })
-	return Preview{Files: files, Bytes: total, Digest: previewDigest(files),
-		TitleID: export.TitleID, UID: export.UID, Archive: export.Archive}, nil
+	return Preview{
+		Files: files, Bytes: total, Digest: previewDigest(files),
+		TitleID: export.TitleID, UID: export.UID, Archive: export.Archive,
+	}, nil
 }
 
 // PreviewDelete previews the one save-root file a delete removes.

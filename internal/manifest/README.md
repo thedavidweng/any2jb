@@ -26,7 +26,7 @@ unbundled/denied file, symlink, digest mismatch and missing bundled artifact.
 The MyGo `buildCommand` invokes this gate over `resources/` automatically.
 Profiles are not packaging allowlists: before any host is shipped its rights
 must be resolved and its individual packaged files recorded as components.
-See [the redistribution assessment](../docs/redistribution.md) for scope,
+See [the redistribution assessment](../../docs/redistribution.md) for scope,
 GPL v2/v3 assessments, release blockers and alternate acquisition boundaries.
 
 ## Before execution or bootstrap transfer

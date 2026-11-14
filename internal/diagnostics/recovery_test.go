@@ -11,10 +11,10 @@ import (
 
 func TestStaleLeaseReleaseRequiresDeadMatchingOwner(t *testing.T) {
 	s := Store{Support: t.TempDir()}
-	if err := os.MkdirAll(filepath.Join(s.Support, "runs", "run-old"), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Join(s.Support, "runs", "run-old"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(s.Support, "session.lock"), []byte("old"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(s.Support, "session.lock"), []byte("old"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.RecordOwner("old"); err != nil {
@@ -28,14 +28,14 @@ func TestStaleLeaseReleaseRequiresDeadMatchingOwner(t *testing.T) {
 		t.Fatal(err)
 	}
 	owner, _ := json.Marshal(Owner{RunID: "wrong", PID: cmd.Process.Pid})
-	if err := os.WriteFile(filepath.Join(s.Support, "session-owner.json"), owner, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(s.Support, "session-owner.json"), owner, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.ReleaseInterrupted(context.Background()); err == nil {
 		t.Fatal("released mismatching lease")
 	}
 	owner, _ = json.Marshal(Owner{RunID: "old", PID: cmd.Process.Pid})
-	if err := os.WriteFile(filepath.Join(s.Support, "session-owner.json"), owner, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(s.Support, "session-owner.json"), owner, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.ReleaseInterrupted(context.Background()); err != nil {

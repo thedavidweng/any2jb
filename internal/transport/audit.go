@@ -41,7 +41,7 @@ func (d *Darwin) audit(run session.Run, workspace string) (*usbAudit, error) {
 				d.workspaces = make(map[string]string)
 			}
 			d.workspaces[run.ID] = workspace
-			if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0600); err != nil {
+			if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0o600); err != nil {
 				return nil, err
 			}
 		}
@@ -50,7 +50,7 @@ func (d *Darwin) audit(run session.Run, workspace string) (*usbAudit, error) {
 		return nil, errors.New("USB log workspace is not an owned run")
 	}
 	info, err := os.Lstat(workspace)
-	if err != nil || !info.IsDir() || info.Mode().Perm()&0077 != 0 {
+	if err != nil || !info.IsDir() || info.Mode().Perm()&0o077 != 0 {
 		return nil, errors.New("USB log workspace is not private")
 	}
 	root, err := os.OpenRoot(workspace)
@@ -62,12 +62,12 @@ func (d *Darwin) audit(run session.Run, workspace string) (*usbAudit, error) {
 	if err != nil || string(id) != run.ID {
 		return nil, errors.New("USB log workspace does not match run")
 	}
-	if info, err := root.Lstat("usb.log"); err == nil && (!info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0) {
+	if info, err := root.Lstat("usb.log"); err == nil && (!info.Mode().IsRegular() || info.Mode().Perm()&0o077 != 0) {
 		return nil, errors.New("USB log is not a private regular file")
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err
 	}
-	file, err := root.OpenFile("usb.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+	file, err := root.OpenFile("usb.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
 	if err != nil {
 		return nil, err
 	}

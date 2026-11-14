@@ -27,8 +27,10 @@ var (
 	modNotePattern  = regexp.MustCompile(`(?i)^(?:readme|license|copying|credits|changelog)|\.(?:md|txt|json)$`)
 	customAppID     = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,47}$`)
 	ignoredModFiles = map[string]bool{".gitkeep": true, ".DS_Store": true, "Thumbs.db": true}
-	titleEntries    = map[string]bool{"romfs": true, "exefs": true, "romfs.bin": true, "exefs.nsp": true,
-		"flags": true, "romfs_metadata.bin": true}
+	titleEntries    = map[string]bool{
+		"romfs": true, "exefs": true, "romfs.bin": true, "exefs.nsp": true,
+		"flags": true, "romfs_metadata.bin": true,
+	}
 )
 
 // ValidateToolRequest validates tool-specific parameters, folder ownership,
@@ -93,21 +95,6 @@ func ValidateToolRequest(r session.ToolRequest) error {
 
 func (m *Manager) Validate(r session.ToolRequest) error {
 	return ValidateToolRequest(r)
-}
-
-func validModuleID(id string) bool {
-	if len(id) < 1 || len(id) > 48 {
-		return false
-	}
-	for i, c := range id {
-		switch {
-		case c >= 'a' && c <= 'z' || c >= '0' && c <= '9':
-		case c == '-' && i > 0:
-		default:
-			return false
-		}
-	}
-	return true
 }
 
 func validSDRomFolder(value string) bool {

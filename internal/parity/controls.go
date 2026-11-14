@@ -18,7 +18,7 @@ func GUIControls(repoRoot string) (map[string]string, error) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() && path != repoRoot && (strings.HasPrefix(d.Name(), ".") || d.Name() == "build" || d.Name() == "vendor") {
+		if d.IsDir() && path != repoRoot && (strings.HasPrefix(d.Name(), ".") || d.Name() == "build" || d.Name() == "dist" || d.Name() == "node_modules" || d.Name() == "vendor") {
 			return filepath.SkipDir
 		}
 		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {

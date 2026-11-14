@@ -168,8 +168,10 @@ func (a *Adapter) StartCivSwitchFSHost(ctx context.Context, request session.CivS
 		AllowLoopback: a.options.AllowLoopback,
 	}, func(event FSHostEvent) {
 		if onEvent != nil {
-			onEvent(session.CivSwitchFSEvent{Type: event.Type, Message: event.Message,
-				RunPath: event.RunPath, LogPath: event.LogPath})
+			onEvent(session.CivSwitchFSEvent{
+				Type: event.Type, Message: event.Message,
+				RunPath: event.RunPath, LogPath: event.LogPath,
+			})
 		}
 	})
 	if err != nil {

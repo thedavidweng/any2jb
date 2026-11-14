@@ -27,10 +27,13 @@ type SessionController struct {
 func New(env Environment, profile Profile) *SessionController {
 	profile.Tools = slices.Clone(profile.Tools)
 	profile.Editions = slices.Clone(profile.Editions)
-	return &SessionController{env: env, changes: make(chan struct{}, 1), s: Snapshot{Stage: Idle, Profile: profile,
+	return &SessionController{env: env, changes: make(chan struct{}, 1), s: Snapshot{
+		Stage: Idle, Profile: profile,
 		Edition:   "full",
-		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}}}}
+		Transport: Transport{Mode: "manual", Capabilities: Capabilities{Manual: true}},
+	}}
 }
+
 func (c *SessionController) snapshot() Snapshot {
 	s := c.s
 	s.Checks = slices.Clone(s.Checks)
@@ -39,6 +42,7 @@ func (c *SessionController) snapshot() Snapshot {
 	s.Profile.Editions = slices.Clone(s.Profile.Editions)
 	return s
 }
+
 func (c *SessionController) Snapshot() Snapshot {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -66,30 +70,39 @@ func (c *SessionController) emit(severity Severity, reason Reason, message strin
 		elapsed = time.Since(c.started)
 	}
 	c.s.LastMessage = message
-	c.events = append(c.events, Event{RunID: c.s.RunID, Sequence: uint64(len(c.events) + 1),
+	c.events = append(c.events, Event{
+		RunID: c.s.RunID, Sequence: uint64(len(c.events) + 1),
 		Stage: c.s.Stage, Elapsed: elapsed, Severity: severity, Recovery: c.s.Recovery,
-		Reason: reason, Message: message})
+		Reason: reason, Message: message,
+	})
 	select {
 	case c.changes <- struct{}{}:
 	default:
 	}
 }
+
 func (c *SessionController) reject(reason Reason) (Snapshot, error) {
 	err := &Rejection{Reason: reason, Stage: c.s.Stage}
 	c.emit(Warning, reason, err.Error())
 	return c.snapshot(), err
 }
+
 func (c *SessionController) eligible(stages ...Stage) bool {
 	return !c.s.Busy && slices.Contains(stages, c.s.Stage)
 }
+
 func (c *SessionController) run() Run {
-	return Run{ID: c.s.RunID, Profile: c.snapshot().Profile, Edition: c.s.Edition,
-		LANIPv4: c.s.LANIPv4, Transport: c.s.Transport}
+	return Run{
+		ID: c.s.RunID, Profile: c.snapshot().Profile, Edition: c.s.Edition,
+		LANIPv4: c.s.LANIPv4, Transport: c.s.Transport,
+	}
 }
+
 func (c *SessionController) transition(stage Stage) {
 	c.s.Stage = stage
 	c.emit(Info, "", string(stage))
 }
+
 func (c *SessionController) report(p Progress) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -106,6 +119,7 @@ func (c *SessionController) report(p Progress) {
 	// the public event stream; adapters own redacted diagnostics.
 	c.emit(Info, "", "progress")
 }
+
 func (c *SessionController) stage(ctx context.Context, stage Stage, sideEffect bool) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -207,7 +221,7 @@ func (c *SessionController) watchHost(run Run) {
 		wait = c.env.Retained.Watch
 	}
 	go func() {
-		wait(ctx, run)
+		_ = wait(ctx, run)
 		c.mu.Lock()
 		defer c.mu.Unlock()
 		if ctx.Err() != nil {
@@ -225,6 +239,7 @@ func (c *SessionController) watchHost(run Run) {
 		})
 	}()
 }
+
 func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	c.mu.Lock()
 	civSwitch, attached := c.s.CivSwitch, c.s.Attached
@@ -248,6 +263,7 @@ func (c *SessionController) cleanup(ctx context.Context, run Run) error {
 	}
 	return err
 }
+
 func (c *SessionController) Inspect() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -290,6 +306,7 @@ func (c *SessionController) Inspect() (Snapshot, error) {
 		return nil
 	}), nil
 }
+
 func (c *SessionController) PrepareBootstrap() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -378,6 +395,7 @@ func (c *SessionController) SaveBootstrap(confirmed bool) (Snapshot, error) {
 		return nil
 	}), nil
 }
+
 func (c *SessionController) Start() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -461,6 +479,7 @@ func (c *SessionController) Start() (Snapshot, error) {
 		return nil
 	}), nil
 }
+
 func (c *SessionController) Cancel() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -474,6 +493,7 @@ func (c *SessionController) Cancel() (Snapshot, error) {
 	c.emit(Info, "", "Cancellation requested; waiting for cleanup.")
 	return c.snapshot(), nil
 }
+
 func (c *SessionController) Stop() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -494,6 +514,7 @@ func (c *SessionController) Stop() (Snapshot, error) {
 	}
 	return c.begin(c.s.Stage, false, func(ctx context.Context, run Run) error { return errors.New("stopped") }), nil
 }
+
 func (c *SessionController) Finish() (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -536,9 +557,11 @@ func (c *SessionController) Finish() (Snapshot, error) {
 		return nil
 	}), nil
 }
+
 func (c *SessionController) RunTool(tool string) (Snapshot, error) {
 	return c.RunToolWith(ToolRequest{Tool: tool})
 }
+
 func (c *SessionController) SelectProfile(profile Profile, edition string) (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -597,6 +620,7 @@ func (c *SessionController) UseSavedBootstrap(record BootstrapRecord) (Snapshot,
 	c.s.SavedBootstrap = record
 	return c.snapshot(), nil
 }
+
 func (c *SessionController) ConfigureTransport(transport Transport, lanIPv4 string) (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

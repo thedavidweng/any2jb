@@ -185,7 +185,7 @@ func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report sessio
 	p := &hostProcess{run: run, workspace: workspace, events: make(chan bridgeEvent, 16), done: make(chan struct{})}
 	r.active = p
 	created = p
-	if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0o600); err != nil {
 		return session.PreparedHost{}, err
 	}
 	cmd, err := r.launch(run, workspace)
@@ -207,18 +207,18 @@ func (r *HostRunner) Prepare(ctx context.Context, run session.Run, report sessio
 	}
 	go p.read(output)
 	report(session.Progress{Processes: []session.Process{{PID: cmd.Process.Pid, Name: "engine"}}})
-	for {
-		event, err := p.next(ctx)
-		if err != nil {
-			return session.PreparedHost{}, err
-		}
-		if event.Type != "ready" || !validCommand(event.Command, run) {
-			return session.PreparedHost{}, ErrProtocol
-		}
-		report(session.Progress{SideEffect: true})
-		return session.PreparedHost{Listening: true, PairingValid: true,
-			Opaque: PairingDetails{RunID: run.ID, Workspace: workspace, Command: event.Command}}, nil
+	event, err := p.next(ctx)
+	if err != nil {
+		return session.PreparedHost{}, err
 	}
+	if event.Type != "ready" || !validCommand(event.Command, run) {
+		return session.PreparedHost{}, ErrProtocol
+	}
+	report(session.Progress{SideEffect: true})
+	return session.PreparedHost{
+		Listening: true, PairingValid: true,
+		Opaque: PairingDetails{RunID: run.ID, Workspace: workspace, Command: event.Command},
+	}, nil
 }
 
 func validCommand(command string, run session.Run) bool {
@@ -279,7 +279,7 @@ func (p *hostProcess) read(output io.ReadCloser) {
 			break
 		}
 		state = e.Type
-		log, err := os.OpenFile(filepath.Join(p.workspace, "host.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		log, err := os.OpenFile(filepath.Join(p.workspace, "host.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 		if err != nil {
 			p.err = err
 			procgroup.Signal(p.cmd, true)

@@ -34,7 +34,7 @@ func TestPinnedDeveloperHelpersAreIntegrityCheckedWithoutUSB(t *testing.T) {
 				return err
 			}
 			if d.IsDir() {
-				return os.Chmod(name, 0700)
+				return os.Chmod(name, 0o700)
 			}
 			return nil
 		}); err != nil {
@@ -54,8 +54,10 @@ func TestPinnedDeveloperHelpersAreIntegrityCheckedWithoutUSB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	options := transport.DarwinOptions{Helpers: h, Controller: "usb-drd0", Timing: transport.DefaultTiming(),
-		Runtime: engine.Options{Assets: assets, Support: support, Version: "test", Manifest: m, DeveloperSourceRoot: source, DeveloperProfileID: p.ID}}
+	options := transport.DarwinOptions{
+		Helpers: h, Controller: "usb-drd0", Timing: transport.DefaultTiming(),
+		Runtime: engine.Options{Assets: assets, Support: support, Version: "test", Manifest: m, DeveloperSourceRoot: source, DeveloperProfileID: p.ID},
+	}
 	d := transport.NewDarwin(options)
 	run := session.Run{ID: "check-only", Profile: p.SessionProfile(), Edition: "full"}
 	if err := d.Check(context.Background(), run); err != nil {

@@ -38,7 +38,7 @@ var nxformatReleases = map[string]nxformatRelease{
 	},
 	"linux-amd64": {
 		URL:           "https://github.com/fab918/nxformat/releases/download/V1.0.3/nxformat-1.0.3-linux-x64.tar.gz",
-		ArchiveSHA256: "d058c1b5a6732f303f06e84090e7d8917b7461af42ff3354d4e239a5e07ba0d4", // overridden below with exact verified digest
+		ArchiveSHA256: "d058c1b5a6732f303f06e84090e7d8c967e25a4704a1b35ff5cbe06806f6857b",
 		BinarySHA256:  "c85fa7c51366d46ffdcedb38edf4a78cb1f9f4a02c70f453f5626bc84b0b789a",
 	},
 	"linux-arm64": {
@@ -46,14 +46,6 @@ var nxformatReleases = map[string]nxformatRelease{
 		ArchiveSHA256: "0b412293c94ea4dbe29f73f26117b7461af42ff3354d4e239a5e07ba0d4994d2",
 		BinarySHA256:  "f8c534fb47c14f3020c2e28a5d2bfdc7599b0f89c4429b81326ec06e00f4db02",
 	},
-}
-
-func init() {
-	nxformatReleases["linux-amd64"] = nxformatRelease{
-		URL:           "https://github.com/fab918/nxformat/releases/download/V1.0.3/nxformat-1.0.3-linux-x64.tar.gz",
-		ArchiveSHA256: "d058c1b5a6732f303f06e84090e7d8c967e25a4704a1b35ff5cbe06806f6857b",
-		BinarySHA256:  "c85fa7c51366d46ffdcedb38edf4a78cb1f9f4a02c70f453f5626bc84b0b789a",
-	}
 }
 
 const (

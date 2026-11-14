@@ -240,7 +240,8 @@ func (c *commandLine) addArtemis(root *cobra.Command) {
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			_ = sess.Stop(ctx)
-			<-done
+			err = <-done
+			_ = err
 			return cliFail(exitCancelled, cliMessage("cliDeclined"))
 		}
 	})

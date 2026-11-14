@@ -13,8 +13,10 @@ import (
 
 func attachable(t *testing.T, f *sessiontest.FakeEnvironment) *session.SessionController {
 	t.Helper()
-	return session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
-		RetainsRPC: true, Tools: []string{"rpc-status"}})
+	return session.New(f.Environment(), session.Profile{
+		ID: "test", Revision: "pinned",
+		RetainsRPC: true, Tools: []string{"rpc-status"},
+	})
 }
 
 func TestAttachRequiresRetainedCapabilityAndAdapter(t *testing.T) {
@@ -78,8 +80,10 @@ func TestAttachIsDistinctFromLaunchAndDetachLeavesTheHostRunning(t *testing.T) {
 func TestSaveKitMutationsNeedTheirGateBeforeAnyToolRuns(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}
-	c := session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
-		RetainsRPC: true, Tools: []string{"savekit-read", "savekit"}})
+	c := session.New(f.Environment(), session.Profile{
+		ID: "test", Revision: "pinned",
+		RetainsRPC: true, Tools: []string{"savekit-read", "savekit"},
+	})
 	if _, err := c.AttachRetained("session-1"); err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +92,8 @@ func TestSaveKitMutationsNeedTheirGateBeforeAnyToolRuns(t *testing.T) {
 	// is rejected before the tool adapter ever sees it.
 	for _, action := range []string{"write", "restore", "delete"} {
 		_, err := c.RunToolWith(session.ToolRequest{Tool: "savekit", Save: &savekit.Request{
-			Action: action, TitleID: "010012900d38a000", UID: strings.Repeat("1", 32)}})
+			Action: action, TitleID: "010012900d38a000", UID: strings.Repeat("1", 32),
+		}})
 		rejection, ok := err.(*session.Rejection)
 		if !ok || rejection.Reason != session.InvalidConfiguration {
 			t.Fatalf("ungated %s reached the tool adapter: %v", action, err)
@@ -97,12 +102,15 @@ func TestSaveKitMutationsNeedTheirGateBeforeAnyToolRuns(t *testing.T) {
 	if slices.Contains(f.Trace(), "tool.run-with savekit") {
 		t.Fatalf("an ungated mutation reached the adapter: %v", f.Trace())
 	}
-	if _, err := c.RunToolWith(session.ToolRequest{Tool: "savekit-read",
-		Save: &savekit.Request{Action: "accounts"}}); err != nil {
+	if _, err := c.RunToolWith(session.ToolRequest{
+		Tool: "savekit-read",
+		Save: &savekit.Request{Action: "accounts"},
+	}); err != nil {
 		t.Fatal(err)
 	}
 	await(t, c, session.RetainedRPC)
 }
+
 func TestAttachedToolNeedsTheLeaseAndALostSessionIsNotRetried(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
 	f.RetainedSessions = []session.RetainedSession{{ID: "session-1"}}

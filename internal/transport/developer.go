@@ -29,7 +29,7 @@ func BuildDeveloperHelpers(ctx context.Context, source, support string, m *manif
 	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
 		return nil, errors.New("developer USB builds require Darwin arm64")
 	}
-	if err := os.MkdirAll(support, 0700); err != nil {
+	if err := os.MkdirAll(support, 0o700); err != nil {
 		return nil, err
 	}
 	root, err := os.MkdirTemp(support, "usb-developer-")
@@ -42,7 +42,7 @@ func BuildDeveloperHelpers(ctx context.Context, source, support string, m *manif
 	}
 	h := &DeveloperHelpers{root: root, digests: make(map[string][32]byte)}
 	for _, name := range []string{"sender", "commands", "keyboard", "civswitch-hid", "vendor/libusbd/libusbd.dylib"} {
-		if err := os.Chmod(h.path(name), 0500); err != nil {
+		if err := os.Chmod(h.path(name), 0o500); err != nil {
 			h.Close()
 			return nil, err
 		}
@@ -55,9 +55,11 @@ func BuildDeveloperHelpers(ctx context.Context, source, support string, m *manif
 	}
 	return h, nil
 }
+
 func (h *DeveloperHelpers) path(name string) string {
 	return filepath.Join(h.root, filepath.FromSlash(name))
 }
+
 func (h *DeveloperHelpers) verify() error {
 	if !filepath.IsAbs(h.root) || len(h.digests) != 5 {
 		return errors.New("missing successful developer USB build authorization")
@@ -73,7 +75,7 @@ func (h *DeveloperHelpers) verify() error {
 	defer root.Close()
 	for name, want := range h.digests {
 		info, err := root.Lstat(name)
-		if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0222 != 0 {
+		if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0o222 != 0 {
 			return fmt.Errorf("developer USB helper is not a sealed regular file: %s", name)
 		}
 		data, err := root.ReadFile(name)

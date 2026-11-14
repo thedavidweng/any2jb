@@ -90,9 +90,12 @@ func TestLauncherInstallerStatesItsPersistentSideEffects(t *testing.T) {
 // A staged package installs only after its own preview and confirmation, and
 // only once the account that owns the save is selected.
 func TestLauncherInstallNeedsPreviewConfirmationAndAccount(t *testing.T) {
-	adapter := &fakeToolAdapter{preview: launcherPreview(),
+	adapter := &fakeToolAdapter{
+		preview: launcherPreview(),
 		state: retained.State{SaveKit: &retained.SaveKitState{Users: []string{
-			"11111111111111111111111111111111", "22222222222222222222222222222222"}}}}
+			"11111111111111111111111111111111", "22222222222222222222222222222222",
+		}}},
+	}
 	a, tt, published, f := launcherAppWithEnv(t, adapter)
 	saveKitLease(t, a, tt)
 	install, ok := tt.AccessByRole(ui.RoleButton, "Back up and install launcher")
@@ -140,9 +143,12 @@ func TestLauncherInstallNeedsPreviewConfirmationAndAccount(t *testing.T) {
 
 // Changing the package invalidates the preview and its confirmation.
 func TestLauncherPreviewResetsWhenTheTargetChanges(t *testing.T) {
-	adapter := &fakeToolAdapter{preview: launcherPreview(),
+	adapter := &fakeToolAdapter{
+		preview: launcherPreview(),
 		state: retained.State{SaveKit: &retained.SaveKitState{
-			Users: []string{"11111111111111111111111111111111"}}}}
+			Users: []string{"11111111111111111111111111111111"},
+		}},
+	}
 	a, tt, published := launcherApp(t, adapter)
 	saveKitLease(t, a, tt)
 	previewPackage(t, tt, published)
@@ -167,7 +173,8 @@ func TestLauncherPreviewResetsWhenTheTargetChanges(t *testing.T) {
 // status region, so a screen reader reads why nothing was written.
 func TestLauncherControlsAreAccessible(t *testing.T) {
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
-		Users: []string{"11111111111111111111111111111111"}}}}
+		Users: []string{"11111111111111111111111111111111"},
+	}}}
 	a, tt, _ := launcherApp(t, adapter)
 	saveKitLease(t, a, tt)
 	a.launcherPanel.failed = true
@@ -194,9 +201,12 @@ func TestLauncherControlsAreAccessible(t *testing.T) {
 // A preview that finishes after the selection changed belongs to another
 // package and is discarded.
 func TestLauncherStalePreviewIsDiscarded(t *testing.T) {
-	adapter := &fakeToolAdapter{preview: launcherPreview(),
+	adapter := &fakeToolAdapter{
+		preview: launcherPreview(),
 		state: retained.State{SaveKit: &retained.SaveKitState{
-			Users: []string{"11111111111111111111111111111111"}}}}
+			Users: []string{"11111111111111111111111111111111"},
+		}},
+	}
 	a, tt, published := launcherApp(t, adapter)
 	saveKitLease(t, a, tt)
 	if err := tt.Click("Preview launcher install"); err != nil {
@@ -215,9 +225,12 @@ func TestLauncherStalePreviewIsDiscarded(t *testing.T) {
 }
 
 func TestLauncherInstallIsDisabledAfterModloaderHandoff(t *testing.T) {
-	adapter := &fakeToolAdapter{preview: launcherPreview(),
+	adapter := &fakeToolAdapter{
+		preview: launcherPreview(),
 		state: retained.State{SaveKit: &retained.SaveKitState{
-			Users: []string{"11111111111111111111111111111111"}}}}
+			Users: []string{"11111111111111111111111111111111"},
+		}},
+	}
 	a, tt, published := launcherApp(t, adapter)
 	saveKitLease(t, a, tt)
 	previewPackage(t, tt, published)
@@ -234,7 +247,8 @@ func TestLauncherInstallIsDisabledAfterModloaderHandoff(t *testing.T) {
 
 func TestLauncherAccountClearsWhenTheListDisappears(t *testing.T) {
 	adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
-		Users: []string{"11111111111111111111111111111111"}}}}
+		Users: []string{"11111111111111111111111111111111"},
+	}}}
 	a, tt, _ := launcherApp(t, adapter)
 	saveKitLease(t, a, tt)
 	if a.launcherPanel.account == "" {

@@ -1,7 +1,9 @@
 .DS_Store
 .scratch/
 /build/
+/dist/
 /.mygo/
+/node_modules/
 mygo_windows_*.syso
 /.cache/
 /resources/LICENSE

@@ -61,8 +61,10 @@ func TestBootstrapStopWaitsForNeutralReleaseAndForbidsBlindRetry(t *testing.T) {
 	const text = "PRINT 1\nPRINT 2\n"
 	sum := sha256.Sum256([]byte(text))
 	capture := filepath.Join(t.TempDir(), "released")
-	options := transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming(),
-		Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
+	options := transport.DarwinOptions{
+		Controller: "usb-drd0", Timing: transport.DefaultTiming(),
+		Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil },
+	}
 	baseFactory := helperFactory(t, capture)
 	factory := func(name string, args ...string) *exec.Cmd {
 		if name != "keyboard" {
@@ -186,7 +188,7 @@ func decodeConsoleReports(t *testing.T, data []byte) string {
 		switch {
 		case key == 0:
 		case key >= 4 && key <= 29:
-			c := byte('A' + key - 4)
+			c := 'A' + key - 4
 			if shift {
 				c += 'a' - 'A'
 			}

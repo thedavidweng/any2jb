@@ -11,9 +11,11 @@ import (
 	"regexp"
 )
 
-var titlePattern = regexp.MustCompile(`^[0-9a-f]{16}$`)
-var uidPattern = regexp.MustCompile(`^[0-9a-f]{32}$`)
-var digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
+var (
+	titlePattern  = regexp.MustCompile(`^[0-9a-f]{16}$`)
+	uidPattern    = regexp.MustCompile(`^[0-9a-f]{32}$`)
+	digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
+)
 
 type Archive struct {
 	Space    uint32 `json:"space"`

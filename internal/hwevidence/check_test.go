@@ -10,7 +10,7 @@ import (
 func checkFixture(t *testing.T, ledger string, logs ...*Log) []string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "parity-ledger.md")
-	if err := os.WriteFile(path, []byte(ledger), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(ledger), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	problems, err := CheckLedger(path, logs)

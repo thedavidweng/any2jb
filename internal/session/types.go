@@ -348,14 +348,17 @@ type Progress struct {
 	SideEffect  bool
 	Processes   []Process
 }
-type Report func(Progress)
-type Run struct {
-	ID        string
-	Profile   Profile
-	Edition   string
-	LANIPv4   string
-	Transport Transport
-}
+type (
+	Report func(Progress)
+	Run    struct {
+		ID        string
+		Profile   Profile
+		Edition   string
+		LANIPv4   string
+		Transport Transport
+	}
+)
+
 type PreparedHost struct {
 	Listening    bool
 	PairingValid bool

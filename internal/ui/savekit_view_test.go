@@ -29,8 +29,10 @@ func saveKitApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeToolA
 		State: appstate.State{
 			Manifest: m,
 			Tools:    adapter,
-			Controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
-				RetainsRPC: true, Tools: []string{"savekit-read", "savekit"}}),
+			Controller: session.New(f.Environment(), session.Profile{
+				ID: "test", Revision: "pinned",
+				RetainsRPC: true, Tools: []string{"savekit-read", "savekit"},
+			}),
 		},
 	}
 	a.saveKit.open = true
@@ -86,10 +88,12 @@ func TestSaveKitControlsNeedAHeldLease(t *testing.T) {
 	if !tt.HasText("SaveKit needs a verified session with a live retained RPC lease on a SaveKit-capable host.") {
 		t.Fatal(tt.Texts())
 	}
-	for _, label := range []string{"List console accounts", "List installed titles", "Scan all save archives",
+	for _, label := range []string{
+		"List console accounts", "List installed titles", "Scan all save archives",
 		"Inspect save files", "Export verified backup", "Read save timestamps",
 		"Preview save write", "Preview restore", "Back up and write save", "Back up and restore save",
-		"Compare live save with backup", "Back up and delete file"} {
+		"Compare live save with backup", "Back up and delete file",
+	} {
 		control, ok := tt.AccessByRole(ui.RoleButton, label)
 		if !ok || !control.Disabled {
 			t.Fatalf("%s is usable without a retained lease: %+v", label, control)
@@ -114,8 +118,10 @@ func TestSaveKitUnavailableStatesTheRecordedReason(t *testing.T) {
 	if !tt.HasText(d.Reason) {
 		t.Fatalf("missing recorded reason: %q", tt.Texts())
 	}
-	for _, label := range []string{"List console accounts", "Back up and write save",
-		"Back up and restore save", "Back up and delete file"} {
+	for _, label := range []string{
+		"List console accounts", "Back up and write save",
+		"Back up and restore save", "Back up and delete file",
+	} {
 		control, ok := tt.AccessByRole(ui.RoleButton, label)
 		if !ok || !control.Disabled {
 			t.Fatalf("an unstaged SaveKit action is usable: %+v", control)
@@ -135,10 +141,14 @@ func TestSaveKitListsSelectArchiveAndExport(t *testing.T) {
 		Users:  []string{"11111111111111111111111111111111", "22222222222222222222222222222222"},
 		Titles: []string{"010012900d38a000"},
 		Inventory: []savekit.Entry{
-			{Archive: savekit.Archive{Space: 1, Type: 1}, TitleID: "010012900d38a000",
-				UID: "11111111111111111111111111111111", Size: "10"},
-			{Archive: savekit.Archive{Space: 4, Type: 3}, TitleID: "0100000000001000",
-				UID: "22222222222222222222222222222222", Size: "20"},
+			{
+				Archive: savekit.Archive{Space: 1, Type: 1}, TitleID: "010012900d38a000",
+				UID: "11111111111111111111111111111111", Size: "10",
+			},
+			{
+				Archive: savekit.Archive{Space: 4, Type: 3}, TitleID: "0100000000001000",
+				UID: "22222222222222222222222222222222", Size: "20",
+			},
 		},
 	}}}
 	a := saveKitApp(t, f, adapter)
@@ -392,8 +402,10 @@ func TestSaveKitWriteNeedsPreviewAndConfirmation(t *testing.T) {
 		t.Fatalf("a second write did not need a new confirmation: %+v", write)
 	}
 	// A verified outcome states the counts and keeps the backup accessible.
-	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "write", Verified: true,
-		Files: 1, Replaced: 2, Backup: "/support/savekit-exports/010012900d38a000-a"}
+	adapter.state.SaveKit.Write = &retained.SaveKitWrite{
+		Action: "write", Verified: true,
+		Files: 1, Replaced: 2, Backup: "/support/savekit-exports/010012900d38a000-a",
+	}
 	tt.Frame()
 	if !tt.HasText("Write verified: 1 file(s) written, 2 replaced. The pre-operation backup is kept at /support/savekit-exports/010012900d38a000-a") {
 		t.Fatal(tt.Texts())
@@ -411,8 +423,10 @@ func TestSaveKitFailedOperationBlocksAndExplains(t *testing.T) {
 	// The manager latches a failed mutation in SaveKitBlocked, independently of
 	// the outcome it displays, until the lease is reset.
 	adapter.state.SaveKitBlocked = "post-write verification failed"
-	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "write",
-		Failure: "post-write verification failed", Backup: "/support/savekit-exports/010012900d38a000-b"}
+	adapter.state.SaveKit.Write = &retained.SaveKitWrite{
+		Action:  "write",
+		Failure: "post-write verification failed", Backup: "/support/savekit-exports/010012900d38a000-b",
+	}
 	tt.Frame()
 	if !tt.HasText("The save operation failed. The verified backup is kept at /support/savekit-exports/010012900d38a000-b. Finish this session and restart the console before any further save operation; on a new session you can restore the backup from this panel.") {
 		t.Fatal(tt.Texts())
@@ -451,14 +465,18 @@ func TestSaveKitCompareReportsMatchAndDifference(t *testing.T) {
 	if !slices.Contains(f.Trace(), "tool.run-with savekit") {
 		t.Fatalf("the compare did not reach the adapter: %v", f.Trace())
 	}
-	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "compare", Verified: true,
-		Files: 1, Backup: "/support/savekit-exports/010012900d38a000-c"}
+	adapter.state.SaveKit.Write = &retained.SaveKitWrite{
+		Action: "compare", Verified: true,
+		Files: 1, Backup: "/support/savekit-exports/010012900d38a000-c",
+	}
 	tt.Frame()
 	if !tt.HasText("The live save matches the export (1 file(s)). The comparison export is kept at /support/savekit-exports/010012900d38a000-c") {
 		t.Fatal(tt.Texts())
 	}
-	adapter.state.SaveKit.Write = &retained.SaveKitWrite{Action: "compare",
-		Backup: "/support/savekit-exports/010012900d38a000-d"}
+	adapter.state.SaveKit.Write = &retained.SaveKitWrite{
+		Action: "compare",
+		Backup: "/support/savekit-exports/010012900d38a000-d",
+	}
 	tt.Frame()
 	if !tt.HasText("The live save differs from the export. The comparison export is kept at /support/savekit-exports/010012900d38a000-d") {
 		t.Fatal(tt.Texts())

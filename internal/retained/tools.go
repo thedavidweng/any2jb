@@ -137,12 +137,16 @@ func (m *Manager) RunWith(ctx context.Context, run session.Run, request session.
 		m.mu.Unlock()
 		return errors.New("missing read-only tool command")
 	}
-	p := &toolProcess{tool: request.Tool, cmd: cmd, events: make(chan toolEvent, 16),
-		done: make(chan struct{}), selection: make(chan string, 1)}
+	p := &toolProcess{
+		tool: request.Tool, cmd: cmd, events: make(chan toolEvent, 16),
+		done: make(chan struct{}), selection: make(chan string, 1),
+	}
 	m.active = p
 	// Console-state blocks outlive the tool that caused them.
-	m.state = State{Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked,
-		SaveKitBlocked: m.state.SaveKitBlocked}
+	m.state = State{
+		Tool: request.Tool, CleanupBlocked: m.state.CleanupBlocked,
+		SaveKitBlocked: m.state.SaveKitBlocked,
+	}
 	m.mu.Unlock()
 	if err := m.start(ctx, p, report); err != nil {
 		m.mu.Lock()
@@ -168,8 +172,10 @@ func (m *Manager) start(ctx context.Context, p *toolProcess, report session.Repo
 		return err
 	}
 	go p.read(output)
-	report(session.Progress{SideEffect: true,
-		Processes: []session.Process{{PID: p.cmd.Process.Pid, Name: "tool"}}})
+	report(session.Progress{
+		SideEffect: true,
+		Processes:  []session.Process{{PID: p.cmd.Process.Pid, Name: "tool"}},
+	})
 	return nil
 }
 
@@ -373,7 +379,7 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 		}
 	}()
 	if p.input != nil {
-		io.WriteString(p.input, "{\"type\":\"stop\"}\n")
+		_, _ = io.WriteString(p.input, "{\"type\":\"stop\"}\n")
 	}
 	// Homebrew owner children confirm their own shutdown proofs; give the
 	// supervisor the window its contract needs before escalating.
@@ -403,5 +409,7 @@ func (m *Manager) Stop(ctx context.Context, _ session.Run) error {
 	return nil
 }
 
-var _ session.ToolRunner = (*Manager)(nil)
-var _ session.ToolRunner = (*Manager)(nil)
+var (
+	_ session.ToolRunner = (*Manager)(nil)
+	_ session.ToolRunner = (*Manager)(nil)
+)

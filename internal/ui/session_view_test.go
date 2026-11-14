@@ -15,12 +15,16 @@ import (
 // guided manual launch it would not perform.
 func TestBlockedStartKeepsItsTransportLabel(t *testing.T) {
 	f := sessiontest.NewFakeEnvironment()
-	f.Checks = []session.Check{{ID: "usb-runtime", State: session.RequiresAttention, GatesTransport: "usb-hid",
+	f.Checks = []session.Check{{
+		ID: "usb-runtime", State: session.RequiresAttention, GatesTransport: "usb-hid",
 		Message:    "Verified USB helpers are not available.",
-		NextAction: "Permit the helper build before launching."}}
+		NextAction: "Permit the helper build before launching.",
+	}}
 	c := session.New(f.Environment(), session.Profile{ID: "fixture", Revision: "pinned", SaveName: "NS2"})
-	if _, err := c.ConfigureTransport(session.Transport{Mode: "keyboard",
-		Capabilities: session.Capabilities{Keyboard: true}}, "192.0.2.1"); err != nil {
+	if _, err := c.ConfigureTransport(session.Transport{
+		Mode:         "keyboard",
+		Capabilities: session.Capabilities{Keyboard: true},
+	}, "192.0.2.1"); err != nil {
 		t.Fatal(err)
 	}
 	a := testApp(t, c)

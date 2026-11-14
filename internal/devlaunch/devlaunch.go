@@ -62,7 +62,7 @@ func Load(path string) (Config, error) {
 		if err != nil {
 			return Config{}, err
 		}
-		if !info.Mode().IsRegular() || info.Mode().Perm()&0111 == 0 {
+		if !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
 			return Config{}, errors.New("developer installerPython must be an executable file")
 		}
 	}

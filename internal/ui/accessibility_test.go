@@ -136,7 +136,8 @@ func TestPanelScreensAreAccessible(t *testing.T) {
 	}{
 		{"Advanced Tools", func(t *testing.T) func(*ui.Context) {
 			adapter := &fakeToolAdapter{state: retained.State{SaveKit: &retained.SaveKitState{
-				Users: []string{"11111111111111111111111111111111"}}}}
+				Users: []string{"11111111111111111111111111111111"},
+			}}}
 			a := retainedApp(t, sessiontest.NewFakeEnvironment(), adapter, []string{"rpc-status", "savekit"})
 			tt := ui.NewTester(a.advancedToolsView, 900, 2600)
 			if _, err := a.Controller.Inspect(); err != nil {

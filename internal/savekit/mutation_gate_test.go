@@ -55,8 +55,10 @@ func writeSource(t *testing.T, files map[string]string) (string, string) {
 
 func TestWriteRequestsNeedTheFullGate(t *testing.T) {
 	source, digest := writeSource(t, map[string]string{"savegame.bin": "new save\n"})
-	valid := savekit.Request{Action: "write", TitleID: mutTitle, UID: mutUID,
-		SourceFolder: source, Confirm: true, PreviewDigest: digest}
+	valid := savekit.Request{
+		Action: "write", TitleID: mutTitle, UID: mutUID,
+		SourceFolder: source, Confirm: true, PreviewDigest: digest,
+	}
 	if err := valid.Validate(); err != nil {
 		t.Fatal(err)
 	}
@@ -76,8 +78,10 @@ func TestWriteRequestsNeedTheFullGate(t *testing.T) {
 }
 
 func TestLauncherWriteCanBeValidatedBeforeItsSourceIsPrepared(t *testing.T) {
-	request := savekit.Request{Action: "write", TitleID: mutTitle, UID: mutUID,
-		Confirm: true, PreviewDigest: digestOf("launcher preview\n")}
+	request := savekit.Request{
+		Action: "write", TitleID: mutTitle, UID: mutUID,
+		Confirm: true, PreviewDigest: digestOf("launcher preview\n"),
+	}
 	if err := request.ValidateLauncherWrite(); err != nil {
 		t.Fatalf("launcher write without a view-owned source folder was rejected: %v", err)
 	}
@@ -92,8 +96,10 @@ func TestLauncherWriteCanBeValidatedBeforeItsSourceIsPrepared(t *testing.T) {
 
 func TestRestoreRequestsNeedAVerifiedBackupAndACompatibleArchive(t *testing.T) {
 	source, digest := writeSource(t, map[string]string{"savegame.bin": "old save\n"})
-	valid := savekit.Request{Action: "restore", TitleID: mutTitle, UID: mutUID,
-		SourceFolder: source, Confirm: true, PreviewDigest: digest}
+	valid := savekit.Request{
+		Action: "restore", TitleID: mutTitle, UID: mutUID,
+		SourceFolder: source, Confirm: true, PreviewDigest: digest,
+	}
 	if err := valid.Validate(); err != nil {
 		t.Fatal(err)
 	}
@@ -128,8 +134,10 @@ func TestRestoreRequestsNeedAVerifiedBackupAndACompatibleArchive(t *testing.T) {
 }
 
 func TestDeleteRequestsNeedOneSafeRootFileAndConfirmation(t *testing.T) {
-	valid := savekit.Request{Action: "delete", TitleID: mutTitle, UID: mutUID,
-		FileName: "savegame.bin", Confirm: true, PreviewDigest: digestOf("delete\n/savegame.bin\n")}
+	valid := savekit.Request{
+		Action: "delete", TitleID: mutTitle, UID: mutUID,
+		FileName: "savegame.bin", Confirm: true, PreviewDigest: digestOf("delete\n/savegame.bin\n"),
+	}
 	if err := valid.Validate(); err != nil {
 		t.Fatal(err)
 	}
@@ -153,8 +161,10 @@ func TestDeleteRequestsNeedOneSafeRootFileAndConfirmation(t *testing.T) {
 }
 
 func TestCompareRequestsStayReadOnly(t *testing.T) {
-	valid := savekit.Request{Action: "verify", TitleID: mutTitle, UID: mutUID,
-		ExpectedFolder: t.TempDir()}
+	valid := savekit.Request{
+		Action: "verify", TitleID: mutTitle, UID: mutUID,
+		ExpectedFolder: t.TempDir(),
+	}
 	if err := valid.Validate(); err != nil {
 		t.Fatal(err)
 	}

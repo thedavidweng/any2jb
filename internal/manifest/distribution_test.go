@@ -35,9 +35,11 @@ func TestPackageRejectsWrongArchitectureEvenWithMatchingDigest(t *testing.T) {
 		digest := sha256.Sum256(data)
 		m := &manifest.Manifest{
 			Runtime: manifest.Runtime{Platform: "darwin-arm64", Node: "node"},
-			Components: []manifest.Component{{ID: "node", Path: "node",
+			Components: []manifest.Component{{
+				ID: "node", Path: "node",
 				SHA256:       hex.EncodeToString(digest[:]),
-				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture NOTICE"}}},
+				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture NOTICE"},
+			}},
 		}
 		err := m.CheckPackage(root)
 		if (err == nil) != (cpu == 0x100000c) {
@@ -123,9 +125,11 @@ func TestPlatformOverlayPreservesHostDistributionGate(t *testing.T) {
 		}
 		m := &manifest.Manifest{
 			Profiles: []manifest.Profile{{ID: "blocked", SourceDirectory: "vendor/blocked", Distribution: manifest.Distribution{Decision: "blocked"}}},
-			Components: []manifest.Component{{ID: "misclassified-host", Path: "vendor/blocked/run.cjs", ResourcePlatform: platform,
+			Components: []manifest.Component{{
+				ID: "misclassified-host", Path: "vendor/blocked/run.cjs", ResourcePlatform: platform,
 				SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
-				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"}}},
+				Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"},
+			}},
 		}
 		if err := m.CheckPackage(root); err == nil {
 			t.Fatalf("%s overlay bypassed blocked host decision", platform)
@@ -358,11 +362,30 @@ func TestMergedPackageResolvesPackagedPathsAndRejectsExcluded(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "runtime", "blocked.cjs"), []byte("hello"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	m.Components = append(m.Components, manifest.Component{ID: "blocked", Path: "runtime/blocked.cjs",
+	m.Components = append(m.Components, manifest.Component{
+		ID: "blocked", Path: "runtime/blocked.cjs",
 		ResourcePlatform: "darwin-arm64", SHA256: hello,
-		Distribution: manifest.Distribution{Decision: "excluded", Reason: "fixture"}})
+		Distribution: manifest.Distribution{Decision: "excluded", Reason: "fixture"},
+	})
 	err := m.CheckPackageMerged(root)
 	if err == nil || !strings.Contains(err.Error(), "package contains blocked: excluded") {
 		t.Fatalf("excluded component in the assembled app: %v", err)
+	}
+
+	linuxRoot := t.TempDir()
+	for _, name := range []string{"runtime/helper.cjs", ".mygo-files", "any2jb", "any2jb.desktop", "any2jb-0.1.0-linux-amd64.tar.gz", "any2jb_0.1.0_amd64.deb", "install.sh", "PKGBUILD"} {
+		if err := os.MkdirAll(filepath.Join(linuxRoot, filepath.Dir(name)), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(linuxRoot, name), []byte("hello"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	linuxManifest := &manifest.Manifest{Components: []manifest.Component{{
+		ID: "helper", Path: "runtime/helper.cjs", ResourcePlatform: "linux-amd64", SHA256: hello,
+		Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true, Notice: "fixture"},
+	}}}
+	if err := linuxManifest.CheckPackageMergedForPlatform(linuxRoot, "linux-amd64"); err != nil {
+		t.Fatalf("assembled linux bundle rejected: %v", err)
 	}
 }

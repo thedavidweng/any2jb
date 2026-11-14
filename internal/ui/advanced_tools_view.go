@@ -147,11 +147,14 @@ func (a *app) toolRefusals(c *ui.Context, s session.Snapshot, state retained.Sta
 	reasons := []string{}
 	names := map[string][]string{}
 	for _, tool := range []struct{ id, name string }{
-		{"rpc-status", locales.ToolsStatus()}, {"system-code-dump", locales.ToolsDump()},
-		{"ouncecake-webdav", locales.ToolsOunceWebdav()}, {"ouncecake-ftp", locales.ToolsOunceFtp()},
+		{"rpc-status", locales.ToolsStatus()},
+		{"system-code-dump", locales.ToolsDump()},
+		{"ouncecake-webdav", locales.ToolsOunceWebdav()},
+		{"ouncecake-ftp", locales.ToolsOunceFtp()},
 		{"mintbrew", locales.HbMintbrew()},
 		{"native-hblauncher", locales.HbNative()},
-		{"custom-homebrew", locales.HbCustom()}, {"modloader", locales.ModInstall()},
+		{"custom-homebrew", locales.HbCustom()},
+		{"modloader", locales.ModInstall()},
 	} {
 		_, reason := a.toolGate(s, state, tool.id)
 		if reason == "" {

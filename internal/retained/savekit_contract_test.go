@@ -43,7 +43,7 @@ func TestHeldProofContractAcrossGoAndBothHosts(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(resultPath, body, 0600); err != nil {
+			if err := os.WriteFile(resultPath, body, 0o600); err != nil {
 				t.Fatal(err)
 			}
 			outcome, err := engine.VerifyHeld(context.Background(), workspace)
@@ -79,7 +79,8 @@ func TestRealHostAcceptsGoMutationRequestsAndPreviews(t *testing.T) {
 		t.Fatal(err)
 	}
 	source, preview := writeSourceFolder(t, map[string]string{
-		"b.bin": "b\n", "dir/a.bin": "a\n", "Z.bin": "z\n", "é.bin": "e\n"})
+		"b.bin": "b\n", "dir/a.bin": "a\n", "Z.bin": "z\n", "é.bin": "e\n",
+	})
 	restoreSource := exportFolder(t, map[string]string{"savegame.bin": "restored\n"})
 	restorePreview, err := savekit.PreviewRestore(restoreSource)
 	if err != nil {
@@ -90,12 +91,18 @@ func TestRealHostAcceptsGoMutationRequestsAndPreviews(t *testing.T) {
 		request savekit.Request
 		files   []savekit.ExportFile
 	}{
-		{savekit.Request{Action: "write", TitleID: writeTitle, UID: writeUID, SourceFolder: source,
-			AllowReplace: true, Confirm: true, PreviewDigest: preview.Digest}, preview.Files},
-		{savekit.Request{Action: "restore", TitleID: writeTitle, UID: writeUID, SourceFolder: restoreSource,
-			Archive: &savekit.Archive{Space: 1, Type: 3}, Confirm: true, PreviewDigest: restorePreview.Digest}, restorePreview.Files},
-		{savekit.Request{Action: "delete", TitleID: writeTitle, UID: writeUID, FileName: "savegame.bin",
-			Confirm: true, PreviewDigest: remove.Digest}, nil},
+		{savekit.Request{
+			Action: "write", TitleID: writeTitle, UID: writeUID, SourceFolder: source,
+			AllowReplace: true, Confirm: true, PreviewDigest: preview.Digest,
+		}, preview.Files},
+		{savekit.Request{
+			Action: "restore", TitleID: writeTitle, UID: writeUID, SourceFolder: restoreSource,
+			Archive: &savekit.Archive{Space: 1, Type: 3}, Confirm: true, PreviewDigest: restorePreview.Digest,
+		}, restorePreview.Files},
+		{savekit.Request{
+			Action: "delete", TitleID: writeTitle, UID: writeUID, FileName: "savegame.bin",
+			Confirm: true, PreviewDigest: remove.Digest,
+		}, nil},
 	}
 	for _, c := range cases {
 		if err := c.request.Validate(); err != nil {

@@ -31,10 +31,14 @@ func sharedStageSource(t *testing.T) (string, *manifest.Manifest) {
 	digestA := write("part-a/a.cjs", "// a\n")
 	digestB := write("part-b/b.cjs", "// b\n")
 	component := func(id, directory, anchor, digest string) manifest.Component {
-		return manifest.Component{ID: id, Path: anchor, SHA256: digest,
-			Source: &manifest.ToolSource{Directory: directory, Format: "embedded", Files: 1,
-				Embedded: map[string]string{anchor: digest}, StageAs: "shared"},
-			Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture"}}
+		return manifest.Component{
+			ID: id, Path: anchor, SHA256: digest,
+			Source: &manifest.ToolSource{
+				Directory: directory, Format: "embedded", Files: 1,
+				Embedded: map[string]string{anchor: digest}, StageAs: "shared",
+			},
+			Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture"},
+		}
 	}
 	return root, &manifest.Manifest{Components: []manifest.Component{
 		component("part-a", "part-a", "part-a/a.cjs", digestA),
@@ -45,8 +49,10 @@ func sharedStageSource(t *testing.T) (string, *manifest.Manifest) {
 func TestSharedStageComponentsKeepEachOtherIntact(t *testing.T) {
 	source, m := sharedStageSource(t)
 	support := t.TempDir()
-	options := retained.StageOptions{Support: support, Version: "0.1.0", SourceRoot: source,
-		Manifest: m, Components: []string{"part-a", "part-b"}}
+	options := retained.StageOptions{
+		Support: support, Version: "0.1.0", SourceRoot: source,
+		Manifest: m, Components: []string{"part-a", "part-b"},
+	}
 	root, staged, err := retained.StageTools(options)
 	if err != nil || len(staged) != 2 {
 		t.Fatalf("shared stage failed: %v %v", staged, err)

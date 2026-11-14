@@ -52,7 +52,7 @@ func TestPreferencesReload(t *testing.T) {
 	if err := b.ApplyPreferences(); err == nil {
 		t.Fatal("IPv6 accepted")
 	}
-	if err := os.WriteFile(path, []byte(`{"profile":"missing","edition":"full","transport":"manual"}`), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(`{"profile":"missing","edition":"full","transport":"manual"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Load(path); err == nil {

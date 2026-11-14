@@ -19,6 +19,7 @@ type civAdapter struct {
 func (a *civAdapter) Availability() error                            { return nil }
 func (a *civAdapter) Writer() session.CivSwitchWriter                { return nil }
 func (a *civAdapter) Prepare(context.Context) (time.Duration, error) { return 23 * time.Minute, nil }
+
 func (a *civAdapter) Transfer(ctx context.Context, report session.Report) error {
 	a.transfers++
 	if a.transfer != nil {
@@ -36,6 +37,7 @@ func civController(a *civAdapter) *session.SessionController {
 	env.CivSwitch = a
 	return session.New(env, session.Profile{ID: "test", Revision: "pinned"})
 }
+
 func civPrerequisites() session.CivSwitchPrerequisites {
 	return session.CivSwitchPrerequisites{PhysicalSwitch1Cartridge100: true, EnglishUS: true, SameReachableNetwork: true, LobbyChatFocused: true, ConsoleIPv4: "192.0.2.2"}
 }

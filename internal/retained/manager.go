@@ -146,8 +146,10 @@ func New(options Options) *Manager {
 	m := &Manager{options: options}
 	// RunWith calls m.command while holding m.mu, so read m.options fields directly.
 	m.command = func(run session.Run, request session.ToolRequest, workspace string) (*exec.Cmd, error) {
-		args := []string{m.options.Host, m.options.ToolRoot, request.Tool, workspace,
-			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool))}
+		args := []string{
+			m.options.Host, m.options.ToolRoot, request.Tool, workspace,
+			dash(request.ConsoleIPv4), dash(m.exportPath(run, request.Tool)),
+		}
 		if isHomebrew(request.Tool) || request.Tool == "modloader" {
 			config, err := m.homebrewConfig(run, request)
 			if err != nil {

@@ -36,7 +36,7 @@ func TestDeveloperInstallVerifiesBeforeAdministrator(t *testing.T) {
 			root, m := fixture(t)
 			names := []string{"drivers/usbgadget.kext/Contents/MacOS/usbgadget", "drivers/usbgadget.kext/Contents/Info.plist", "drivers/SHA256SUMS", "scripts/install-driver.sh"}
 			if tamper {
-				if err := os.WriteFile(filepath.Join(root, names[0]), []byte("changed"), 0600); err != nil {
+				if err := os.WriteFile(filepath.Join(root, names[0]), []byte("changed"), 0o600); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -68,15 +68,17 @@ func fixture(t *testing.T) (string, *manifest.Manifest) {
 	ids := []string{"usbgadget-binary", "usbgadget-info", "usbgadget-checksums", "driver-installer"}
 	for i, name := range names {
 		full := filepath.Join(root, filepath.FromSlash(name))
-		if err := os.MkdirAll(filepath.Dir(full), 0700); err != nil {
+		if err := os.MkdirAll(filepath.Dir(full), 0o700); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(full, []byte("hello"), 0600); err != nil {
+		if err := os.WriteFile(full, []byte("hello"), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		m.Components = append(m.Components, manifest.Component{ID: ids[i], Path: name,
+		m.Components = append(m.Components, manifest.Component{
+			ID: ids[i], Path: name,
 			SHA256:       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
-			Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture rights blocker"}})
+			Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture rights blocker"},
+		})
 	}
 	return root, m
 }
@@ -86,7 +88,7 @@ func TestRestartAfterFailedLoadRemainsRequired(t *testing.T) {
 	marker := filepath.Join(t.TempDir(), ".mac2jb-usbgadget-restart-required")
 	installed := time.Unix(1001, 0)
 	g := driver.New(driver.Options{Manifest: m, DeveloperSourceRoot: root, Administrator: func(context.Context, string) error {
-		if err := os.WriteFile(marker, nil, 0600); err != nil {
+		if err := os.WriteFile(marker, nil, 0o600); err != nil {
 			return err
 		}
 		if err := os.Chtimes(marker, installed, installed); err != nil {
@@ -129,7 +131,7 @@ func TestUnexpectedBundleAndChangedInstallerNeverReachAdministrator(t *testing.T
 	for _, name := range []string{"drivers/usbgadget.kext/extra", "scripts/install-driver.sh", "drivers/SHA256SUMS", "drivers/usbgadget.kext/Contents/Info.plist"} {
 		t.Run(name, func(t *testing.T) {
 			root, m := fixture(t)
-			if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(name)), []byte("changed"), 0600); err != nil {
+			if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(name)), []byte("changed"), 0o600); err != nil {
 				t.Fatal(err)
 			}
 			g := driver.New(driver.Options{Manifest: m, DeveloperSourceRoot: root, Administrator: func(context.Context, string) error {

@@ -58,7 +58,7 @@ func muted(c *ui.Context, s string) ui.Element {
 // footer is a stage's action bar. The leading control (Back, or why the
 // stage is blocked) sits at the start and the primary action at the end,
 // where macOS places a default button.
-func footer(c *ui.Context, lead func(), rest func()) {
+func footer(c *ui.Context, lead, rest func()) {
 	rule(c)
 	ui.Row(c).FillWidth().AlignItems(ui.Center).Gap(c.Theme().Space(2)).Padding(c.Theme().Space(3), 20).Background(cardFill(c)).Children(func() {
 		lead()

@@ -31,8 +31,10 @@ func protocolRunner(t *testing.T, scenario string) *engine.HostRunner {
 }
 
 func testRun() session.Run {
-	return session.Run{ID: "fixture-run", LANIPv4: "192.0.2.1",
-		Profile: session.Profile{ID: "fixture", StartPort: 39380, StartArgumentCount: 5}}
+	return session.Run{
+		ID: "fixture-run", LANIPv4: "192.0.2.1",
+		Profile: session.Profile{ID: "fixture", StartPort: 39380, StartArgumentCount: 5},
+	}
 }
 
 func TestCancelDuringAuthorizationDoesNotLaunch(t *testing.T) {

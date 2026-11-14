@@ -17,10 +17,10 @@ func TestRedactedLogsAndAllowlistedBundle(t *testing.T) {
 		t.Run(field, func(t *testing.T) {
 			store := Store{Support: t.TempDir()}
 			workspace := filepath.Join(store.Support, "runs", "run-test")
-			if err := os.MkdirAll(workspace, 0700); err != nil {
+			if err := os.MkdirAll(workspace, 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(filepath.Join(workspace, "host.log"), []byte(`{"error":"connection closed","`+field+`":"sensitive-value"}`+"\nV=START(39380,192,0,2,1,1234)\n"), 0600); err != nil {
+			if err := os.WriteFile(filepath.Join(workspace, "host.log"), []byte(`{"error":"connection closed","`+field+`":"sensitive-value"}`+"\nV=START(39380,192,0,2,1,1234)\n"), 0o600); err != nil {
 				t.Fatal(err)
 			}
 			if err := store.Capture(workspace, "test"); err != nil {
@@ -83,7 +83,7 @@ func TestCaptureRefusesSymlinkToPrivateData(t *testing.T) {
 	s := Store{Support: t.TempDir()}
 	workspace := t.TempDir()
 	private := filepath.Join(workspace, "save.bin")
-	if err := os.WriteFile(private, []byte("private save"), 0600); err != nil {
+	if err := os.WriteFile(private, []byte("private save"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.Symlink(private, filepath.Join(workspace, "host.log")); err != nil {

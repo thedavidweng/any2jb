@@ -140,7 +140,7 @@ func (m *Manifest) CheckPackageMergedForPlatform(root, platform string) error {
 		}
 		if strings.HasPrefix(platform, "linux-") {
 			switch name {
-			case "any2jb", "any2jb.desktop", "any2jb.png", "any2jb-256x256.png", "any2jb-512x512.png", "install.sh", "PKGBUILD":
+			case ".mygo-files", "any2jb", "any2jb.desktop", "any2jb.png", "any2jb-256x256.png", "any2jb-512x512.png", "install.sh", "PKGBUILD":
 				return true
 			}
 			return strings.HasPrefix(name, "any2jb-") && strings.HasSuffix(name, ".tar.gz") ||

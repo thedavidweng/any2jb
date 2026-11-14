@@ -51,25 +51,33 @@ func NewFakeEnvironment() *FakeEnvironment {
 			{ID: session.CheckRuntime, State: session.CheckVerified, Message: sim.English(), MessageText: sim},
 			{ID: session.CheckEngine, State: session.CheckVerified, Message: sim.English(), MessageText: sim},
 		},
-		Outcome: session.Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true,
-			RetainedReady: true, CleanupDeferred: true, DonorCleanedUp: true, RPCListening: true},
+		Outcome: session.Outcome{
+			Verified: true, FSVerified: true, Restored: true, CleanedUp: true,
+			RetainedReady: true, CleanupDeferred: true, DonorCleanedUp: true, RPCListening: true,
+		},
 		FinishOutcome: session.Outcome{Verified: true, FSVerified: true, Restored: true, CleanedUp: true},
 	}
 }
+
 func (f *FakeEnvironment) Environment() session.Environment {
-	return session.Environment{Host: fakeHost{f}, Retained: fakeRetained{f}, Input: fakeInput{f},
-		Platform: fakePlatform{f}, Tools: fakeTools{f}}
+	return session.Environment{
+		Host: fakeHost{f}, Retained: fakeRetained{f}, Input: fakeInput{f},
+		Platform: fakePlatform{f}, Tools: fakeTools{f},
+	}
 }
+
 func (f *FakeEnvironment) record(action string) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.trace = append(f.trace, action)
 }
+
 func (f *FakeEnvironment) Trace() []string {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return append([]string(nil), f.trace...)
 }
+
 func gate(ctx context.Context, ch <-chan struct{}) error {
 	if ch == nil {
 		return ctx.Err()
@@ -93,10 +101,12 @@ func (h fakeHost) Prepare(ctx context.Context, _ session.Run, report session.Rep
 	h.f.record("host.prepared")
 	return h.f.Prepared, h.f.PrepareError
 }
+
 func (h fakeHost) Run(context.Context, session.Run, session.PreparedHost, session.Report) (session.Outcome, error) {
 	h.f.record("host.run")
 	return h.f.Outcome, h.f.RunError
 }
+
 func (h fakeHost) Wait(ctx context.Context, _ session.Run) error {
 	if err := gate(ctx, h.f.HostExitGate); err != nil {
 		return err
@@ -108,10 +118,12 @@ func (h fakeHost) Wait(ctx context.Context, _ session.Run) error {
 	}
 	return errors.New("simulated host exited")
 }
+
 func (h fakeHost) Finish(context.Context, session.Run) (session.Outcome, error) {
 	h.f.record("host.finish")
 	return h.f.FinishOutcome, nil
 }
+
 func (h fakeHost) Cleanup(context.Context, session.Run) error {
 	h.f.record("host.cleanup")
 	return h.f.CleanupError
@@ -127,6 +139,7 @@ func (i fakeInput) Send(ctx context.Context, _ session.Run, action session.Input
 	}
 	return i.f.InputError
 }
+
 func (i fakeInput) Release(context.Context, session.Run) error {
 	i.f.record("input.release")
 	return i.f.CleanupError
@@ -141,6 +154,7 @@ func (p fakePlatform) Inspect(ctx context.Context, _ session.Run) ([]session.Che
 	}
 	return p.f.Checks, p.f.InspectError
 }
+
 func (p fakePlatform) ExportDiagnostics(context.Context, session.Snapshot) (string, error) {
 	return "simulated diagnostics; no real check performed", nil
 }
@@ -152,6 +166,7 @@ func (r fakeRetained) Discover(context.Context) ([]session.RetainedSession, erro
 	r.f.record("retained.discover")
 	return r.f.RetainedSessions, nil
 }
+
 func (r fakeRetained) Attach(_ context.Context, _ session.Run, id string) (session.Outcome, error) {
 	r.f.record("retained.attach")
 	for _, s := range r.f.RetainedSessions {
@@ -165,10 +180,12 @@ func (r fakeRetained) Attach(_ context.Context, _ session.Run, id string) (sessi
 	}
 	return session.Outcome{}, errors.New("no simulated session with that identity")
 }
+
 func (r fakeRetained) Detach(context.Context, session.Run) error {
 	r.f.record("retained.detach")
 	return r.f.DetachError
 }
+
 func (r fakeRetained) Watch(ctx context.Context, _ session.Run) error {
 	if err := gate(ctx, r.f.RetainedLostGate); err != nil {
 		return err
@@ -188,12 +205,14 @@ func (t fakeTools) Validate(request session.ToolRequest) error {
 	}
 	return nil
 }
+
 func (t fakeTools) Run(ctx context.Context, _ session.Run, _ string, _ session.Report) error {
 	if err := gate(ctx, t.f.ToolGate); err != nil {
 		return err
 	}
 	return t.f.ToolError
 }
+
 func (t fakeTools) RunWith(ctx context.Context, run session.Run, request session.ToolRequest, report session.Report) error {
 	t.f.mu.Lock()
 	t.f.trace = append(t.f.trace, "tool.run-with "+request.Tool)

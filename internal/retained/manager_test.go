@@ -16,9 +16,13 @@ import (
 )
 
 func testRun() session.Run {
-	return session.Run{ID: "fixture-run", LANIPv4: "192.0.2.1",
-		Profile: session.Profile{ID: "kurumuz", StartPort: 39380, StartArgumentCount: 5, RetainsRPC: true,
-			Tools: []string{"rpc-status", "system-code-dump", "ouncecake-webdav", "ouncecake-ftp"}}}
+	return session.Run{
+		ID: "fixture-run", LANIPv4: "192.0.2.1",
+		Profile: session.Profile{
+			ID: "kurumuz", StartPort: 39380, StartArgumentCount: 5, RetainsRPC: true,
+			Tools: []string{"rpc-status", "system-code-dump", "ouncecake-webdav", "ouncecake-ftp"},
+		},
+	}
 }
 
 // heldSession runs the structured engine fixture until its retained lease is
@@ -67,8 +71,10 @@ func manager(t *testing.T, support string, runner retained.Workspaces, scenario 
 	if err != nil {
 		t.Fatal(err)
 	}
-	options := retained.Options{Support: support, Node: node, Host: fixture, Manifest: m,
-		Runs: runner, Staged: staged, EngineStaged: true, ToolRoot: filepath.Join(support, "tools")}
+	options := retained.Options{
+		Support: support, Node: node, Host: fixture, Manifest: m,
+		Runs: runner, Staged: staged, EngineStaged: true, ToolRoot: filepath.Join(support, "tools"),
+	}
 	return retained.NewProtocolManager(options, func(run session.Run, request session.ToolRequest, workspace string) *exec.Cmd {
 		return exec.Command(node, fixture, options.ToolRoot, request.Tool, workspace,
 			request.ConsoleIPv4, filepath.Join(support, "verified-exports", "system-code-"+run.ID), scenario)
@@ -138,8 +144,10 @@ func TestOneOwnerAtATime(t *testing.T) {
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
-	err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "ouncecake-webdav",
-		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+	err := m.RunWith(context.Background(), run, session.ToolRequest{
+		Tool:        "ouncecake-webdav",
+		ConsoleIPv4: "192.0.2.7",
+	}, func(session.Progress) {})
 	if err == nil || !strings.Contains(err.Error(), "mintbrew") {
 		t.Fatalf("a second owner was not refused with the current owner: %v", err)
 	}
@@ -162,7 +170,8 @@ func TestStopDrainsProgressAfterRunning(t *testing.T) {
 	run.Profile.Tools = append(run.Profile.Tools, "mintbrew")
 	m := manager(t, support, runner, "progress-flood", "mintbrew", "homebrew-runtime")
 	err := m.RunWith(context.Background(), run, session.ToolRequest{
-		Tool: "mintbrew", ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+		Tool: "mintbrew", ConsoleIPv4: "192.0.2.7",
+	}, func(session.Progress) {})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,8 +213,10 @@ func TestExportsStayInsideTheirStatedBoundary(t *testing.T) {
 	exposed := manager(t, support, runner, "exposed", "ouncecake")
 	done := make(chan error, 1)
 	go func() {
-		done <- exposed.RunWith(context.Background(), run, session.ToolRequest{Tool: "ouncecake-webdav",
-			ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+		done <- exposed.RunWith(context.Background(), run, session.ToolRequest{
+			Tool:        "ouncecake-webdav",
+			ConsoleIPv4: "192.0.2.7",
+		}, func(session.Progress) {})
 	}()
 	for exposed.State().Games == nil {
 		if len(done) > 0 {

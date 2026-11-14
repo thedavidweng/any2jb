@@ -55,7 +55,7 @@ func TestKeyboardOwnerProcess(t *testing.T) {
 	if err := k.Send(context.Background(), [8]byte{0, 0, 4}); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(os.Getenv("ANY2JB_OWNER_READY"), []byte("ready"), 0600); err != nil {
+	if err := os.WriteFile(os.Getenv("ANY2JB_OWNER_READY"), []byte("ready"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	io.Copy(io.Discard, os.Stdin)

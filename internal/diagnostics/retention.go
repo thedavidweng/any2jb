@@ -22,7 +22,7 @@ func (s Store) RetainBackups(workspace string) error {
 			return errors.New("retained artifact is not a real directory")
 		}
 		dest := filepath.Join(s.Support, "past-runs", filepath.Base(workspace))
-		if err := os.MkdirAll(dest, 0700); err != nil {
+		if err := os.MkdirAll(dest, 0o700); err != nil {
 			return err
 		}
 		target := filepath.Join(dest, name)

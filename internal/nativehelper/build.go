@@ -86,10 +86,12 @@ func Build(ctx context.Context, out io.Writer, root, stage string, m *manifest.M
 		if err := os.WriteFile(stagedSource, data, 0o600); err != nil {
 			return err
 		}
-		args := []string{"clang", "-std=c11", "-D_POSIX_C_SOURCE=200809L", "-O2", "-Wall", "-Wextra",
+		args := []string{
+			"clang", "-std=c11", "-D_POSIX_C_SOURCE=200809L", "-O2", "-Wall", "-Wextra",
 			"-target", "arm64-apple-macos14.0", "-Iinclude",
 			filepath.Join("..", "..", tool.source), "-L.", "-lusbd", "-Wl,-rpath,@executable_path/vendor/libusbd",
-			"-framework", "CoreFoundation", "-framework", "IOKit", "-o", filepath.Join("..", "..", tool.name)}
+			"-framework", "CoreFoundation", "-framework", "IOKit", "-o", filepath.Join("..", "..", tool.name),
+		}
 		if tool.name != "civswitch-hid" {
 			args = append(args, "-DMAC2JB_GUI=1")
 		}

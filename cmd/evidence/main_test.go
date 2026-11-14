@@ -47,7 +47,7 @@ func writeLog(t *testing.T, dir string) string {
 		t.Fatal(err)
 	}
 	path := filepath.Join(dir, "2026-11-20-p1a-pepsipu.json")
-	if err := os.WriteFile(path, append(data, '\n'), 0644); err != nil {
+	if err := os.WriteFile(path, append(data, '\n'), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	return path
@@ -67,7 +67,7 @@ func TestValidateCommand(t *testing.T) {
 func TestValidateRejectsBadLog(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "bad.json")
-	if err := os.WriteFile(path, []byte(`{"schema":"wrong"}`), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(`{"schema":"wrong"}`), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	var out bytes.Buffer
@@ -83,7 +83,7 @@ func TestApplyAndReportCommands(t *testing.T) {
 	content := "| ID | G | C | Tier | S | P | R | D | Evidence | E | Link | T | K |\n" +
 		"|---|---|---|---|---|---|---|---|---|---|---|---|---|\n" +
 		"| usb-probe | USB | Probe | P1a | s | p | input | gated | not verified | false | [not verified](#not-verified) | 09 | - |\n"
-	if err := os.WriteFile(ledger, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(ledger, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	var out bytes.Buffer

@@ -188,6 +188,8 @@ func parseNSPBoxEvent(line string) (NSPBoxEvent, bool) {
 	if err := json.Unmarshal([]byte(line), &raw); err != nil || raw.Type == "" {
 		return NSPBoxEvent{}, false
 	}
-	return NSPBoxEvent{Type: raw.Type, Stage: raw.Stage, Percent: min(max(raw.Percent, 0), 100),
-		Message: raw.Message, Report: raw.Report}, true
+	return NSPBoxEvent{
+		Type: raw.Type, Stage: raw.Stage, Percent: min(max(raw.Percent, 0), 100),
+		Message: raw.Message, Report: raw.Report,
+	}, true
 }

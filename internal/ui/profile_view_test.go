@@ -56,8 +56,10 @@ func TestUnappliedHostChoiceCannotLaunchPreviousHost(t *testing.T) {
 		t.Fatal(err)
 	}
 	p := a.Controller.Snapshot().Profile
-	if _, err := a.Controller.UseSavedBootstrap(session.BootstrapRecord{ProfileID: p.ID, Revision: p.Revision,
-		SourceSHA256: p.SourceSHA256, BootstrapSHA256: p.BootstrapSHA256, SaveName: p.SaveName, Edition: "full", Confirmed: true}); err != nil {
+	if _, err := a.Controller.UseSavedBootstrap(session.BootstrapRecord{
+		ProfileID: p.ID, Revision: p.Revision,
+		SourceSHA256: p.SourceSHA256, BootstrapSHA256: p.BootstrapSHA256, SaveName: p.SaveName, Edition: "full", Confirmed: true,
+	}); err != nil {
 		t.Fatal(err)
 	}
 	a.flow.stage = flowLaunch

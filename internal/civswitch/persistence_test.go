@@ -147,9 +147,11 @@ func newPersistenceFixture(t *testing.T, respond func(string) string) *persisten
 		if err := os.WriteFile(filepath.Join(root, file), []byte(data), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		m.Components = append(m.Components, manifest.Component{ID: id, Path: file,
+		m.Components = append(m.Components, manifest.Component{
+			ID: id, Path: file,
 			SHA256:       fmt.Sprintf("%x", sha256.Sum256([]byte(data))),
-			Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture distribution blocker"}})
+			Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture distribution blocker"},
+		})
 	}
 	python := filepath.Join(t.TempDir(), "python3")
 	if err := os.WriteFile(python, []byte(installerScript), 0o700); err != nil {

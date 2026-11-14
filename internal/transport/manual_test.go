@@ -27,8 +27,10 @@ func prompt(t *testing.T, m *guided.Manual) guided.Prompt {
 
 func TestManualSetupRequiresEachConsoleAcknowledgement(t *testing.T) {
 	m := guided.NewManual(func(session.Run) (string, error) { return "PRINT 1\n", nil })
-	run := session.Run{ID: "setup", Edition: "full", Profile: session.Profile{SaveName: "NS2"},
-		Transport: session.Transport{Mode: "manual", Capabilities: session.Capabilities{Manual: true}}}
+	run := session.Run{
+		ID: "setup", Edition: "full", Profile: session.Profile{SaveName: "NS2"},
+		Transport: session.Transport{Mode: "manual", Capabilities: session.Capabilities{Manual: true}},
+	}
 	done := make(chan error, 1)
 	go func() {
 		done <- m.Send(context.Background(), run, session.Bootstrap, session.PreparedHost{}, func(session.Progress) {})

@@ -98,7 +98,7 @@ func TestPreviewRestoreReadsAVerifiedBackup(t *testing.T) {
 func TestPreviewRestoreRejectsDeclaredSizeBeforeReadingFiles(t *testing.T) {
 	dir := t.TempDir()
 	manifest := `{"files":1,"bytes":67108865,"entries":[{"path":"/missing.bin","size":67108865,"sha256":""}]}`
-	if err := os.WriteFile(filepath.Join(dir, "manifest.json"), []byte(manifest), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "manifest.json"), []byte(manifest), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	_, err := savekit.PreviewRestore(dir)
@@ -121,11 +121,15 @@ func exportOf(t *testing.T, files map[string]string) savekit.Export {
 	t.Helper()
 	entries := make([]savekit.ExportFile, 0, len(files))
 	for name, body := range files {
-		entries = append(entries, savekit.ExportFile{Path: "/" + name, Size: int64(len(body)),
-			SHA256: digestOf(body)})
+		entries = append(entries, savekit.ExportFile{
+			Path: "/" + name, Size: int64(len(body)),
+			SHA256: digestOf(body),
+		})
 	}
-	return savekit.Export{TitleID: mutTitle, UID: mutUID,
-		Archive: savekit.Archive{Space: 1, Type: 1}, Files: entries}
+	return savekit.Export{
+		TitleID: mutTitle, UID: mutUID,
+		Archive: savekit.Archive{Space: 1, Type: 1}, Files: entries,
+	}
 }
 
 func TestCompareWrittenAcceptsMatchingBytesAndExtraLiveFiles(t *testing.T) {

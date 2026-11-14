@@ -154,8 +154,10 @@ func (d *Darwin) bootstrap(ctx context.Context, run session.Run, report session.
 		if sent > 0 {
 			left = time.Since(started) / time.Duration(sent) * time.Duration(total-sent)
 		}
-		report(session.Progress{Current: i + 1, Total: len(plan), SideEffect: true,
-			Remaining: left, HasEstimate: sent > 0})
+		report(session.Progress{
+			Current: i + 1, Total: len(plan), SideEffect: true,
+			Remaining: left, HasEstimate: sent > 0,
+		})
 		if err := k.p.auditLine(i+1, len(plan), left); err != nil {
 			return err
 		}

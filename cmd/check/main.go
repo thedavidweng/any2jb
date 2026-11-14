@@ -206,7 +206,7 @@ func nativeChecks(ctx context.Context, out io.Writer, root string, m *manifest.M
 		return err
 	}
 	payload := filepath.Join(stage, "input.txt")
-	if err := os.WriteFile(payload, []byte("PRINT 1\n"), 0600); err != nil {
+	if err := os.WriteFile(payload, []byte("PRINT 1\n"), 0o600); err != nil {
 		return err
 	}
 	for _, check := range []struct {

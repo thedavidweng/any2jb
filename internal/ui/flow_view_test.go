@@ -25,7 +25,7 @@ func renderFlow(t *testing.T, tt *ui.Tester, name string) {
 	if dir == "" {
 		return
 	}
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	file, err := os.Create(filepath.Join(dir, name+".png"))
@@ -150,12 +150,16 @@ func macFixtures() map[string][]session.Check {
 			usbCheck("driver-loaded", session.RequiresAttention), usbCheck("usb-controllers", session.RequiresAttention)),
 		"ready": with(usbCheck("sip", session.CheckVerified), usbCheck("driver-present", session.CheckVerified),
 			usbCheck("driver-loaded", session.CheckVerified), usbCheck("usb-controllers", session.Available), controller),
-		"restart": {network, usbCheck("usb-runtime", session.CheckVerified), usbCheck("sip", session.CheckVerified),
+		"restart": {
+			network, usbCheck("usb-runtime", session.CheckVerified), usbCheck("sip", session.CheckVerified),
 			usbCheck("driver-present", session.CheckVerified), usbCheck("driver-loaded", session.RequiresAttention),
-			usbCheck("driver-restart", session.RequiresAttention), usbCheck("usb-controllers", session.RequiresAttention)},
-		"blocked": {network, usbCheck("usb-runtime", session.RequiresAttention), usbCheck("sip", session.RequiresAttention),
+			usbCheck("driver-restart", session.RequiresAttention), usbCheck("usb-controllers", session.RequiresAttention),
+		},
+		"blocked": {
+			network, usbCheck("usb-runtime", session.RequiresAttention), usbCheck("sip", session.RequiresAttention),
 			usbCheck("driver-present", session.RequiresAttention), usbCheck("driver-loaded", session.RequiresAttention),
-			usbCheck("driver-restart", session.CheckVerified), usbCheck("usb-controllers", session.RequiresAttention)},
+			usbCheck("driver-restart", session.CheckVerified), usbCheck("usb-controllers", session.RequiresAttention),
+		},
 		"unsupported": {network, usbCheck("usb-platform", session.RequiresAttention)},
 	}
 }
@@ -172,28 +176,52 @@ func TestWizardFirstStage(t *testing.T) {
 		mode string
 	}{
 		{"sip-enabled", false, func() [4]row {
-			return [4]row{{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")}, {locales.MacNeedsAction(), locales.MacAllowAction()},
-				{locales.MacNeedsAction(), locales.MacInstallAction()}, {locales.MacWaiting(), locales.MacConnectWaiting()}}
+			return [4]row{
+				{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")},
+				{locales.MacNeedsAction(), locales.MacAllowAction()},
+				{locales.MacNeedsAction(), locales.MacInstallAction()},
+				{locales.MacWaiting(), locales.MacConnectWaiting()},
+			}
 		}, ""},
 		{"sip-disabled", false, func() [4]row {
-			return [4]row{{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")}, {locales.MacInProgress(), locales.MacAllowProgress()},
-				{locales.MacNeedsAction(), locales.MacInstallNotRunning()}, {locales.MacWaiting(), locales.MacConnectWaiting()}}
+			return [4]row{
+				{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")},
+				{locales.MacInProgress(), locales.MacAllowProgress()},
+				{locales.MacNeedsAction(), locales.MacInstallNotRunning()},
+				{locales.MacWaiting(), locales.MacConnectWaiting()},
+			}
 		}, ""},
 		{"ready", false, func() [4]row {
-			return [4]row{{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")}, {locales.MacDone(), locales.MacAllowDone()},
-				{locales.MacDone(), locales.MacInstallDone()}, {locales.MacFound(), locales.MacConnectFound()}}
+			return [4]row{
+				{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")},
+				{locales.MacDone(), locales.MacAllowDone()},
+				{locales.MacDone(), locales.MacInstallDone()},
+				{locales.MacFound(), locales.MacConnectFound()},
+			}
 		}, "keyboard"},
 		{"restart", false, func() [4]row {
-			return [4]row{{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")}, {locales.MacInProgress(), locales.MacAllowProgress()},
-				{locales.MacNeedsAction(), locales.MacRestart()}, {locales.MacWaiting(), locales.MacConnectWaiting()}}
+			return [4]row{
+				{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")},
+				{locales.MacInProgress(), locales.MacAllowProgress()},
+				{locales.MacNeedsAction(), locales.MacRestart()},
+				{locales.MacWaiting(), locales.MacConnectWaiting()},
+			}
 		}, ""},
 		{"blocked", true, func() [4]row {
-			return [4]row{{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")}, {locales.MacWaiting(), ""},
-				{locales.MacNotAvailable(), locales.MacInstallBlocked()}, {locales.MacWaiting(), locales.MacConnectWaiting()}}
+			return [4]row{
+				{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")},
+				{locales.MacWaiting(), ""},
+				{locales.MacNotAvailable(), locales.MacInstallBlocked()},
+				{locales.MacWaiting(), locales.MacConnectWaiting()},
+			}
 		}, ""},
 		{"unsupported", false, func() [4]row {
-			return [4]row{{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")}, {locales.MacNotAvailable(), ""},
-				{locales.MacNotAvailable(), ""}, {locales.MacNotAvailable(), locales.MacConnectUnsupported()}}
+			return [4]row{
+				{locales.MacDone(), locales.MacNetworkDone("192.0.2.24")},
+				{locales.MacNotAvailable(), ""},
+				{locales.MacNotAvailable(), ""},
+				{locales.MacNotAvailable(), locales.MacConnectUnsupported()},
+			}
 		}, ""},
 	}
 	for _, language := range []string{"en", "zh-CN"} {

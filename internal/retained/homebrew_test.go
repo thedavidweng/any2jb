@@ -22,8 +22,10 @@ func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	unstaged := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
-		Manifest: m, EngineStaged: true})
+	unstaged := retained.New(retained.Options{
+		Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
+		Manifest: m, EngineStaged: true,
+	})
 	dMint, err := m.DistributionFor("mintbrew")
 	if err != nil {
 		t.Fatal(err)
@@ -31,8 +33,10 @@ func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 	if reason := unstaged.Unavailable("mintbrew", "kurumuz"); reason != dMint.Reason {
 		t.Fatalf("mintbrew must show the recorded reason, got %q", reason)
 	}
-	partial := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
-		Manifest: m, EngineStaged: true, Staged: []string{"mintbrew"}})
+	partial := retained.New(retained.Options{
+		Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
+		Manifest: m, EngineStaged: true, Staged: []string{"mintbrew"},
+	})
 	dNative, err := m.DistributionFor("mintbrew-native")
 	if err != nil {
 		t.Fatal(err)
@@ -44,8 +48,10 @@ func TestHomebrewToolsStateTheirRecordedReason(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	staged := retained.New(retained.Options{Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
-		Manifest: m, Staged: homebrewStaged})
+	staged := retained.New(retained.Options{
+		Support: t.TempDir(), Node: "node", Host: "toolhost.cjs",
+		Manifest: m, Staged: homebrewStaged,
+	})
 	if reason := staged.Unavailable("native-hblauncher", "kurumuz"); reason != host.Reason {
 		t.Fatalf("the native launcher needs a developer engine stage, got %q", reason)
 	}
@@ -61,8 +67,10 @@ func TestHomebrewLaunchReportsUnknownProfileBeforeStartingChild(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m := retained.New(retained.Options{Support: support, Runs: runner, Manifest: mf,
-		Node: nodePath(t), Host: host, Staged: homebrewStaged})
+	m := retained.New(retained.Options{
+		Support: support, Runs: runner, Manifest: mf,
+		Node: nodePath(t), Host: host, Staged: homebrewStaged,
+	})
 	defer m.Stop(context.Background(), run)
 	run.Profile.ID = "missing-profile"
 	err = m.Run(context.Background(), run, "mintbrew", func(session.Progress) {
@@ -80,8 +88,10 @@ func TestHomebrewLaunchRefusesASecondOwner(t *testing.T) {
 	if err := m.RunWith(context.Background(), run, request, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
-	err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "native-hblauncher",
-		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {})
+	err := m.RunWith(context.Background(), run, session.ToolRequest{
+		Tool:        "native-hblauncher",
+		ConsoleIPv4: "192.0.2.7",
+	}, func(session.Progress) {})
 	if err == nil || !strings.Contains(err.Error(), "mintbrew") {
 		t.Fatalf("a second homebrew launch was not refused with the current owner: %v", err)
 	}
@@ -92,8 +102,10 @@ func TestHomebrewLaunchRefusesASecondOwner(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(mustWorkspace(t, runner, run), ".mac2jb-hblauncher-attempt.json")); !os.IsNotExist(err) {
 		t.Fatalf("a proven cleanup kept the attempt marker: %v", err)
 	}
-	if err := m.RunWith(context.Background(), run, session.ToolRequest{Tool: "native-hblauncher",
-		ConsoleIPv4: "192.0.2.7"}, func(session.Progress) {}); err != nil {
+	if err := m.RunWith(context.Background(), run, session.ToolRequest{
+		Tool:        "native-hblauncher",
+		ConsoleIPv4: "192.0.2.7",
+	}, func(session.Progress) {}); err != nil {
 		t.Fatal(err)
 	}
 	if err := m.Stop(context.Background(), run); err != nil {

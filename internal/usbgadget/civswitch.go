@@ -142,7 +142,7 @@ func RunCivSwitchMacro(
 	write func(ctx context.Context, iface int, report [8]byte) error,
 	sleepMS func(ctx context.Context, ms int) error,
 	emit func(line string),
-) (finished bool, cancelled bool) {
+) (finished, cancelled bool) {
 	curPad := NeutralGamepadReport
 	curKbd := NeutralKeyboardReport
 

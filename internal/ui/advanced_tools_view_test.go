@@ -62,8 +62,10 @@ func retainedApp(t *testing.T, f *sessiontest.FakeEnvironment, adapter *fakeTool
 		State: appstate.State{
 			Manifest: m,
 			Tools:    adapter,
-			Controller: session.New(f.Environment(), session.Profile{ID: "test", Revision: "pinned",
-				RetainsRPC: true, Tools: tools}),
+			Controller: session.New(f.Environment(), session.Profile{
+				ID: "test", Revision: "pinned",
+				RetainsRPC: true, Tools: tools,
+			}),
 		},
 	}
 	return a
@@ -79,7 +81,8 @@ func TestGatedToolsStateTheirRecordedReasonInsteadOfAnAction(t *testing.T) {
 		t.Fatal(err)
 	}
 	adapter := &fakeToolAdapter{reasons: map[string]string{
-		"ouncecake-webdav": ounce.Reason, "ouncecake-ftp": ounce.Reason}}
+		"ouncecake-webdav": ounce.Reason, "ouncecake-ftp": ounce.Reason,
+	}}
 	f := sessiontest.NewFakeEnvironment()
 	a := retainedApp(t, f, adapter, []string{"rpc-status", "ouncecake-webdav", "ouncecake-ftp"})
 	tt := ui.NewTester(a.advancedToolsView, 720, 1400)

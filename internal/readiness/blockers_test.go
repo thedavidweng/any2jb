@@ -31,8 +31,10 @@ func TestIndividualReadinessBlockers(t *testing.T) {
 		{"unsupported platform", "usb-platform", "Choose guided manual input. Ordinary USB-C ports do not establish USB device-mode support.", func(o *readiness.Observation) { o.USBSupported = false }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			o := readiness.Observation{Addresses: []readiness.Address{{Interface: "en0", IPv4: "192.168.1.10"}},
-				USBSupported: true, Driver: readiness.Driver{Present: true, Loaded: true}, Controllers: []string{"usb-drd0"}}
+			o := readiness.Observation{
+				Addresses:    []readiness.Address{{Interface: "en0", IPv4: "192.168.1.10"}},
+				USBSupported: true, Driver: readiness.Driver{Present: true, Loaded: true}, Controllers: []string{"usb-drd0"},
+			}
 			tc.change(&o)
 			p := readiness.Inspector{Observe: func(context.Context) readiness.Observation { return o }}
 			checks, err := p.Inspect(context.Background(), session.Run{})

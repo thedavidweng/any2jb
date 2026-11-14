@@ -58,7 +58,7 @@ func SelfTest(ctx context.Context, assets, version string, m *manifest.Manifest)
 	if err != nil {
 		return err
 	}
-	defer discard(support)
+	defer func() { _ = discard(support) }()
 	root, err := Stage(Options{Assets: assets, Support: support, Version: version, Manifest: m})
 	if err != nil {
 		return err

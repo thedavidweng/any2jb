@@ -15,11 +15,11 @@ func validDeveloperConfig(t *testing.T) (string, string) {
 	path := filepath.Join(t.TempDir(), "developer.json")
 	root := t.TempDir()
 	python := filepath.Join(root, "python")
-	if err := os.WriteFile(python, []byte("fixture"), 0700); err != nil {
+	if err := os.WriteFile(python, []byte("fixture"), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	data := `{"sourceRoot":"` + root + `","assets":"` + root + `","installerPython":"` + python + `"}`
-	if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return path, root
@@ -37,7 +37,7 @@ func TestDeveloperLaunchConfigIsExplicitAndValidated(t *testing.T) {
 	if _, err := devlaunch.Load(filepath.Join(root, "missing.json")); err == nil {
 		t.Fatal("missing config accepted")
 	}
-	if err := os.WriteFile(path, []byte(`{"sourceRoot":"relative","assets":"/assets"}`), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(`{"sourceRoot":"relative","assets":"/assets"}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := devlaunch.Load(path); err == nil {

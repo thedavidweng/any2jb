@@ -29,6 +29,7 @@ func decodeCLIJSON(value string, target any) error {
 	}
 	return nil
 }
+
 func (c *commandLine) addSettings(root *cobra.Command) {
 	group := &cobra.Command{Use: "settings", Short: locales.Settings()}
 	root.AddCommand(group)

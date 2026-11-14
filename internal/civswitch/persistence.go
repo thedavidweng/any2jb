@@ -335,8 +335,10 @@ func (r *backupReceiver) closeFile(frame backupFrame) error {
 		return err
 	}
 	r.current = nil
-	r.files = append(r.files, backupFile{Name: r.name, Size: r.size,
-		SHA256: hex.EncodeToString(r.digest.Sum(nil)), FNV32: frame.FNV32})
+	r.files = append(r.files, backupFile{
+		Name: r.name, Size: r.size,
+		SHA256: hex.EncodeToString(r.digest.Sum(nil)), FNV32: frame.FNV32,
+	})
 	r.report(session.Progress{Current: len(r.files), Total: r.expected})
 	return nil
 }
@@ -369,8 +371,10 @@ func (r *backupReceiver) commit() (string, error) {
 			return "", errors.New("the retained CivSwitch backup does not match the console save")
 		}
 	}
-	record, err := json.MarshalIndent(map[string]any{"version": 1, "source": singleSaveDirectory,
-		"consoleAddress": r.address, "capturedAt": time.Now().UTC().Format(time.RFC3339), "files": r.files}, "", "  ")
+	record, err := json.MarshalIndent(map[string]any{
+		"version": 1, "source": singleSaveDirectory,
+		"consoleAddress": r.address, "capturedAt": time.Now().UTC().Format(time.RFC3339), "files": r.files,
+	}, "", "  ")
 	if err != nil {
 		return "", err
 	}

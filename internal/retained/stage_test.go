@@ -42,8 +42,10 @@ func toolSource(t *testing.T) (string, *manifest.Manifest) {
 func TestDeveloperStagingVerifiesTheCopyAndPackagedStartupStagesNothing(t *testing.T) {
 	source, m := toolSource(t)
 	support := t.TempDir()
-	options := retained.StageOptions{Support: support, Version: "0.1.0", SourceRoot: source,
-		Manifest: m, Components: []string{"pinned-tool"}}
+	options := retained.StageOptions{
+		Support: support, Version: "0.1.0", SourceRoot: source,
+		Manifest: m, Components: []string{"pinned-tool"},
+	}
 	root, staged, err := retained.StageTools(options)
 	if err != nil || len(staged) != 1 {
 		t.Fatalf("staging a verified tool source failed: %v %v", staged, err)
@@ -73,8 +75,10 @@ func TestDeveloperStagingVerifiesTheCopyAndPackagedStartupStagesNothing(t *testi
 	if _, err := os.Stat(filepath.Join(root, "tools/pinned-tool")); !os.IsNotExist(err) {
 		t.Fatal("a failed stage was left in place")
 	}
-	packagedRoot, packagedStaged, err := retained.StageTools(retained.StageOptions{Support: support,
-		Version: "0.1.0", Manifest: m, Components: []string{"pinned-tool"}})
+	packagedRoot, packagedStaged, err := retained.StageTools(retained.StageOptions{
+		Support: support,
+		Version: "0.1.0", Manifest: m, Components: []string{"pinned-tool"},
+	})
 	if err != nil || packagedRoot != "" || packagedStaged != nil {
 		t.Fatalf("packaged startup staged tool sources: %q %v %v", packagedRoot, packagedStaged, err)
 	}

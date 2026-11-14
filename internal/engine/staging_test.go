@@ -37,8 +37,10 @@ func fixture(t *testing.T) engine.Options {
 			t.Fatal(err)
 		}
 		digest := sha256.Sum256(data)
-		m.Components = append(m.Components, manifest.Component{ID: id, Path: name, SHA256: hex.EncodeToString(digest[:]),
-			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true}})
+		m.Components = append(m.Components, manifest.Component{
+			ID: id, Path: name, SHA256: hex.EncodeToString(digest[:]),
+			Distribution: manifest.Distribution{Decision: "may-ship", Bundled: true},
+		})
 	}
 	support := t.TempDir()
 	t.Cleanup(func() {

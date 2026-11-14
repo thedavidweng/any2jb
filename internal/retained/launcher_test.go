@@ -19,7 +19,7 @@ import (
 func launcherManager(t *testing.T, support string, runner retained.Workspaces, name string) *retained.Manager {
 	t.Helper()
 	root := filepath.Join(t.TempDir(), "tools", "launcher-nora2-demo")
-	if err := os.MkdirAll(root, 0700); err != nil {
+	if err := os.MkdirAll(root, 0o700); err != nil {
 		t.Fatal(err)
 	}
 	f, err := os.Create(filepath.Join(root, "save.zip"))
@@ -66,9 +66,11 @@ func launcherManager(t *testing.T, support string, runner retained.Workspaces, n
 	if err != nil {
 		t.Fatal(err)
 	}
-	return retained.New(retained.Options{Support: support, Node: nodePath(t), Host: host, Runs: runner, Manifest: m,
+	return retained.New(retained.Options{
+		Support: support, Node: nodePath(t), Host: host, Runs: runner, Manifest: m,
 		ToolRoot: filepath.Dir(filepath.Dir(root)), Staged: []string{"savekit", "launcher-nora2-demo", "modloader"},
-		SaveKitModule: module, SaveKitScenario: "ok"})
+		SaveKitModule: module, SaveKitScenario: "ok",
+	})
 }
 
 func TestLauncherInstallRefusedAfterModloaderHandoff(t *testing.T) {

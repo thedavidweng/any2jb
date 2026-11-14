@@ -46,8 +46,10 @@ func (d *Darwin) environment() ([]string, error) {
 	if err := d.validateControllerName(c); err != nil {
 		return nil, err
 	}
-	return []string{"MAC2JB_CONTROLLER=" + c,
-		"MAC2JB_ENUMERATION_TIMEOUT_SECONDS=" + strconv.Itoa(t.EnumerationSeconds)}, nil
+	return []string{
+		"MAC2JB_CONTROLLER=" + c,
+		"MAC2JB_ENUMERATION_TIMEOUT_SECONDS=" + strconv.Itoa(t.EnumerationSeconds),
+	}, nil
 }
 
 func ValidateController(c string) error {

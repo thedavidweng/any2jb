@@ -357,11 +357,15 @@ func saveKitActionName(action string) string {
 func (p *saveKitPanel) target(selected *savekit.Entry) savekit.Request {
 	if selected != nil {
 		archive := selected.Archive
-		return savekit.Request{TitleID: selected.TitleID, UID: selected.UID,
-			Archive: &archive, All: p.all}
+		return savekit.Request{
+			TitleID: selected.TitleID, UID: selected.UID,
+			Archive: &archive, All: p.all,
+		}
 	}
-	return savekit.Request{TitleID: strings.ToLower(strings.TrimSpace(p.titleID)),
-		UID: p.account, All: p.all}
+	return savekit.Request{
+		TitleID: strings.ToLower(strings.TrimSpace(p.titleID)),
+		UID:     p.account, All: p.all,
+	}
 }
 
 // previewSaveKitWrite hashes the chosen folder off the UI thread. The result

@@ -72,7 +72,7 @@ func (m *Manual) ask(ctx context.Context, run session.Run, kind, text string, re
 	m.mu.Unlock()
 	select {
 	case <-ctx.Done():
-		m.Release(context.Background(), run)
+		_ = m.Release(context.Background(), run)
 		return ctx.Err()
 	case <-ack:
 		return ctx.Err()
@@ -111,8 +111,10 @@ func (m *Manual) Send(ctx context.Context, run session.Run, action session.Input
 			load = `PRGEDIT 0:LOADV "TXT:` + run.Profile.SaveName + `" OUT C$:PRGSET C$`
 		}
 		for _, p := range []Prompt{
-			{Kind: "load", Text: load}, {Kind: "load-confirm"},
-			{Kind: "run", Text: "RUN"}, {Kind: "remove", Text: "REMOVE NSR,&H60000000,&H3FFFFFFF"},
+			{Kind: "load", Text: load},
+			{Kind: "load-confirm"},
+			{Kind: "run", Text: "RUN"},
+			{Kind: "remove", Text: "REMOVE NSR,&H60000000,&H3FFFFFFF"},
 			{Kind: "start", Text: pairing.Command},
 		} {
 			if err := m.ask(ctx, run, p.Kind, p.Text, report); err != nil {

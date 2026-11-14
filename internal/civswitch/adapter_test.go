@@ -57,7 +57,7 @@ func TestCompositeHelperCanUseSharedSealedBuildOutsideSourceRoot(t *testing.T) {
 	script := "#!/bin/sh\necho 'MAC2JB_CIVSWITCH {\"type\":\"dry-run\",\"total\":87,\"characters\":21675,\"estimatedMs\":1299100}'\n"
 	options := helperFixture(t, script)
 	options.DeveloperHelperPath = filepath.Join(t.TempDir(), "civswitch-hid")
-	if err := os.WriteFile(options.DeveloperHelperPath, []byte(script), 0500); err != nil {
+	if err := os.WriteFile(options.DeveloperHelperPath, []byte(script), 0o500); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := civswitch.New(options).Prepare(context.Background()); err != nil {
@@ -81,13 +81,13 @@ func helperFixture(t *testing.T, script string) civswitch.Options {
 	root := t.TempDir()
 	m := &manifest.Manifest{Components: []manifest.Component{}}
 	for id, data := range map[string]string{"civswitch-hid.c": "fixture source", "civswitch-payload": "fixture payload"} {
-		if err := os.WriteFile(filepath.Join(root, id), []byte(data), 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(root, id), []byte(data), 0o600); err != nil {
 			t.Fatal(err)
 		}
 		m.Components = append(m.Components, manifest.Component{ID: id, Path: id, SHA256: fmt.Sprintf("%x", sha256.Sum256([]byte(data))), Distribution: manifest.Distribution{Decision: "blocked", Reason: "fixture distribution blocker"}})
 	}
 	helper := filepath.Join(root, "mac2jb-civswitch-hid")
-	if err := os.WriteFile(helper, []byte(script), 0700); err != nil {
+	if err := os.WriteFile(helper, []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	inspector := readiness.Inspector{Observe: func(context.Context) readiness.Observation {
@@ -127,7 +127,7 @@ func TestCompositeHelperRefusesTamperedAssetsAndFalseCompletion(t *testing.T) {
 	if err := civswitch.New(options).Transfer(context.Background(), func(session.Progress) {}); err == nil {
 		t.Fatal("unverified binary executed")
 	}
-	if err := os.WriteFile(filepath.Join(options.DeveloperSourceRoot, "civswitch-payload"), []byte("tampered"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(options.DeveloperSourceRoot, "civswitch-payload"), []byte("tampered"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := a.Prepare(context.Background()); err == nil {

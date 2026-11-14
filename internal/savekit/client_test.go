@@ -50,8 +50,10 @@ func TestClientListsAccountsTitlesAndInventory(t *testing.T) {
 	}
 	// An archive from the inventory selects its own title, account and archive.
 	entry := inventory.Inventory[1]
-	inspect, err := c.Run(context.Background(), run, "", savekit.Request{Action: "inspect",
-		TitleID: entry.TitleID, UID: entry.UID, Archive: &entry.Archive})
+	inspect, err := c.Run(context.Background(), run, "", savekit.Request{
+		Action:  "inspect",
+		TitleID: entry.TitleID, UID: entry.UID, Archive: &entry.Archive,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,8 +80,10 @@ func TestClientBackupKeepsAVerifiedExport(t *testing.T) {
 	run := t.TempDir()
 	destination := filepath.Join(t.TempDir(), "export")
 	c := client(t, "ok")
-	result, err := c.Run(context.Background(), run, destination, savekit.Request{Action: "backup",
-		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111"})
+	result, err := c.Run(context.Background(), run, destination, savekit.Request{
+		Action:  "backup",
+		TitleID: "010012900d38a000", UID: "11111111111111111111111111111111",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

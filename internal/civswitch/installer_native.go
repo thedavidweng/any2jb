@@ -309,7 +309,8 @@ func (a *Adapter) runNativeInstaller(ctx context.Context, endpoint string) error
 	).Replace(civInstallBlock)
 
 	executed, err := loaderCall{deadline: time.Minute, limit: 1 << 20}.send(
-		ctx, endpoint, "log('STARTING INSTALLER');window.__tpl=null;'reset'")
+		ctx, endpoint, "log('STARTING INSTALLER');window.__tpl=null;'reset'",
+	)
 	if err != nil {
 		return err
 	}

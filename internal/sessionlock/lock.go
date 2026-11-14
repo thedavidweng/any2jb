@@ -15,10 +15,10 @@ var ErrOwned = errors.New("another any2jb process owns this session")
 
 // Acquire takes the owner lock of the app support folder.
 func Acquire(support string) (func() error, error) {
-	if err := os.MkdirAll(support, 0700); err != nil {
+	if err := os.MkdirAll(support, 0o700); err != nil {
 		return nil, err
 	}
-	f, err := os.OpenFile(filepath.Join(support, "app-owner.lock"), os.O_CREATE|os.O_RDWR, 0600)
+	f, err := os.OpenFile(filepath.Join(support, "app-owner.lock"), os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
 		return nil, err
 	}

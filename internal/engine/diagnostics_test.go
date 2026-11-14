@@ -37,13 +37,13 @@ func TestRunnerRetainsRedactedEvidenceAndIntentionalBackups(t *testing.T) {
 		t.Fatal(err)
 	}
 	backup := filepath.Join(pairing.Workspace, "backups", "save.bin")
-	if err := os.MkdirAll(filepath.Dir(backup), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(backup), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(backup, []byte("private save"), 0600); err != nil {
+	if err := os.WriteFile(backup, []byte("private save"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(pairing.Workspace, "run.log"), []byte("pipeline failed\npairingToken=private-token"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(pairing.Workspace, "run.log"), []byte("pipeline failed\npairingToken=private-token"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := runner.Cleanup(context.Background(), run); err != nil {

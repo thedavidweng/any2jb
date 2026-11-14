@@ -56,8 +56,10 @@ func startSupervised(cmd *exec.Cmd) (*supervised, error) {
 		_ = stderr.Close()
 		return nil, err
 	}
-	s := &supervised{cmd: cmd, lines: make(chan string), done: make(chan struct{}),
-		stderr: &tail{limit: stderrTail}}
+	s := &supervised{
+		cmd: cmd, lines: make(chan string), done: make(chan struct{}),
+		stderr: &tail{limit: stderrTail},
+	}
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {

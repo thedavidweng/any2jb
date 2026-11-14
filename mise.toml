@@ -1,0 +1,101 @@
+[tools]
+go = "1.27.4"
+bun = "1.4.4"
+node = "lts"
+gofumpt = "0.12.0"
+golangci-lint = "2.15.0"
+jactionlint = "2.4.0"
+
+[env]
+GOTOOLCHAIN = "local"
+
+[tasks.fmt]
+description = "Format Go, JS, and JSON sources"
+run = """
+gofumpt -extra -w cmd internal locales/languages.go
+bun run fmt
+"""
+
+[tasks.fmt-check]
+description = "Verify Go, JS, and JSON formatting"
+run = """
+unformatted=$(gofumpt -extra -l cmd internal locales/languages.go)
+if [ -n "$unformatted" ]; then
+  printf 'Unformatted Go files (run: mise run fmt):\n%s\n' "$unformatted" >&2
+  exit 1
+fi
+bun run fmt:check
+"""
+
+[tasks.mod-tidy-check]
+description = "Verify go.mod and go.sum are tidy without mutating the repo"
+run = """
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+cp go.mod go.sum "$tmp/"
+GOWORK=off go mod tidy -modfile="$tmp/go.mod"
+diff -u go.mod "$tmp/go.mod"
+diff -u go.sum "$tmp/go.sum"
+"""
+
+[tasks.vet]
+description = "Run go vet and mygo vet"
+run = """
+CGO_ENABLED=0 go vet ./...
+go tool mygo vet .
+"""
+
+[tasks.lint]
+description = "Run golangci-lint and Biome lint"
+run = """
+golangci-lint run
+bun lint
+"""
+
+[tasks.i18n-check]
+description = "Verify locale catalogs and generated accessors are in sync"
+run = """
+go tool mygo i18n check
+go tool mygo generate .
+if ! git diff --exit-code -- locales/catalog_gen.go; then
+  echo "locales/catalog_gen.go was stale; commit the regenerated file" >&2
+  exit 1
+fi
+"""
+
+[tasks.js-check]
+description = "Run Biome check, Bun typecheck, upstream pin check, and Node runtime tests"
+run = "bun check"
+
+[tasks.platforms]
+description = "Verify cross-compilation across darwin/arm64, linux/amd64, linux/arm64, windows/amd64"
+run = "./scripts/check-platforms.sh"
+
+[tasks.test]
+description = "Run Go unit and integration tests"
+run = "CGO_ENABLED=0 go test ./..."
+
+[tasks.test-race]
+description = "Run Go tests with the race detector"
+run = "go test -race ./..."
+
+[tasks.conventions]
+description = "Enforce single AGENTS.md rule"
+run = """
+set -eu
+for forbidden in CLAUDE.md .cursorrules .windsurfrules .clinerules GEMINI.md; do
+  found=$(find . -name "$forbidden" -not -path './.git/*' -not -path './node_modules/*' -not -path './.cache/*' -print -quit)
+  if [ -n "$found" ]; then
+    echo "forbidden agent-instruction file: $found (use AGENTS.md only)" >&2
+    exit 1
+  fi
+done
+"""
+
+[tasks.workflow-lint]
+description = "Lint GitHub Actions workflows with jactionlint"
+run = "jactionlint --profile default"
+
+[tasks.check]
+description = "Run all read-only quality gates (matches CI)"
+depends = ["fmt-check", "mod-tidy-check", "vet", "lint", "i18n-check", "js-check", "platforms", "test", "conventions", "workflow-lint"]

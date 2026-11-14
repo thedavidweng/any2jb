@@ -239,7 +239,7 @@ func TestCLIScriptFileRequiresFlagsEvenFromATerminal(t *testing.T) {
 
 func writeScript(t *testing.T, body string) string {
 	path := filepath.Join(t.TempDir(), "steps.txt")
-	if err := os.WriteFile(path, []byte(body), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return path

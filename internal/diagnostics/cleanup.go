@@ -89,7 +89,7 @@ func (s Store) Cleanup(plan []string) error {
 	if !slices.Equal(current, plan) {
 		return errors.New("cleanup preview changed; review it again")
 	}
-	lease, err := os.OpenFile(filepath.Join(s.Support, "session.lock"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	lease, err := os.OpenFile(filepath.Join(s.Support, "session.lock"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return err
 	}

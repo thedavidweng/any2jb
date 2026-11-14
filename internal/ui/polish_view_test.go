@@ -115,7 +115,7 @@ func TestPolishStateMatrix(t *testing.T) {
 							}
 						}
 						if dir := os.Getenv("ANY2JB_POLISH_RENDER_DIR"); dir != "" {
-							if err := os.MkdirAll(dir, 0700); err != nil {
+							if err := os.MkdirAll(dir, 0o700); err != nil {
 								t.Fatal(err)
 							}
 							name := fmt.Sprintf("%s-%s-%dx%d", language, state, size.w, size.h)

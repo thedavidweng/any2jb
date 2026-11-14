@@ -82,8 +82,10 @@ func testApp(t *testing.T, c *session.SessionController) *app {
 	prefs := appstate.Preferences{Profile: m.Default, Edition: "full", Transport: "manual"}
 	if c != nil {
 		s := c.Snapshot()
-		prefs = appstate.Preferences{Profile: s.Profile.ID, Edition: s.Edition,
-			Transport: s.Transport.Mode, LANIPv4: s.LANOverride}
+		prefs = appstate.Preferences{
+			Profile: s.Profile.ID, Edition: s.Edition,
+			Transport: s.Transport.Mode, LANIPv4: s.LANOverride,
+		}
 	}
 	return &app{
 		State: appstate.State{

@@ -31,8 +31,10 @@ func TestPinnedDeveloperHostListening(t *testing.T) {
 			return err
 		})
 	})
-	options := engine.Options{Assets: assets, Support: support, Version: "listening-fixture", Manifest: m,
-		DeveloperSourceRoot: source, DeveloperProfileID: "pepsipu"}
+	options := engine.Options{
+		Assets: assets, Support: support, Version: "listening-fixture", Manifest: m,
+		DeveloperSourceRoot: source, DeveloperProfileID: "pepsipu",
+	}
 	profile, err := m.Profile("pepsipu")
 	if err != nil {
 		t.Fatal(err)

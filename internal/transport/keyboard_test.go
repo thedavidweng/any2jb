@@ -104,7 +104,7 @@ func TestKeyboardHelperProcess(t *testing.T) {
 		signal.Notify(signals, syscall.SIGTERM)
 		go func() {
 			<-signals
-			os.WriteFile(path, []byte("sigterm"), 0600)
+			os.WriteFile(path, []byte("sigterm"), 0o600)
 			os.Exit(0)
 		}()
 	}
@@ -127,7 +127,7 @@ func TestKeyboardHelperProcess(t *testing.T) {
 		_, err := io.ReadFull(os.Stdin, report[:])
 		if err == io.EOF {
 			if path := os.Getenv("ANY2JB_EOF_RELEASED"); path != "" {
-				os.WriteFile(path, make([]byte, 8), 0600)
+				os.WriteFile(path, make([]byte, 8), 0o600)
 			}
 			fmt.Fprintln(out, "MAC2JB_KEYBOARD_RELEASED")
 			out.Flush()

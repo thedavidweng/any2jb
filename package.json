@@ -1,0 +1,24 @@
+{
+	"name": "any2jb",
+	"version": "0.1.0",
+	"private": true,
+	"engines": {
+		"node": ">=24.22.1"
+	},
+	"scripts": {
+		"lint": "biome lint .",
+		"lint:fix": "biome lint --write .",
+		"fmt": "biome format --write .",
+		"fmt:check": "biome format .",
+		"typecheck": "bun check --no-script",
+		"test:js": "node --test internal/manifest/profiles.test.cjs internal/retained/toolhost.test.cjs internal/retained/savekit-host.test.cjs internal/engine/*.test.cjs scripts/*.test.mjs",
+		"test": "bun run test:js",
+		"upstream:verify": "node scripts/check-upstream.mjs --offline",
+		"upstream:check": "node scripts/check-upstream.mjs --ecosystem",
+		"check": "biome check . && bun check --no-script && bun run upstream:verify && bun run test:js"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.6.6",
+		"@types/node": "24.19.2"
+	}
+}

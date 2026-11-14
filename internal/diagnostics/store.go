@@ -18,11 +18,15 @@ import (
 	"github.com/thedavidweng/any2jb/internal/session"
 )
 
-type Store struct{ Support string }
-type Logs struct{ Host, USB, Pipeline, Acquisition string }
+type (
+	Store struct{ Support string }
+	Logs  struct{ Host, USB, Pipeline, Acquisition string }
+)
 
-var sensitive = regexp.MustCompile(`(?i)token|pairing|secret|password|authorization|cookie|account|user.?id|private.?key|access.?key|api.?key|credential|save.?data|\bkey\b|START\s*\(`)
-var identifiers = regexp.MustCompile(`(?i)\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b|\b(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\b|\b[A-Z]{2,4}[0-9]{8,}\b|\b(?:0x)?[0-9a-f]{16,}\b|\b[0-9]{8,}\b|(?:/Users/|/home/)[^\s"'<>]+`)
+var (
+	sensitive   = regexp.MustCompile(`(?i)token|pairing|secret|password|authorization|cookie|account|user.?id|private.?key|access.?key|api.?key|credential|save.?data|\bkey\b|START\s*\(`)
+	identifiers = regexp.MustCompile(`(?i)\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b|\b(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}\b|\b[A-Z]{2,4}[0-9]{8,}\b|\b(?:0x)?[0-9a-f]{16,}\b|\b[0-9]{8,}\b|(?:/Users/|/home/)[^\s"'<>]+`)
+)
 
 // Redact omits unknown JSON fields, whole sensitive lines and opaque identifiers.
 // Raw binary/private save artifacts are never read.
@@ -59,8 +63,10 @@ func Redact(raw string) string {
 }
 
 var sources = []struct{ name, path string }{
-	{"host", "host.log"}, {"usb", "usb.log"},
-	{"pipeline", "run.log"}, {"acquisition", "switch2/acquisition.log"},
+	{"host", "host.log"},
+	{"usb", "usb.log"},
+	{"pipeline", "run.log"},
+	{"acquisition", "switch2/acquisition.log"},
 }
 
 func validID(id string) bool {
@@ -79,7 +85,7 @@ func (s Store) Capture(workspace, id string) error {
 	}
 	defer root.Close()
 	dest := filepath.Join(s.Support, "diagnostics", id)
-	if err := os.MkdirAll(dest, 0700); err != nil {
+	if err := os.MkdirAll(dest, 0o700); err != nil {
 		return err
 	}
 	for _, source := range sources {
@@ -179,7 +185,7 @@ func (s Store) Export(ctx context.Context, snapshot session.Snapshot) (string, e
 		snapshot.Recovery = ""
 	}
 	dir := filepath.Join(s.Support, "support-bundles")
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return "", err
 	}
 	f, err := os.CreateTemp(dir, "support-*.zip")
@@ -197,10 +203,13 @@ func (s Store) Export(ctx context.Context, snapshot session.Snapshot) (string, e
 			Current, Total                         int
 			Platform, Architecture, Host, Revision string
 			Sources                                map[string]logSummary
-		}{1, snapshot.Stage, snapshot.Recovery, snapshot.Outcome, snapshot.Current, snapshot.Total,
-			runtime.GOOS, runtime.GOARCH, host, revision, map[string]logSummary{
+		}{
+			1, snapshot.Stage, snapshot.Recovery, snapshot.Outcome, snapshot.Current, snapshot.Total,
+			runtime.GOOS, runtime.GOARCH, host, revision,
+			map[string]logSummary{
 				"host": summarize(logs.Host), "usb": summarize(logs.USB), "pipeline": summarize(logs.Pipeline), "acquisition": summarize(logs.Acquisition),
-			}})
+			},
+		})
 	}
 	err = errors.Join(err, z.Close(), f.Close())
 	if err != nil {

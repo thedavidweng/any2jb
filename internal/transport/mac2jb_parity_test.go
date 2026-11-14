@@ -94,8 +94,10 @@ func hidCases(t *testing.T, m *manifest.Manifest, reference string) []hidCase {
 			suffix string
 			value  transport.Timing
 		}{{"", transport.DefaultTiming()}, {"/fast", fastTiming}} {
-			cases = append(cases, hidCase{name: "bootstrap/" + p.BootstrapSHA256[:12] + timing.suffix, run: run,
-				action: session.Bootstrap, timing: timing.value, text: string(data), reference: true})
+			cases = append(cases, hidCase{
+				name: "bootstrap/" + p.BootstrapSHA256[:12] + timing.suffix, run: run,
+				action: session.Bootstrap, timing: timing.value, text: string(data), reference: true,
+			})
 		}
 	}
 	return cases
@@ -104,9 +106,11 @@ func hidCases(t *testing.T, m *manifest.Manifest, reference string) []hidCase {
 // mac2jbArgs mirrors scripts/gui-host.cjs hid(): the GUI types bootstrap text
 // with mac2jb-send and commands as one selected list with the host's START.
 func mac2jbArgs(c hidCase, bootstrap string) (string, []string, []string) {
-	env := []string{"MAC2JB_AUTO_WORKER=1", "MAC2JB_CONTROLLER=usb-drd0", "MAC2JB_ENUMERATION_TIMEOUT_SECONDS=4",
+	env := []string{
+		"MAC2JB_AUTO_WORKER=1", "MAC2JB_CONTROLLER=usb-drd0", "MAC2JB_ENUMERATION_TIMEOUT_SECONDS=4",
 		"MAC2JB_KEY_HOLD_MS=" + strconv.Itoa(c.timing.HoldMS), "MAC2JB_ENTER_SETTLE_MS=" + strconv.Itoa(c.timing.EnterMS),
-		"MAC2JB_POLL_INTERVAL=10"}
+		"MAC2JB_POLL_INTERVAL=10",
+	}
 	if c.action == session.Bootstrap {
 		return "sender", []string{bootstrap, "--delay-ms", strconv.Itoa(c.timing.GapMS)}, env
 	}
@@ -163,9 +167,11 @@ func any2jbTranscript(t *testing.T, c hidCase, keyboard string) parity.Transcrip
 	run := c.run
 	sum := sha256.Sum256([]byte(c.text))
 	run.Profile.BootstrapSHA256 = hex.EncodeToString(sum[:])
-	options := transport.DarwinOptions{Controller: "usb-drd0", Timing: c.timing,
+	options := transport.DarwinOptions{
+		Controller: "usb-drd0", Timing: c.timing,
 		Bootstrap: func(session.Run) (string, error) { return c.text, nil },
-		Confirm:   func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
+		Confirm:   func(context.Context, session.Run, transport.ConsoleStep) error { return nil },
+	}
 	host := session.PreparedHost{Listening: true, PairingValid: true, Opaque: engine.PairingDetails{RunID: run.ID, Command: startCommand(run)}}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()

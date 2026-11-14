@@ -64,7 +64,7 @@ func (e *fakeEndpoint) snapshot() ([][8]byte, bool) {
 	return out, e.closed
 }
 
-func fakeGadgetRoots(t *testing.T, controller string, count int, failInitial int) (usbgadget.Roots, []*fakeEndpoint) {
+func fakeGadgetRoots(t *testing.T, controller string, count, failInitial int) (usbgadget.Roots, []*fakeEndpoint) {
 	t.Helper()
 	base := t.TempDir()
 	cfg := filepath.Join(base, "config")

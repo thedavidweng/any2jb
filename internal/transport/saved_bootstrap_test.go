@@ -22,14 +22,16 @@ func TestUSBSaveMatchesEveryProfileEditionWithoutAcceptingOverwrite(t *testing.T
 				t.Parallel()
 				path := filepath.Join(t.TempDir(), "reports")
 				confirmations := 0
-				options := transport.DarwinOptions{Controller: "usb-drd0", Timing: transport.DefaultTiming(),
+				options := transport.DarwinOptions{
+					Controller: "usb-drd0", Timing: transport.DefaultTiming(),
 					Confirm: func(_ context.Context, _ session.Run, step transport.ConsoleStep) error {
 						if step != transport.SaveCommand {
 							t.Fatalf("unexpected console step %q", step)
 						}
 						confirmations++
 						return nil
-					}}
+					},
+				}
 				options.Timing.GapMS = 1
 				d := transport.NewHelperDarwin(options, helperFactory(t, path))
 				run := session.Run{ID: "save", Profile: profile.SessionProfile(), Edition: edition}

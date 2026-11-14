@@ -19,8 +19,10 @@ func TestUSBLogContainsOnlyObservedCountersAndSurvivesSetupCleanup(t *testing.T)
 	const text = "PRINT \"DO_NOT_LOG_ME\"\n"
 	sum := sha256.Sum256([]byte(text))
 	support := t.TempDir()
-	options := transport.DarwinOptions{Runtime: engine.Options{Support: support}, Controller: "usb-drd0", Timing: transport.DefaultTiming(),
-		Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
+	options := transport.DarwinOptions{
+		Runtime: engine.Options{Support: support}, Controller: "usb-drd0", Timing: transport.DefaultTiming(),
+		Bootstrap: func(session.Run) (string, error) { return text, nil }, Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil },
+	}
 	options.Timing.GapMS = 1
 	d := transport.NewHelperDarwin(options, helperFactory(t, filepath.Join(t.TempDir(), "reports")))
 	run := session.Run{ID: "usb-audit", Edition: "full", Profile: session.Profile{SaveName: "NS2", BootstrapSHA256: hex.EncodeToString(sum[:])}}
@@ -32,7 +34,7 @@ func TestUSBLogContainsOnlyObservedCountersAndSurvivesSetupCleanup(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info, err := os.Stat(filepath.Join(workspace, "usb.log")); err != nil || info.Mode().Perm() != 0600 {
+	if info, err := os.Stat(filepath.Join(workspace, "usb.log")); err != nil || info.Mode().Perm() != 0o600 {
 		t.Fatal("USB log is not private")
 	}
 	if !strings.Contains(logs.USB, "enumeration_ready") || !strings.Contains(logs.USB, "typing_line") || !strings.Contains(logs.USB, "neutral_release_confirmed") {
@@ -71,11 +73,13 @@ func TestLaunchWritesUSBLogInTheMatchingHostWorkspaceWithoutLoggingPairing(t *te
 	}
 	const command = "V=START(39380,192,0,2,1,123,456,789,101)"
 	run := session.Run{ID: "host-usb", Edition: "full", LANIPv4: "192.0.2.1", Profile: session.Profile{SaveName: "NS2", StartPort: 39380, StartArgumentCount: 9}}
-	if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(workspace, "diagnostics-id"), []byte(run.ID), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	options := transport.DarwinOptions{Runtime: engine.Options{Support: support}, Controller: "usb-drd0", Timing: transport.DefaultTiming(),
-		Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil }}
+	options := transport.DarwinOptions{
+		Runtime: engine.Options{Support: support}, Controller: "usb-drd0", Timing: transport.DefaultTiming(),
+		Confirm: func(context.Context, session.Run, transport.ConsoleStep) error { return nil },
+	}
 	options.Timing.GapMS = 1
 	options.Timing.LoadMS = 0
 	d := transport.NewHelperDarwin(options, helperFactory(t, filepath.Join(t.TempDir(), "reports")))

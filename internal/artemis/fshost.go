@@ -269,8 +269,10 @@ func (s *SeedsowFSSession) consume(stdout io.Reader) {
 			s.stopped = true
 		}
 		s.mu.Unlock()
-		s.emit(SeedsowFSEvent{Type: frame.Type, Message: truncate(frame.Message, maxLogLine),
-			RunPath: frame.RunPath, ResultPath: frame.ResultPath, LogPath: frame.LogPath})
+		s.emit(SeedsowFSEvent{
+			Type: frame.Type, Message: truncate(frame.Message, maxLogLine),
+			RunPath: frame.RunPath, ResultPath: frame.ResultPath, LogPath: frame.LogPath,
+		})
 	}
 	if err := scanner.Err(); err != nil {
 		s.fail(err)

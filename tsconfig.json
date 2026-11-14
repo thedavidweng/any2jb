@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "ES2024",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"allowJs": true,
+		"checkJs": false,
+		"noEmit": true,
+		"strict": true,
+		"skipLibCheck": true,
+		"types": ["node"]
+	},
+	"include": ["scripts/**/*.mjs", "resources/runtime/**/*.cjs", "internal/**/*.cjs"],
+	"exclude": [
+		"node_modules",
+		"build",
+		"dist",
+		".cache",
+		".mygo",
+		"resources/darwin-arm64",
+		"resources/linux-amd64",
+		"resources/linux-arm64"
+	]
+}

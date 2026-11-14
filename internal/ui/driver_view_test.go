@@ -82,10 +82,10 @@ func TestDriverPanelRequiresSecondConfirmationBeforeAdministrator(t *testing.T) 
 		case "usbgadget-binary", "usbgadget-info", "usbgadget-checksums", "driver-installer":
 			component.SHA256 = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
 			name := filepath.Join(root, filepath.FromSlash(component.Path))
-			if err := os.MkdirAll(filepath.Dir(name), 0700); err != nil {
+			if err := os.MkdirAll(filepath.Dir(name), 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(name, []byte("hello"), 0600); err != nil {
+			if err := os.WriteFile(name, []byte("hello"), 0o600); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -93,7 +93,8 @@ func TestDriverPanelRequiresSecondConfirmationBeforeAdministrator(t *testing.T) 
 	called := make(chan string, 1)
 	release := make(chan struct{})
 	installed := make(chan func(), 1)
-	a.driverPanel = driverPanel{open: true, gate: driver.New(driver.Options{Manifest: a.Manifest, DeveloperSourceRoot: root,
+	a.driverPanel = driverPanel{open: true, gate: driver.New(driver.Options{
+		Manifest: a.Manifest, DeveloperSourceRoot: root,
 		Administrator: func(_ context.Context, installer string) error { called <- installer; <-release; return nil },
 	})}
 	a.driverPanel.update = func(apply func()) { installed <- apply }

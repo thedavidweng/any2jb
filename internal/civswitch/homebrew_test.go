@@ -298,7 +298,8 @@ func newHomebrewFixture(t *testing.T, respond func(map[string]any) map[string]an
 
 func TestCivHomebrewProbeReadsTheCompanionStatus(t *testing.T) {
 	fixture := newHomebrewFixture(t, helloResponder(map[string]any{
-		"mode": "launcher", "launcher": true, "ftp": true, "busy": false, "closed": false}))
+		"mode": "launcher", "launcher": true, "ftp": true, "busy": false, "closed": false,
+	}))
 	state, err := fixture.adapter.CivHomebrewProbe(context.Background(), "127.0.0.1")
 	if err != nil {
 		t.Fatal(err)
@@ -337,7 +338,8 @@ func TestCivHomebrewShutdownStopsAndReportsBlockedApps(t *testing.T) {
 				return map[string]any{"ok": true}
 			}
 			return map[string]any{"ok": true, "state": map[string]any{
-				"mode": "launcher", "launcher": true, "closed": closed}}
+				"mode": "launcher", "launcher": true, "closed": closed,
+			}}
 		})
 		stop, err := fixture.adapter.CivHomebrewShutdown(context.Background(), "127.0.0.1")
 		if err != nil {
@@ -456,8 +458,10 @@ func TestCivHomebrewRequiresPrivateLANAddressesAndAStagedPlugin(t *testing.T) {
 	if operations := len(fixture.companion.operations()); operations != 0 {
 		t.Fatalf("an unusable address reached the companion: %d requests", operations)
 	}
-	unstaged := New(Options{Manifest: fixture.adapter.options.Manifest, NodeBinary: fixture.adapter.options.NodeBinary,
-		Support: fixture.support, HomebrewPort: fixture.companion.port(), AllowLoopback: true})
+	unstaged := New(Options{
+		Manifest: fixture.adapter.options.Manifest, NodeBinary: fixture.adapter.options.NodeBinary,
+		Support: fixture.support, HomebrewPort: fixture.companion.port(), AllowLoopback: true,
+	})
 	if _, err := unstaged.CivHomebrewProbe(context.Background(), "127.0.0.1"); err == nil {
 		t.Fatal("probed without the CivHomebrew plugin staged")
 	}

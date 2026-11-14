@@ -21,7 +21,7 @@ func ownerDead(pid int) (bool, error) {
 
 // Advisory locking is released by the OS even if recovery itself crashes.
 func recoveryLock(path string) (func(), error) {
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600)
 	if err != nil {
 		return nil, err
 	}
@@ -29,5 +29,5 @@ func recoveryLock(path string) (func(), error) {
 		f.Close()
 		return nil, err
 	}
-	return func() { syscall.Flock(int(f.Fd()), syscall.LOCK_UN); f.Close() }, nil
+	return func() { _ = syscall.Flock(int(f.Fd()), syscall.LOCK_UN); f.Close() }, nil
 }

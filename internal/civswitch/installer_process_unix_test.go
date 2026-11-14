@@ -19,7 +19,7 @@ func TestInstallerCancellationStopsDescendants(t *testing.T) {
 	pidFile := filepath.Join(t.TempDir(), "child.pid")
 	t.Setenv("CIVSWITCH_CHILD_PID", pidFile)
 	const script = "#!/bin/sh\nsleep 30 &\necho $! > \"$CIVSWITCH_CHILD_PID\"\nwait\n"
-	if err := os.WriteFile(f.adapter.options.DeveloperInstallerPython, []byte(script), 0700); err != nil {
+	if err := os.WriteFile(f.adapter.options.DeveloperInstallerPython, []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())

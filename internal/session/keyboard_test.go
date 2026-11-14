@@ -39,6 +39,7 @@ func (k keyboardLease) Send(_ context.Context, r [8]byte) error {
 	k.k.reports = append(k.k.reports, r)
 	return nil
 }
+
 func (k keyboardLease) Close(context.Context) error {
 	k.k.mu.Lock()
 	defer k.k.mu.Unlock()

@@ -80,7 +80,7 @@ func (a *app) openSession(env session.Environment, interrupted bool) error {
 		return err
 	}
 	if interrupted {
-		a.Controller.MarkInterrupted()
+		_, _ = a.Controller.MarkInterrupted()
 		return nil
 	}
 	a.command(a.Controller.Inspect())
@@ -246,7 +246,7 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-	defer release()
+	defer func() { _ = release() }()
 	options := engine.Options{Assets: assets, Support: support, Version: mygo.App.Version(), Manifest: a.Manifest}
 	// This is the only developer launch input; it is read only when the build
 	// may use it.
@@ -335,7 +335,7 @@ func Run() error {
 					defer func() {
 						s := controller.Snapshot()
 						if s.BootstrapSaved && s.SavedBootstrap != last {
-							a.PersistBootstrap(path)
+							_ = a.PersistBootstrap(path)
 						}
 					}()
 					appstate.RefreshSession(closed, controller.Changes(), manual.Changes(), func() {

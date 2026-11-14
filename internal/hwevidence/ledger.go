@@ -50,7 +50,7 @@ func ApplyLedger(ledgerPath string, log *Log) ([]string, error) {
 		advanced = append(advanced, cells[0])
 	}
 	if len(advanced) > 0 {
-		if err := os.WriteFile(ledgerPath, []byte(strings.Join(lines, "\n")), 0644); err != nil {
+		if err := os.WriteFile(ledgerPath, []byte(strings.Join(lines, "\n")), 0o644); err != nil {
 			return nil, err
 		}
 	}

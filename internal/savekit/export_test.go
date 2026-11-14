@@ -24,8 +24,10 @@ func exportFixture(t *testing.T, mutate func(dir string, manifest map[string]any
 		"uid":       "11111111111111111111111111111111",
 		"space":     1, "type": 1, "rank": 0, "index": 0,
 		"files": 1, "bytes": len(body), "partial": false, "failed": []any{},
-		"entries": []any{map[string]any{"path": "/savegame.bin", "size": len(body),
-			"sha256": hex.EncodeToString(sum[:])}},
+		"entries": []any{map[string]any{
+			"path": "/savegame.bin", "size": len(body),
+			"sha256": hex.EncodeToString(sum[:]),
+		}},
 	}
 	if mutate != nil {
 		mutate(dir, manifest)

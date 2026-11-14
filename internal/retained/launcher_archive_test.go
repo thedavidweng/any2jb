@@ -83,11 +83,11 @@ func TestFullGamePatchDistinguishesExecutionFailures(t *testing.T) {
 	c := m.Components[0]
 	c.Launcher.FullGame = true
 	backup := t.TempDir()
-	if err := os.WriteFile(filepath.Join(backup, "save.bin"), []byte("data"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(backup, "save.bin"), []byte("data"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	exportManifest := fmt.Sprintf(`{"programId":"%s","uid":"11111111111111111111111111111111","space":1,"type":1,"files":1,"bytes":4,"entries":[{"path":"/save.bin","size":4,"sha256":"%x"}]}`, c.Launcher.TitleID, sha256.Sum256([]byte("data")))
-	if err := os.WriteFile(filepath.Join(backup, "manifest.json"), []byte(exportManifest), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(backup, "manifest.json"), []byte(exportManifest), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ name, node, message string }{
@@ -139,9 +139,11 @@ func packageFixture(t *testing.T, files map[string]string) (string, *manifest.Ma
 	if err != nil {
 		t.Fatal(err)
 	}
-	return root, &manifest.Manifest{Components: []manifest.Component{{ID: "launcher-nora2-demo", Path: "save.zip", SHA256: fmt.Sprintf("%x", sha256.Sum256(data)),
+	return root, &manifest.Manifest{Components: []manifest.Component{{
+		ID: "launcher-nora2-demo", Path: "save.zip", SHA256: fmt.Sprintf("%x", sha256.Sum256(data)),
 		Source:   &manifest.ToolSource{Format: "selected-files", Directory: "."},
-		Launcher: &manifest.LauncherSave{TitleID: "010012900d38a000", Files: len(files), Core: []string{"core.lua", "inject.lua"}}}}}
+		Launcher: &manifest.LauncherSave{TitleID: "010012900d38a000", Files: len(files), Core: []string{"core.lua", "inject.lua"}},
+	}}}
 }
 
 func TestPrepareVerifiesPackageBeforeExtracting(t *testing.T) {
@@ -152,7 +154,7 @@ func TestPrepareVerifiesPackageBeforeExtracting(t *testing.T) {
 	if err != nil || len(p.Files) != 2 {
 		t.Fatalf("preview: %+v %v", p, err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "save.zip"), []byte("changed"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "save.zip"), []byte("changed"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	dir = filepath.Join(t.TempDir(), "save")

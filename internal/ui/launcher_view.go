@@ -128,8 +128,10 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 		ui.Select(c.Key("launcher-account"), &p.account, accounts).Label(locales.LauncherAccount())
 	}
 
-	request := retained.LauncherRequest{ID: id, Version: p.version,
-		PhysicalCompatibility: p.physical, BackupFolder: strings.TrimSpace(p.exportFolder)}
+	request := retained.LauncherRequest{
+		ID: id, Version: p.version,
+		PhysicalCompatibility: p.physical, BackupFolder: strings.TrimSpace(p.exportFolder),
+	}
 	target := savekit.Request{TitleID: component.Launcher.TitleID, UID: p.account}
 	// A changed package, account, declaration or export folder invalidates both
 	// the prepared preview and the confirmation it was made for.
@@ -157,8 +159,10 @@ func (a *app) launcherSection(c *ui.Context, s session.Snapshot, state retained.
 		ui.Text(c, locales.SaveKitWriteTarget(target.TitleID, target.UID, "1", "1", "0", "0")).Selectable()
 		ui.Checkbox(c.Key("launcher-confirm"), &p.confirm, locales.LauncherConfirm())
 	}
-	write := savekit.Request{Action: "write", TitleID: target.TitleID, UID: target.UID,
-		AllowReplace: true, Confirm: p.confirm}
+	write := savekit.Request{
+		Action: "write", TitleID: target.TitleID, UID: target.UID,
+		AllowReplace: true, Confirm: p.confirm,
+	}
 	if p.preview != nil {
 		write.PreviewDigest = p.preview.Digest
 	}

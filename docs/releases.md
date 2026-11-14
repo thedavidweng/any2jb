@@ -14,13 +14,13 @@ embeds no update feed or key, reports updates disabled and rejects `Check` with
 Do not use a dummy valid public key or a test key in a production package.
 
 The package bundles the official Node 24.22.1 runtime, `any2jb`'s bridge and
-tool host, the five `ns2jb` host profiles and bootstraps, the `darwin-arm64`
-USB gadget kext/installer/`libusbd.dylib`/HID helpers (on macOS builds), the
-CivSwitch payloads and pure-Go trigger installer, and the offline session tools
-and launcher save packages, together with their recorded third-party notices.
-The ~100 MB+ optional GPU/Python homebrew components remain unbundled (`may-ship`,
-`bundled: false`) and are downloaded and SHA-256-verified on demand via
-**Advanced Tools** or `any2jb tool install-homebrew`.
+tool host, the five `ns2jb` host profiles and bootstraps, and the `darwin-arm64`
+USB gadget kext/installer/`libusbd.dylib`/HID helpers (on macOS builds),
+together with their recorded third-party notices.
+All 29 optional sub-tools (session/save tools, homebrew launchers, CivSwitch
+payloads/apps, Artemis tools, and Switch 2 utilities) remain unbundled
+(`may-ship`, `bundled: false`) and are downloaded and SHA-256-verified on demand
+via **Plugins** or `any2jb plugins install`.
 
 ## Reproduce a local package
 
