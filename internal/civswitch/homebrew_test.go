@@ -250,6 +250,10 @@ func newHomebrewFixture(t *testing.T, respond func(map[string]any) map[string]an
 	if err != nil {
 		t.Skip("CivHomebrew needs Node")
 	}
+	node, err = filepath.EvalSymlinks(node)
+	if err != nil {
+		t.Fatal(err)
+	}
 	root, support := t.TempDir(), t.TempDir()
 	toolRoot := filepath.Join(root, "tools-version")
 	stage := filepath.Join(toolRoot, "tools", homebrewComponent)
