@@ -35,7 +35,7 @@ Go modules compiled into the binary, from `go.mod`:
 | Module | Version | Role |
 |---|---|---|
 | [github.com/egoist/mygo](https://github.com/egoist/mygo) | `v0.8.4-0.20261110062621-a4b6734f7715` | UI framework (above) |
-| [github.com/spf13/cobra](https://github.com/spf13/cobra) | `v1.10.1` | Command line |
+| [github.com/spf13/cobra](https://github.com/spf13/cobra) | `v1.10.2` | Command line |
 | [github.com/spf13/pflag](https://github.com/spf13/pflag) | `v1.0.9` | Cobra flags |
 | [github.com/inconshreveable/mousetrap](https://github.com/inconshreveable/mousetrap) | `v1.1.0` | Cobra on Windows |
 | [github.com/ebitengine/purego](https://github.com/ebitengine/purego) | `v0.11.1` | MyGo native calls without cgo |
