@@ -107,6 +107,10 @@ func newFSHostFixtureWith(t *testing.T, supervisor string) *fsFixture {
 	if err != nil {
 		t.Skip("the CivSwitch FS supervisor needs Node")
 	}
+	node, err = filepath.EvalSymlinks(node)
+	if err != nil {
+		t.Fatal(err)
+	}
 	return &fsFixture{
 		request: FSHostRequest{
 			Manifest:      &manifest.Manifest{Components: []manifest.Component{component}},
