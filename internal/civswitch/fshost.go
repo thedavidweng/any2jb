@@ -126,10 +126,10 @@ func StartFSHost(ctx context.Context, request FSHostRequest, onEvent func(FSHost
 		session.collect(stdout, onEvent)
 	}()
 	go func() {
-		err := cmd.Wait()
 		// Wait closes the pipe; draining it first keeps a final failed or
 		// stopped event from being lost to the exit race.
 		<-collected
+		err := cmd.Wait()
 		session.mu.Lock()
 		if err == nil && session.failed {
 			err = errors.New("the CivSwitch FS host reported a failure")

@@ -175,3 +175,26 @@ func TestComponentIntegrity(t *testing.T) {
 		t.Fatal("unrecorded component accepted")
 	}
 }
+
+func TestApplyCompiledDarwinDigests(t *testing.T) {
+	m, err := manifest.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sum := sha256.Sum256([]byte("compiled-mach-o"))
+	valid := hex.EncodeToString(sum[:])
+	if err := m.ApplyCompiledDarwinDigests(map[string]string{
+		"libusbd-dylib": valid,
+		"sender":        valid,
+	}); err != nil {
+		t.Fatalf("allowlisted compiled digest rejected: %v", err)
+	}
+	for _, forbidden := range []string{"node-darwin-arm64", "bridge", "usbgadget-binary", "sender.c"} {
+		if err := m.ApplyCompiledDarwinDigests(map[string]string{forbidden: valid}); err == nil {
+			t.Fatalf("disallowed component %s accepted compiled digest override", forbidden)
+		}
+	}
+	if err := m.ApplyCompiledDarwinDigests(map[string]string{"sender": "not-a-sha256"}); err == nil {
+		t.Fatal("malformed sha256 accepted")
+	}
+}

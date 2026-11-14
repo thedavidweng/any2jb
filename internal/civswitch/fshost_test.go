@@ -37,14 +37,14 @@ const emit = event => process.stdout.write('MAC2JB_CIVSWITCH_FS ' + JSON.stringi
   await fs.writeFile(path.join(port, 'engine/shared/ipc.cjs'), 'patched\n', {mode: 0o600});
   const runPath = path.join(port, 'engine', 'runs', 'switch2-abc123');
   await fs.mkdir(runPath, {recursive: true, mode: 0o700});
-  emit({type: 'host-starting', stagePath: root, message: 'Waiting for the CivSwitch FS host'});
-  emit({type: 'progress', message: '4/4 verified.'});
-  emit({type: 'held-ready', runPath, target: 'civ7', message: 'CivSwitch FS and RPC verified'});
   const timer = setInterval(() => {}, 1000);
   process.on('SIGINT', () => {
     emit({type: 'stopped', message: 'CivSwitch FS host stopped', runPath});
     clearInterval(timer);
   });
+  emit({type: 'host-starting', stagePath: root, message: 'Waiting for the CivSwitch FS host'});
+  emit({type: 'progress', message: '4/4 verified.'});
+  emit({type: 'held-ready', runPath, target: 'civ7', message: 'CivSwitch FS and RPC verified'});
 })().catch(error => {
   emit({type: 'failed', message: error.message});
   process.exitCode = 1;
@@ -106,6 +106,10 @@ func newFSHostFixtureWith(t *testing.T, supervisor string) *fsFixture {
 	node, err := exec.LookPath("node")
 	if err != nil {
 		t.Skip("the CivSwitch FS supervisor needs Node")
+	}
+	node, err = filepath.EvalSymlinks(node)
+	if err != nil {
+		t.Fatal(err)
 	}
 	return &fsFixture{
 		request: FSHostRequest{

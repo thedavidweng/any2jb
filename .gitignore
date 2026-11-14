@@ -15,5 +15,6 @@ mygo_windows_*.syso
 /resources/darwin-arm64/
 /resources/linux-amd64/
 /resources/linux-arm64/
+/internal/manifest/profiles.json.built
 /any2jb
 /any2jb.exe

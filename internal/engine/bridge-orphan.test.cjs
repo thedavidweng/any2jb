@@ -92,6 +92,18 @@ test("killing the owner closes bridge stdin and removes its owned lease/workspac
 				"retained private data",
 			);
 		}
+		// On Linux, do_exit() closes inherited pipes before PID 1 / the subreaper
+		// reaps the reparented child's zombie entry from the process table.
+		const deadline = Date.now() + 5000;
+		while (Date.now() < deadline) {
+			try {
+				process.kill(pid, 0);
+			} catch (error) {
+				if (error.code === "ESRCH") break;
+				throw error;
+			}
+			await new Promise((resolve) => setTimeout(resolve, 20));
+		}
 		assert.throws(() => process.kill(pid, 0), { code: "ESRCH" });
 	} finally {
 		parent.kill("SIGKILL");
