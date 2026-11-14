@@ -53,6 +53,15 @@ go run ./cmd/check-package
 go tool mygo dev
 ```
 
+CI keeps three-platform race tests, package integrity checks, and packaged
+self-tests for code, dependency, and build-workflow changes. Documentation and
+auxiliary-workflow-only changes use the docs and workflow checks instead.
+New commits cancel obsolete CI runs on the same branch; release runs are never
+cancelled this way. CI caches Go modules, compilation output, and verified
+runtime downloads. Release builds deliberately use no restored caches, run their
+own quality gates, and build their own installers. CI can also be run manually
+from GitHub Actions.
+
 ## Credits and License
 
 Built on upstream work by `cpypwn` ([mac2jb](https://github.com/cpypwn/mac2jb)), `pepsipu`, `kurumuz`, `Cellenseres`, `BermTheSequel`, `Gezine`, `shinyquagsire23`, and all plugin authors listed in the in-app **About** view (`any2jb about`) and [docs/external-projects.md](docs/external-projects.md).
