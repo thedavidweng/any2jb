@@ -31,3 +31,24 @@ func TestOnlySelectedObservedControllerCanBePromotedByKeyboardReady(t *testing.T
 		t.Fatal("promotion mutated the original observation")
 	}
 }
+
+func TestUSBPowerSourceAvailabilityIsAdvisory(t *testing.T) {
+	transport := session.Transport{Capabilities: session.Capabilities{Keyboard: true}}
+	for _, state := range []session.CheckState{session.Available, session.RequiresAttention} {
+		check := session.Check{
+			ID:             session.CheckUSBPowerSource,
+			State:          state,
+			GatesTransport: session.GateUSBHID,
+		}
+		if got, want := check.Blocks(transport), state == session.RequiresAttention; got != want {
+			t.Fatalf("state %q blocks = %v, want %v", state, got, want)
+		}
+	}
+	if (session.Check{
+		ID:             session.CheckUSBPowerSource,
+		State:          session.RequiresAttention,
+		GatesTransport: session.GateUSBHID,
+	}).Blocks(session.Transport{Capabilities: session.Capabilities{Manual: true}}) {
+		t.Fatal("USB power source blocks manual transport")
+	}
+}

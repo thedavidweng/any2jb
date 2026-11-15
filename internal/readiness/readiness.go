@@ -23,6 +23,7 @@ type Observation struct {
 	DefaultInterface string
 	NetworkError     error
 	USBSupported     bool
+	PowerSource      string
 	Driver           Driver
 	Controllers      []string
 	ControllerError  error

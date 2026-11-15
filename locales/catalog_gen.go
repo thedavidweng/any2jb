@@ -3614,6 +3614,76 @@ func (msgs Messages) DynUsbConnectCable() string {
 	return Catalog.Format(msgs.locale, "dynUsbConnectCable", nil)
 }
 
+// DynUsbPowerBattery says "The Mac is drawing from battery power; built-in USB keyboard input is not ready."
+// in the language the app shows.
+func DynUsbPowerBattery() string { return In(i18n.Locale()).DynUsbPowerBattery() }
+
+// DynUsbPowerBattery says "The Mac is drawing from battery power; built-in USB keyboard input is not ready."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerBattery() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerBattery", nil)
+}
+
+// DynUsbPowerBatteryAction says "Reconnect the USB-C cable so the Switch powers the Mac, then refresh readiness."
+// in the language the app shows.
+func DynUsbPowerBatteryAction() string { return In(i18n.Locale()).DynUsbPowerBatteryAction() }
+
+// DynUsbPowerBatteryAction says "Reconnect the USB-C cable so the Switch powers the Mac, then refresh readiness."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerBatteryAction() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerBatteryAction", nil)
+}
+
+// DynUsbPowerAC says "The Mac is drawing from AC power. This does not verify that the Switch is powering it."
+// in the language the app shows.
+func DynUsbPowerAC() string { return In(i18n.Locale()).DynUsbPowerAC() }
+
+// DynUsbPowerAC says "The Mac is drawing from AC power. This does not verify that the Switch is powering it."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerAC() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerAC", nil)
+}
+
+// DynUsbPowerACAction says "AC power does not establish USB readiness; confirm the Switch powers the Mac and verify keyboard enumeration."
+// in the language the app shows.
+func DynUsbPowerACAction() string { return In(i18n.Locale()).DynUsbPowerACAction() }
+
+// DynUsbPowerACAction says "AC power does not establish USB readiness; confirm the Switch powers the Mac and verify keyboard enumeration."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerACAction() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerACAction", nil)
+}
+
+// DynUsbPowerUnknown says "The Mac USB-C power source could not be determined."
+// in the language the app shows.
+func DynUsbPowerUnknown() string { return In(i18n.Locale()).DynUsbPowerUnknown() }
+
+// DynUsbPowerUnknown says "The Mac USB-C power source could not be determined."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerUnknown() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerUnknown", nil)
+}
+
+// DynUsbPowerUnknownAction says "Check the USB-C power connection, then refresh readiness; verify keyboard enumeration before sending input."
+// in the language the app shows.
+func DynUsbPowerUnknownAction() string { return In(i18n.Locale()).DynUsbPowerUnknownAction() }
+
+// DynUsbPowerUnknownAction says "Check the USB-C power connection, then refresh readiness; verify keyboard enumeration before sending input."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerUnknownAction() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerUnknownAction", nil)
+}
+
+// DynUsbPowerStepAction says "Reconnect the USB-C cable so the Switch powers the Mac, then verify keyboard enumeration before sending input."
+// in the language the app shows.
+func DynUsbPowerStepAction() string { return In(i18n.Locale()).DynUsbPowerStepAction() }
+
+// DynUsbPowerStepAction says "Reconnect the USB-C cable so the Switch powers the Mac, then verify keyboard enumeration before sending input."
+// in the language of msgs.
+func (msgs Messages) DynUsbPowerStepAction() string {
+	return Catalog.Format(msgs.locale, "dynUsbPowerStepAction", nil)
+}
+
 // DynRtNodeVerified says "Bundled Node runtime integrity verified."
 // in the language the app shows.
 func DynRtNodeVerified() string { return In(i18n.Locale()).DynRtNodeVerified() }

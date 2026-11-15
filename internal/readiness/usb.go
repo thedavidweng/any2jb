@@ -54,6 +54,16 @@ func usbChecks(o Observation) []session.Check {
 		setCheckText(&sip, locales.Key("dynSipDisabled"), locales.Text{})
 	}
 	checks := []session.Check{sip, present, loaded, restart}
+	power := makeUSBCheck(session.CheckUSBPowerSource,
+		locales.Key("dynUsbPowerUnknown"), locales.Key("dynUsbPowerUnknownAction"), session.Available)
+	switch o.PowerSource {
+	case "battery":
+		power.State = session.RequiresAttention
+		setCheckText(&power, locales.Key("dynUsbPowerBattery"), locales.Key("dynUsbPowerBatteryAction"))
+	case "ac":
+		setCheckText(&power, locales.Key("dynUsbPowerAC"), locales.Key("dynUsbPowerACAction"))
+	}
+	checks = append(checks, power)
 	controllers := makeUSBCheck(session.CheckUSBControllers,
 		locales.Key("dynUsbNoControllers"), locales.Key("dynUsbCheckCableDirection"), session.RequiresAttention)
 	if o.ControllerError != nil {

@@ -191,6 +191,7 @@ func projectDarwinSteps(s session.Snapshot, route USBRoute) []SetupStep {
 	loaded := session.FindCheck(s.Checks, session.CheckDriverLoaded)
 	restart := session.FindCheck(s.Checks, session.CheckDriverRestart)
 	controllers := session.FindCheck(s.Checks, session.CheckUSBControllers)
+	power := session.FindCheck(s.Checks, session.CheckUSBPowerSource)
 	unsupported := session.FindCheck(s.Checks, session.CheckUSBPlatform).State == session.RequiresAttention
 	unavailable := route == USBUnavailable
 	found := countControllerChecks(s.Checks)
@@ -244,6 +245,8 @@ func projectDarwinSteps(s session.Snapshot, route USBRoute) []SetupStep {
 	switch {
 	case unsupported:
 		set(&steps[3], session.Available, locales.MacNotAvailable(), locales.MacConnectUnsupported(), SetupNoAction)
+	case power.State == session.RequiresAttention:
+		set(&steps[3], session.RequiresAttention, locales.MacNeedsAction(), locales.Key("dynUsbPowerStepAction").Local(), SetupNoAction)
 	case unavailable:
 		set(&steps[3], session.Available, locales.MacWaiting(), locales.MacConnectWaiting(), SetupNoAction)
 	case controllers.State == session.CheckVerified:

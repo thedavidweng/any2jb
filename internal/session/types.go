@@ -110,6 +110,7 @@ const (
 	CheckDriverLoaded      = "driver-loaded"
 	CheckDriverRestart     = "driver-restart"
 	CheckUSBControllers    = "usb-controllers"
+	CheckUSBPowerSource    = "usb-power-source"
 	CheckUSBPlatform       = "usb-platform"
 	CheckUSBRuntime        = "usb-runtime"
 	CheckRuntime           = "runtime"
@@ -163,8 +164,8 @@ func (c Check) IsDetectionCheck() bool {
 }
 
 func (c Check) Blocks(transport Transport) bool {
-	// An unknown SIP observation is advisory; only observed enabled SIP blocks USB.
-	if c.ID == CheckSIP && c.State == Available {
+	// Unverified SIP and USB power-source observations are advisory until a blocking condition is observed.
+	if (c.ID == CheckSIP || c.ID == CheckUSBPowerSource) && c.State == Available {
 		return false
 	}
 	return c.AppliesTo(transport) && c.State != CheckVerified

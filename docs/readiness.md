@@ -72,9 +72,11 @@ Even with device-mode hardware, a gadget port enumerates only while the console
 powers the computer: the USB-C power role decides whether the port carries a
 device. After a console restart the role can flip, macOS falls back to battery
 power, and every later enumeration times out until the USB-C cable is
-reconnected; `pmset -g batt` reporting AC power is the host-side signal that the
-console is the power source again. Observed once on one host/console pair; the
-power role is not yet a readiness fact.
+reconnected. On Apple Silicon macOS, readiness records the `pmset -g batt`
+power source: battery power blocks built-in USB input and directs the user to
+reconnect the cable, while AC and unknown sources remain advisory because they
+do not prove that the console is powering the Mac or that keyboard enumeration
+works. This is a host-side observation, not console-side verification.
 
 On Linux (`linux/amd64` and `linux/arm64`) the adapter independently observes:
 

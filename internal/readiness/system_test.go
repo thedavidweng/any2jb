@@ -3,6 +3,7 @@ package readiness_test
 import (
 	"context"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/thedavidweng/any2jb/internal/readiness"
@@ -19,6 +20,13 @@ func TestReadOnlySystemInspection(t *testing.T) {
 	}
 	if len(checks) < 2 || checks[0].ID != "network" {
 		t.Fatal("missing independent checks")
+	}
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		power := session.FindCheck(checks, session.CheckUSBPowerSource)
+		if power.ID == "" || power.GatesTransport != session.GateUSBHID {
+			t.Fatalf("missing observed USB power-source check: %+v", power)
+		}
+		t.Logf("Observed USB power-source check state: %s", power.State)
 	}
 	for _, check := range checks {
 		switch check.State {
