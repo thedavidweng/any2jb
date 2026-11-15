@@ -2,6 +2,8 @@
 
 Cross-platform fork of [mac2jb](https://github.com/cpypwn/mac2jb) (`v0.8.2` parity) for macOS and Linux, with a native desktop UI, full CLI parity, and on-demand plugin installs.
 
+![any2jb on macOS, showing the guided Switch preparation checklist and session steps](docs/images/any2jb-macos.png)
+
 ## Features
 
 - **macOS and Linux**: Native UI and single-binary CLI on Apple Silicon macOS (`darwin/arm64`) and Linux (`linux/amd64`, `linux/arm64`, GTK3 without WebKitGTK).
