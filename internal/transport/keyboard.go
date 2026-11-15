@@ -43,7 +43,11 @@ func (d *Darwin) openKeyboard(ctx context.Context, run session.Run, report sessi
 }
 
 func (d *Darwin) OpenKeyboardSession(ctx context.Context, run session.Run, report session.Report) (session.Keyboard, error) {
-	return d.OpenKeyboard(ctx, run, report)
+	k, err := d.OpenKeyboard(ctx, run, report)
+	if err != nil {
+		return nil, err
+	}
+	return k, nil
 }
 
 func (d *Darwin) SelectedKeyboardController() string {

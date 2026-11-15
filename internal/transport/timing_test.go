@@ -16,6 +16,9 @@ func TestControllerAndTimingAreValidatedBeforeStartingAHelper(t *testing.T) {
 			if _, err := d.OpenKeyboard(context.Background(), session.Run{ID: "invalid"}, func(session.Progress) {}); err == nil {
 				t.Fatal("accepted invalid controller")
 			}
+			if k, err := d.OpenKeyboardSession(context.Background(), session.Run{ID: "invalid"}, func(session.Progress) {}); err == nil || k != nil {
+				t.Fatalf("failed open returned keyboard %#v, error %v", k, err)
+			}
 		})
 	}
 	for _, change := range []func(*transport.Timing){
