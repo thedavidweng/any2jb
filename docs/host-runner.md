@@ -39,6 +39,13 @@ at most 8 MiB. A fresh loopback RPC status request must report ready. Finish sen
 one structured release request, then requires final cleanup, closed RPC and a
 clean exit. The controller's required Wait watcher invalidates a crashed lease.
 
+Upstream's own recovery line differs by cleanup state: a failed run whose cleanup
+still verified may be retried after closing and reopening SmileBASIC on the same
+console boot, while a run with retained resources (`cleanupErrors`, a wedged app)
+needs a console restart first. any2jb intentionally stays stricter: Stop after
+any side effect requires the restart confirmation, and verification never relaxes
+`fs.cleanup.cleanedUp`.
+
 ## Ownership and teardown
 
 Prepare creates an exclusive `session.lock` and fresh `runs/run-*` workspace.

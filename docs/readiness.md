@@ -68,6 +68,14 @@ driver is loaded. Enumeration and accepted console input require later transport
 evidence. Windows and Intel macOS report built-in USB input unsupported;
 ordinary USB-C never implies device-mode capability.
 
+Even with device-mode hardware, a gadget port enumerates only while the console
+powers the computer: the USB-C power role decides whether the port carries a
+device. After a console restart the role can flip, macOS falls back to battery
+power, and every later enumeration times out until the USB-C cable is
+reconnected; `pmset -g batt` reporting AC power is the host-side signal that the
+console is the power source again. Observed once on one host/console pair; the
+power role is not yet a readiness fact.
+
 On Linux (`linux/amd64` and `linux/arm64`) the adapter independently observes:
 
 - Default-route interface discovery from `/proc/net/route`, excluding common

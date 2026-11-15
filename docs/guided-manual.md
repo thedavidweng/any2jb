@@ -65,6 +65,21 @@ The START command is exposed only in the manual prompt and explicit clipboard
 action. It is not stored in preferences, controller snapshots or public events.
 Do not paste pairing commands into diagnostics or support messages.
 
+### What the console prints around START
+
+The pinned kurumuz-family bootstrap prints its own progress, so the console
+screen separates success from failure without waiting on the host:
+
+- `V=START(...)` prints `OK` even when the connect failed: the assignment
+  completed and the return code is stored in `V`, never shown. `OK` alone is
+  not evidence of a connection.
+- A successful connect prints `HOST CONNECTED`, then `RPC RUNNING`.
+- `BOOT FAILED` with a number means the bootstrap rejected a step; code 58 is
+  the connect call failing (check the network link and that the host is still
+  listening).
+
+Source: the pinned `bootstrap.bas` `FAIL`, `START` and `RPC` definitions.
+
 ## Verification and ending a session
 
 Acknowledging START does not mark a session verified. The supervised host must
