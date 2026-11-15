@@ -27,7 +27,7 @@ The **Use** column means:
 
 | Project | Pinned | Role | License |
 |---|---|---|---|
-| [egoist/mygo](https://github.com/egoist/mygo) | [`a4b6734f7715c9f73709092f7bae80d861572c03`](https://github.com/egoist/mygo/tree/a4b6734f7715c9f73709092f7bae80d861572c03) | Native UI framework and build tool, and the placeholder icon (`placeholder-icon`, `mygo-notice`) | MIT |
+| [egoist/mygo](https://github.com/egoist/mygo) | [`a4b6734f7715c9f73709092f7bae80d861572c03`](https://github.com/egoist/mygo/tree/a4b6734f7715c9f73709092f7bae80d861572c03) | Native UI framework and build tool (`mygo-notice`) | MIT |
 | [Node.js](https://nodejs.org) | `v24.22.1` ([darwin-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz), [linux-x64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz), [linux-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-arm64.tar.gz)) | Runs the ns2jb host bridge and tool host (`node-darwin-arm64`, `node-linux-amd64`, `node-linux-arm64`, `node-notice`) | MIT plus bundled notices |
 
 Go modules compiled into the binary, from `go.mod`:
@@ -63,6 +63,17 @@ Five `ns2jb` host profiles (`kurumuz`, `pepsipu`, `cellenseres`, `BermTheSequel`
 | Cellenseres | [github.com/Cellenseres/ns2jb](https://github.com/Cellenseres/ns2jb) | [`2f686045ff88e5a97f959d19752e00ef3b62011f`](https://github.com/Cellenseres/ns2jb/tree/2f686045ff88e5a97f959d19752e00ef3b62011f) | Shipped; includes the same ABI3 patch |
 | BermTheSequel | [gitlab.com/BermTheSequel/ns2jb2](https://gitlab.com/BermTheSequel/ns2jb2) | [`9accf75508f4e7033ffc6912b2ebb7e0b6704e84`](https://gitlab.com/BermTheSequel/ns2jb2/-/tree/9accf75508f4e7033ffc6912b2ebb7e0b6704e84) | Shipped |
 | Astral (custom) | [gitlab.com/kurumuz/ns2jb](https://gitlab.com/kurumuz/ns2jb) | `81d5bb114c856109dadaf1077d927a9f297fe58d` | Shipped; mac2jb's `0.2.0-experimental` derivative of kurumuz |
+
+All five pinned profiles stage the RO donor payload inside the SmileBASIC
+save/tmp mount (`donor-prepare` in each pinned `engine/switch2/ro/files.cjs`);
+none of them reads or writes an SD card. Upstream `kurumuz/ns2jb` builds newer
+than the pinned `81d5bb1` stage donor files on the SD card instead and stop at
+3/4 with `SD filesystem open failed` when no usable card is present. Switch 2
+accepts only microSD Express cards for storage — a classic microSD card is
+rejected at boot — so driving such a newer upstream build directly also requires
+a microSD Express card. Observed once on one console (23.0.1 with the
+microSD Express update, demo edition): the pinned `81d5bb1` engine needs no
+card, while upstream `28f03b5` fails at 3/4 without one.
 
 ## USB input on macOS
 
