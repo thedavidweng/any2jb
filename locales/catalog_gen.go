@@ -3936,21 +3936,21 @@ func (msgs Messages) DynDistBrowserResearch() string {
 	return Catalog.Format(msgs.locale, "dynDistBrowserResearch", nil)
 }
 
-// DynDistMITTemplate says "MIT template asset; retain MyGo copyright and permission notice."
+// DynDistAppIcon says "Original any2jb app icon; no upstream artwork."
 // in the language the app shows.
-func DynDistMITTemplate() string { return In(i18n.Locale()).DynDistMITTemplate() }
+func DynDistAppIcon() string { return In(i18n.Locale()).DynDistAppIcon() }
 
-// DynDistMITTemplate says "MIT template asset; retain MyGo copyright and permission notice."
+// DynDistAppIcon says "Original any2jb app icon; no upstream artwork."
 // in the language of msgs.
-func (msgs Messages) DynDistMITTemplate() string {
-	return Catalog.Format(msgs.locale, "dynDistMITTemplate", nil)
+func (msgs Messages) DynDistAppIcon() string {
+	return Catalog.Format(msgs.locale, "dynDistAppIcon", nil)
 }
 
-// DynDistMygoNotice says "Required notice for the MyGo framework and placeholder icon."
+// DynDistMygoNotice says "Required notice for the MyGo framework."
 // in the language the app shows.
 func DynDistMygoNotice() string { return In(i18n.Locale()).DynDistMygoNotice() }
 
-// DynDistMygoNotice says "Required notice for the MyGo framework and placeholder icon."
+// DynDistMygoNotice says "Required notice for the MyGo framework."
 // in the language of msgs.
 func (msgs Messages) DynDistMygoNotice() string {
 	return Catalog.Format(msgs.locale, "dynDistMygoNotice", nil)

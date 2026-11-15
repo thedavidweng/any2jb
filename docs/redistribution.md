@@ -46,8 +46,11 @@ Current inventory:
   GPL-2.0-only with unresolved inherited module rights.
 - **any2jb tool host:** may-ship, bundled. `runtime/toolhost.cjs` is original
   any2jb code that only drives separately staged tool sources.
-- **MyGo placeholder icon and MIT notice:** may-ship, bundled. The complete
-  framework copyright and permission notice is in
+- **any2jb app icon:** may-ship, bundled. `resources/icon.png` (`app-icon`)
+  is original any2jb artwork generated for this project with OpenAI image
+  generation through Codex; it contains no upstream icon.
+- **MyGo MIT notice:** may-ship, bundled. The complete framework copyright and
+  permission notice is in
   [`resources/licenses/mygo.txt`](../resources/licenses/mygo.txt).
 
 Node 24.22.1 darwin-arm64 and the original any2jb structured profile bridge

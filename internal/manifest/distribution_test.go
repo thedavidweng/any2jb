@@ -225,10 +225,10 @@ func TestCanonicalResourcesPassDistributionGate(t *testing.T) {
 	// upstream vendor files until prepare-runtime runs; the build gate must
 	// reject that unpopulated state while still verifying all committed files.
 	committed := map[string]bool{
-		"placeholder-icon": true,
-		"mygo-notice":      true,
-		"engine-bridge":    true,
-		"tool-host":        true,
+		"app-icon":      true,
+		"mygo-notice":   true,
+		"engine-bridge": true,
+		"tool-host":     true,
 	}
 	missingGenerated := false
 	for _, p := range m.Profiles {

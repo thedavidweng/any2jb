@@ -189,7 +189,7 @@ var DistributionKeys = map[string]string{
 	"usbgadget-info":            "dynDistUsbgadgetInfo",
 	"usbgadget-checksums":       "dynDistUsbgadgetChecksums",
 	"driver-installer":          "dynDistDriverInstaller",
-	"placeholder-icon":          "dynDistMITTemplate",
+	"app-icon":                  "dynDistAppIcon",
 	"mygo-notice":               "dynDistMygoNotice",
 	"node-darwin-arm64":         "dynDistNode",
 	"node-linux-amd64":          "dynDistNode",

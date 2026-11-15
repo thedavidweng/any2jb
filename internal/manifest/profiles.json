@@ -538,17 +538,17 @@
       }
     },
     {
-      "id": "placeholder-icon",
-      "upstream": "https://github.com/egoist/mygo",
-      "revision": "a4b6734f7715c9f73709092f7bae80d861572c03",
+      "id": "app-icon",
+      "upstream": "any2jb",
+      "revision": "0.1.1",
       "path": "icon.png",
-      "sha256": "9458f078158e62e71585ae86e46329ed9075eb0711b84c1ebcb694a2652bf887",
-      "licenseStatus": "MIT; generated MyGo template placeholder.",
+      "sha256": "f4486bbf65815d22741ee4b934a7b46fbb5ff464118bd74e67a7f0e35d2be1a6",
+      "licenseStatus": "Original any2jb app icon.",
       "distribution": {
         "decision": "may-ship",
         "bundled": true,
-        "notice": "licenses/mygo.txt",
-        "reason": "MIT template asset; retain MyGo copyright and permission notice."
+        "notice": "Original any2jb artwork; no upstream icon.",
+        "reason": "Original any2jb app icon; no upstream artwork."
       }
     },
     {
@@ -562,7 +562,7 @@
         "decision": "may-ship",
         "bundled": true,
         "notice": "licenses/mygo.txt",
-        "reason": "Required notice for the MyGo framework and placeholder icon."
+        "reason": "Required notice for the MyGo framework."
       }
     },
     {
