@@ -1,40 +1,19 @@
-name: Dependabot Auto-Merge
+name: Dependabot auto-merge
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  pull_request_target: # zizmor: ignore[dangerous-triggers] Metadata only; the called workflow never checks out PR code.
 
 permissions: {}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: dependabot-automerge-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   automerge:
-    name: Approve and enable auto-merge
+    name: Dependabot
     if: github.event.pull_request.user.login == 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
     permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Fetch Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Enable auto-merge for safe updates
-        if: >-
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          (steps.metadata.outputs.package-ecosystem == 'github-actions' &&
-           steps.metadata.outputs.update-type != 'version-update:semver-major') ||
-          steps.metadata.outputs.alert-state != ''
-        env:
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr review --approve "$PR_URL"
-          gh pr merge --auto --squash "$PR_URL"
+      contents: write # enable auto-merge
+      pull-requests: write # approve and enable auto-merge
+    uses: thedavidweng/.github/.github/workflows/dependabot-automerge.yml@967ed68dc0fcd4291e1c94c3565cad0f403e5744 # v1.1.0
