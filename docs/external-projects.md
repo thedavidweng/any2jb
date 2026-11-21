@@ -34,7 +34,7 @@ Go modules compiled into the binary, from `go.mod`:
 
 | Module | Version | Role |
 |---|---|---|
-| [github.com/egoist/mygo](https://github.com/egoist/mygo) | `v0.8.4-0.20261110062621-a4b6734f7715` | UI framework (above) |
+| [github.com/egoist/mygo](https://github.com/egoist/mygo) | `v0.9.0` | UI framework (above) |
 | [github.com/spf13/cobra](https://github.com/spf13/cobra) | `v1.10.2` | Command line |
 | [github.com/spf13/pflag](https://github.com/spf13/pflag) | `v1.0.9` | Cobra flags |
 | [github.com/inconshreveable/mousetrap](https://github.com/inconshreveable/mousetrap) | `v1.1.0` | Cobra on Windows |
@@ -43,6 +43,19 @@ Go modules compiled into the binary, from `go.mod`:
 | [golang.org/x/image](https://pkg.go.dev/golang.org/x/image) | `v0.46.0` | MyGo images and fonts |
 | [golang.org/x/net](https://pkg.go.dev/golang.org/x/net) | `v0.59.0` | MyGo dependency |
 | [golang.org/x/text](https://pkg.go.dev/golang.org/x/text) | `v0.43.0` | MyGo dependency |
+
+Go modules used only by the `mygo` build tool (`tool` in `go.mod`) to package
+releases, not compiled into the app binary:
+
+| Module | Version | Role |
+|---|---|---|
+| [go.digitalxero.dev/rpm](https://pkg.go.dev/go.digitalxero.dev/rpm) | `v0.3.4` | MyGo RPM packaging |
+| [github.com/ProtonMail/go-crypto](https://github.com/ProtonMail/go-crypto) | `v1.4.1` | RPM package signing |
+| [github.com/cloudflare/circl](https://github.com/cloudflare/circl) | `v1.6.2` | go-crypto elliptic curves |
+| [github.com/klauspost/compress](https://github.com/klauspost/compress) | `v1.18.7` | RPM zstd compression |
+| [github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) | `v0.5.15` | RPM xz compression |
+| [golang.org/x/crypto](https://pkg.go.dev/golang.org/x/crypto) | `v0.57.0` | go-crypto primitives |
+| [golang.org/x/sys](https://pkg.go.dev/golang.org/x/sys) | `v0.48.0` | CPU feature detection |
 
 ## Build and check toolchain
 
