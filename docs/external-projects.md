@@ -27,7 +27,7 @@ The **Use** column means:
 
 | Project | Pinned | Role | License |
 |---|---|---|---|
-| [egoist/mygo](https://github.com/egoist/mygo) | [`a4b6734f7715c9f73709092f7bae80d861572c03`](https://github.com/egoist/mygo/tree/a4b6734f7715c9f73709092f7bae80d861572c03) | Native UI framework and build tool (`mygo-notice`) | MIT |
+| [egoist/mygo](https://github.com/egoist/mygo) | [`4811a2869b5a66d2b7e21a9eb5993fcff544460b`](https://github.com/egoist/mygo/tree/4811a2869b5a66d2b7e21a9eb5993fcff544460b) | Native UI framework and build tool (`mygo-notice`) | MIT |
 | [Node.js](https://nodejs.org) | `v24.22.1` ([darwin-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-darwin-arm64.tar.gz), [linux-x64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.gz), [linux-arm64](https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-arm64.tar.gz)) | Runs the ns2jb host bridge and tool host (`node-darwin-arm64`, `node-linux-amd64`, `node-linux-arm64`, `node-notice`) | MIT plus bundled notices |
 
 Go modules compiled into the binary, from `go.mod`:
