@@ -18,7 +18,7 @@
 		"check": "biome check . && bun check --no-script && bun run upstream:verify && bun run test:js"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.6.6",
+		"@biomejs/biome": "2.6.7",
 		"@types/node": "26.6.6"
 	}
 }
