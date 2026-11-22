@@ -373,7 +373,7 @@ func TestMergedPackageResolvesPackagedPathsAndRejectsExcluded(t *testing.T) {
 	}
 
 	linuxRoot := t.TempDir()
-	for _, name := range []string{"runtime/helper.cjs", ".mygo-files", "any2jb", "any2jb.desktop", "any2jb-0.1.0-linux-amd64.tar.gz", "any2jb_0.1.0_amd64.deb", "install.sh", "PKGBUILD"} {
+	for _, name := range []string{"runtime/helper.cjs", ".mygo-files", "any2jb", "any2jb.desktop", "any2jb-0.1.0-linux-amd64.tar.gz", "any2jb_0.1.0_amd64.deb", "any2jb-0.1.0-1.x86_64.rpm", "install.sh", "PKGBUILD"} {
 		if err := os.MkdirAll(filepath.Join(linuxRoot, filepath.Dir(name)), 0o700); err != nil {
 			t.Fatal(err)
 		}
