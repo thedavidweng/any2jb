@@ -51,7 +51,7 @@ releases, not compiled into the app binary:
 |---|---|---|
 | [go.digitalxero.dev/rpm](https://pkg.go.dev/go.digitalxero.dev/rpm) | `v0.3.4` | MyGo RPM packaging |
 | [github.com/ProtonMail/go-crypto](https://github.com/ProtonMail/go-crypto) | `v1.4.1` | RPM package signing |
-| [github.com/cloudflare/circl](https://github.com/cloudflare/circl) | `v1.6.2` | go-crypto elliptic curves |
+| [github.com/cloudflare/circl](https://github.com/cloudflare/circl) | `v1.6.3` | go-crypto elliptic curves |
 | [github.com/klauspost/compress](https://github.com/klauspost/compress) | `v1.18.7` | RPM zstd compression |
 | [github.com/ulikunitz/xz](https://github.com/ulikunitz/xz) | `v0.5.15` | RPM xz compression |
 | [golang.org/x/crypto](https://pkg.go.dev/golang.org/x/crypto) | `v0.57.0` | go-crypto primitives |
