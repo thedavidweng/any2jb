@@ -15,7 +15,7 @@ require (
 	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/go-text/typesetting v0.3.5 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/klauspost/compress v1.18.6 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
 	go.digitalxero.dev/rpm v0.3.4 // indirect

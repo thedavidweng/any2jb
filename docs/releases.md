@@ -25,7 +25,7 @@ via **Plugins** or `any2jb plugins install`.
 ## Reproduce a local package
 
 Build on Apple Silicon macOS with Go **1.27.3** and the MyGo library/CLI revision
-in `go.mod`, currently `a4b6734f7715c9f73709092f7bae80d861572c03`.
+in `go.mod`, currently `v0.9.0` (`4811a2869b5a66d2b7e21a9eb5993fcff544460b`).
 Node **24.22.1** is fetched as an official prebuilt archive by the build hook;
 its archive, binary and notice digests live only in `internal/manifest/profiles.json`.
 Neither a system Node nor Bun is used to build or run the native app.

@@ -554,7 +554,7 @@
     {
       "id": "mygo-notice",
       "upstream": "https://github.com/egoist/mygo",
-      "revision": "a4b6734f7715c9f73709092f7bae80d861572c03",
+      "revision": "4811a2869b5a66d2b7e21a9eb5993fcff544460b",
       "path": "licenses/mygo.txt",
       "sha256": "f0b56f4ab53beb6e18c5e155219c2e2b6000b5475c0ae3ddb3af3894fd9349b4",
       "licenseStatus": "MIT copyright and permission notice, verbatim upstream LICENSE.",
