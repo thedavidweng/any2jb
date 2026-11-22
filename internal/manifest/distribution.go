@@ -144,7 +144,8 @@ func (m *Manifest) CheckPackageMergedForPlatform(root, platform string) error {
 				return true
 			}
 			return strings.HasPrefix(name, "any2jb-") && strings.HasSuffix(name, ".tar.gz") ||
-				strings.HasPrefix(name, "any2jb_") && strings.HasSuffix(name, ".deb")
+				strings.HasPrefix(name, "any2jb_") && strings.HasSuffix(name, ".deb") ||
+				strings.HasPrefix(name, "any2jb-") && strings.HasSuffix(name, ".rpm")
 		}
 		return false
 	})
